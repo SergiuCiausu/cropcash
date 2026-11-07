@@ -16,6 +16,23 @@
 
 Monedă: `ron`, sume în bani (ca `amount` în Stripe: 1 leu = 100).
 
+## 1b. Verificat pe contul de sandbox (7 noiembrie 2026)
+
+Stripe a schimbat regulile pentru platformele noi. Ce merge, testat cap-coadă pe sandbox:
+
+| Pas | Cum merge | Ce nu mai merge |
+|---|---|---|
+| Contul fermierului | **Accounts v2**: `POST /v2/core/accounts`, header `Stripe-Version: 2026-10-28.endive`, `identity.country=ro`, `entity_type=individual`, `configuration.recipient.capabilities.stripe_balance.stripe_transfers.requested=true`, `dashboard=none`, `defaults.currency=ron`, `responsibilities: fees_collector=application, losses_collector=application` | v1 `accounts.create` cu `type=express` e respins pentru platforme noi |
+| Riscul | platforma a confirmat „Negative balance liability” în Platform profile (sandbox) | fără confirmare, Stripe impune risc „managed” și onboarding găzduit de Stripe |
+| Datele fermierului (KYC) | le trimite platforma (`requirements_collector=application`) prin `POST /v2/core/accounts/{id}`: nume, data nașterii, adresă, `identity.attestations.terms_of_service.account` (dată + IP), `defaults.profile.business_url`. Valori de test: data nașterii 1901-01-01, `line1=address_full_match` | — |
+| Contul bancar | v1 `POST /v1/accounts/{id}/external_accounts`, IBAN de test `RO49AAAA1B31007593840000`, `currency=ron` | — |
+| Salarii doar la cerere | v1 `POST /v1/accounts/{id}` cu `settings[payouts][schedule][interval]=manual`. **Obligatoriu:** implicit e `daily` cu întârziere de 7 zile, adică Stripe ar trimite singur tot soldul | — |
+| Avansul APIA simulat | `PaymentIntent` cu `amount`, `currency=ron`, `payment_method=pm_card_bypassPending`, `confirm=true`, `automatic_payment_methods[enabled]=true`, `[allow_redirects]=never`, `transfer_data[destination]=acct_…`. Banii sunt disponibili imediat în contul fermierului | `payment_method_types` nu mai e acceptat |
+| Salariul | v1 `POST /v1/payouts` cu header `Stripe-Account: acct_…`, `amount`, `currency=ron` → status `pending` | — |
+| Închiderea unui cont de test | `POST /v2/core/accounts/{id}/close` cu `applied_configurations=["recipient"]` | — |
+
+Fermierul **nu vede nimic din Stripe**: nici dashboard, nici pagini de onboarding. Datele le introduce în CropCash; în demo folosim valorile de test de mai sus.
+
 ## 2. Ordinea în care creăm obiectele
 
 **La onboarding:**

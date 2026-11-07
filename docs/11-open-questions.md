@@ -25,7 +25,7 @@
 | 19 | Istoricul pe județ (INS) și „3 din 10 ani proști la porumb” în Teleorman | date ilustrative | INS Tempo (AGR108A sau similar) | fondul de risc |
 | 20 | Pilonul III: plafonul de deductibilitate; CEI: plafoanele | neafișate | ASF, Legea 202/2026 | ecranul de pensie |
 | 21 | Lunile de cheltuieli și ponderile pe cultură | presupuse (`crops-reference.json`) | un agronom / fermieri reali | forma calendarului |
-| 22 | Stripe: suportul pentru conturi Express cu country RO, payouts în RON și IBAN-ul de test RO | presupus | documentația Stripe, la pasul 6 | arhitectura Stripe |
+| 22 | ~~Stripe: conturi conectate RO, payouts în RON, IBAN de test RO~~ | **Rezolvat (7 nov 2026):** merge cu Accounts v2 (recipient, `dashboard=none`, riscul la platformă, confirmat în Platform profile). Detalii în `08-stripe.md` §1b | — | — |
 
 ## B. Presupuneri de produs (decizii luate de noi, editabile)
 
