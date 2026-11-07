@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "campaign_year": 2026,
+    "description": "Termenele campaniei APIA 2026 și alte termene administrative. type: income | admin | deadline.",
+    "note": "Plățile vin etapizat. Banii pentru anul de cerere 2026 ajung în până la 15 luni de la depunerea cererii."
+  },
+  "events": [
+    {
+      "id": "apia-cerere",
+      "type": "deadline",
+      "title_ro": "Depui cererea unică de plată la APIA",
+      "start": "2026-03-16",
+      "end": "2026-06-05",
+      "status": "confirmat-2026",
+      "source_url": "https://economedia.ro/campania-apia-2026-s-a-incheiat-suprafata-declarata-a-crescut-iar-numarul-cererilor-a-scazut.html"
+    },
+    {
+      "id": "apia-modificari",
+      "type": "deadline",
+      "title_ro": "Anunți APIA dacă se schimbă ce ai declarat",
+      "start": null,
+      "end": null,
+      "relative_days": 15,
+      "note": "Notificare în 15 zile de la modificare.",
+      "status": "din-brief",
+      "source_url": null
+    },
+    {
+      "id": "apia-controale",
+      "type": "admin",
+      "title_ro": "Pot veni controale pe teren",
+      "start": "2026-07-01",
+      "end": "2026-10-15",
+      "status": "confirmat-2026",
+      "source_url": "https://financiarul.ro/agricultura/avansul-apia-incepe-pe-16-octombrie-cu-sume-maxime-intre-219-18-si-399/"
+    },
+    {
+      "id": "apia-avans",
+      "type": "income",
+      "title_ro": "Vine avansul APIA (75%)",
+      "start": "2026-10-16",
+      "end": "2026-11-30",
+      "share_pct": 75,
+      "status": "confirmat-2026",
+      "source_url": "https://financiarul.ro/agricultura/avansul-apia-incepe-pe-16-octombrie-cu-sume-maxime-intre-219-18-si-399/"
+    },
+    {
+      "id": "apia-sold",
+      "type": "income",
+      "title_ro": "Vine restul banilor de la APIA",
+      "start": "2026-12-01",
+      "end": "2027-06-30",
+      "share_pct": 25,
+      "status": "confirmat-2026",
+      "source_url": "https://financiarul.ro/agricultura/avansul-apia-incepe-pe-16-octombrie-cu-sume-maxime-intre-219-18-si-399/"
+    },
+    {
+      "id": "credit-adeverinta-scadenta",
+      "type": "deadline",
+      "title_ro": "Dai înapoi creditul pe adeverința APIA",
+      "start": null,
+      "end": "2027-06-30",
+      "note": "De obicei, la termenul de plată APIA (exemplu BRD).",
+      "status": "din-brief",
+      "source_url": null
+    },
+    {
+      "id": "declaratia-unica",
+      "type": "deadline",
+      "title_ro": "Depui Declarația Unică pentru 2026",
+      "start": null,
+      "end": "2027-05-25",
+      "status": "confirmat-2026",
+      "source_url": null
+    },
+    {
+      "id": "acciza-acord-prealabil",
+      "type": "deadline",
+      "title_ro": "Ceri acordul pentru banii înapoi la motorină",
+      "start": null,
+      "end": "2026-12-20",
+      "note": "Rambursarea se face trimestrial.",
+      "status": "DE-VERIFICAT",
+      "source_url": null
+    }
+  ]
+}

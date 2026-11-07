@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "description": "Costuri, producții și prețuri medii pe cultură, 2025–2026. Valorile mean sunt calculate ca medie între min și max (nu sunt date din sursă).",
+    "source_url": "https://www.capital.ro/este-agricultura-profitabila-in-romania-in-2026-analiza-costuri-vs-venituri-pentru-fermieri.html",
+    "status": "din-2025",
+    "subsidy_cost_coverage": {
+      "porumb": { "min_pct": 15, "max_pct": 25 },
+      "grau": { "max_pct": 30 },
+      "status": "din-2025"
+    },
+    "months_status": "DE-VERIFICAT",
+    "months_note": "Lunile de cheltuieli și recoltă vin din calendarul agricol general, nu din sursă. Ponderile pe luni sunt o presupunere de produs."
+  },
+  "crops": [
+    {
+      "id": "grau",
+      "name_ro": "Grâu",
+      "cost_lei_per_ha": { "min": 3500, "mean": 4250, "max": 5000 },
+      "yield_t_per_ha": { "min": 4, "mean": 5, "max": 6 },
+      "price_lei_per_kg": { "min": 0.90, "mean": 1.05, "max": 1.20 },
+      "expense_months": [
+        { "month": 3, "share_pct": 25, "what_ro": "îngrășăminte de primăvară" },
+        { "month": 4, "share_pct": 15, "what_ro": "tratamente" },
+        { "month": 7, "share_pct": 15, "what_ro": "recoltat" },
+        { "month": 9, "share_pct": 15, "what_ro": "arat și pregătit terenul" },
+        { "month": 10, "share_pct": 30, "what_ro": "sămânță și semănat" }
+      ],
+      "harvest_month": 7,
+      "sale_month_default": 7,
+      "status": "din-2025"
+    },
+    {
+      "id": "porumb",
+      "name_ro": "Porumb",
+      "cost_lei_per_ha": { "min": 4000, "mean": 5000, "max": 6000 },
+      "yield_t_per_ha": { "min": 5, "mean": 6.5, "max": 8 },
+      "price_lei_per_kg": { "min": 0.80, "mean": 0.95, "max": 1.10 },
+      "expense_months": [
+        { "month": 3, "share_pct": 15, "what_ro": "pregătit terenul" },
+        { "month": 4, "share_pct": 45, "what_ro": "sămânță, îngrășăminte, semănat" },
+        { "month": 5, "share_pct": 15, "what_ro": "erbicidat" },
+        { "month": 6, "share_pct": 10, "what_ro": "tratamente" },
+        { "month": 10, "share_pct": 15, "what_ro": "recoltat" }
+      ],
+      "harvest_month": 10,
+      "sale_month_default": 10,
+      "status": "din-2025"
+    },
+    {
+      "id": "floarea-soarelui",
+      "name_ro": "Floarea-soarelui",
+      "cost_lei_per_ha": { "min": 3500, "mean": 4500, "max": 5500 },
+      "yield_t_per_ha": { "min": 2, "mean": 2.5, "max": 3 },
+      "price_lei_per_kg": { "min": 1.80, "mean": 2.15, "max": 2.50 },
+      "expense_months": [
+        { "month": 3, "share_pct": 15, "what_ro": "pregătit terenul" },
+        { "month": 4, "share_pct": 45, "what_ro": "sămânță, îngrășăminte, semănat" },
+        { "month": 5, "share_pct": 15, "what_ro": "erbicidat" },
+        { "month": 6, "share_pct": 10, "what_ro": "tratamente" },
+        { "month": 9, "share_pct": 15, "what_ro": "recoltat" }
+      ],
+      "harvest_month": 9,
+      "sale_month_default": 9,
+      "status": "din-2025"
+    }
+  ],
+  "county_history": {
+    "status": "DE-VERIFICAT",
+    "note": "Producțiile medii pe județ (INS) și frecvența anilor proști nu sunt încă descărcate. Exemplul din pitch („3 din 10 ani proști la porumb”) trebuie verificat cu datele INS pentru Teleorman.",
+    "data": []
+  }
+}
