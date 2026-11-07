@@ -1,7 +1,7 @@
-import type { Envelopes, StoredFarm } from '@cropcash/shared';
+import type { Envelopes, PlanFarm } from '@cropcash/shared';
 import type { SupabaseFactory } from './supabase';
 
-export interface FarmRow extends StoredFarm {
+export interface FarmRow extends PlanFarm {
   id: string;
   name: string;
   county: string;
@@ -40,10 +40,13 @@ export interface Repo {
 }
 
 const FARM_SELECT = [
-  'id, name, county, birth_year, start_balance_bani',
+  'id, name, county, birth_year, start_balance_bani, demo_now, stripe_account_id',
   'parcels (crop_id, area_ari, is_arable)',
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
+  'transactions (amount_bani, kind, occurred_at, crop_id)',
+  'pension_plans (monthly_bani, status)',
+  'payouts (amount_bani, scheduled_for, status)',
 ].join(', ');
 
 export function supabaseRepo(db: SupabaseFactory): Repo {

@@ -12,6 +12,10 @@ export interface Env {
   supabaseServiceKey: string;
   /** Optional lei/EUR override; otherwise the default from docs/data is used. */
   exchangeRate?: number;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  /** Enables /api/demo/* (simulated APIA payment, advancing the demo clock). */
+  demoMode: boolean;
 }
 
 export function loadEnv(): Env {
@@ -25,5 +29,8 @@ export function loadEnv(): Env {
     supabaseAnonKey: required('SUPABASE_ANON_KEY'),
     supabaseServiceKey: required('SUPABASE_SERVICE_ROLE_KEY'),
     exchangeRate: process.env.EXCHANGE_RATE_EUR_RON ? Number(process.env.EXCHANGE_RATE_EUR_RON) : undefined,
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || undefined,
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || undefined,
+    demoMode: process.env.DEMO_MODE === 'true',
   };
 }

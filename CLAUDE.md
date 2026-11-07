@@ -21,7 +21,8 @@ npm run test:integration  # pe Supabase-ul real din .env (RLS, auth)
 npm run db:migrate   # aplică supabase/migrations/*.sql (SUPABASE_DB_URL, pooler eu-west-2)
 npm run typecheck
 npm run seed:demo    # datele lui Ion
-stripe listen --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
+stripe listen --events payment_intent.succeeded,invoice.paid,payout.paid,payout.failed --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
+npm run test:stripe  # flux cap-coadă pe sandbox-ul Stripe (lent, ~1-2 min)
 ```
 
 ## Reguli

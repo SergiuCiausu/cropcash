@@ -82,11 +82,34 @@ export interface ExtraPayment {
   date: IsoDate;
 }
 
+/** Income already received (recorded through Stripe): its planned entry is dropped. */
+export interface ReceivedIncome {
+  kind: 'apia_advance' | 'apia_balance' | 'crop_sale';
+  date: IsoDate;
+  cropId?: string;
+}
+
 export interface TimelineInput {
   parcels: Parcel[];
   subsidies: SubsidyResult;
+  /** Money on hand at the start, including everything already received. */
   startBalance: Bani;
   extras?: ExtraPayment[];
+  received?: ReceivedIncome[];
+  /** Ids of planned cost entries already paid (recorded as expenses). */
+  paidCostIds?: ReadonlySet<string>;
+}
+
+/** True when a planned income has already arrived (same kind, inside its window or month). */
+function alreadyReceived(
+  received: ReceivedIncome[],
+  kind: ReceivedIncome['kind'],
+  window: { start: IsoDate; end: IsoDate },
+  cropId?: string,
+): boolean {
+  return received.some(
+    (r) => r.kind === kind && (cropId === undefined || r.cropId === cropId) && r.date >= window.start && r.date <= window.end,
+  );
 }
 
 export interface TimelineOptions {
@@ -95,6 +118,9 @@ export interface TimelineOptions {
   amounts: AmountScenario;
   timing: Timing;
 }
+
+/** Stable id of a planned crop cost (so a recorded payment can replace it). */
+export const costEntryId = (cropId: string, date: IsoDate) => `cost:${cropId}:${date}`;
 
 /** Costs and sales are planned mid-month (product assumption, docs/11 P-list). */
 const MID_MONTH_DAY = 15;
@@ -163,9 +189,11 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
       const month = monthOf(key);
       const date = dayInMonth(key, MID_MONTH_DAY);
       for (const exp of crop.expense_months.filter((e) => e.month === month)) {
+        const id = costEntryId(crop.id, date);
+        if (input.paidCostIds?.has(id)) continue;
         const amount = cropCostRange(crop, parcel.areaAri, exp.share_pct);
         entries.push({
-          id: `cost:${crop.id}:${date}`,
+          id,
           kind: 'input_cost',
           direction: 'out',
           amount,
@@ -180,7 +208,10 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
           unverified: false,
         });
       }
-      if (crop.sale_month_default === month) {
+      if (
+        crop.sale_month_default === month &&
+        !alreadyReceived(input.received ?? [], 'crop_sale', { start: firstDay(key), end: lastDay(key) }, crop.id)
+      ) {
         const amount = cropSaleRange(crop, parcel.areaAri);
         entries.push({
           id: `sale:${crop.id}:${date}`,
@@ -211,6 +242,8 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
       if (ev.type === 'income') {
         const amount = subsidyAmount[ev.id];
         if (!amount || amount.max === 0) continue;
+        const kind = ev.id === 'apia-avans' ? 'apia_advance' : 'apia_balance';
+        if (alreadyReceived(input.received ?? [], kind, occ)) continue;
         // A window already open: the money can still come, but not before today's month.
         const date = maxDate(windowDate(occ.start, occ.end, opts.timing), from);
         if (date > to) continue;

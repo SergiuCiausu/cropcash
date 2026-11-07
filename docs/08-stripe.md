@@ -6,7 +6,7 @@
 
 | Concept CropCash | Obiect Stripe | Real sau simulat |
 |---|---|---|
-| Fermierul | **Connected account de tip Express** (country `RO`, capability `transfers`) | Obiect real în test mode. Platforma nu ține banii în contul ei. |
+| Fermierul | **Connected account Accounts v2, configurație `recipient`**, `dashboard=none` (vezi §1b) | Obiect real în test mode. Platforma nu ține banii în contul ei. |
 | Contul bancar al fermierului | external account pe connected account (IBAN de test Stripe pentru RO) | simulat |
 | Avansul sau soldul APIA | PaymentIntent pe platformă (card de test) + **Transfer** către connected account | simulat (în realitate plătește APIA) |
 | Vânzarea recoltei | același mecanism, cu `metadata.kind = crop_sale` | simulat |
@@ -15,6 +15,35 @@
 | Trecerea timpului | **Test Clock** + ceasul aplicației | vezi secțiunea 4 |
 
 Monedă: `ron`, sume în bani (ca `amount` în Stripe: 1 leu = 100).
+
+## 1c. Implementat (pasul 6)
+
+Codul e în `apps/api/src/stripe/money.ts` (`MoneyService`) și `apps/api/src/routes/money.ts`.
+
+| Ruta | Ce face |
+|---|---|
+| `POST /api/stripe/setup` | Creează o singură dată contul v2 al fermierului (cu datele de identificare de test), IBAN-ul de test, plățile manuale, **Test Clock-ul** („ceasul demo”, `farmers.demo_now`) și customer-ul cu card de test. Se poate apela de mai multe ori fără efecte duble. |
+| `POST /api/demo/income` | „Simulează avansul APIA”: suma din plan (12.652,20 lei pentru Ion), ca destination charge în contul fermierului, la data ceasului demo. |
+| `POST /api/pension` | Abonament lunar în RON pe customer-ul de pe Test Clock. Prima contribuție se plătește imediat. |
+| `POST /api/demo/advance` | „Dăm timpul înainte” cu 1–12 luni: pentru fiecare lună sărită plătește salariul pe 1 ale lunii (payout = salariul sigur calculat de `computeFarmPlan` în acea zi), simulează încasările care cad în perioadă (scenariul normal, la mijlocul ferestrei, deci mai devreme decât planul prudent), înregistrează cheltuielile fermei planificate (plătite din banca fermierului, fără Stripe), mută Test Clock-ul **în pași de cel mult 2 luni** (limita Stripe cu un abonament lunar) și înregistrează facturile de pensie plătite. |
+| `POST /api/webhooks/stripe` | Corp brut, semnătură verificată. `payment_intent.succeeded`, `invoice.paid`, `payout.paid` / `payout.failed`. |
+
+**Toate sumele se înregistrează o singură dată** (`transactions.stripe_object_id` e unic). De aceea fluxul merge și fără `stripe listen`: API-ul înregistrează direct, iar webhook-urile doar confirmă.
+
+**Doar serverul scrie bani** (migrarea 010): fermierul nu poate scrie în `transactions`, `payouts`, `pension_plans` și nu își poate schimba id-urile Stripe sau ceasul demo.
+
+**Lucruri aflate la testare:**
+- Un transfer abia făcut devine disponibil în contul fermierului după câteva secunde. Salariul așteaptă până la 10 secunde.
+- În test mode, un payout trece pe `paid` aproape instant, uneori **înainte** să fie salvat la noi, deci webhook-ul `payout.paid` poate veni prea devreme. Webhook-ul reîncearcă, iar „dăm timpul înainte” sincronizează la final statusul salariilor direct din Stripe.
+- Contribuția de pensie care cade exact pe noua dată a ceasului rămâne factură ciornă: Stripe o finalizează după o oră de timp simulat, deci apare la următoarea mutare.
+- Stripe CLI (v1.55) cere evenimentele explicit: vezi comanda de mai jos.
+
+**Ce e simplificat (de spus la demo):**
+- Pensia se plătește cu un card de test, nu din soldul fermierului.
+- Salariul se plătește din banii ajunși prin Stripe (încasările APIA). Banii pe care fermierul îi avea deja în bancă (soldul de pornire) nu sunt în Stripe. Dacă soldul Stripe nu ajunge, salariul e marcat „nu s-a putut plăti”.
+- Salariul se recalculează în fiecare lună, deci poate varia puțin. Pentru Ion: 900–1.400 lei, pentru că banii APIA vin mai devreme decât planul prudent.
+
+**Testat cap-coadă:** `npm run test:stripe` (sandbox + Supabase): configurare, avans, pensie, 6 luni înainte → 6 salarii plătite, 5–6 contribuții, restul APIA în martie.
 
 ## 1b. Verificat pe contul de sandbox (7 noiembrie 2026)
 

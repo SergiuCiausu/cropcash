@@ -3,11 +3,13 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 export interface AuthUser {
   userId: string;
+  /** From the Supabase token (needed as the contact email of the farmer's Stripe account). */
+  email?: string;
   /** The raw access token, forwarded to Supabase so RLS applies to the request. */
   token: string;
 }
 
-export type TokenVerifier = (token: string) => Promise<{ userId: string }>;
+export type TokenVerifier = (token: string) => Promise<{ userId: string; email?: string }>;
 
 /**
  * Verifies Supabase access tokens locally against the project's JWKS (ES256).
@@ -19,7 +21,7 @@ export function supabaseTokenVerifier(supabaseUrl: string): TokenVerifier {
   return async (token) => {
     const { payload } = await jwtVerify(token, jwks, { issuer, audience: 'authenticated' });
     if (!payload.sub) throw new Error('token has no subject');
-    return { userId: payload.sub };
+    return { userId: payload.sub, email: typeof payload.email === 'string' ? payload.email : undefined };
   };
 }
 
@@ -38,8 +40,8 @@ export function requireAuth(verify: TokenVerifier) {
       return;
     }
     try {
-      const { userId } = await verify(match[1]);
-      res.locals.auth = { userId, token: match[1] };
+      const { userId, email } = await verify(match[1]);
+      res.locals.auth = { userId, email, token: match[1] };
       next();
     } catch {
       res.status(401).json({ error: 'unauthorized' });

@@ -358,5 +358,46 @@
       "t": "Culturi",
       "s": "Câștig pe cultură"
     }
+  },
+  "money": {
+    "setupTitle": "Contul CropCash",
+    "setupBody": "Banii de la APIA ajung într-un cont CropCash, din care îți plătim salariul lunar. Totul e simulat: nu se mișcă bani reali.",
+    "setupButton": "Activează contul (test)",
+    "setupDone": "Cont activ (simulat)"
+  },
+  "demo": {
+    "title": "Demo",
+    "today": "Azi, în demo: {date}",
+    "advanceIncome": "Simulează avansul APIA",
+    "advanceReceived": "Avansul APIA a intrat.",
+    "forward": "Dăm timpul înainte",
+    "months": "{n} luni",
+    "oneMonth": "o lună",
+    "running": "Mutăm timpul… durează până la un minut.",
+    "resultTitle": "Ce s-a întâmplat",
+    "incomeIn": "Au intrat {amount} lei",
+    "needSetup": "Activează întâi contul CropCash.",
+    "ev": {
+      "salary": "Salariu plătit: {amount} lei",
+      "salaryFailed": "Salariul de {amount} lei n-a putut fi plătit: nu sunt destui bani în contul CropCash.",
+      "income": "Au intrat {amount} lei: {what}",
+      "expense": "Cheltuială fermă: {amount} lei ({what})",
+      "pension": "Pus deoparte pentru bătrânețe: {amount} lei"
+    },
+    "kinds": {
+      "apia_advance": "avansul APIA",
+      "apia_balance": "restul de la APIA",
+      "crop_sale": "vânzarea recoltei"
+    },
+    "split": "Împarte banii pe plicuri"
+  },
+  "pension": {
+    "title": "Bătrânețe",
+    "lead": "Pune deoparte o sumă mică în fiecare lună. În demo e un abonament Stripe care simulează Pilonul III.",
+    "amount": "Cât pui pe lună (lei)",
+    "start": "Pornește",
+    "active": "Pui {amount} lei pe lună.",
+    "saved": "Până acum: {amount} lei",
+    "invalid": "Scrie o sumă între 10 și 5.000 lei."
   }
 }

@@ -36,7 +36,7 @@
   - **Fișiere:** `packages/shared/src/cashflow/smoothing.ts` (+ test), `allocation.ts`, `screens/Bani/*`, `routes/envelopes.ts`.
   - **Gata când:** testul cu exemplul din `07-architecture.md` §4 dă S = 650 lei fără credit și 14.000 lei de credit pentru 2.400 lei/lună. Toate cazurile-limită au teste.
 
-- [ ] **6. Stripe: Connect, payouts, subscription, webhooks, Test Clocks** · ~6 h · MINIM
+- [x] **6. Stripe: Connect, payouts, subscription, webhooks, Test Clocks** · ~6 h · MINIM
   - **Obiectiv:** flow-ul banilor din `08-stripe.md`, cap-coadă, în test mode.
   - **Fișiere:** `apps/api/src/stripe/*`, `routes/webhooks.ts`, `routes/demo.ts`, `jobs/payoutScheduler.ts`.
   - **Gata când:** „Simulează avansul” → transfer → ecranul B3 → „Dăm timpul înainte 6 luni” → 6 payouts `paid` și 6 facturi `invoice.paid` vizibile în aplicație. Webhooks idempotente.

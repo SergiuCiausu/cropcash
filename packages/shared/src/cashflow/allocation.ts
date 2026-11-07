@@ -20,6 +20,8 @@ export interface AllocationInput {
   monthsCovered: number;
   /** Declared credit repayments due before the next income (bani). */
   debtsDue: Bani;
+  /** Income received and not yet shared with the bad-year fund (overrides `isIncome`). */
+  incomeForRisk?: Bani;
 }
 
 /**
@@ -35,7 +37,8 @@ export function proposeAllocation(a: AllocationInput): Envelopes {
     return v;
   };
   const debts = take(a.debtsDue);
-  const risk_fund = take(a.isIncome ? Math.min(applyPct(a.amount, a.riskPct), a.riskRemaining) : 0);
+  const riskBase = a.incomeForRisk ?? (a.isIncome ? a.amount : 0);
+  const risk_fund = take(Math.min(applyPct(riskBase, a.riskPct), a.riskRemaining));
   const pension = take(a.pensionMonthly * a.monthsCovered);
   const salary = take(a.salary * a.monthsCovered);
   const spring_inputs = left;

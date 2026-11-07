@@ -46,6 +46,8 @@
 | P13 | Calendarul folosește implicit sume „an normal” și plăți APIA în ultima zi a ferestrei | Planul trebuie să țină și dacă banii vin târziu. |
 | P14 | Creditul pe adeverință e disponibil din luna în care se deschide următoarea cerere APIA (martie) | Adeverința se eliberează după depunerea cererii. DE-VERIFICAT cu băncile. |
 | P15 | Dobânda creditului nu intră încă în calcul; rambursarea = suma luată | ROBOR 6M lipsește (#18). |
+| P17 | La „dăm timpul înainte”, realitatea e simulată cu anul normal și plăți la mijlocul ferestrei (mai devreme decât planul prudent) | Arată că planul ține și când banii vin altfel decât socotit. |
+| P18 | Pensia din demo se plătește cu card de test, nu din soldul fermierului; salariul doar din banii ajunși prin Stripe | Simplificări de demo, vezi 08-stripe.md §1c. |
 | P16 | Cota pentru fondul de risc se ia doar din venituri, nu din banii de la început | Banii de acum au deja altă destinație: cheltuielile până la încasare. |
 
 ## C. Contradicții găsite

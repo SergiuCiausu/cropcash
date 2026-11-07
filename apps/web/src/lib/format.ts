@@ -39,6 +39,7 @@ export function formatMonth(key: string): string {
 
 const monthShort = new Intl.DateTimeFormat('ro-RO', { month: 'short', timeZone: 'UTC' });
 const fullDate = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+const fullDateUtc = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 /** "2026-11" -> "nov." (chart axis). */
 export function formatMonthShort(key: string): string {
@@ -54,6 +55,11 @@ export function formatMonthCap(key: string): string {
 /** Today as "7 noiembrie 2026". */
 export function formatToday(now = new Date()): string {
   return fullDate.format(now);
+}
+
+/** "2026-11-07" -> "7 noiembrie 2026". */
+export function formatDayMonthYear(iso: string): string {
+  return fullDateUtc.format(new Date(`${iso}T00:00:00Z`));
 }
 
 /** Today as "YYYY-MM-DD" in local time. */

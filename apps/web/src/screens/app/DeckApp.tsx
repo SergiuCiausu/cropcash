@@ -5,7 +5,7 @@ import { t } from '../../i18n';
 import { Icon, type IconName } from '../../components/Icon';
 import { ForecastChart } from '../../components/ForecastChart';
 import { PaletteMenu } from '../../components/ui';
-import { formatDayMonth, formatHa, formatLei, formatMonth, formatMonthCap, todayIso } from '../../lib/format';
+import { formatDayMonth, formatHa, formatLei, formatMonth, formatMonthCap } from '../../lib/format';
 import { countyName } from '../../lib/plan';
 import { forecastSeries, monthLabels, nextBill, scenarioKey } from '../../lib/view';
 import {
@@ -21,6 +21,7 @@ import {
   SubsidySummary,
 } from './blocks';
 import type { ShellProps, View } from './AppShell';
+import { DEMO, DemoCard, PensionCard, SetupCard } from './MoneyCards';
 
 const TABS: { id: View; icon: IconName }[] = [
   { id: 'home', icon: 'home' },
@@ -53,7 +54,7 @@ export function DeckApp(p: ShellProps) {
   const deck = useRef<HTMLDivElement>(null);
   const [card, setCard] = useState(0);
   const tl = plan.timelines.medium;
-  const today = todayIso();
+  const today = plan.today;
   const next = upcoming(tl, today);
   const bill = nextBill(tl, today);
   const sel = plan.timelines[scenario];
@@ -259,6 +260,11 @@ export function DeckApp(p: ShellProps) {
             />
           </div>
           <SalaryCta plan={plan} onCredit={p.openCredit} onChanged={p.onChanged} className="rise" />
+          {DEMO ? (
+            <DemoCard farm={farm} plan={plan} onChanged={p.onChanged} onIncome={() => go('reserve')} />
+          ) : (
+            !farm.stripe_account_id && <SetupCard onChanged={p.onChanged} />
+          )}
           {plan.costs.length > 0 && (
             <section className="card">
               <div className="card-h">
@@ -316,6 +322,7 @@ export function DeckApp(p: ShellProps) {
         <div className="pad">
           <SpringCard plan={plan} />
           <EnvelopesCard plan={plan} onChanged={p.onChanged} />
+          <PensionCard farm={farm} plan={plan} onChanged={p.onChanged} />
         </div>
       )}
 

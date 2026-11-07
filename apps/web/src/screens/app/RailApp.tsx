@@ -4,7 +4,7 @@ import { t } from '../../i18n';
 import { Icon, type IconName } from '../../components/Icon';
 import { ForecastChart } from '../../components/ForecastChart';
 import { Logo, PaletteMenu } from '../../components/ui';
-import { formatHa, formatLei, formatMonth, formatMonthCap, formatToday, todayIso } from '../../lib/format';
+import { formatDayMonthYear, formatHa, formatLei, formatMonth, formatMonthCap } from '../../lib/format';
 import { countyName } from '../../lib/plan';
 import { forecastSeries, monthLabels, scenarioKey } from '../../lib/view';
 import {
@@ -21,6 +21,7 @@ import {
   SubsidySummary,
 } from './blocks';
 import type { ShellProps, View } from './AppShell';
+import { DEMO, DemoCard, PensionCard, SetupCard } from './MoneyCards';
 
 const NAV: { id: View; icon: IconName }[] = [
   { id: 'home', icon: 'home' },
@@ -63,7 +64,7 @@ export function RailApp(p: ShellProps) {
   const { plan, farm, view, go, scenario, setScenario } = p;
   const tl = plan.timelines.medium;
   const sel = plan.timelines[scenario];
-  const next = upcoming(tl, todayIso());
+  const next = upcoming(tl, plan.today);
   const series = forecastSeries(plan);
   const labels = monthLabels(tl);
   const firstName = farm.name.split(/\s+/)[0] ?? farm.name;
@@ -86,7 +87,7 @@ export function RailApp(p: ShellProps) {
           <b>{farm.name}</b>
           {t('nav.farmSide', { ha: formatHa(plan.totalHa), county: countyName(farm.county) })}
           <br />
-          {t('nav.asOf', { date: formatToday() })}
+          {t('nav.asOf', { date: formatDayMonthYear(plan.today) })}
           <div className="row">
             <span>{t('palette.title')}</span>
             <PaletteMenu value={p.palette} onChange={p.setPalette} up />
@@ -181,6 +182,11 @@ export function RailApp(p: ShellProps) {
                   </section>
                 )}
                 <SpringCard plan={plan} className="s7" />
+                {DEMO ? (
+                  <DemoCard farm={farm} plan={plan} onChanged={p.onChanged} onIncome={() => go('reserve')} className="s12" />
+                ) : (
+                  !farm.stripe_account_id && <SetupCard onChanged={p.onChanged} className="s12" />
+                )}
               </div>
             </>
           )}
@@ -291,6 +297,7 @@ export function RailApp(p: ShellProps) {
               </section>
               <EnvelopesCard plan={plan} onChanged={p.onChanged} className="s7 span2" />
               <SpringCard plan={plan} className="s5" />
+              <PensionCard farm={farm} plan={plan} onChanged={p.onChanged} className="s5" />
             </div>
           )}
         </div>
