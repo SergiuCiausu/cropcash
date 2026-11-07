@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import ro from '../../../apps/web/src/i18n/ro.json';
 import { ApiError, type Api } from './client';
 import { AUTH_TEXT, authErrorKey, clearFarmData, createAuth, HOME, landingPage, linkErrorKey, safeNext, type AuthClient } from './auth';
 
@@ -37,24 +36,10 @@ function setup(over: Partial<AuthClient> = {}) {
   return { auth: createAuth(client, store), store, client };
 }
 
-describe('text', () => {
-  it('matches ro.json word for word', () => {
-    const { auth, app, common, offline } = ro;
-    const { errors, tagline, wait, checkEmail, ...labels } = AUTH_TEXT;
-    expect(tagline).toBe(app.tagline);
-    expect(wait).toBe(common.wait);
-    expect(checkEmail).toBe(auth.checkEmail);
-    expect(auth).toMatchObject(labels);
-    const { offline: noInternet, link_expired, ...known } = errors;
-    expect(link_expired).toBeTruthy();
-    expect(auth.errors).toEqual(known);
-    expect(noInternet).toBe(offline.needed.login);
-  });
-});
-
 describe('error messages', () => {
   it('finds the message for every known code', () => {
-    for (const code of Object.keys(ro.auth.errors).filter((c) => c !== 'generic')) {
+    const { offline: _offline, link_expired: _expired, generic: _generic, ...known } = AUTH_TEXT.errors;
+    for (const code of Object.keys(known)) {
       expect(authErrorKey({ code }, true)).toBe(code);
     }
   });

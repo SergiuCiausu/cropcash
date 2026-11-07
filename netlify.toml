@@ -1,17 +1,12 @@
 # Frontend (PWA) on Netlify (docs/07 §10, docs/12-deploy.md).
-# Netlify installs the whole npm workspace from the repo root, then builds only the web app.
+# Netlify installs the whole npm workspace from the repo root, then builds only the Next.js app (web/).
+# `next build` is a static export: one .html file per page in web/out, plus 404.html.
 # Set in the Netlify UI (Site settings → Environment variables), never here:
 #   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL (https://api.<domain>), VITE_DEMO_MODE
 [build]
   base = "."
-  command = "npm run build -w @cropcash/web"
-  publish = "apps/web/dist"
+  command = "npm run build -w @cropcash/next"
+  publish = "web/out"
 
 [build.environment]
   NODE_VERSION = "22"
-
-# Single-page app: every route is served by index.html.
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200

@@ -48,7 +48,7 @@ export default function install() {
     /* The note in the page is about saving to the server, which a browser-only farm never does. */
     el('pension-field').hidden = true;
     el('pension-note').innerHTML = CC.pensionBani()
-      ? `Pui deoparte ${lei(CC.pensionBani())} pe lună. <a href="/pensie">Suma se schimbă din pagina Bătrânețe</a>.`
+      ? `Pui deoparte ${lei(CC.pensionBani())} pe lună. <a href="/pensie">Suma se schimbă din pagina Pensie</a>.`
       : 'Nu ai pornit încă o pensie. <a href="/pensie">Vezi cât strângi</a>.';
   } else {
     document.querySelector('[data-offline]')?.remove();

@@ -2,7 +2,7 @@
 /* eslint-disable */
 // @ts-nocheck
 export default function install() {
-/* "Bătrânețe": the pension page. Everything on screen is worked out on the phone from the saved farm,
+/* "Pensie": the pension page. Everything on screen is worked out on the phone from the saved farm,
    so it opens offline. Starting, changing and stopping move money: they need internet, ask first and
    are never queued. Signed out, the slider works on the example farm and the button asks to sign in. */
 (function () {

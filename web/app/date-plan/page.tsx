@@ -44,7 +44,7 @@ export default function DatePlanPage() {
                 <p className="ob-err" id="opening-err" role="alert" hidden></p>
               </section>
               <section className="card s6">
-                <h2>Bătrânețe</h2>
+                <h2>Pensie</h2>
                 <p className="note" id="pension-note"></p>
                 {" "}
                 <label className="ob-field" id="pension-field">

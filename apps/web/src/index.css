@@ -1,5 +1,0 @@
-/* Look: styles/theme.css (Daylight design tokens and shared parts),
-   deck.css (phone, c-deck) and rail.css (laptop, 2-rail). */
-@import './styles/theme.css';
-@import './styles/deck.css';
-@import './styles/rail.css';

@@ -311,7 +311,7 @@ export default function install() {
   /* ---- What never changes on this page ---- */
   const rule = events.get('apia-modificari');
   el('remember').innerHTML = `<p class="eyebrow">Ține minte</p><p>${esc(rule.title_ro)}: ai ${rule.relative_days} zile de la schimbare.</p>`;
-  el('foot').innerHTML = `Am pornit de la ${exact(FARM.startBalanceBani)} lei în cont${CC.isIon ? ', ca în exemplul lui Ion' : ''}. Sumele de aici nu scad salariul de ${exact(plan.salary.salary)} lei și pensia de ${exact(CC.pensionBani())} lei pe lună. Apelurile urmărite sunt exemple pentru demo ${demo}`;
+  el('foot').innerHTML = `Am pornit de la ${exact(FARM.startBalanceBani)} lei în cont${CC.isIon ? ', ca în exemplul lui Ion' : ''}. Sumele de aici nu scad salariul de ${exact(plan.salary.salary)} lei și pensia de ${exact(CC.pensionBani())} lei pe lună.${CC.onServer ? '' : ' Apelurile urmărite sunt exemple pentru demo.'}`;
 
   if (CC.crop) {
     document.querySelector('.page-h .lead').textContent = `Lucrările și banii pentru ${CC.crop.name.toLowerCase()}, pe un singur an.`;

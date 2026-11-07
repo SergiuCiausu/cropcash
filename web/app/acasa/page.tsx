@@ -39,7 +39,7 @@ export default function AcasaPage() {
               </section>
               {" "}
               <a className="card kpi kpi-link" id="old-age" href="/pensie">
-                <p className="lbl">Bătrânețe</p>
+                <p className="lbl">Pensie</p>
                 <p className="n20" id="old-month"></p>
                 <p className="sub2" id="old-sum"></p>
               </a>

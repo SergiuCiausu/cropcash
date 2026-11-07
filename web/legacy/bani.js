@@ -61,7 +61,7 @@ export default function install() {
     ${errorSlot('setup-err')}<button type="button" class="btn btn-dark gap" data-act="setup" data-needs-net="Pornește internetul ca să muți banii.">Activează contul (test)</button></section>`;
 
   /* ---- Envelopes ---- */
-  const KINDS = [['salary', 'Salariu'], ['spring_inputs', 'Cheltuieli fermă'], ['debts', 'Datorii'], ['pension', 'Bătrânețe']];
+  const KINDS = [['salary', 'Salariu'], ['spring_inputs', 'Cheltuieli fermă'], ['debts', 'Datorii'], ['pension', 'Pensie']];
   function bars(env) {
     const max = Math.max(...KINDS.map(([k]) => env[k]), 1);
     return KINDS.map(([k, name]) => `<li class="ac-env"><span class="ac-env-l"><b>${name}</b><span>${lei(env[k])}</span></span><span class="ac-env-bar"><i style="transform:scaleX(${(env[k] / max).toFixed(3)})"></i></span></li>`).join('');
@@ -87,7 +87,7 @@ export default function install() {
     const pensions = (me.transactions ?? []).filter((t) => t.kind === 'pension');
     return `<section class="card s5"><div class="card-h"><h2>Salarii</h2></div>
       ${rows.length ? `<ol class="ac-list">${rows.map((p) => `<li><span><b>${esc(monthName(p.scheduled_for.slice(0, 7)))}</b><small>${PAID[p.status] ?? ''}</small></span><span class="ac-amt">${lei(p.amount_bani)}</span></li>`).join('')}</ol>` : '<p class="note">Niciun salariu plătit încă.</p>'}
-      ${pensions.length ? `<p class="note gap">Bătrânețe: ${pensions.length === 1 ? 'o plată făcută' : `${pensions.length} plăți făcute`}.</p>` : ''}</section>`;
+      ${pensions.length ? `<p class="note gap">Pensie: ${pensions.length === 1 ? 'o plată făcută' : `${pensions.length} plăți făcute`}.</p>` : ''}</section>`;
   }
 
   /* ---- Pension: a summary. Starting, changing and stopping it happen on /pensie ---- */
@@ -96,8 +96,8 @@ export default function install() {
   function pensionCard() {
     const body = pensionMonthly > 0
       ? `<p class="n20">Pui ${lei(pensionMonthly)} pe lună.</p><p class="note">Până acum: ${lei(saved)}</p>`
-      : '<p class="note">Nu pui încă bani deoparte pentru bătrânețe.</p>';
-    return `<section class="card s7"><div class="card-h"><h2>Bătrânețe</h2><span><a href="/pensie">${pensionMonthly > 0 ? 'Schimbă' : 'Vezi cât strângi'}</a></span></div>${body}</section>`;
+      : '<p class="note">Nu pui încă bani deoparte pentru pensie.</p>';
+    return `<section class="card s7"><div class="card-h"><h2>Pensie</h2><span><a href="/pensie">${pensionMonthly > 0 ? 'Schimbă' : 'Vezi cât strângi'}</a></span></div>${body}</section>`;
   }
 
   /* ---- Currency: needs internet once, then the rates stay on the phone ---- */
@@ -117,7 +117,7 @@ export default function install() {
     if (e.type === 'salary') return e.ok ? `Salariu plătit: ${amount}` : `Salariul de ${amount} n-a putut fi plătit: nu sunt destui bani în contul CropCash.`;
     if (e.type === 'income') return `Au intrat ${amount}: ${EVENT_KIND[e.kind] ?? ''}`;
     if (e.type === 'expense') return `Cheltuială fermă: ${amount} (${CC.harvests.cropName(e.kind)})`;
-    if (e.type === 'pension') return `Pus deoparte pentru bătrânețe: ${amount}`;
+    if (e.type === 'pension') return `Pus deoparte pentru pensie: ${amount}`;
     return `Rată la credit plătită din bancă: ${amount}`;
   }
   const advanceIn = (me.transactions ?? []).some((t) => t.kind === 'apia_advance');

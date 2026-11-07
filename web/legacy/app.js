@@ -344,7 +344,7 @@ export default function install() {
   } : null;
 
   const PAGES = [['/subventii', 'Subvenția ta'], ['/oportunitati', 'Oportunități'], ['/surse', 'Ce s-a schimbat']];
-  const TABS = [['/acasa', 'home', 'Acasă'], ['/subventii', 'bank', 'Subvenții'], ['/calendar', 'cal', 'Calendar'], ['/prognoza', 'chart', 'Prognoză'], ['/recolte', 'sprout', 'Recolte'], ['/salariu', 'sack', 'Salariu'], ['/pensie', 'hourglass', 'Bătrânețe', 'rail-only']];
+  const TABS = [['/acasa', 'home', 'Acasă'], ['/subventii', 'bank', 'Subvenții'], ['/calendar', 'cal', 'Calendar'], ['/prognoza', 'chart', 'Prognoză'], ['/recolte', 'sprout', 'Recolte'], ['/salariu', 'sack', 'Salariu'], ['/pensie', 'hourglass', 'Pensie', 'rail-only']];
 
   /* ---- Funding calls, shared by Oportunități and Calendar ---- */
   const callCode = (c) => (c.title.match(/^DR-\d+/) || [null])[0];

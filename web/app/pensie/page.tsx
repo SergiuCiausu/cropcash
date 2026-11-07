@@ -6,7 +6,7 @@ import '../../styles/desktop.css';
 import '../../styles/rail.css';
 import '../../styles/subsidies.css';
 
-export const metadata: Metadata = { title: "Bătrânețe · CropCash" };
+export const metadata: Metadata = { title: "Pensie · CropCash" };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: "#B4E85C" };
 
 export default function PensiePage() {
@@ -16,7 +16,7 @@ export default function PensiePage() {
         <div>
           <header className="page-h">
             <div>
-              <h1>Bătrânețe</h1>
+              <h1>Pensie</h1>
               <p className="lead">Bani puși deoparte în fiecare lună, pentru după 65 de ani. Totul e simulat: nu se mișcă bani reali.</p>
             </div>
           </header>

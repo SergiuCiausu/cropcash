@@ -8,16 +8,15 @@ Aplicație de hackathon pentru challenge-ul Stripe „Rethinking Financial Futur
 - Dacă o decizie de arhitectură diferă de docs, întrebi înainte.
 
 ## Stack-ul
-Interfața e **`farm-app`**: pagini HTML + JS simplu, PWA cu service worker, merge offline (`docs/farm-app-wiring.md`). `apps/web` (React + Vite) e vechea interfață: nu se mai folosește, dar rămâne pe loc pentru că `netlify.toml` încă o construiește · Express + TS în `apps/api` · logica pură în `packages/shared` · Supabase (DB + login email/parolă) · Stripe (test mode) · Claude API + Zod · Vitest.
+Interfața e **`web/`** (Next.js, export static în `web/out`, PWA cu service worker, merge offline). Paginile au fost portate din vechiul `farm-app`; scripturile lor stau în `web/legacy/`. `farm-app` și `apps/web` au fost scoase · Express + TS în `apps/api` · logica pură în `packages/shared` · Supabase (DB + login email/parolă) · Stripe (test mode) · Claude API + Zod · Vitest.
 Deploy: front pe **Netlify**, API pe **VPS RareCloud** (pm2 + Caddy cu HTTPS), DB în **Supabase cloud**. Fără Railway.
 
 ## Comenzile (după pasul 1)
 ```bash
 npm install
-npm run dev          # farm-app :5173 + api :3001 (dev:farm face același lucru)
-npm run dev:web      # vechea interfață apps/web :5173 + api :3001
-npm run build:farm   # engine.js, live.js, config.js, sw.js
-npm run build        # farm-app + api (build:web pentru apps/web)
+npm run dev          # web (Next.js) :5173 + api :3001
+npm run build        # web (web/out, cu sw.js) + api
+npm run build:web    # doar web
 npm test             # Vitest (unit, offline)
 npm run test:integration  # pe Supabase-ul real din .env (RLS, auth)
 npm run db:migrate   # aplică supabase/migrations/*.sql (SUPABASE_DB_URL, pooler eu-west-2)
@@ -29,7 +28,7 @@ npm run test:stripe  # flux cap-coadă pe sandbox-ul Stripe (lent, ~1-2 min)
 ```
 
 ## Reguli
-- **UI în română, cu diacritice**, cu limbaj simplu. Fără „lichiditate”, „cash-flow”, „portofoliu”, „randament”. În `farm-app`, textele stau în pagini (`.html` și `.js`); în `apps/web` stăteau în `apps/web/src/i18n/ro.json`.
+- **UI în română, cu diacritice**, cu limbaj simplu. Fără „lichiditate”, „cash-flow”, „portofoliu”, „randament”. Textele stau în pagini (`web/app/*/page.tsx` și `web/legacy/*.js`).
 - **Codul e în engleză** (nume, comentarii, commit-uri).
 - **Stripe doar în test mode.** Aplicația refuză cheile care nu încep cu `sk_test_`.
 - **Cifrele vin doar din `docs/data/*.json`.** Nicio cifră hardcodată în componente sau în logică.

@@ -90,7 +90,7 @@ export default function install() {
       sumRow('Ai în cont', '', lei(b.opening)),
       ...b.income.map((l) => sumRow(incomeLabel(l), monthRange(l.firstMonth, l.lastMonth), `+${lei(l.amount)}`)),
       ...b.costs.map((l) => sumRow(costLabel(l), monthRange(l.firstMonth, l.lastMonth), `−${lei(l.amount)}`)),
-      b.pension ? sumRow('<a href="/pensie">Bătrânețe</a>', `${lei(pension)} × ${luni(b.months)}`, `−${lei(b.pension)}`) : '',
+      b.pension ? sumRow('<a href="/pensie">Pensie</a>', `${lei(pension)} × ${luni(b.months)}`, `−${lei(b.pension)}`) : '',
       sumRow(b.deficit ? 'Îți lipsesc' : 'Rămân pentru salariu', '', lei(printed), 'total'),
     ].join('');
     const rounded = b.salary !== Math.round(b.exact / 100) * 100;
@@ -115,7 +115,7 @@ export default function install() {
   }
   function renderMonths(b, ledger) {
     const pension = plan.smoothing.pensionMonthly ?? 0;
-    const regular = both([ledger.salary ? `${lei(ledger.salary)} salariu` : '', pension ? `${lei(pension)} pentru bătrânețe` : ''].filter(Boolean));
+    const regular = both([ledger.salary ? `${lei(ledger.salary)} salariu` : '', pension ? `${lei(pension)} pentru pensie` : ''].filter(Boolean));
     el('m-intro').textContent = regular ? `În fiecare lună ies ${regular}.` : '';
     el('m-intro').hidden = !regular;
     const stop = b.nextIncome?.month ?? b.limitingMonth;
@@ -153,7 +153,7 @@ export default function install() {
   const SOURCE = { own: 'cifrele tale', gathered: 'din Recolte', average: 'media noastră' };
   const crops = plan.economics.map((c) => `${cropWord(c.cropId)} ${CC.num(c.productionT)} t la ${kilo(c.pricePerT)} lei/kg (${SOURCE[CC.figureSource(c.cropId)]})`);
   const pension = CC.pensionBani();
-  const pensionLine = pension ? `Bătrânețe: ${lei(pension)} pe lună${CC.onServer || CC.ownPension() !== null ? '' : ', ca exemplu'}.` : 'Nu pui bani deoparte pentru bătrânețe.';
+  const pensionLine = pension ? `Pensie: ${lei(pension)} pe lună${CC.onServer || CC.ownPension() !== null ? '' : ', ca exemplu'}.` : 'Nu pui bani deoparte pentru pensie.';
   el('assumed').innerHTML = [
     `Am pornit de la ${lei(CC.onServer ? plan.startBalance : CC.FARM.startBalanceBani)} în cont.`,
     crops.length ? `Într-un an normal: ${both(crops)}.` : '',
