@@ -1,15 +1,10 @@
-import { useMemo, useState } from 'react';
-import {
-  OnboardingInputSchema,
-  loadData,
-  type OnboardingInput,
-  type SubsidyResult,
-} from '@cropcash/shared';
+import { useMemo, useState, type ReactNode } from 'react';
+import { OnboardingInputSchema, loadData, type OnboardingInput, type SubsidyResult } from '@cropcash/shared';
 import { t } from '../../i18n';
 import { api, ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { fold, formatHa, parseHa } from '../../lib/format';
-import { Alert, PrimaryButton, Screen } from '../../components/ui';
+import { Alert } from '../../components/ui';
 
 const data = loadData();
 const TOTAL_STEPS = 4;
@@ -22,6 +17,40 @@ export interface OnboardingDone {
 }
 
 const ageIsValid = (age: string) => /^\d{1,3}$/.test(age) && Number(age) >= 16 && Number(age) <= 100;
+
+/** One centered glass card per step, matching the app's look. */
+function Card({
+  children,
+  onBack,
+  step,
+  footer,
+}: {
+  children: ReactNode;
+  onBack?: () => void;
+  step?: number;
+  footer?: ReactNode;
+}) {
+  return (
+    <div className="solo">
+      <div className="card panel">
+        {(onBack || step) && (
+          <div className="steps">
+            {onBack ? (
+              <button type="button" className="link" onClick={onBack}>
+                ← {t('common.back')}
+              </button>
+            ) : (
+              <span />
+            )}
+            {step && <small>{t('onboarding.step', { n: step, total: TOTAL_STEPS })}</small>}
+          </div>
+        )}
+        {children}
+        {footer && <div style={{ marginTop: 18 }}>{footer}</div>}
+      </div>
+    </div>
+  );
+}
 
 export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) {
   const [step, setStep] = useState<Step>('welcome');
@@ -83,12 +112,7 @@ export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) 
       );
     case 'crops':
       return (
-        <CropsStep
-          values={hectares}
-          onChange={setHectares}
-          onBack={() => setStep('county')}
-          onNext={() => setStep('about')}
-        />
+        <CropsStep values={hectares} onChange={setHectares} onBack={() => setStep('county')} onNext={() => setStep('about')} />
       );
     case 'about':
       return (
@@ -115,87 +139,33 @@ export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) 
   }
 }
 
-function MoneyStep(props: {
-  value: string;
-  onChange: (v: string) => void;
-  onBack: () => void;
-  onSubmit: (lei: number) => void;
-  busy: boolean;
-  error: string | null;
-}) {
-  const digits = props.value.replace(/[.\s]/g, '');
-  const valid = digits === '' || /^\d{1,9}$/.test(digits);
-  const lei = digits === '' ? 0 : Number(digits);
-
-  return (
-    <Screen
-      onBack={props.onBack}
-      step={{ n: 4, total: TOTAL_STEPS }}
-      footer={
-        <div className="flex flex-col gap-3">
-          <PrimaryButton disabled={!valid || props.busy} onClick={() => props.onSubmit(lei)}>
-            {props.busy ? t('common.wait') : t('onboarding.submit')}
-          </PrimaryButton>
-          <button
-            disabled={props.busy}
-            onClick={() => props.onSubmit(0)}
-            className="py-3 text-lg text-field-700 underline"
-          >
-            {t('onboarding.money.skip')}
-          </button>
-        </div>
-      }
-    >
-      <h1 className="text-3xl font-bold">{t('onboarding.money.title')}</h1>
-      <p className="text-lg">{t('onboarding.money.hint')}</p>
-      <label className="flex items-center gap-3">
-        <input
-          inputMode="numeric"
-          aria-label={t('onboarding.money.title')}
-          placeholder="0"
-          value={props.value}
-          onChange={(e) => props.onChange(e.target.value.replace(/[^\d.\s]/g, ''))}
-          className="w-full rounded-xl border-2 border-field-600/40 bg-white px-4 py-4 text-right text-3xl focus:border-field-700 focus:outline-none"
-        />
-        <span className="text-2xl">{t('onboarding.money.label')}</span>
-      </label>
-      {!valid && <Alert>{t('onboarding.money.invalid')}</Alert>}
-      {props.error && <Alert>{props.error}</Alert>}
-    </Screen>
-  );
-}
-
 function Welcome({ onNext }: { onNext: () => void }) {
   const { signOut } = useAuth();
   return (
-    <Screen
+    <Card
       footer={
-        <div className="flex flex-col gap-3">
-          <PrimaryButton onClick={onNext}>{t('onboarding.welcome.start')}</PrimaryButton>
-          <button onClick={() => void signOut()} className="py-3 text-lg text-field-700 underline">
+        <>
+          <button type="button" className="primary" onClick={onNext}>
+            {t('onboarding.welcome.start')}
+          </button>
+          <button type="button" className="textbtn" onClick={() => void signOut()}>
             {t('auth.logout')}
           </button>
-        </div>
+        </>
       }
     >
-      <div className="flex flex-1 flex-col justify-center gap-4">
-        <h1 className="text-4xl font-bold text-field-700">{t('onboarding.welcome.title')}</h1>
-        <p className="text-2xl leading-snug">{t('onboarding.welcome.body')}</p>
-        <p className="text-lg text-field-900/70">{t('onboarding.welcome.time')}</p>
+      <div className="brandline">
+        <span className="orb" />
+        {t('app.name')}
       </div>
-    </Screen>
+      <h1 className="title">{t('onboarding.welcome.title')}</h1>
+      <p className="lead">{t('onboarding.welcome.body')}</p>
+      <p className="fine">{t('onboarding.welcome.time')}</p>
+    </Card>
   );
 }
 
-function CountyStep({
-  selected,
-  onPick,
-  onBack,
-}: {
-  selected: string;
-  onPick: (code: string) => void;
-  onBack: () => void;
-}) {
+function CountyStep({ selected, onPick, onBack }: { selected: string; onPick: (code: string) => void; onBack: () => void }) {
   const [query, setQuery] = useState('');
   const matches = useMemo(() => {
     const q = fold(query.trim());
@@ -203,33 +173,27 @@ function CountyStep({
   }, [query]);
 
   return (
-    <Screen onBack={onBack} step={{ n: 1, total: TOTAL_STEPS }}>
-      <h1 className="text-3xl font-bold">{t('onboarding.county.title')}</h1>
+    <Card onBack={onBack} step={1}>
+      <h1 className="title">{t('onboarding.county.title')}</h1>
       <input
+        className="input"
         type="search"
         autoFocus
         placeholder={t('onboarding.county.search')}
         aria-label={t('onboarding.county.search')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full rounded-xl border-2 border-field-600/40 bg-white px-4 py-4 text-xl focus:border-field-700 focus:outline-none"
+        style={{ marginTop: 14 }}
       />
-      <ul className="flex flex-col gap-2">
+      <div className="choices">
         {matches.map((c) => (
-          <li key={c.code}>
-            <button
-              onClick={() => onPick(c.code)}
-              className={`w-full rounded-xl px-4 py-4 text-left text-xl ${
-                c.code === selected ? 'bg-field-700 text-white' : 'bg-white active:bg-field-600/10'
-              }`}
-            >
-              {c.name_ro}
-            </button>
-          </li>
+          <button key={c.code} type="button" className="choice" aria-pressed={c.code === selected} onClick={() => onPick(c.code)}>
+            {c.name_ro}
+          </button>
         ))}
-        {matches.length === 0 && <li className="text-lg">{t('onboarding.county.none')}</li>}
-      </ul>
-    </Screen>
+        {matches.length === 0 && <p className="muted">{t('onboarding.county.none')}</p>}
+      </div>
+    </Card>
   );
 }
 
@@ -247,7 +211,6 @@ function CropsStep({
   const parsed = data.crops.crops.map((c) => ({ id: c.id, raw: values[c.id] ?? '', ha: parseHa(values[c.id] ?? '') }));
   const invalid = parsed.some((p) => p.raw.trim() !== '' && p.ha === null);
   const total = parsed.reduce((s, p) => s + (p.ha ?? 0), 0);
-  const canContinue = !invalid && total > 0;
 
   const set = (id: string, raw: string) => onChange({ ...values, [id]: raw });
   const bump = (id: string, delta: number) => {
@@ -257,56 +220,46 @@ function CropsStep({
   };
 
   return (
-    <Screen
+    <Card
       onBack={onBack}
-      step={{ n: 2, total: TOTAL_STEPS }}
+      step={2}
       footer={
-        <PrimaryButton disabled={!canContinue} onClick={onNext}>
+        <button type="button" className="primary" disabled={invalid || total <= 0} onClick={onNext}>
           {t('common.next')}
-        </PrimaryButton>
+        </button>
       }
     >
-      <h1 className="text-3xl font-bold">{t('onboarding.crops.title')}</h1>
-      <p className="text-lg">{t('onboarding.crops.hint')}</p>
-
+      <h1 className="title">{t('onboarding.crops.title')}</h1>
+      <p className="lead">{t('onboarding.crops.hint')}</p>
       {data.crops.crops.map((crop) => (
-        <div key={crop.id} className="rounded-2xl bg-white p-4 shadow-sm">
-          <label htmlFor={`ha-${crop.id}`} className="text-2xl font-semibold">
-            {crop.name_ro}
-          </label>
-          <div className="mt-3 flex items-center gap-3">
-            <button
-              aria-label={`${t('onboarding.crops.less')} ${crop.name_ro}`}
-              onClick={() => bump(crop.id, -1)}
-              className="h-14 w-14 shrink-0 rounded-xl bg-field-600/10 text-3xl font-bold text-field-700"
-            >
+        <section key={crop.id} className="crop-in">
+          <h3>
+            <label htmlFor={`ha-${crop.id}`}>{crop.name_ro}</label>
+          </h3>
+          <div className="stepper">
+            <button type="button" aria-label={`${t('onboarding.crops.less')} ${crop.name_ro}`} onClick={() => bump(crop.id, -1)}>
               −
             </button>
             <input
               id={`ha-${crop.id}`}
+              className="input"
               inputMode="decimal"
               placeholder="0"
               value={values[crop.id] ?? ''}
               onChange={(e) => set(crop.id, e.target.value)}
-              className="h-14 w-full min-w-0 rounded-xl border-2 border-field-600/40 text-center text-2xl focus:border-field-700 focus:outline-none"
             />
-            <button
-              aria-label={`${t('onboarding.crops.more')} ${crop.name_ro}`}
-              onClick={() => bump(crop.id, 1)}
-              className="h-14 w-14 shrink-0 rounded-xl bg-field-600/10 text-3xl font-bold text-field-700"
-            >
+            <button type="button" aria-label={`${t('onboarding.crops.more')} ${crop.name_ro}`} onClick={() => bump(crop.id, 1)}>
               +
             </button>
           </div>
-          <p className="mt-1 text-center text-base text-field-900/70">{t('onboarding.crops.hectares')}</p>
-        </div>
+          <p className="hint" style={{ textAlign: 'center' }}>
+            {t('onboarding.crops.hectares')}
+          </p>
+        </section>
       ))}
-
       {invalid && <Alert>{t('onboarding.crops.invalid')}</Alert>}
-      <p className="text-center text-xl font-semibold">
-        {total > 0 ? t('onboarding.crops.total', { ha: formatHa(total) }) : t('onboarding.crops.empty')}
-      </p>
-    </Screen>
+      <p className="total">{total > 0 ? t('onboarding.crops.total', { ha: formatHa(total) }) : t('onboarding.crops.empty')}</p>
+    </Card>
   );
 }
 
@@ -319,43 +272,78 @@ function AboutStep(props: {
   onNext: () => void;
 }) {
   const ageValid = ageIsValid(props.age);
-  const canContinue = props.name.trim().length > 0 && ageValid;
-  const input =
-    'w-full rounded-xl border-2 border-field-600/40 bg-white px-4 py-4 text-2xl focus:border-field-700 focus:outline-none';
-
   return (
-    <Screen
+    <Card
       onBack={props.onBack}
-      step={{ n: 3, total: TOTAL_STEPS }}
+      step={3}
       footer={
-        <PrimaryButton disabled={!canContinue} onClick={props.onNext}>
+        <button type="button" className="primary" disabled={!props.name.trim() || !ageValid} onClick={props.onNext}>
           {t('common.next')}
-        </PrimaryButton>
+        </button>
       }
     >
-      <h1 className="text-3xl font-bold">{t('onboarding.about.title')}</h1>
-      <label className="flex flex-col gap-2">
-        <span className="text-xl">{t('onboarding.about.name')}</span>
-        <input
-          className={input}
-          autoComplete="given-name"
-          maxLength={80}
-          value={props.name}
-          onChange={(e) => props.onName(e.target.value)}
-        />
+      <h1 className="title">{t('onboarding.about.title')}</h1>
+      <label className="field">
+        {t('onboarding.about.name')}
+        <input autoComplete="given-name" maxLength={80} value={props.name} onChange={(e) => props.onName(e.target.value)} />
       </label>
-      <label className="flex flex-col gap-2">
-        <span className="text-xl">{t('onboarding.about.age')}</span>
+      <label className="field">
+        {t('onboarding.about.age')}
         <input
-          className={`${input} w-32 text-center text-3xl`}
           inputMode="numeric"
           maxLength={3}
           value={props.age}
           onChange={(e) => props.onAge(e.target.value.replace(/\D/g, ''))}
+          style={{ width: 120, textAlign: 'center', fontSize: 22 }}
         />
-        <span className="text-base text-field-900/70">{t('onboarding.about.ageHint')}</span>
+        <span className="hint">{t('onboarding.about.ageHint')}</span>
       </label>
       {props.age !== '' && !ageValid && <Alert>{t('onboarding.about.invalidAge')}</Alert>}
-    </Screen>
+    </Card>
+  );
+}
+
+function MoneyStep(props: {
+  value: string;
+  onChange: (v: string) => void;
+  onBack: () => void;
+  onSubmit: (lei: number) => void;
+  busy: boolean;
+  error: string | null;
+}) {
+  const digits = props.value.replace(/[.\s]/g, '');
+  const valid = digits === '' || /^\d{1,9}$/.test(digits);
+  const lei = digits === '' ? 0 : Number(digits);
+
+  return (
+    <Card
+      onBack={props.onBack}
+      step={4}
+      footer={
+        <>
+          <button type="button" className="primary" disabled={!valid || props.busy} onClick={() => props.onSubmit(lei)}>
+            {props.busy ? t('common.wait') : t('onboarding.submit')}
+          </button>
+          <button type="button" className="textbtn" disabled={props.busy} onClick={() => props.onSubmit(0)}>
+            {t('onboarding.money.skip')}
+          </button>
+        </>
+      }
+    >
+      <h1 className="title">{t('onboarding.money.title')}</h1>
+      <p className="lead">{t('onboarding.money.hint')}</p>
+      <label className="field">
+        {t('onboarding.money.label')}
+        <input
+          inputMode="numeric"
+          placeholder="0"
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value.replace(/[^\d.\s]/g, ''))}
+          style={{ textAlign: 'right', fontSize: 26, fontWeight: 600 }}
+        />
+      </label>
+      {!valid && <Alert>{t('onboarding.money.invalid')}</Alert>}
+      {props.error && <Alert>{props.error}</Alert>}
+    </Card>
   );
 }

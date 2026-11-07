@@ -286,7 +286,8 @@ Prețul în anul de secetă rămâne „mediu”, nu „min”. Când producția
 
 ### Fondul de risc
 ```
-țintă_fond = venit_mediu − venit_secetă      // pentru Ion ≈ 20.000 lei
+țintă_fond = Σ net(an normal) − Σ net(an slab), pe următoarele 12 luni   // riskFundTarget(); pentru Ion ≈ 33.100 lei
+            // (include vânzarea de porumb din octombrie și costurile maxime; versiunea veche, doar pe venit, dădea ≈ 20.000)
 contribuție = 10% din fiecare încasare, până se atinge ținta   (presupunere de produs, editabilă)
 p_an_prost = ani_proști / ani_istoric        // din INS pe județ și cultură; DE-VERIFICAT
 an_prost  ⇔ producția județului < 80% din media pe 10 ani   (prag = presupunere)

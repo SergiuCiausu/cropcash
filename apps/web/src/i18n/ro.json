@@ -7,10 +7,18 @@
     "wait": "Așteaptă puțin…",
     "back": "Înapoi",
     "next": "Gata",
+    "close": "Închide",
     "retry": "Mai încearcă",
+    "lei": "lei",
     "toVerify": "de verificat",
     "toVerifyHint": "Încă n-am putut confirma asta în actele oficiale.",
-    "error": "Ceva n-a mers. Mai încearcă o dată."
+    "error": "Ceva n-a mers. Mai încearcă o dată.",
+    "estimated": "Estimat",
+    "sample": "Cifre estimate, nu se mișcă bani reali"
+  },
+  "theme": {
+    "toNight": "Treci pe tema de noapte",
+    "toDay": "Treci pe tema de zi"
   },
   "auth": {
     "loginTitle": "Intră în cont",
@@ -64,18 +72,108 @@
       "ageHint": "Dacă ai sub 40 de ani, primești și sprijinul pentru tineri fermieri.",
       "invalidAge": "Scrie vârsta ca număr, între 16 și 100."
     },
+    "money": {
+      "title": "Cam câți bani ai acum?",
+      "hint": "Pune toți banii pe care îi ai acum pentru fermă și casă, în cont și acasă. Ne trebuie ca să-ți spunem dacă îți ajung.",
+      "label": "lei",
+      "skip": "Nu știu, sar peste",
+      "invalid": "Scrie suma ca număr întreg, de exemplu 35000."
+    },
     "submit": "Arată-mi banii",
     "errors": {
       "farm_exists": "Ai deja ferma salvată.",
       "invalid_input": "Verifică ce ai scris și mai încearcă."
-    },
-    "money": {
-      "title": "Cam câți bani ai acum?",
-      "hint": "Pune toți banii pe care îi ai acum pentru fermă și casă, în cont și acasă. Ne trebuie ca să-ți spunem dacă îți ajung. Nu-i spunem nimănui.",
-      "label": "lei",
-      "skip": "Nu știu, sar peste",
-      "invalid": "Scrie suma ca număr întreg, de exemplu 35000."
     }
+  },
+  "nav": {
+    "home": "Acasă",
+    "forecast": "Prognoză",
+    "fields": "Culturi",
+    "reserve": "Rezerve",
+    "menu": "Meniu",
+    "farmSide": "{ha} ha, {county}",
+    "asOf": "La {date}"
+  },
+  "pages": {
+    "home": { "title": "Bună, {name}", "sub": "Uite cum stă ferma azi" },
+    "forecast": { "title": "Îți ajung banii?", "sub": "Banii tăi lună de lună, pe 12 luni" },
+    "fields": { "title": "Culturi", "sub": "Ce aduce fiecare cultură" },
+    "reserve": { "title": "Rezerve", "sub": "Bani puși deoparte pentru ce urmează" }
+  },
+  "home": {
+    "balance": "Bani acum (cât ne-ai spus)",
+    "tightest": "Cea mai grea lună",
+    "willItLast": "Îți ajung banii până la recoltă?",
+    "seeForecast": "Vezi prognoza",
+    "quick": {
+      "subsidy": "Subvenția",
+      "upcoming": "Ce urmează",
+      "reserve": "Pune deoparte",
+      "forecast": "Prognoză"
+    },
+    "seasonCosts": "Cheltuieli pe 12 luni",
+    "total": "total",
+    "comingUp": "Urmează",
+    "nextWeeks": "Următoarele săptămâni",
+    "loadError": "Nu am putut încărca datele fermei.",
+    "noBalance": "Nu ne-ai spus câți bani ai acum, așa că am pornit de la 0."
+  },
+  "forecast": {
+    "scenarios": { "bad": "An slab", "medium": "An normal", "good": "An bun" },
+    "endLabel": "Cam atât îți rămâne la sfârșitul lui {month}",
+    "tightest": "Cea mai grea: {month}",
+    "fine": "Un interval, nu o promisiune. An slab = cea mai mică producție la prețul mediu, cele mai mari costuri și cea mai mică subvenție. An bun = cea mai mare producție la cel mai bun preț. Banii de la APIA sunt socotiți în ultima zi în care pot veni.",
+    "whereTitle": "Unde se duc banii",
+    "monthsTitle": "Lună cu lună",
+    "hard": "lună grea",
+    "left": "rămân {amount} lei",
+    "missing": "lipsesc {amount} lei",
+    "hardSummary": "Cele mai grele luni: {from} – {to}. În {low} îți rămân cam {amount} lei.",
+    "hardSummaryMissing": "Cele mai grele luni: {from} – {to}. În {low} îți lipsesc cam {amount} lei.",
+    "noHard": "Nu vedem nicio lună în care să rămâi fără bani.",
+    "assumption": "Cheltuielile pe luni sunt estimate pentru o fermă obișnuită."
+  },
+  "calendar": {
+    "estimated": "dată estimată după anul trecut",
+    "until": "până pe {date}",
+    "from": "din {date}",
+    "entry": {
+      "apia_advance": "Avansul de la APIA",
+      "apia_balance": "Restul de la APIA",
+      "crop_sale": "Vinzi {crop}",
+      "input_cost": "{crop}: {what}"
+    },
+    "cropAcc": { "grau": "grâul", "porumb": "porumbul", "floarea-soarelui": "floarea-soarelui" }
+  },
+  "fields": {
+    "sub": "{ha} ha, recolta medie",
+    "marginPerHa": "câștig / ha",
+    "harvest": "Recolta",
+    "price": "Preț",
+    "income": "Venit",
+    "cost": "Cheltuieli",
+    "incomePerHa": "Venit / ha",
+    "breakEven": "Prețul la care nu pierzi",
+    "perT": "{amount} lei/t",
+    "perKg": "{amount} lei/kg",
+    "tonnes": "{t} t",
+    "howTitle": "Cum am calculat",
+    "how": "Am folosit producția, prețul și costurile medii pentru 2025–2026. Câștigul nu include subvenția APIA, care vine separat.",
+    "subsidyTitle": "Subvenția APIA",
+    "subsidyMore": "Vezi detaliile"
+  },
+  "reserve": {
+    "badYearTitle": "Fond pentru ani proști",
+    "badYearHave": "Ai pus deoparte",
+    "badYearOf": "din {amount} lei",
+    "badYearWhy": "Într-un an slab, în următoarele 12 luni ai avea cam {amount} lei mai puțin decât într-un an normal.",
+    "springTitle": "Bani pentru {from} – {to}",
+    "springNeed": "Îți trebuie",
+    "springHave": "Vei avea la început cam {amount} lei",
+    "springOk": "Îți ajung, dacă nu-i cheltui pe altceva până atunci.",
+    "springShort": "Îți lipsesc cam {amount} lei. Gândește-te de acum de unde îi iei.",
+    "springNone": "Nu vedem luni grele în următorul an.",
+    "note": "Mai bine puși deoparte din toamnă"
   },
   "subsidy": {
     "hello": "Bună, {name}!",
@@ -96,9 +194,7 @@
     "rateDefault": "Cursul oficial pentru anul ăsta nu e anunțat încă.",
     "next": "Vezi când vin banii",
     "reasons": {
-      "age": {
-        "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}."
-      },
+      "age": { "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}." },
       "total_ha": {
         "lte": "Doar pentru fermele de cel mult {expected} ha. Tu ai {actual} ha.",
         "gte": "Trebuie cel puțin {expected} ha. Tu ai {actual} ha."
@@ -107,54 +203,15 @@
         "gte": "Trebuie cel puțin {expected} ha de teren arabil. Tu ai {actual} ha.",
         "gt": "Nu ai teren arabil declarat."
       },
-      "distinct_crops": {
-        "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}."
-      },
-      "unproductive_ha": {
-        "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)."
-      },
+      "distinct_crops": { "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}." },
+      "unproductive_ha": { "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)." },
       "generic": "Nu se potrivește cu ferma ta."
     }
-  },
-  "home": {
-    "loggedInAs": "Ești în cont ca {email}",
-    "loadError": "Nu am putut încărca datele fermei."
   },
   "offline": {
     "needed": {
       "login": "Pornește internetul ca să intri în cont.",
       "save": "Pornește internetul ca să salvăm ferma."
-    }
-  },
-  "tabs": {
-    "money": "Bani",
-    "calendar": "Calendar"
-  },
-  "calendar": {
-    "title": "Când vin banii?",
-    "hardTitle": "Cele mai grele luni: {from} – {to}",
-    "hardTitleOne": "Cea mai grea lună: {month}",
-    "lowLeft": "În {month} îți rămân cam {amount} lei, înainte de alte venituri.",
-    "lowMissing": "În {month} îți lipsesc cam {amount} lei.",
-    "noHard": "Nu vedem nicio lună în care să rămâi fără bani.",
-    "hardBadge": "Lună grea",
-    "left": "Rămân: {amount} lei",
-    "missing": "Lipsesc: {amount} lei",
-    "estimated": "dată estimată după anul trecut",
-    "windowNote": "Oricând între {start} și {end}. Am socotit {chosen}, ca să fii acoperit.",
-    "until": "până pe {date}",
-    "from": "din {date}",
-    "assumption": "Cheltuielile pe luni sunt estimate pentru o fermă obișnuită. Le poți schimba mai târziu.",
-    "entry": {
-      "apia_advance": "Avansul de la APIA",
-      "apia_balance": "Restul de la APIA",
-      "crop_sale": "Vinzi {crop}",
-      "input_cost": "{crop}: {what}"
-    },
-    "cropAcc": {
-      "grau": "grâul",
-      "porumb": "porumbul",
-      "floarea-soarelui": "floarea-soarelui"
     }
   }
 }

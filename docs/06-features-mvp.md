@@ -25,7 +25,11 @@
 
 ## User flow, ecran cu ecran
 
-Navigația are 4 taburi jos, unul pentru fiecare întrebare: **Bani** · **Calendar** · **Îmi ajung?** · **De făcut**.
+**Designul vine din prototipul echipei** (`farm-app/index.html` din github.com/SergiuCiausu/cropcash), portat în React (`apps/web/src/styles/theme.css`). Are panouri de sticlă pe fundal lila, un card violet cu lumini pentru sumele mari, temă de zi și de noapte, meniu lateral pe laptop și bară de taburi pe telefon.
+
+Navigația are 4 taburi: **Acasă** (bani acum, cea mai grea lună, ce urmează, cheltuieli) · **Prognoză** („Îți ajung banii?”: grafic pe 12 luni cu an slab / normal / bun, apoi lună cu lună) · **Culturi** (câștig pe hectar, prețul la care nu pierzi, subvenția) · **Rezerve** (fondul pentru ani proști și banii pentru lunile grele). Detaliile subvenției se deschid într-o fereastră peste pagină, din „Subvenția”.
+
+> Tabelele de mai jos descriu primul flux gândit. Onboarding-ul (O1–O7) e implementat așa. Ecranele B/C/Î/D au fost înlocuite de cele 4 taburi de mai sus, iar conținutul lor s-a mutat acolo.
 
 ### O. Onboarding (o singură dată, ~2 minute)
 

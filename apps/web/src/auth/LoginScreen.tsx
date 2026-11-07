@@ -50,76 +50,69 @@ export function LoginScreen() {
     }
   };
 
-  const input =
-    'w-full rounded-xl border-2 border-field-600/40 bg-white px-4 py-4 text-xl focus:border-field-700 focus:outline-none';
-
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-8">
-      <header className="text-center">
-        <h1 className="text-4xl font-bold text-field-700">{t('app.name')}</h1>
-        <p className="mt-1 text-lg">{t('app.tagline')}</p>
-      </header>
+    <div className="solo">
+      <div className="card panel">
+        <div className="brandline">
+          <span className="orb" />
+          {t('app.name')}
+        </div>
+        <h1 className="title">{t(mode === 'login' ? 'auth.loginTitle' : 'auth.registerTitle')}</h1>
+        <p className="lead">{t('app.tagline')}</p>
 
-      <h2 className="text-2xl font-semibold">{t(mode === 'login' ? 'auth.loginTitle' : 'auth.registerTitle')}</h2>
+        <form onSubmit={submit}>
+          <label className="field">
+            {t('auth.email')}
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label className="field">
+            {t('auth.password')}
+            <input
+              type="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {mode === 'register' && <span className="hint">{t('auth.passwordHint')}</span>}
+          </label>
 
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="text-lg">{t('auth.email')}</span>
-          <input
-            className={input}
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-lg">{t('auth.password')}</span>
-          <input
-            className={input}
-            type="password"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {mode === 'register' && <span className="text-base text-field-900/70">{t('auth.passwordHint')}</span>}
-        </label>
+          {error && (
+            <p role="alert" className="err">
+              {error}
+            </p>
+          )}
+          {info && (
+            <p role="status" className="ok">
+              {info}
+            </p>
+          )}
 
-        {error && (
-          <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-lg text-red-900">
-            {error}
-          </p>
-        )}
-        {info && (
-          <p role="status" className="rounded-xl bg-field-600/10 px-4 py-3 text-lg">
-            {info}
-          </p>
-        )}
+          <button type="submit" className="primary" disabled={busy} style={{ marginTop: 18 }}>
+            {busy ? t('common.wait') : t(mode === 'login' ? 'auth.loginButton' : 'auth.registerButton')}
+          </button>
+        </form>
 
         <button
-          type="submit"
-          disabled={busy}
-          className="rounded-2xl bg-field-700 px-6 py-5 text-2xl font-semibold text-white disabled:opacity-60"
+          type="button"
+          className="textbtn"
+          onClick={() => {
+            setMode(mode === 'login' ? 'register' : 'login');
+            setError(null);
+            setInfo(null);
+          }}
         >
-          {busy ? t('common.wait') : t(mode === 'login' ? 'auth.loginButton' : 'auth.registerButton')}
+          {t(mode === 'login' ? 'auth.switchToRegister' : 'auth.switchToLogin')}
         </button>
-      </form>
-
-      <button
-        type="button"
-        onClick={() => {
-          setMode(mode === 'login' ? 'register' : 'login');
-          setError(null);
-          setInfo(null);
-        }}
-        className="py-3 text-lg text-field-700 underline"
-      >
-        {t(mode === 'login' ? 'auth.switchToRegister' : 'auth.switchToLogin')}
-      </button>
-    </main>
+      </div>
+    </div>
   );
 }

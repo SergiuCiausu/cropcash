@@ -6,8 +6,8 @@ import { LoginScreen } from './auth/LoginScreen';
 import { api } from './api/client';
 import { Onboarding } from './screens/Onboarding/Onboarding';
 import { SubsidyResultScreen } from './screens/SubsidyResult';
-import { Home, type Farm } from './screens/Home';
-import { Alert, SecondaryButton } from './components/ui';
+import { AppShell } from './screens/app/AppShell';
+import type { Farm } from './lib/plan';
 
 interface Me {
   userId: string;
@@ -20,6 +20,8 @@ type FarmState =
   | { kind: 'onboarding' }
   | { kind: 'firstResult'; name: string; subsidies: SubsidyResult }
   | { kind: 'ready'; farm: Farm };
+
+const Loading = () => <main className="loading">{t('common.wait')}</main>;
 
 function FarmGate() {
   const { signOut } = useAuth();
@@ -41,29 +43,35 @@ function FarmGate() {
 
   switch (state.kind) {
     case 'loading':
-      return <main className="flex min-h-dvh items-center justify-center text-xl">{t('common.wait')}</main>;
+      return <Loading />;
     case 'error':
       return (
-        <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4">
-          <Alert>{t('home.loadError')}</Alert>
-          <SecondaryButton onClick={load}>{t('common.retry')}</SecondaryButton>
-          <SecondaryButton onClick={signOut}>{t('auth.logout')}</SecondaryButton>
-        </main>
+        <div className="solo">
+          <div className="card panel">
+            <p role="alert" className="err">
+              {t('home.loadError')}
+            </p>
+            <button type="button" className="primary" onClick={load}>
+              {t('common.retry')}
+            </button>
+            <button type="button" className="textbtn" onClick={() => void signOut()}>
+              {t('auth.logout')}
+            </button>
+          </div>
+        </div>
       );
     case 'onboarding':
       return <Onboarding onDone={(r) => setState({ kind: 'firstResult', ...r })} />;
     case 'firstResult':
       return <SubsidyResultScreen name={state.name} result={state.subsidies} onNext={load} />;
     case 'ready':
-      return <Home farm={state.farm} onSignOut={signOut} />;
+      return <AppShell farm={state.farm} />;
   }
 }
 
 function Gate() {
   const { session, loading } = useAuth();
-  if (loading) {
-    return <main className="flex min-h-dvh items-center justify-center text-xl">{t('common.wait')}</main>;
-  }
+  if (loading) return <Loading />;
   // key: remount (and refetch) when the user changes.
   return session ? <FarmGate key={session.user.id} /> : <LoginScreen />;
 }
