@@ -20,6 +20,7 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
         name: farm.name,
         county: farm.county,
         birth_year: farm.birthYear,
+        start_balance_bani: farm.startBalanceBani,
         parcels: farm.parcels.map((p) => ({ crop_id: p.cropId, area_ari: p.areaAri, is_arable: true })),
       };
       return 'farm-1';
@@ -71,11 +72,21 @@ describe('POST /api/farmers (onboarding)', () => {
       name: 'Ion',
       county: 'TR',
       birthYear: data.subsidies.meta.campaign_year - 55,
+      startBalanceBani: 0,
       parcels: [
         { cropId: 'grau', areaAri: 800 },
         { cropId: 'porumb', areaAri: 700 },
       ],
     });
+  });
+
+  it('stores the optional start balance in bani', async () => {
+    const { repo, created } = memoryRepo();
+    await request(makeApp(repo))
+      .post('/api/farmers')
+      .set('Authorization', 'Bearer good')
+      .send({ ...ion, startBalanceLei: 35000 });
+    expect(created[0]!.startBalanceBani).toBe(3_500_000);
   });
 
   it('returns 409 if the user already has a farm', async () => {

@@ -7,18 +7,21 @@ import {
 } from '@cropcash/shared';
 import { t } from '../../i18n';
 import { api, ApiError } from '../../api/client';
+import { useAuth } from '../../auth/AuthProvider';
 import { fold, formatHa, parseHa } from '../../lib/format';
 import { Alert, PrimaryButton, Screen } from '../../components/ui';
 
 const data = loadData();
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
-type Step = 'welcome' | 'county' | 'crops' | 'about';
+type Step = 'welcome' | 'county' | 'crops' | 'about' | 'money';
 
 export interface OnboardingDone {
   name: string;
   subsidies: SubsidyResult;
 }
+
+const ageIsValid = (age: string) => /^\d{1,3}$/.test(age) && Number(age) >= 16 && Number(age) <= 100;
 
 export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) {
   const [step, setStep] = useState<Step>('welcome');
@@ -26,14 +29,16 @@ export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) 
   const [hectares, setHectares] = useState<Record<string, string>>({});
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+  const [money, setMoney] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submit = async () => {
+  const submit = async (startBalanceLei: number) => {
     const input: OnboardingInput = {
       name: name.trim(),
       county,
       age: Number(age),
+      startBalanceLei,
       parcels: data.crops.crops
         .map((c) => ({ cropId: c.id, areaHa: parseHa(hectares[c.id] ?? '') ?? 0 }))
         .filter((p) => p.areaHa > 0),
@@ -93,7 +98,16 @@ export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) 
           onName={setName}
           onAge={setAge}
           onBack={() => setStep('crops')}
-          onSubmit={submit}
+          onNext={() => setStep('money')}
+        />
+      );
+    case 'money':
+      return (
+        <MoneyStep
+          value={money}
+          onChange={setMoney}
+          onBack={() => setStep('about')}
+          onSubmit={(lei) => void submit(lei)}
           busy={busy}
           error={error}
         />
@@ -101,9 +115,69 @@ export function Onboarding({ onDone }: { onDone: (r: OnboardingDone) => void }) 
   }
 }
 
-function Welcome({ onNext }: { onNext: () => void }) {
+function MoneyStep(props: {
+  value: string;
+  onChange: (v: string) => void;
+  onBack: () => void;
+  onSubmit: (lei: number) => void;
+  busy: boolean;
+  error: string | null;
+}) {
+  const digits = props.value.replace(/[.\s]/g, '');
+  const valid = digits === '' || /^\d{1,9}$/.test(digits);
+  const lei = digits === '' ? 0 : Number(digits);
+
   return (
-    <Screen footer={<PrimaryButton onClick={onNext}>{t('onboarding.welcome.start')}</PrimaryButton>}>
+    <Screen
+      onBack={props.onBack}
+      step={{ n: 4, total: TOTAL_STEPS }}
+      footer={
+        <div className="flex flex-col gap-3">
+          <PrimaryButton disabled={!valid || props.busy} onClick={() => props.onSubmit(lei)}>
+            {props.busy ? t('common.wait') : t('onboarding.submit')}
+          </PrimaryButton>
+          <button
+            disabled={props.busy}
+            onClick={() => props.onSubmit(0)}
+            className="py-3 text-lg text-field-700 underline"
+          >
+            {t('onboarding.money.skip')}
+          </button>
+        </div>
+      }
+    >
+      <h1 className="text-3xl font-bold">{t('onboarding.money.title')}</h1>
+      <p className="text-lg">{t('onboarding.money.hint')}</p>
+      <label className="flex items-center gap-3">
+        <input
+          inputMode="numeric"
+          aria-label={t('onboarding.money.title')}
+          placeholder="0"
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value.replace(/[^\d.\s]/g, ''))}
+          className="w-full rounded-xl border-2 border-field-600/40 bg-white px-4 py-4 text-right text-3xl focus:border-field-700 focus:outline-none"
+        />
+        <span className="text-2xl">{t('onboarding.money.label')}</span>
+      </label>
+      {!valid && <Alert>{t('onboarding.money.invalid')}</Alert>}
+      {props.error && <Alert>{props.error}</Alert>}
+    </Screen>
+  );
+}
+
+function Welcome({ onNext }: { onNext: () => void }) {
+  const { signOut } = useAuth();
+  return (
+    <Screen
+      footer={
+        <div className="flex flex-col gap-3">
+          <PrimaryButton onClick={onNext}>{t('onboarding.welcome.start')}</PrimaryButton>
+          <button onClick={() => void signOut()} className="py-3 text-lg text-field-700 underline">
+            {t('auth.logout')}
+          </button>
+        </div>
+      }
+    >
       <div className="flex flex-1 flex-col justify-center gap-4">
         <h1 className="text-4xl font-bold text-field-700">{t('onboarding.welcome.title')}</h1>
         <p className="text-2xl leading-snug">{t('onboarding.welcome.body')}</p>
@@ -242,13 +316,10 @@ function AboutStep(props: {
   onName: (v: string) => void;
   onAge: (v: string) => void;
   onBack: () => void;
-  onSubmit: () => void;
-  busy: boolean;
-  error: string | null;
+  onNext: () => void;
 }) {
-  const ageNum = Number(props.age);
-  const ageValid = /^\d{1,3}$/.test(props.age) && ageNum >= 16 && ageNum <= 100;
-  const canSubmit = props.name.trim().length > 0 && ageValid && !props.busy;
+  const ageValid = ageIsValid(props.age);
+  const canContinue = props.name.trim().length > 0 && ageValid;
   const input =
     'w-full rounded-xl border-2 border-field-600/40 bg-white px-4 py-4 text-2xl focus:border-field-700 focus:outline-none';
 
@@ -257,8 +328,8 @@ function AboutStep(props: {
       onBack={props.onBack}
       step={{ n: 3, total: TOTAL_STEPS }}
       footer={
-        <PrimaryButton disabled={!canSubmit} onClick={props.onSubmit}>
-          {props.busy ? t('common.wait') : t('onboarding.submit')}
+        <PrimaryButton disabled={!canContinue} onClick={props.onNext}>
+          {t('common.next')}
         </PrimaryButton>
       }
     >
@@ -285,7 +356,6 @@ function AboutStep(props: {
         <span className="text-base text-field-900/70">{t('onboarding.about.ageHint')}</span>
       </label>
       {props.age !== '' && !ageValid && <Alert>{t('onboarding.about.invalidAge')}</Alert>}
-      {props.error && <Alert>{props.error}</Alert>}
     </Screen>
   );
 }

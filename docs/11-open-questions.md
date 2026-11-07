@@ -41,6 +41,9 @@
 | P8 | Salariul se rotunjește în jos la 50 lei, creditul în sus la 100 lei | Sume ușor de reținut. |
 | P9 | Persona Ion: 8 ha grâu + 7 ha porumb, sold de 35.000 lei la 1 noiembrie 2026 | 2 culturi îl fac eligibil PD-04 și dau un exemplu realist. |
 | P10 | „Medie” în `crops-reference.json` = mijlocul intervalului din sursă | Sursa dă doar intervale. |
+| P11 | Cheltuielile și vânzările se pun pe 15 ale lunii | Nu avem date pe zile. |
+| P12 | Termenele APIA pentru 2027 = cele din 2026 + 1 an, marcate „estimat” | Nu sunt anunțate. |
+| P13 | Calendarul folosește implicit sume „an normal” și plăți APIA în ultima zi a ferestrei | Planul trebuie să țină și dacă banii vin târziu. |
 
 ## C. Contradicții găsite
 
@@ -63,6 +66,7 @@
 
 - **Test Clocks (C4):** confirmat. Salariile le trimite scheduler-ul nostru, care citește data de pe Test Clock.
 - **Animalele:** scoase din MVP (onboarding și calcul). Schemele cuplate rămân în JSON cu `enabled: false`, ca plan de viitor. Coloanele `dairy_cows` / `beef_cattle` rămân în DB, cu valoarea implicită 0.
+- **Stripe rămâne** (juriul dă puncte în plus pentru folosirea Stripe). Fluxul din `08-stripe.md` e o simulare de demo. Limitarea „APIA nu plătește prin Stripe” e spusă deschis în pitch. Open banking (Salt Edge) e pasul de producție, doar în pitch.
 - **Creditul de punte:** varianta A + C. Aplicația spune informativ cât credit îi trebuie și când, fără să numească vreo bancă (A). Fermierul poate introduce și singur un credit pe care îl ia oricum, iar aplicația îl include în plan (C). Riscul legal de intermediere de credit, dacă am numi bănci, e DE-VERIFICAT; de aceea nu numim.
 
 ### Deschise

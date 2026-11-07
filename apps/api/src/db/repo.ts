@@ -11,6 +11,7 @@ export interface NewFarm {
   name: string;
   county: string;
   birthYear: number;
+  startBalanceBani: number;
   parcels: { cropId: string; areaAri: number }[];
 }
 
@@ -32,7 +33,7 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
       const { data, error } = await db
         .forUser(token)
         .from('farmers')
-        .select('id, name, county, birth_year, parcels (crop_id, area_ari, is_arable)')
+        .select('id, name, county, birth_year, start_balance_bani, parcels (crop_id, area_ari, is_arable)')
         .maybeSingle();
       if (error) throw new RepoError('db_error', error.message);
       return (data as FarmRow | null) ?? null;
@@ -44,6 +45,7 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
         p_county: farm.county,
         p_birth_year: farm.birthYear,
         p_parcels: farm.parcels.map((p) => ({ crop_id: p.cropId, area_ari: p.areaAri })),
+        p_start_balance_bani: farm.startBalanceBani,
       });
       if (error) {
         // 23505 = unique_violation: this user already has a farm.

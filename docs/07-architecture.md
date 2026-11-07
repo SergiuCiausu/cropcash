@@ -67,6 +67,10 @@ cropcash/
 
 Banii se țin în **bani, ca numere întregi** (`bigint`), niciodată ca float.
 
+**Plățile planificate se calculează, nu se salvează** (decizie la pasul 4). Calendarul (`buildTimeline` din `packages/shared/src/cashflow`) se generează din fermă, subvenții și `docs/data`, direct pe telefon. Așa merge și offline și nu rămâne nimic învechit în baza de date când se schimbă JSON-urile. În `expected_payments` intră doar ce nu se poate calcula: creditul declarat de fermier (pasul 5) și plățile primite efectiv (pasul 6, din webhooks).
+
+**Calendarul pe scurt:** cheltuielile și vânzările se repetă în fiecare an, pe lunile din `crops-reference.json`, pe 15 ale lunii. Plățile APIA folosesc ferestrele din `calendar-2026.json`; pentru anii următori, datele sunt proiectate cu +1 an și marcate „estimat”. „Lunile grele” sunt șirul de luni pe minus care se termină în punctul cel mai de jos al soldului, deci se calculează, nu se scriu de mână. Pentru Ion ies martie – mai.
+
 ### Schema SQL (Supabase)
 
 ```sql

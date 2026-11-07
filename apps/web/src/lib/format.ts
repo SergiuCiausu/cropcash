@@ -18,6 +18,25 @@ export function formatDayMonth(iso: string): string {
   return dayMonth.format(new Date(`${iso}T00:00:00Z`));
 }
 
+const monthYear = new Intl.DateTimeFormat('ro-RO', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const monthOnly = new Intl.DateTimeFormat('ro-RO', { month: 'long', timeZone: 'UTC' });
+
+/** "2026-11" -> "Noiembrie 2026". */
+export function formatMonthYear(key: string): string {
+  const s = monthYear.format(new Date(`${key}-01T00:00:00Z`));
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** "2027-05" -> "mai". */
+export function formatMonth(key: string): string {
+  return monthOnly.format(new Date(`${key}-01T00:00:00Z`));
+}
+
+/** Current month as "YYYY-MM" in local time. */
+export function currentMonthKey(now = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
 /** Parses "8", "8,5" or "8.5" -> 8.5; returns null for invalid input. */
 export function parseHa(text: string): number | null {
   const normalized = text.trim().replace(',', '.');

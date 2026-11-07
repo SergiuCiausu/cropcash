@@ -113,6 +113,7 @@ describe('API with real Supabase tokens', () => {
       name: 'Ion',
       county: 'TR',
       age: 55,
+      startBalanceLei: 35000,
       parcels: [
         { cropId: 'grau', areaHa: 8 },
         { cropId: 'porumb', areaHa: 7 },
@@ -134,6 +135,9 @@ describe('API with real Supabase tokens', () => {
 
     const subs = await request(app).get('/api/subsidies').set('Authorization', `Bearer ${b.token}`);
     expect(subs.body.totals.advanceLei).toBe(1265220);
+
+    const me = await request(app).get('/api/me').set('Authorization', `Bearer ${b.token}`);
+    expect(me.body.farmer.start_balance_bani).toBe(3_500_000);
   });
 
   it("onboarding data stays invisible to other users", async () => {

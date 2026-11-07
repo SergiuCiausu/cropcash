@@ -50,6 +50,7 @@
 
 1. **Datele sunt simulate:** încasările APIA și vânzările sunt plăți de test. Istoricul județului e ilustrativ până la integrarea datelor INS.
 2. **Banii reali necesită un partener licențiat** (instituție de plată sau bancă). Stripe e în test mode.
+   - **Spunem înainte să întrebe juriul:** APIA plătește prin Trezorerie, cu transfer bancar, în IBAN-ul fermierului. Nu plătește prin Stripe. În demo, „avansul APIA” e o plată de test. În producție, CropCash ar **vedea** plata în banca fermierului prin open banking (de exemplu, Salt Edge), iar banii n-ar pleca din banca lui. Stripe ar rămâne pentru partea de bani pe care o gestionează platforma: abonamentul CropCash, contribuțiile automate prin partener.
 3. **Unele cifre sunt de verificat** în textul Planului Strategic PAC: pragul CRISS, PD-05, PD-28, schemele cuplate, cursul 2026. În aplicație apar marcate „(de verificat)”.
 4. **Nu există integrare cu APIA sau AGI Online**, pentru că nu există un API public. Datele vin de la fermier sau din PDF-ul deciziei.
 5. **Nu e consultanță financiară:** simulările de pensie folosesc randamente presupuse (2/4/6%).

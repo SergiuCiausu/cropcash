@@ -4,20 +4,22 @@ import { t } from './i18n';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { LoginScreen } from './auth/LoginScreen';
 import { api } from './api/client';
-import { Onboarding, type OnboardingDone } from './screens/Onboarding/Onboarding';
+import { Onboarding } from './screens/Onboarding/Onboarding';
 import { SubsidyResultScreen } from './screens/SubsidyResult';
+import { Home, type Farm } from './screens/Home';
 import { Alert, SecondaryButton } from './components/ui';
 
 interface Me {
   userId: string;
-  farmer: { name: string } | null;
+  farmer: Farm | null;
 }
 
 type FarmState =
   | { kind: 'loading' }
   | { kind: 'error' }
   | { kind: 'onboarding' }
-  | { kind: 'ready'; name: string; subsidies: SubsidyResult };
+  | { kind: 'firstResult'; name: string; subsidies: SubsidyResult }
+  | { kind: 'ready'; farm: Farm };
 
 function FarmGate() {
   const { signOut } = useAuth();
@@ -27,12 +29,7 @@ function FarmGate() {
     setState({ kind: 'loading' });
     try {
       const me = await api<Me>('/api/me');
-      if (!me.farmer) {
-        setState({ kind: 'onboarding' });
-        return;
-      }
-      const subsidies = await api<SubsidyResult>('/api/subsidies');
-      setState({ kind: 'ready', name: me.farmer.name, subsidies });
+      setState(me.farmer ? { kind: 'ready', farm: me.farmer } : { kind: 'onboarding' });
     } catch {
       setState({ kind: 'error' });
     }
@@ -54,23 +51,11 @@ function FarmGate() {
         </main>
       );
     case 'onboarding':
-      return (
-        <Onboarding
-          onDone={(r: OnboardingDone) => setState({ kind: 'ready', name: r.name, subsidies: r.subsidies })}
-        />
-      );
+      return <Onboarding onDone={(r) => setState({ kind: 'firstResult', ...r })} />;
+    case 'firstResult':
+      return <SubsidyResultScreen name={state.name} result={state.subsidies} onNext={load} />;
     case 'ready':
-      // Step 4 replaces this with the tabbed home (Bani / Calendar / Îmi ajung? / De făcut).
-      return (
-        <>
-          <SubsidyResultScreen name={state.name} result={state.subsidies} />
-          <div className="mx-auto max-w-md px-4 pb-8">
-            <SecondaryButton className="w-full" onClick={signOut}>
-              {t('auth.logout')}
-            </SecondaryButton>
-          </div>
-        </>
-      );
+      return <Home farm={state.farm} onSignOut={signOut} />;
   }
 }
 

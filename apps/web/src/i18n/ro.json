@@ -9,7 +9,7 @@
     "next": "Gata",
     "retry": "Mai încearcă",
     "toVerify": "de verificat",
-    "toVerifyHint": "N-am putut confirma încă regula asta în actele oficiale.",
+    "toVerifyHint": "Încă n-am putut confirma asta în actele oficiale.",
     "error": "Ceva n-a mers. Mai încearcă o dată."
   },
   "auth": {
@@ -68,6 +68,13 @@
     "errors": {
       "farm_exists": "Ai deja ferma salvată.",
       "invalid_input": "Verifică ce ai scris și mai încearcă."
+    },
+    "money": {
+      "title": "Cam câți bani ai acum?",
+      "hint": "Pune toți banii pe care îi ai acum pentru fermă și casă, în cont și acasă. Ne trebuie ca să-ți spunem dacă îți ajung. Nu-i spunem nimănui.",
+      "label": "lei",
+      "skip": "Nu știu, sar peste",
+      "invalid": "Scrie suma ca număr întreg, de exemplu 35000."
     }
   },
   "subsidy": {
@@ -89,7 +96,9 @@
     "rateDefault": "Cursul oficial pentru anul ăsta nu e anunțat încă.",
     "next": "Vezi când vin banii",
     "reasons": {
-      "age": { "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}." },
+      "age": {
+        "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}."
+      },
       "total_ha": {
         "lte": "Doar pentru fermele de cel mult {expected} ha. Tu ai {actual} ha.",
         "gte": "Trebuie cel puțin {expected} ha. Tu ai {actual} ha."
@@ -98,8 +107,12 @@
         "gte": "Trebuie cel puțin {expected} ha de teren arabil. Tu ai {actual} ha.",
         "gt": "Nu ai teren arabil declarat."
       },
-      "distinct_crops": { "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}." },
-      "unproductive_ha": { "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)." },
+      "distinct_crops": {
+        "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}."
+      },
+      "unproductive_ha": {
+        "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)."
+      },
       "generic": "Nu se potrivește cu ferma ta."
     }
   },
@@ -111,6 +124,37 @@
     "needed": {
       "login": "Pornește internetul ca să intri în cont.",
       "save": "Pornește internetul ca să salvăm ferma."
+    }
+  },
+  "tabs": {
+    "money": "Bani",
+    "calendar": "Calendar"
+  },
+  "calendar": {
+    "title": "Când vin banii?",
+    "hardTitle": "Cele mai grele luni: {from} – {to}",
+    "hardTitleOne": "Cea mai grea lună: {month}",
+    "lowLeft": "În {month} îți rămân cam {amount} lei, înainte de alte venituri.",
+    "lowMissing": "În {month} îți lipsesc cam {amount} lei.",
+    "noHard": "Nu vedem nicio lună în care să rămâi fără bani.",
+    "hardBadge": "Lună grea",
+    "left": "Rămân: {amount} lei",
+    "missing": "Lipsesc: {amount} lei",
+    "estimated": "dată estimată după anul trecut",
+    "windowNote": "Oricând între {start} și {end}. Am socotit {chosen}, ca să fii acoperit.",
+    "until": "până pe {date}",
+    "from": "din {date}",
+    "assumption": "Cheltuielile pe luni sunt estimate pentru o fermă obișnuită. Le poți schimba mai târziu.",
+    "entry": {
+      "apia_advance": "Avansul de la APIA",
+      "apia_balance": "Restul de la APIA",
+      "crop_sale": "Vinzi {crop}",
+      "input_cost": "{crop}: {what}"
+    },
+    "cropAcc": {
+      "grau": "grâul",
+      "porumb": "porumbul",
+      "floarea-soarelui": "floarea-soarelui"
     }
   }
 }

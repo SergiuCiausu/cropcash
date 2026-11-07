@@ -14,6 +14,8 @@ export const OnboardingInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
   county: z.string().min(1).max(3),
   age: z.number().int().min(16).max(100),
+  /** Money the farmer has today, in whole lei (optional; 0 if skipped). */
+  startBalanceLei: z.number().int().min(0).max(100_000_000).default(0),
   parcels: z
     .array(
       z.object({
@@ -28,7 +30,8 @@ export const OnboardingInputSchema = z.object({
     )
     .min(1),
 });
-export type OnboardingInput = z.infer<typeof OnboardingInputSchema>;
+export type OnboardingInput = z.input<typeof OnboardingInputSchema>;
+export type OnboardingParsed = z.output<typeof OnboardingInputSchema>;
 
 export type OnboardingIssue = 'unknown_county' | 'unknown_crop' | 'duplicate_crop' | 'too_large';
 
@@ -56,6 +59,7 @@ export function ageFromBirthYear(birthYear: number, referenceYear: number): numb
 /** A stored farm (DB shape, areas in ari) -> engine input. */
 export interface StoredFarm {
   birth_year: number;
+  start_balance_bani?: number;
   parcels: { crop_id: string; area_ari: number; is_arable: boolean }[];
 }
 

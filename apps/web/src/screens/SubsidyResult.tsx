@@ -14,15 +14,22 @@ function needsVerify(s: SchemeResult): boolean {
   return s.schemeStatus === 'DE-VERIFICAT' || s.unverified.length > 0;
 }
 
-export function SubsidyResultScreen({
-  name,
-  result,
-  onNext,
-}: {
+interface Props {
   name?: string;
   result: SubsidyResult;
-  onNext?: () => void;
-}) {
+}
+
+/** Full screen, shown once right after onboarding. */
+export function SubsidyResultScreen({ onNext, ...props }: Props & { onNext: () => void }) {
+  return (
+    <Screen footer={<PrimaryButton onClick={onNext}>{t('subsidy.next')}</PrimaryButton>}>
+      <SubsidyResultContent {...props} />
+    </Screen>
+  );
+}
+
+/** The subsidy estimate itself, also used inside the "Bani" tab. */
+export function SubsidyResultContent({ name, result }: Props) {
   const { totals } = result;
   const advance = event('apia-avans');
   const balance = event('apia-sold');
@@ -31,7 +38,7 @@ export function SubsidyResultScreen({
   const rate = result.rates.FEGA;
 
   return (
-    <Screen footer={onNext && <PrimaryButton onClick={onNext}>{t('subsidy.next')}</PrimaryButton>}>
+    <div className="flex flex-col gap-5">
       {name && <p className="text-xl">{t('subsidy.hello', { name })}</p>}
 
       <section aria-labelledby="headline">
@@ -126,6 +133,6 @@ export function SubsidyResultScreen({
         {t('subsidy.rateNote', { rate: rate.value.toLocaleString('ro-RO') })}
         {!rate.confirmed && <> {t('subsidy.rateDefault')}</>}
       </p>
-    </Screen>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import {
   computeSubsidies,
   farmInputFromStored,
   haToAri,
+  leiToBani,
   validateOnboarding,
   type AppData,
   type SubsidyParams,
@@ -41,6 +42,7 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams):
         name: input.name,
         county: input.county,
         birthYear: birthYearFromAge(input.age, year),
+        startBalanceBani: leiToBani(input.startBalanceLei),
         parcels: input.parcels.map((p) => ({ cropId: p.cropId, areaAri: haToAri(p.areaHa) })),
       });
       const farm = await repo.getMyFarm(token);

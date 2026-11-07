@@ -34,7 +34,8 @@ Navigația are 4 taburi jos, unul pentru fiecare întrebare: **Bani** · **Calen
 | O1 | Bun venit | „Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună.” | **Începe** | O2 |
 | O2 | Județul | listă cu căutare | alege „Teleorman” | O3 |
 | O3 | Culturile | carduri mari: Grâu, Porumb, Floarea-soarelui, cu „câte hectare?” și butoane +/− | 8 ha grâu, 7 ha porumb → **Gata** | O4 |
-| O4 | Numele și vârsta | „Cum te cheamă?” și „Câți ani ai?” (număr mare) | Ion, 55 → **Gata** | O7 |
+| O4 | Numele și vârsta | „Cum te cheamă?” și „Câți ani ai?” (număr mare) | Ion, 55 → **Gata** | O5 |
+| O5 | Banii de acum (opțional) | „Cam câți bani ai acum?” Ne trebuie ca să-i spunem dacă îi ajung. | 35.000 → **Arată-mi banii** (sau „Nu știu, sar peste” = 0) | O7 |
 | O6 | Hârtiile APIA (pasul 10b, opțional) | „Ai decizia de plată? Fă-i o poză sau încarcă PDF-ul.” | **Sari peste** | O7 |
 | O7 | Rezultatul | „De la APIA primești cam **16.900 lei**” (între 15.200 și 17.100) | **Vezi când vin banii** | C1 |
 

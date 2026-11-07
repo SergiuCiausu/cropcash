@@ -26,7 +26,7 @@
   - **Fișiere:** `apps/web/src/screens/Onboarding/*`, `i18n/ro.json`, `apps/api/src/routes/farmers.ts`, `supabase/migrations/001_init.sql`.
   - **Gata când:** profilul lui Ion se salvează în Supabase și O7 arată intervalul corect. Merge la 360 px lățime.
 
-- [ ] **4. Calendarul** · ~4 h · MINIM
+- [x] **4. Calendarul** · ~4 h · MINIM
   - **Obiectiv:** ExpectedPayments generate din subvenții + culturi + `calendar-2026.json`, plus axa de timp C1/C2.
   - **Fișiere:** `packages/shared/src/cashflow/timeline.ts` (+ test), `screens/Calendar/*`, `routes/plan.ts`.
   - **Gata când:** axa noiembrie 2026 – septembrie 2027 arată încasările, cheltuielile și termenele, cu golul februarie–mai evidențiat.
