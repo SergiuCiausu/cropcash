@@ -4,7 +4,7 @@ import { t } from '../../i18n';
 import { api, ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { fold, formatHa, parseHa } from '../../lib/format';
-import { Alert } from '../../components/ui';
+import { Alert, Logo } from '../../components/ui';
 
 const data = loadData();
 const TOTAL_STEPS = 4;
@@ -32,11 +32,14 @@ function Card({
 }) {
   return (
     <div className="solo">
-      <div className="card panel">
+      <div className="solo-top field">
+        <Logo />
+      </div>
+      <div className="card">
         {(onBack || step) && (
           <div className="steps">
             {onBack ? (
-              <button type="button" className="link" onClick={onBack}>
+              <button type="button" className="linkbtn" onClick={onBack}>
                 ← {t('common.back')}
               </button>
             ) : (
@@ -145,7 +148,7 @@ function Welcome({ onNext }: { onNext: () => void }) {
     <Card
       footer={
         <>
-          <button type="button" className="primary" onClick={onNext}>
+          <button type="button" className="btn btn-dark btn-block" onClick={onNext}>
             {t('onboarding.welcome.start')}
           </button>
           <button type="button" className="textbtn" onClick={() => void signOut()}>
@@ -154,13 +157,9 @@ function Welcome({ onNext }: { onNext: () => void }) {
         </>
       }
     >
-      <div className="brandline">
-        <span className="orb" />
-        {t('app.name')}
-      </div>
       <h1 className="title">{t('onboarding.welcome.title')}</h1>
       <p className="lead">{t('onboarding.welcome.body')}</p>
-      <p className="fine">{t('onboarding.welcome.time')}</p>
+      <p className="note" style={{ marginTop: 8 }}>{t('onboarding.welcome.time')}</p>
     </Card>
   );
 }
@@ -224,7 +223,7 @@ function CropsStep({
       onBack={onBack}
       step={2}
       footer={
-        <button type="button" className="primary" disabled={invalid || total <= 0} onClick={onNext}>
+        <button type="button" className="btn btn-dark btn-block" disabled={invalid || total <= 0} onClick={onNext}>
           {t('common.next')}
         </button>
       }
@@ -277,17 +276,17 @@ function AboutStep(props: {
       onBack={props.onBack}
       step={3}
       footer={
-        <button type="button" className="primary" disabled={!props.name.trim() || !ageValid} onClick={props.onNext}>
+        <button type="button" className="btn btn-dark btn-block" disabled={!props.name.trim() || !ageValid} onClick={props.onNext}>
           {t('common.next')}
         </button>
       }
     >
       <h1 className="title">{t('onboarding.about.title')}</h1>
-      <label className="field">
+      <label className="field-l">
         {t('onboarding.about.name')}
         <input autoComplete="given-name" maxLength={80} value={props.name} onChange={(e) => props.onName(e.target.value)} />
       </label>
-      <label className="field">
+      <label className="field-l">
         {t('onboarding.about.age')}
         <input
           inputMode="numeric"
@@ -321,7 +320,7 @@ function MoneyStep(props: {
       step={4}
       footer={
         <>
-          <button type="button" className="primary" disabled={!valid || props.busy} onClick={() => props.onSubmit(lei)}>
+          <button type="button" className="btn btn-dark btn-block" disabled={!valid || props.busy} onClick={() => props.onSubmit(lei)}>
             {props.busy ? t('common.wait') : t('onboarding.submit')}
           </button>
           <button type="button" className="textbtn" disabled={props.busy} onClick={() => props.onSubmit(0)}>
@@ -332,7 +331,7 @@ function MoneyStep(props: {
     >
       <h1 className="title">{t('onboarding.money.title')}</h1>
       <p className="lead">{t('onboarding.money.hint')}</p>
-      <label className="field">
+      <label className="field-l">
         {t('onboarding.money.label')}
         <input
           inputMode="numeric"

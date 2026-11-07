@@ -25,9 +25,12 @@
 
 ## User flow, ecran cu ecran
 
-**Designul vine din prototipul echipei** (`farm-app/index.html` din github.com/SergiuCiausu/cropcash), portat în React (`apps/web/src/styles/theme.css`). Are panouri de sticlă pe fundal lila, un card violet cu lumini pentru sumele mari, temă de zi și de noapte, meniu lateral pe laptop și bară de taburi pe telefon.
+**Designul vine din prototipul final al echipei** (github.com/SergiuCiausu/cropcash, commit „Finished UI”): stilul „Daylight” (fundal deschis, o zonă colorată puternic pentru cifrele principale, culori plate, font Geist) și **6 palete de culori** la alegere, salvate pe dispozitiv.
+- **Telefon (sub 760 px), `farm-app/mobile/c-deck.html`:** zona colorată sus, cu carduri pe care le treci cu degetul (bani acum + grafic, fond pentru ani proști, subvenția) și 3 cifre-cheie, apoi plăci de acțiune, salariul, cheltuielile și ce urmează; bara de taburi jos. Stilurile sunt în `apps/web/src/styles/deck.css`.
+- **Laptop, `farm-app/desktop/2-rail.html`:** bară laterală colorată, antet de pagină cu acțiuni, grilă de carduri. Stilurile sunt în `styles/rail.css`.
+- **Diferențe față de prototip:** am scos „Înregistrează o vânzare / cheltuială”, „Activitate recentă”, „Costuri de anulat” și comutatoarele de reguli, pentru că încă nu au date în spate. În locul lor sunt salariul cu creditul (pasul 5), plicurile și banii pentru lunile grele. Graficele pentru laptop sunt desenate de mână (varianta de rezervă din prototip), nu cu Recharts.
 
-Navigația are 4 taburi: **Acasă** (bani acum, cea mai grea lună, ce urmează, cheltuieli) · **Prognoză** („Îți ajung banii?”: grafic pe 12 luni cu an slab / normal / bun, apoi lună cu lună) · **Culturi** (câștig pe hectar, prețul la care nu pierzi, subvenția) · **Rezerve** (fondul pentru ani proști și banii pentru lunile grele). Detaliile subvenției se deschid într-o fereastră peste pagină, din „Subvenția”.
+Navigația are 4 taburi: **Acasă** · **Prognoză** („Îți ajung banii?”: grafic pe 12 luni cu an slab / normal / bun, cifre-cheie, unde se duc banii, lună cu lună) · **Culturi** (câștig pe hectar, prețul la care nu pierzi) · **Rezerve** (fondul pentru ani proști, plicurile, banii pentru lunile grele). Detaliile subvenției, „Iau un credit” și contul se deschid într-o fereastră care urcă de jos.
 
 > Tabelele de mai jos descriu primul flux gândit. Onboarding-ul (O1–O7) e implementat așa. Ecranele B/C/Î/D au fost înlocuite de cele 4 taburi de mai sus, iar conținutul lor s-a mutat acolo.
 

@@ -2,7 +2,8 @@ import { loadData, type SchemeResult, type SubsidyResult } from '@cropcash/share
 import { t } from '../i18n';
 import { formatDayMonth, formatLei } from '../lib/format';
 import { failedConditionText } from '../lib/subsidyText';
-import { VerifyBadge } from '../components/ui';
+import { Logo, VerifyBadge } from '../components/ui';
+import { Icon } from '../components/Icon';
 
 const data = loadData();
 const event = (id: string) => data.calendar.events.find((e) => e.id === id);
@@ -16,17 +17,20 @@ const needsVerify = (s: SchemeResult) => s.schemeStatus === 'DE-VERIFICAT' || s.
 export function SubsidyResultScreen({ name, result, onNext }: { name?: string; result: SubsidyResult; onNext: () => void }) {
   return (
     <div className="solo">
-      <div className="card" style={{ display: 'grid', gap: 14 }}>
+      <div className="solo-top field">
+        <Logo />
+      </div>
+      <div className="card">
         <SubsidyResultContent name={name} result={result} />
-        <button type="button" className="primary" onClick={onNext}>
-          {t('subsidy.next')}
+        <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 16 }} onClick={onNext}>
+          {t('subsidy.next')} <Icon name="arrow" />
         </button>
       </div>
     </div>
   );
 }
 
-/** The subsidy estimate itself: used after onboarding and in the "Subvenția" sheet. */
+/** The subsidy estimate itself: after onboarding and in the "Subvenția" sheet. */
 export function SubsidyResultContent({ name, result }: { name?: string; result: SubsidyResult }) {
   const { totals } = result;
   const advance = event('apia-avans');
@@ -37,94 +41,83 @@ export function SubsidyResultContent({ name, result }: { name?: string; result: 
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <div className="bal">
-        {name && <small>{t('subsidy.hello', { name })}</small>}
-        <small>{t('subsidy.headline')}</small>
-        <span className="amt">
-          {formatLei(totals.lei.probable, ROUND_LEI)} {t('common.lei')}
-        </span>
-        <div className="row">
-          <div>
-            <b style={{ fontSize: 16 }}>
-              {t('subsidy.range', {
-                min: formatLei(totals.lei.min, ROUND_LEI),
-                max: formatLei(totals.lei.max, ROUND_LEI),
-              })}
-            </b>
-          </div>
-          <span className="pill">{t('common.estimated')}</span>
+      <section className="cta field">
+        <div>
+          {name && <p className="eyebrow">{t('subsidy.hello', { name })}</p>}
+          <p className="eyebrow">{t('subsidy.headline')}</p>
+          <p className="n36">
+            {formatLei(totals.lei.probable, ROUND_LEI)} {t('common.lei')}
+          </p>
+          <p>
+            {t('subsidy.range', {
+              min: formatLei(totals.lei.min, ROUND_LEI),
+              max: formatLei(totals.lei.max, ROUND_LEI),
+            })}
+          </p>
         </div>
-      </div>
-      {dropPct !== null && dropPct > 0 && <p className="fine">{t('subsidy.rangeWhy', { pct: dropPct })}</p>}
+      </section>
+      {dropPct !== null && dropPct > 0 && <p className="note">{t('subsidy.rangeWhy', { pct: dropPct })}</p>}
 
-      <div className="panel">
-        <ul className="rows">
-          {/* Amount under the title, not in a right column: stays readable on narrow phones. */}
-          <li style={{ gridTemplateColumns: '42px minmax(0, 1fr)', alignItems: 'start' }}>
-            <span className="badge" style={{ background: 'var(--t-mint)', color: 'var(--i-mint)' }}>
-              75%
-            </span>
-            <div>
-              <b>{t('subsidy.advanceTitle')}</b>
-              <b className="in" style={{ fontSize: 20 }}>
-                {formatLei(totals.advanceLei)} {t('common.lei')}
-              </b>
-              <small>
-                {advance?.start && advance.end
-                  ? t('subsidy.advanceWhen', { start: formatDayMonth(advance.start), end: formatDayMonth(advance.end) })
-                  : ''}
-                . {t('subsidy.advanceSure')}
-              </small>
-            </div>
-          </li>
-          <li style={{ gridTemplateColumns: '42px minmax(0, 1fr)', alignItems: 'start' }}>
-            <span className="badge" style={{ background: 'var(--t-butter)', color: 'var(--i-butter)' }}>
-              25%
-            </span>
-            <div>
-              <b>{t('subsidy.balanceTitle')}</b>
-              {/* Exact to the leu so that advance + balance visibly adds up. */}
-              <b className="in" style={{ fontSize: 20 }}>
-                {formatLei(totals.balanceLei.probable)} {t('common.lei')}
-              </b>
-              <small>
-                {t('subsidy.balanceRange', {
-                  min: formatLei(totals.balanceLei.min, ROUND_LEI),
-                  max: formatLei(totals.balanceLei.max, ROUND_LEI),
-                })}
-                ,{' '}
-                {balance?.start && balance.end
-                  ? t('subsidy.balanceWhen', { start: formatDayMonth(balance.start), end: formatDayMonth(balance.end) })
-                  : ''}
-              </small>
-            </div>
-          </li>
-        </ul>
-      </div>
+      <ol>
+        <li className="tx" style={{ alignItems: 'start' }}>
+          <span className="ti">75%</span>
+          <div className="tm">
+            <b>{t('subsidy.advanceTitle')}</b>
+            <b className="tab" style={{ fontSize: 20, color: 'var(--ink-a)' }}>
+              {formatLei(totals.advanceLei)} {t('common.lei')}
+            </b>
+            <small style={{ whiteSpace: 'normal' }}>
+              {advance?.start && advance.end
+                ? t('subsidy.advanceWhen', { start: formatDayMonth(advance.start), end: formatDayMonth(advance.end) })
+                : ''}
+              . {t('subsidy.advanceSure')}
+            </small>
+          </div>
+          <span />
+        </li>
+        <li className="tx" style={{ alignItems: 'start' }}>
+          <span className="ti b">25%</span>
+          <div className="tm">
+            <b>{t('subsidy.balanceTitle')}</b>
+            {/* Exact to the leu so that advance + balance visibly adds up. */}
+            <b className="tab" style={{ fontSize: 20, color: 'var(--ink-b)' }}>
+              {formatLei(totals.balanceLei.probable)} {t('common.lei')}
+            </b>
+            <small style={{ whiteSpace: 'normal' }}>
+              {t('subsidy.balanceRange', {
+                min: formatLei(totals.balanceLei.min, ROUND_LEI),
+                max: formatLei(totals.balanceLei.max, ROUND_LEI),
+              })}
+              ,{' '}
+              {balance?.start && balance.end
+                ? t('subsidy.balanceWhen', { start: formatDayMonth(balance.start), end: formatDayMonth(balance.end) })
+                : ''}
+            </small>
+          </div>
+          <span />
+        </li>
+      </ol>
 
-      <div className="panel">
-        <div className="phead">
-          <h2>{t('subsidy.schemesTitle')}</h2>
+      <div>
+        <div className="card-h">
+          <h2 style={{ fontSize: 16 }}>{t('subsidy.schemesTitle')}</h2>
         </div>
         <ul className="rows">
           {result.schemes.map((s) => (
-            <li key={s.code} style={{ gridTemplateColumns: 'minmax(0,1fr) auto' }}>
-              <div>
-                <b>
-                  {s.nameRo}
-                  {needsVerify(s) && <VerifyBadge />}
-                </b>
-              </div>
-              <div className="num">
+            <li key={s.code}>
+              <b>
+                {s.nameRo}
+                {needsVerify(s) && <VerifyBadge />}
+              </b>
+              <b className="tab">
                 {formatLei(s.leiIndicative.probable, ROUND_LEI)} {t('common.lei')}
-              </div>
+              </b>
             </li>
           ))}
         </ul>
-
         {(result.notEligible.length > 0 || result.excluded.length > 0) && (
-          <details style={{ marginTop: 10 }}>
-            <summary className="link" style={{ display: 'block' }}>
+          <details style={{ marginTop: 8 }}>
+            <summary className="linkbtn" style={{ display: 'list-item', cursor: 'pointer' }}>
               {t('subsidy.notEligibleTitle')}
             </summary>
             <ul className="rows">
@@ -149,7 +142,7 @@ export function SubsidyResultContent({ name, result }: { name?: string; result: 
         )}
       </div>
 
-      <p className="fine">
+      <p className="note">
         {t('subsidy.rateNote', { rate: rate.value.toLocaleString('ro-RO') })}
         {!rate.confirmed && <> {t('subsidy.rateDefault')}</>}
       </p>

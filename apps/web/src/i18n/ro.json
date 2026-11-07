@@ -92,24 +92,25 @@
     "reserve": "Rezerve",
     "menu": "Meniu",
     "farmSide": "{ha} ha, {county}",
-    "asOf": "La {date}"
+    "asOf": "La {date}",
+    "account": "Contul tău"
   },
   "pages": {
     "home": {
       "title": "Bună, {name}",
-      "sub": "Uite cum stă ferma azi"
+      "sub": "Tot ce are nevoie ferma de la tine în perioada asta."
     },
     "forecast": {
       "title": "Îți ajung banii?",
-      "sub": "Banii tăi lună de lună, pe 12 luni"
+      "sub": "Banii tăi pe 12 luni. Un interval, nu o promisiune."
     },
     "fields": {
-      "title": "Culturi",
-      "sub": "Ce aduce fiecare cultură"
+      "title": "Culturile tale",
+      "sub": "Ce îți aduce fiecare cultură, pe hectar."
     },
     "reserve": {
       "title": "Rezerve",
-      "sub": "Bani puși deoparte pentru ce urmează"
+      "sub": "Bani puși deoparte pentru ce urmează."
     }
   },
   "home": {
@@ -128,7 +129,8 @@
     "comingUp": "Urmează",
     "nextWeeks": "Următoarele săptămâni",
     "loadError": "Nu am putut încărca datele fermei.",
-    "noBalance": "Nu ne-ai spus câți bani ai acum, așa că am pornit de la 0."
+    "noBalance": "Nu ne-ai spus câți bani ai acum, așa că am pornit de la 0.",
+    "leiTotal": "lei total"
   },
   "forecast": {
     "scenarios": {
@@ -147,7 +149,26 @@
     "hardSummary": "Cele mai grele luni: {from} – {to}. În {low} îți rămân cam {amount} lei.",
     "hardSummaryMissing": "Cele mai grele luni: {from} – {to}. În {low} îți lipsesc cam {amount} lei.",
     "noHard": "Nu vedem nicio lună în care să rămâi fără bani.",
-    "assumption": "Cheltuielile pe luni sunt estimate pentru o fermă obișnuită."
+    "assumption": "Cheltuielile pe luni sunt estimate pentru o fermă obișnuită.",
+    "endEyebrow": "Sfârșitul lui {month}",
+    "seg": {
+      "bad": "An slab",
+      "medium": "Normal",
+      "good": "An bun"
+    },
+    "chartSub": "Banii pe 12 luni. Un interval, nu o promisiune.",
+    "kpiTightest": "Cea mai grea lună",
+    "ifBad": "Într-un an slab",
+    "ifGood": "Într-un an bun",
+    "legSelected": "Anul ales",
+    "legBand": "De la an slab la an bun",
+    "legDot": "Cea mai grea lună",
+    "colMonth": "Luna",
+    "colIn": "Intră",
+    "colOut": "Iese",
+    "colLeft": "Rămân",
+    "tightTag": ", cea mai grea",
+    "chartLabel": "Banii tăi pe 12 luni. Cel mai puțin în {month}: {amount} lei."
   },
   "calendar": {
     "estimated": "dată estimată după anul trecut",
@@ -157,7 +178,9 @@
       "apia_advance": "Avansul de la APIA",
       "apia_balance": "Restul de la APIA",
       "crop_sale": "Vinzi {crop}",
-      "input_cost": "{crop}: {what}"
+      "input_cost": "{crop}: {what}",
+      "credit": "Iei creditul",
+      "loan_repayment": "Dai înapoi creditul"
     },
     "cropAcc": {
       "grau": "grâul",
@@ -180,7 +203,11 @@
     "howTitle": "Cum am calculat",
     "how": "Am folosit producția, prețul și costurile medii pentru 2025–2026. Câștigul nu include subvenția APIA, care vine separat.",
     "subsidyTitle": "Subvenția APIA",
-    "subsidyMore": "Vezi detaliile"
+    "subsidyMore": "Vezi detaliile",
+    "marginTitle": "Câștig pe hectar",
+    "season": "Sezonul {year}",
+    "area": "Suprafață",
+    "note": "Am folosit producția, prețul și costurile medii pentru 2025–2026. Câștigul nu include subvenția APIA, care vine separat."
   },
   "reserve": {
     "badYearTitle": "Fond pentru ani proști",
@@ -253,7 +280,9 @@
     "declaredTitle": "Creditele tale",
     "declared": "{amount} lei, luat în {take}, dat înapoi în {repay}",
     "remove": "Șterge",
-    "removeLabel": "Șterge creditul de {amount} lei"
+    "removeLabel": "Șterge creditul de {amount} lei",
+    "eyebrow": "Salariul tău",
+    "headline": "{amount} lei pe lună"
   },
   "credit": {
     "title": "Iau un credit",
@@ -283,5 +312,51 @@
       "pension": "Bătrânețe"
     },
     "splitWhyOne": "Salariul și pensia acoperă o lună, până la următoarele încasări."
+  },
+  "palette": {
+    "title": "Culori"
+  },
+  "deck": {
+    "balance": "Bani acum",
+    "riskCard": "Fond pentru ani proști",
+    "subsidyCard": "Subvenția APIA",
+    "goal": "Ținta",
+    "advance": "Avans",
+    "rest": "Restul",
+    "choose": "Alege cardul",
+    "farmLine": "{county}, {ha} ha"
+  },
+  "stats": {
+    "tightest": "Cea mai grea",
+    "nextBill": "Următoarea plată",
+    "fund": "Fond",
+    "ofGoal": "din țintă",
+    "none": "—"
+  },
+  "tiles": {
+    "subsidy": {
+      "t": "Subvenția",
+      "s": "Cât primești de la APIA"
+    },
+    "credit": {
+      "t": "Iau un credit",
+      "s": "Pentru lunile grele"
+    },
+    "reserve": {
+      "t": "Pune deoparte",
+      "s": "Plicuri și fonduri"
+    },
+    "upcoming": {
+      "t": "Ce urmează",
+      "s": "{n} în săptămânile următoare"
+    },
+    "forecast": {
+      "t": "Prognoză",
+      "s": "Următoarele 12 luni"
+    },
+    "fields": {
+      "t": "Culturi",
+      "s": "Câștig pe cultură"
+    }
   }
 }

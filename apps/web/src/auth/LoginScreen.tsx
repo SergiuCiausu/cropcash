@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { AuthError } from '@supabase/supabase-js';
 import { t } from '../i18n';
 import { supabase } from './supabase';
+import { Logo } from '../components/ui';
 
 type Mode = 'login' | 'register';
 
@@ -52,16 +53,15 @@ export function LoginScreen() {
 
   return (
     <div className="solo">
-      <div className="card panel">
-        <div className="brandline">
-          <span className="orb" />
-          {t('app.name')}
-        </div>
+      <div className="solo-top field">
+        <Logo />
+      </div>
+      <div className="card">
         <h1 className="title">{t(mode === 'login' ? 'auth.loginTitle' : 'auth.registerTitle')}</h1>
         <p className="lead">{t('app.tagline')}</p>
 
         <form onSubmit={submit}>
-          <label className="field">
+          <label className="field-l">
             {t('auth.email')}
             <input
               type="email"
@@ -72,7 +72,7 @@ export function LoginScreen() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
-          <label className="field">
+          <label className="field-l">
             {t('auth.password')}
             <input
               type="password"
@@ -96,7 +96,7 @@ export function LoginScreen() {
             </p>
           )}
 
-          <button type="submit" className="primary" disabled={busy} style={{ marginTop: 18 }}>
+          <button type="submit" className="btn btn-dark btn-block" disabled={busy} style={{ marginTop: 18 }}>
             {busy ? t('common.wait') : t(mode === 'login' ? 'auth.loginButton' : 'auth.registerButton')}
           </button>
         </form>

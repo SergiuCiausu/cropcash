@@ -53,11 +53,11 @@ function FarmGate() {
     case 'error':
       return (
         <div className="solo">
-          <div className="card panel">
+          <div className="card" style={{ marginTop: 24 }}>
             <p role="alert" className="err">
               {t('home.loadError')}
             </p>
-            <button type="button" className="primary" onClick={load}>
+            <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 12 }} onClick={load}>
               {t('common.retry')}
             </button>
             <button type="button" className="textbtn" onClick={() => void signOut()}>

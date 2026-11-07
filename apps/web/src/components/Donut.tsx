@@ -2,7 +2,7 @@ export interface DonutSlice {
   key: string;
   label: string;
   value: number;
-  color: string; // CSS variable name, e.g. "--c3"
+  color: string;
 }
 
 const C = 2 * Math.PI * 15.9;
@@ -23,10 +23,10 @@ export function Donut({ slices, center, centerLabel }: { slices: DonutSlice[]; c
                 cy="21"
                 r="15.9"
                 fill="none"
-                stroke={`var(${s.color})`}
-                strokeWidth={5.5}
-                strokeDasharray={`${Math.max(len - 0.7, 0.2)} ${C}`}
-                strokeDashoffset={-off}
+                strokeWidth={5}
+                style={{ stroke: s.color }}
+                strokeDasharray={`${Math.max(len - 0.7, 0.2).toFixed(2)} ${C.toFixed(2)}`}
+                strokeDashoffset={(-off).toFixed(2)}
               />
             );
             off += len;
@@ -34,18 +34,16 @@ export function Donut({ slices, center, centerLabel }: { slices: DonutSlice[]; c
           })}
         </svg>
         <div>
-          <b>{center}</b>
+          <span>{center}</span>
           <small>{centerLabel}</small>
         </div>
       </div>
-      <ul className="legend">
+      <ul className="leg">
         {slices.map((s) => (
           <li key={s.key}>
-            <span>
-              <i style={{ background: `var(${s.color})` }} />
-              {s.label}
-            </span>
-            <span>{Math.round((s.value / total) * 100)}%</span>
+            <i style={{ background: s.color }} />
+            <span>{s.label}</span>
+            <b>{Math.round((s.value / total) * 100)}%</b>
           </li>
         ))}
       </ul>
