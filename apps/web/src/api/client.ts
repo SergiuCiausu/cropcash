@@ -23,5 +23,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new ApiError(res.status, body.error ?? 'unknown');
   }
+  // 204 No Content (PUT /envelopes, DELETE /credits) has no body to parse.
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }

@@ -157,6 +157,23 @@ export const CalendarFileSchema = z.object({
 });
 export type CalendarFile = z.infer<typeof CalendarFileSchema>;
 
+const Param = z.object({ value: z.number().nullable() }).passthrough();
+const PositiveParam = z.object({ value: z.number().positive() }).passthrough();
+
+export const PlanParamsFileSchema = z.object({
+  salary_round_lei: PositiveParam,
+  credit_round_lei: PositiveParam,
+  risk_fund_pct_of_inflow: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+  pension_suggest_max_pct_of_salary: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+  credit: z.object({
+    max_pct_of_subsidy: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+    bank_margin_over_robor_pct: Param,
+    ifn_margin_over_robor_pct: Param,
+    robor_6m_pct: Param,
+  }),
+});
+export type PlanParamsFile = z.infer<typeof PlanParamsFileSchema>;
+
 export const CountiesFileSchema = z.object({
   counties: z.array(z.object({ code: z.string(), name_ro: z.string() })).min(42),
 });

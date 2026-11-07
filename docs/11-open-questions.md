@@ -44,6 +44,9 @@
 | P11 | Cheltuielile și vânzările se pun pe 15 ale lunii | Nu avem date pe zile. |
 | P12 | Termenele APIA pentru 2027 = cele din 2026 + 1 an, marcate „estimat” | Nu sunt anunțate. |
 | P13 | Calendarul folosește implicit sume „an normal” și plăți APIA în ultima zi a ferestrei | Planul trebuie să țină și dacă banii vin târziu. |
+| P14 | Creditul pe adeverință e disponibil din luna în care se deschide următoarea cerere APIA (martie) | Adeverința se eliberează după depunerea cererii. DE-VERIFICAT cu băncile. |
+| P15 | Dobânda creditului nu intră încă în calcul; rambursarea = suma luată | ROBOR 6M lipsește (#18). |
+| P16 | Cota pentru fondul de risc se ia doar din venituri, nu din banii de la început | Banii de acum au deja altă destinație: cheltuielile până la încasare. |
 
 ## C. Contradicții găsite
 

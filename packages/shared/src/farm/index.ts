@@ -60,6 +60,8 @@ export function ageFromBirthYear(birthYear: number, referenceYear: number): numb
 export interface StoredFarm {
   birth_year: number;
   start_balance_bani?: number;
+  envelopes?: { kind: string; balance_bani: number }[];
+  expected_payments?: import('./plan-inputs').StoredPayment[];
   parcels: { crop_id: string; area_ari: number; is_arable: boolean }[];
 }
 
@@ -73,3 +75,5 @@ export function farmInputFromStored(farm: StoredFarm, referenceYear: number): Fa
 export function farmInputFromOnboarding(input: OnboardingInput): FarmInput {
   return { age: input.age, parcels: input.parcels.map((p) => ({ cropId: p.cropId, areaHa: p.areaHa })) };
 }
+
+export * from './plan-inputs';

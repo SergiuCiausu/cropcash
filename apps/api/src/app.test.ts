@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { loadData } from '@cropcash/shared';
 import { createApp } from './app';
-import { RepoError, type FarmRow, type NewFarm, type Repo } from './db/repo';
+import { RepoError, type FarmRow, type NewCredit, type NewFarm, type Repo } from './db/repo';
 
 const data = loadData();
 
@@ -10,6 +10,8 @@ const data = loadData();
 function memoryRepo(initial: Record<string, FarmRow> = {}) {
   const farms = { ...initial };
   const created: NewFarm[] = [];
+  const credits: (NewCredit & { groupId: string })[] = [];
+  let envelopes: Record<string, number> | null = null;
   const repo: Repo = {
     getMyFarm: vi.fn(async (token: string) => farms[token] ?? null),
     createFarm: vi.fn(async (token: string, farm: NewFarm) => {
@@ -25,8 +27,19 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
       };
       return 'farm-1';
     }),
+    addCredit: vi.fn(async (_token: string, _farmerId: string, c: NewCredit) => {
+      const groupId = '11111111-1111-4111-8111-111111111111';
+      credits.push({ ...c, groupId });
+      return groupId;
+    }),
+    deleteCredit: vi.fn(async (_token: string, groupId: string) => credits.some((c) => c.groupId === groupId)),
+    setEnvelopes: vi.fn(async (token: string, balances: Record<string, number>) => {
+      const total = Object.values(balances).reduce((a, b) => a + b, 0);
+      if (total > (farms[token]?.start_balance_bani ?? 0)) throw new RepoError('invalid', 'too much');
+      envelopes = balances;
+    }),
   };
-  return { repo, created };
+  return { repo, created, credits, getEnvelopes: () => envelopes };
 }
 
 const verifyToken = async (token: string) => {
@@ -130,10 +143,66 @@ describe('GET /api/subsidies and /api/me', () => {
         throw new Error('connection refused at 10.0.0.1');
       },
       createFarm: async () => '',
+      addCredit: async () => '',
+      deleteCredit: async () => false,
+      setEnvelopes: async () => {},
     };
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const res = await request(makeApp(repo)).get('/api/subsidies').set('Authorization', 'Bearer good');
     expect(res.status).toBe(500);
     expect(res.body).toEqual({ error: 'server_error' });
+  });
+});
+
+describe('credits and envelopes (step 5)', () => {
+  const auth = { Authorization: 'Bearer good' };
+  const onboarded = async () => {
+    const m = memoryRepo();
+    const app = makeApp(m.repo);
+    await request(app).post('/api/farmers').set(auth).send({ ...ion, startBalanceLei: 35000 });
+    return { ...m, app };
+  };
+
+  it('declares a credit as a take/repay pair on the first of the month', async () => {
+    const { app, credits } = await onboarded();
+    const res = await request(app)
+      .post('/api/credits')
+      .set(auth)
+      .send({ amountLei: 14800, takeMonth: '2027-04', repayMonth: '2027-11' });
+    expect(res.status).toBe(201);
+    expect(credits[0]).toMatchObject({ amountBani: 1_480_000, takeDate: '2027-04-01', repayDate: '2027-11-01' });
+  });
+
+  it('rejects a repayment before the credit and silly amounts', async () => {
+    const { app } = await onboarded();
+    const post = (b: object) => request(app).post('/api/credits').set(auth).send(b);
+    expect((await post({ amountLei: 14800, takeMonth: '2027-04', repayMonth: '2027-03' })).status).toBe(400);
+    expect((await post({ amountLei: 0, takeMonth: '2027-04', repayMonth: '2027-11' })).status).toBe(400);
+    expect((await post({ amountLei: 1000, takeMonth: '2027-13', repayMonth: '2028-01' })).status).toBe(400);
+  });
+
+  it('deletes a credit by group id, 404 for unknown, 400 for junk', async () => {
+    const { app } = await onboarded();
+    await request(app).post('/api/credits').set(auth).send({ amountLei: 1000, takeMonth: '2027-04', repayMonth: '2027-11' });
+    expect((await request(app).delete('/api/credits/11111111-1111-4111-8111-111111111111').set(auth)).status).toBe(204);
+    expect((await request(app).delete('/api/credits/22222222-2222-4222-8222-222222222222').set(auth)).status).toBe(404);
+    expect((await request(app).delete('/api/credits/not-a-uuid').set(auth)).status).toBe(400);
+  });
+
+  it('saves an envelope split within the money available', async () => {
+    const { app, getEnvelopes } = await onboarded();
+    const split = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
+    expect((await request(app).put('/api/envelopes').set(auth).send(split)).status).toBe(204);
+    expect(getEnvelopes()).toEqual(split);
+  });
+
+  it('refuses a split larger than the money available, or negative', async () => {
+    const { app } = await onboarded();
+    const tooMuch = { salary: 3_600_000, spring_inputs: 0, debts: 0, risk_fund: 0, pension: 0 };
+    const res = await request(app).put('/api/envelopes').set(auth).send(tooMuch);
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('too_much');
+    const negative = { salary: -1, spring_inputs: 0, debts: 0, risk_fund: 0, pension: 0 };
+    expect((await request(app).put('/api/envelopes').set(auth).send(negative)).status).toBe(400);
   });
 });

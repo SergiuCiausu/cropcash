@@ -20,7 +20,15 @@ export type AmountScenario = 'good' | 'medium' | 'bad';
 /** When money with a payment window arrives: first day, middle, or last day. */
 export type Timing = 'early' | 'mid' | 'late';
 
-export type EntryKind = 'apia_advance' | 'apia_balance' | 'crop_sale' | 'input_cost' | 'deadline' | 'admin';
+export type EntryKind =
+  | 'apia_advance'
+  | 'apia_balance'
+  | 'crop_sale'
+  | 'input_cost'
+  | 'credit'
+  | 'loan_repayment'
+  | 'deadline'
+  | 'admin';
 
 export interface TimelineEntry {
   id: string;
@@ -65,10 +73,20 @@ export interface Timeline {
   hardMonths: MonthKey[];
 }
 
+/** Payments the farmer declared (e.g. a credit and its repayment). */
+export interface ExtraPayment {
+  id: string;
+  kind: 'credit' | 'loan_repayment';
+  direction: 'in' | 'out';
+  amount: Bani;
+  date: IsoDate;
+}
+
 export interface TimelineInput {
   parcels: Parcel[];
   subsidies: SubsidyResult;
   startBalance: Bani;
+  extras?: ExtraPayment[];
 }
 
 export interface TimelineOptions {
@@ -226,6 +244,23 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
         });
       }
     }
+  }
+
+  // ── Declared by the farmer (credits): exact amounts, no scenario ───────────
+  for (const x of input.extras ?? []) {
+    if (x.date < from || x.date > to) continue;
+    const amount = { min: x.amount, probable: x.amount, max: x.amount };
+    entries.push({
+      id: `${x.kind}:${x.id}`,
+      kind: x.kind,
+      direction: x.direction,
+      amount,
+      value: x.amount,
+      date: x.date,
+      window: null,
+      estimated: false,
+      unverified: false,
+    });
   }
 
   entries.sort((a, b) => (a.date === b.date ? a.id.localeCompare(b.id) : a.date < b.date ? -1 : 1));

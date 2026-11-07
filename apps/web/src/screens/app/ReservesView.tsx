@@ -1,10 +1,10 @@
 import { t } from '../../i18n';
 import { formatLei, formatMonth } from '../../lib/format';
 import type { FarmPlan } from '../../lib/plan';
+import { EnvelopesPanel } from './EnvelopesPanel';
 
-export function ReservesView({ plan }: { plan: FarmPlan }) {
-  // Envelopes are filled from real income in step 5; until then nothing is set aside.
-  const saved = 0;
+export function ReservesView({ plan, onChanged }: { plan: FarmPlan; onChanged: () => Promise<void> }) {
+  const saved = plan.envelopes.risk_fund;
   const { spring } = plan;
   const shortBy = spring.need - spring.available;
 
@@ -49,6 +49,7 @@ export function ReservesView({ plan }: { plan: FarmPlan }) {
           )}
         </div>
       </div>
+      <EnvelopesPanel plan={plan} onChanged={onChanged} />
       <p className="note">{t('reserve.note')}</p>
     </section>
   );

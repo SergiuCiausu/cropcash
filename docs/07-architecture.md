@@ -258,6 +258,17 @@ Complexitate O(H). E o funcție pură, deci testabilă cu tabele de date.
 - **Cu ținta de 2.400 lei/lună:** `bridgeCreditNeeded` dă **14.000 lei**, luați în aprilie. Asta e sub 90% din subvenția estimată pentru 2027, deci încape în creditul pe adeverință. La sfârșitul lui septembrie rămân ~19.800 lei, care acoperă cheltuielile din octombrie. Creditul se întoarce din avansul următor.
 - **Mesajul pentru pitch:** „CropCash nu te scapă de credit. Îți spune din noiembrie de cât credit ai nevoie și când, ca să ai 2.400 lei în fiecare lună.”
 
+### Ce e implementat (pasul 5, `packages/shared/src/cashflow/smoothing.ts`)
+- `maxSafeSalary`, `bridgeCreditNeeded` și `suggestCredit` sunt funcții pure, cu teste. Exemplul de mai sus iese exact: **650 lei** fără credit, **14.000 lei** din aprilie pentru 2.400 lei pe lună.
+- **Creditul sugerat (`suggestCredit`)** respectă patru reguli:
+  1. e cel mult `max_pct_of_subsidy` (90%) din subvenția probabilă, **minus creditele deja declarate** (aceeași adeverință), inclusiv după rotunjire;
+  2. există abia din luna în care se deschide următoarea cerere APIA (martie), pentru că adeverința se eliberează după depunerea cererii;
+  3. se propune doar dacă există luni grele și salariul e limitat de o lună de dinaintea finalului planului;
+  4. pentru Ion, sugestia automată e 14.800 lei pentru 2.500 lei pe lună în exemplul din docs (orizont de 11 luni, pensie 200 lei).
+- **În aplicație** (12 luni, plăți APIA în ultima zi, fără pensie până la pasul 7), Ion are **850 lei** fără credit și **2.700 lei** cu un credit de 14.800 lei în aprilie.
+- **Cota de 10% pentru fondul de risc** se ia doar din venituri reale (APIA, recoltă), nu din credit și nici din banii pe care îi are deja.
+- **Plicurile:** `proposeAllocation` împarte suma în ordinea datorii → ani proști → pensie și salariu pentru lunile acoperite → restul pentru cheltuielile fermei. Salvarea trece prin funcția SQL `set_envelopes`, care refuză suma dacă depășește banii pe care îi are fermierul.
+
 ### Creditul în aplicație (decizie: varianta A + C)
 - **A, informativ:** dacă `S < S_target`, UI-ul arată: „Ca să ai {S_target} lei pe lună, o să ai nevoie de ~{amount} lei în {lună}. Fermierii iau de obicei credit pe adeverința APIA.” Fără bănci numite și fără link-uri către oferte. Ținta implicită `S_target` = media surplusului pe orizont (`cum_H / H`), rotunjită în jos la 50 de lei. Fermierul o poate modifica.
 - **C, creditul declarat de fermier:** pe ecranul „Îmi ajung?”, butonul „Iau un credit” deschide un formular cu suma, luna și luna rambursării. Creditul devine două `ExpectedPayment`: `credit` (in) și `loan_repayment` (out). Netezirea îl include automat.

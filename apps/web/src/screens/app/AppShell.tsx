@@ -30,7 +30,7 @@ const initials = (name: string) =>
     .join('');
 
 /** Logged-in app: sidebar on laptops, glass tab bar on phones (team prototype layout). */
-export function AppShell({ farm }: { farm: Farm }) {
+export function AppShell({ farm, onChanged }: { farm: Farm; onChanged: () => Promise<void> }) {
   const plan = useFarmPlan(farm);
   const { session, signOut } = useAuth();
   const { theme, toggle } = useTheme();
@@ -95,10 +95,10 @@ export function AppShell({ farm }: { farm: Farm }) {
           </button>
         </div>
 
-        {view === 'home' && <HomeView plan={plan} go={go} openSubsidy={() => setSubsidyOpen(true)} />}
+        {view === 'home' && <HomeView plan={plan} go={go} openSubsidy={() => setSubsidyOpen(true)} onChanged={onChanged} />}
         {view === 'forecast' && <ForecastView plan={plan} />}
         {view === 'fields' && <FieldsView plan={plan} openSubsidy={() => setSubsidyOpen(true)} />}
-        {view === 'reserve' && <ReservesView plan={plan} />}
+        {view === 'reserve' && <ReservesView plan={plan} onChanged={onChanged} />}
       </main>
 
       <nav className="tabs" aria-label={t('nav.menu')}>

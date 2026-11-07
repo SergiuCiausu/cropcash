@@ -27,6 +27,11 @@ export function formatMonthYear(key: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** "2027-04" -> "aprilie 2027" (inside a sentence). */
+export function formatMonthYearLower(key: string): string {
+  return monthYear.format(new Date(`${key}-01T00:00:00Z`));
+}
+
 /** "2027-05" -> "mai". */
 export function formatMonth(key: string): string {
   return monthOnly.format(new Date(`${key}-01T00:00:00Z`));

@@ -9,10 +9,21 @@ import { formatDayMonth, formatLei, formatMonthCap, formatMonthShort, todayIso }
 import { cropName, type FarmPlan } from '../../lib/plan';
 import { entryBadge, entryTitle } from '../../lib/entryText';
 import type { View } from './AppShell';
+import { SalaryPanel } from './SalaryPanel';
 
 export const balanceSeries = (s: Timeline) => [s.startBalance, ...s.months.map((m) => m.balanceEnd)];
 
-export function HomeView({ plan, go, openSubsidy }: { plan: FarmPlan; go: (v: View) => void; openSubsidy: () => void }) {
+export function HomeView({
+  plan,
+  go,
+  openSubsidy,
+  onChanged,
+}: {
+  plan: FarmPlan;
+  go: (v: View) => void;
+  openSubsidy: () => void;
+  onChanged: () => Promise<void>;
+}) {
   const tl = plan.timelines.medium;
   const next = upcoming(tl, todayIso());
   const totalCosts = plan.costs.reduce((s, c) => s + c.amount, 0);
@@ -89,6 +100,8 @@ export function HomeView({ plan, go, openSubsidy }: { plan: FarmPlan; go: (v: Vi
             {t('home.quick.forecast')}
           </button>
         </div>
+
+        <SalaryPanel plan={plan} onChanged={onChanged} />
 
         {plan.costs.length > 0 && (
           <div className="panel">

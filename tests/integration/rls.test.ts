@@ -140,6 +140,40 @@ describe('API with real Supabase tokens', () => {
     expect(me.body.farmer.start_balance_bani).toBe(3_500_000);
   });
 
+  it('credits: declare, read back in /api/me, other user cannot delete, owner deletes', async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const res = await request(app)
+      .post('/api/credits')
+      .set(auth)
+      .send({ amountLei: 14800, takeMonth: '2027-04', repayMonth: '2027-11' });
+    expect(res.status).toBe(201);
+    const groupId = res.body.groupId as string;
+
+    const me = await request(app).get('/api/me').set(auth);
+    const rows = me.body.farmer.expected_payments.filter((p: { group_id: string }) => p.group_id === groupId);
+    expect(rows.map((r: { kind: string }) => r.kind).sort()).toEqual(['credit', 'loan_repayment']);
+
+    const intruder = await request(app).delete(`/api/credits/${groupId}`).set('Authorization', `Bearer ${a.token}`);
+    expect(intruder.status).toBe(404);
+
+    const del = await request(app).delete(`/api/credits/${groupId}`).set(auth);
+    expect(del.status).toBe(204);
+  });
+
+  it('envelopes: split saved; more than the money on hand is refused by the database', async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const ok = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
+    expect((await request(app).put('/api/envelopes').set(auth).send(ok)).status).toBe(204);
+    const me = await request(app).get('/api/me').set(auth);
+    const salary = me.body.farmer.envelopes.find((e: { kind: string }) => e.kind === 'salary');
+    expect(salary.balance_bani).toBe(65_000);
+
+    const tooMuch = { ...ok, risk_fund: 1 };
+    const res = await request(app).put('/api/envelopes').set(auth).send(tooMuch);
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('too_much');
+  });
+
   it("onboarding data stays invisible to other users", async () => {
     const env = await a.client.from('envelopes').select('farmer_id');
     expect(env.data?.every((e) => e.farmer_id === farmA)).toBe(true);

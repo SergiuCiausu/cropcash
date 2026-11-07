@@ -95,10 +95,22 @@
     "asOf": "La {date}"
   },
   "pages": {
-    "home": { "title": "Bună, {name}", "sub": "Uite cum stă ferma azi" },
-    "forecast": { "title": "Îți ajung banii?", "sub": "Banii tăi lună de lună, pe 12 luni" },
-    "fields": { "title": "Culturi", "sub": "Ce aduce fiecare cultură" },
-    "reserve": { "title": "Rezerve", "sub": "Bani puși deoparte pentru ce urmează" }
+    "home": {
+      "title": "Bună, {name}",
+      "sub": "Uite cum stă ferma azi"
+    },
+    "forecast": {
+      "title": "Îți ajung banii?",
+      "sub": "Banii tăi lună de lună, pe 12 luni"
+    },
+    "fields": {
+      "title": "Culturi",
+      "sub": "Ce aduce fiecare cultură"
+    },
+    "reserve": {
+      "title": "Rezerve",
+      "sub": "Bani puși deoparte pentru ce urmează"
+    }
   },
   "home": {
     "balance": "Bani acum (cât ne-ai spus)",
@@ -119,7 +131,11 @@
     "noBalance": "Nu ne-ai spus câți bani ai acum, așa că am pornit de la 0."
   },
   "forecast": {
-    "scenarios": { "bad": "An slab", "medium": "An normal", "good": "An bun" },
+    "scenarios": {
+      "bad": "An slab",
+      "medium": "An normal",
+      "good": "An bun"
+    },
     "endLabel": "Cam atât îți rămâne la sfârșitul lui {month}",
     "tightest": "Cea mai grea: {month}",
     "fine": "Un interval, nu o promisiune. An slab = cea mai mică producție la prețul mediu, cele mai mari costuri și cea mai mică subvenție. An bun = cea mai mare producție la cel mai bun preț. Banii de la APIA sunt socotiți în ultima zi în care pot veni.",
@@ -143,7 +159,11 @@
       "crop_sale": "Vinzi {crop}",
       "input_cost": "{crop}: {what}"
     },
-    "cropAcc": { "grau": "grâul", "porumb": "porumbul", "floarea-soarelui": "floarea-soarelui" }
+    "cropAcc": {
+      "grau": "grâul",
+      "porumb": "porumbul",
+      "floarea-soarelui": "floarea-soarelui"
+    }
   },
   "fields": {
     "sub": "{ha} ha, recolta medie",
@@ -194,7 +214,9 @@
     "rateDefault": "Cursul oficial pentru anul ăsta nu e anunțat încă.",
     "next": "Vezi când vin banii",
     "reasons": {
-      "age": { "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}." },
+      "age": {
+        "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}."
+      },
       "total_ha": {
         "lte": "Doar pentru fermele de cel mult {expected} ha. Tu ai {actual} ha.",
         "gte": "Trebuie cel puțin {expected} ha. Tu ai {actual} ha."
@@ -203,15 +225,63 @@
         "gte": "Trebuie cel puțin {expected} ha de teren arabil. Tu ai {actual} ha.",
         "gt": "Nu ai teren arabil declarat."
       },
-      "distinct_crops": { "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}." },
-      "unproductive_ha": { "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)." },
+      "distinct_crops": {
+        "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}."
+      },
+      "unproductive_ha": {
+        "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)."
+      },
       "generic": "Nu se potrivește cu ferma ta."
     }
   },
   "offline": {
     "needed": {
       "login": "Pornește internetul ca să intri în cont.",
-      "save": "Pornește internetul ca să salvăm ferma."
+      "save": "Pornește internetul ca să salvăm ferma.",
+      "save_plan": "Pornește internetul ca să salvăm schimbarea."
     }
+  },
+  "salary": {
+    "title": "Salariul tău",
+    "perMonth": "lei pe lună",
+    "why": "Atât poți lua în fiecare lună fără să rămâi fără bani. Cea mai strânsă lună e {month}.",
+    "deficit": "În {month} rămâi fără bani chiar și fără salariu.",
+    "suggestTitle": "Cu un credit, poți mai mult",
+    "suggest": "Dacă iei un credit pe adeverința APIA de cam {credit} lei în {month}, poți avea {salary} lei pe lună.",
+    "suggestNote": "Fermierii îl iau de obicei de la bancă. Noi nu recomandăm o bancă anume; tu hotărăști.",
+    "takeCredit": "Iau un credit",
+    "declaredTitle": "Creditele tale",
+    "declared": "{amount} lei, luat în {take}, dat înapoi în {repay}",
+    "remove": "Șterge",
+    "removeLabel": "Șterge creditul de {amount} lei"
+  },
+  "credit": {
+    "title": "Iau un credit",
+    "amount": "Cât iei (lei)",
+    "take": "În ce lună îl iei",
+    "repay": "În ce lună îl dai înapoi",
+    "note": "Dobânda nu e inclusă încă. Întreabă banca cât te costă.",
+    "save": "Pune creditul în plan",
+    "invalid": "Verifică suma și lunile. Creditul se dă înapoi după ce îl iei."
+  },
+  "envelopes": {
+    "title": "Plicurile tale",
+    "empty": "Încă n-ai împărțit banii pe plicuri.",
+    "split": "Împarte banii pe plicuri",
+    "splitTitle": "Împarte {amount} lei",
+    "splitLead": "Îți propunem așa. Banii rămân la tine; plicurile te ajută doar să știi pentru ce sunt.",
+    "splitWhy": "Salariul și pensia acoperă {months} luni, până la următoarele încasări.",
+    "confirm": "Bine așa",
+    "tooMuch": "Suma din plicuri e mai mare decât banii pe care îi ai.",
+    "noMoney": "Ca să împărți banii, spune-ne întâi câți bani ai.",
+    "riskLater": "Fondul pentru ani proști se umple cu {pct}% din fiecare încasare (APIA, recoltă).",
+    "kinds": {
+      "salary": "Salariu",
+      "spring_inputs": "Cheltuieli fermă",
+      "debts": "Datorii",
+      "risk_fund": "Ani proști",
+      "pension": "Bătrânețe"
+    },
+    "splitWhyOne": "Salariul și pensia acoperă o lună, până la următoarele încasări."
   }
 }

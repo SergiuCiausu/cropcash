@@ -37,6 +37,12 @@ function FarmGate() {
     }
   }, []);
 
+  // Refetch after a change (credit, envelopes) without the full-screen loader.
+  const refresh = useCallback(async () => {
+    const me = await api<Me>('/api/me');
+    if (me.farmer) setState({ kind: 'ready', farm: me.farmer });
+  }, []);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -65,7 +71,7 @@ function FarmGate() {
     case 'firstResult':
       return <SubsidyResultScreen name={state.name} result={state.subsidies} onNext={load} />;
     case 'ready':
-      return <AppShell farm={state.farm} />;
+      return <AppShell farm={state.farm} onChanged={refresh} />;
   }
 }
 

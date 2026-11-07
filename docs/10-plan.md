@@ -31,7 +31,7 @@
   - **Fișiere:** `packages/shared/src/cashflow/timeline.ts` (+ test), `screens/Calendar/*`, `routes/plan.ts`.
   - **Gata când:** axa noiembrie 2026 – septembrie 2027 arată încasările, cheltuielile și termenele, cu golul februarie–mai evidențiat.
 
-- [ ] **5. Plicuri + algoritmul de netezire + teste** · ~5 h · MINIM
+- [x] **5. Plicuri + algoritmul de netezire + teste** · ~5 h · MINIM
   - **Obiectiv:** `maxSafeSalary`, `bridgeCreditNeeded`, propunerea de alocare și ecranele B1–B3.
   - **Fișiere:** `packages/shared/src/cashflow/smoothing.ts` (+ test), `allocation.ts`, `screens/Bani/*`, `routes/envelopes.ts`.
   - **Gata când:** testul cu exemplul din `07-architecture.md` §4 dă S = 650 lei fără credit și 14.000 lei de credit pentru 2.400 lei/lună. Toate cazurile-limită au teste.
