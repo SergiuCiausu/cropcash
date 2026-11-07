@@ -13,7 +13,10 @@ h1 { font-size: 20px; font-weight: 600; letter-spacing: -.015em; }
 .ctl { display: flex; flex-wrap: wrap; gap: 6px; }
 .ctl button { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--surface); font-size: 14px; font-weight: 500; }
 .ctl button[aria-pressed="true"] { border-color: var(--text-1); background: var(--tint-a); }
-.ctl i { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--c1) 50%, var(--c2) 50%); }
+.ctl i { position: relative; overflow: hidden; width: 16px; height: 16px; border-radius: 50%; background: var(--c1); }
+.ctl i::before, .ctl i::after { content: ""; position: absolute; inset: 0; }
+.ctl i::before { z-index: 1; background: var(--c3); clip-path: polygon(100% 45%, 100% 100%, 45% 100%); }
+.ctl i::after { background: var(--c2); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
 .phones { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px; margin-top: 20px; }
 figure { margin: 0; width: 332px; }
 figcaption { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
@@ -25,22 +28,22 @@ iframe { width: 390px; height: 844px; border: 0; transform: scale(.8513); transf
 <body>
 <div class="wrap">
   <div class="bar-top">
-    <h1>Three layouts, four palettes</h1>
+    <h1>Three layouts, six palettes</h1>
     <div class="ctl" id="pals" role="group" aria-label="Palette for all three"></div>
     <div class="ctl" id="views" role="group" aria-label="Screen for all three"></div>
   </div>
   <div class="phones">
-    <figure><figcaption>A: Sheet <a href="a-sheet.html">Open</a></figcaption><div class="screen"><iframe src="a-sheet.html?palette=water" title="Variation A, Sheet"></iframe></div></figure>
-    <figure><figcaption>B: Ledger <a href="b-ledger.html">Open</a></figcaption><div class="screen"><iframe src="b-ledger.html?palette=water" title="Variation B, Ledger"></iframe></div></figure>
-    <figure><figcaption>C: Deck <a href="c-deck.html">Open</a></figcaption><div class="screen"><iframe src="c-deck.html?palette=water" title="Variation C, Deck"></iframe></div></figure>
+    <figure><figcaption>A: Sheet <a href="a-sheet.html">Open</a></figcaption><div class="screen"><iframe src="a-sheet.html?palette=default" title="Variation A, Sheet"></iframe></div></figure>
+    <figure><figcaption>B: Ledger <a href="b-ledger.html">Open</a></figcaption><div class="screen"><iframe src="b-ledger.html?palette=default" title="Variation B, Ledger"></iframe></div></figure>
+    <figure><figcaption>C: Deck <a href="c-deck.html">Open</a></figcaption><div class="screen"><iframe src="c-deck.html?palette=default" title="Variation C, Deck"></iframe></div></figure>
   </div>
 </div>
 <script src="shared.js"></script>
 <script>
-FF.palette("water", false);
+FF.palette("default", false);
 const send = (m) => document.querySelectorAll("iframe").forEach((f) => f.contentWindow.postMessage({ type: "farm", ...m }, "*"));
 const pals = document.getElementById("pals"), views = document.getElementById("views");
-pals.innerHTML = FF.PALETTES.map((p, i) => `<button type="button" data-p="${p.id}" aria-pressed="${!i}" style="--c1:${p.v.a};--c2:${p.v.b}"><i></i>${p.name}</button>`).join("");
+pals.innerHTML = `<button type="button" data-p="default" aria-pressed="true">Layout default</button>` + FF.PALETTES.map((p) => `<button type="button" data-p="${p.id}" aria-pressed="false" style="--c1:${p.v.a};--c2:${p.v.b};--c3:${FF.tokens(p).c}"><i></i>${p.name}</button>`).join("");
 views.innerHTML = [["home", "Home"], ["stats", "Forecast"], ["fields", "Fields"], ["reserve", "Reserves"]].map(([v, n], i) => `<button type="button" data-v="${v}" aria-pressed="${!i}">${n}</button>`).join("");
 const press = (box, b) => box.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
 pals.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; press(pals, b); send({ palette: b.dataset.p }); FF.palette(b.dataset.p, false); });

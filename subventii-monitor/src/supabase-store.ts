@@ -1,10 +1,12 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { RobotsCache } from './fetcher.ts';
+import { PROBLEM_STATES } from './store.ts';
 import type { PageLink } from './links.ts';
 import type { Opportunity, OpportunityEvent, OpportunityKind } from './opportunities/types.ts';
 import type { SeedSource } from './seed.ts';
 import type {
-  FinishedRun, KnownLink, NewEvent, NewSnapshot, PendingLink, RunEvent, RunStats, Source, SourcePatch, Store,
+  FinishedRun, KnownLink, NewEvent, NewSnapshot, PendingLink, ProblemSource, ProblemState, RunEvent, RunStats, Source,
+  SourcePatch, Store,
 } from './store.ts';
 
 const BUCKET = 'snapshots';
@@ -267,6 +269,39 @@ export class SupabaseStore implements Store {
       events.push({ kind: row.kind, detail: row.detail, ...row.sources, diff: blob ? await blob.text() : null });
     }
     return events;
+  }
+
+  async problemSources(): Promise<ProblemSource[]> {
+    const sources = check(
+      await this.db.from('sources')
+        .select('id, institution, title, url, state, failure_count')
+        .in('state', [...PROBLEM_STATES]).order('institution').order('title'),
+      'read problem sources',
+    ) as {
+      id: number;
+      institution: string;
+      title: string;
+      url: string;
+      state: ProblemState;
+      failure_count: number;
+    }[];
+    if (sources.length === 0) return [];
+
+    const events = check(
+      await this.db.from('change_events').select('source_id, kind, detail')
+        .in('source_id', sources.map((s) => s.id)).in('kind', [...PROBLEM_STATES])
+        .order('id', { ascending: false }),
+      'read problem reasons',
+    ) as { source_id: number; kind: string; detail: string | null }[];
+
+    return sources.map((s) => ({
+      institution: s.institution,
+      title: s.title,
+      url: s.url,
+      state: s.state,
+      failureCount: s.failure_count,
+      reason: events.find((e) => e.source_id === s.id && e.kind === s.state)?.detail ?? null,
+    }));
   }
 
   async runStats(runId?: number): Promise<RunStats | null> {

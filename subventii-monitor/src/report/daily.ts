@@ -1,8 +1,16 @@
 // The daily Markdown report, in Romanian to match the spec. Built only from a
 // run's saved events, so it can be regenerated at any time.
-import type { RunEvent } from '../store.ts';
+import { PROBLEM_STATES, type ProblemSource, type ProblemState, type RunEvent } from '../store.ts';
 
 const MAX_DIFF_LINES = 200;
+
+const PROBLEM_LABELS: Record<ProblemState, string> = {
+  gone: 'Dispărute',
+  blocked: 'Blocate',
+  error: 'Cu erori',
+  suspicious: 'Suspecte',
+  needs_manual: 'De verificat manual',
+};
 
 export interface ReportInput {
   date: string;
@@ -15,6 +23,8 @@ export interface ReportInput {
   digest?: string[];
   /** Problems that belong to the run rather than to one source. */
   errors?: string[];
+  /** Every source with a problem today, including older ones. */
+  problems?: ProblemSource[];
 }
 
 export interface NewLinkDetail {
@@ -75,6 +85,24 @@ function changed(events: RunEvent[]): string[] {
   return out;
 }
 
+/** Always at the end, and separate from what changed: an old problem isn't news. */
+function health(problems: ProblemSource[]): string[] {
+  if (problems.length === 0) return [];
+  const out = [`## Starea surselor (${problems.length} cu probleme)`, ''];
+  for (const state of PROBLEM_STATES) {
+    const rows = problems.filter((p) => p.state === state);
+    if (rows.length === 0) continue;
+    out.push(`### ${PROBLEM_LABELS[state]} (${rows.length})`, '');
+    for (const p of rows) {
+      const reason = p.reason ? ` – ${p.reason}` : '';
+      const failures = p.failureCount > 0 ? ` (eșecuri la rând: ${p.failureCount})` : '';
+      out.push(`- ${p.institution}: [${p.title.replaceAll(']', ')')}](${p.url})${reason}${failures}`);
+    }
+    out.push('');
+  }
+  return out;
+}
+
 export function renderReport(input: ReportInput): string {
   const of = (kind: RunEvent['kind']) => input.events.filter((e) => e.kind === kind);
   const baselines = of('baseline');
@@ -96,7 +124,7 @@ export function renderReport(input: ReportInput): string {
   ];
 
   if (sections.length === 0 && baselines.length === 0 && input.pendingLinks === 0) {
-    return [heading, '', 'Nu s-a schimbat nimic.', '', stats, ''].join('\n');
+    return [heading, '', 'Nu s-a schimbat nimic.', '', stats, '', ...health(input.problems ?? [])].join('\n');
   }
 
   return [
@@ -106,5 +134,6 @@ export function renderReport(input: ReportInput): string {
     ...(input.pendingLinks > 0 ? ['', `Linkuri noi în așteptare pentru rularea următoare: ${input.pendingLinks}.`] : []),
     '',
     ...sections,
+    ...health(input.problems ?? []),
   ].join('\n');
 }

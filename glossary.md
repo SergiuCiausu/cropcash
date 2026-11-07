@@ -206,3 +206,21 @@ These are plain-language explanations for working on the project, not legal or f
 | **p-queue** | Controls request timing per website. |
 | **vitest** | Runs automated tests. |
 | **tsx** | Runs TypeScript files directly. |
+
+---
+
+## Subsidy calculation
+
+| Term | What it means |
+|---|---|
+| **BISS** | Basic Income Support for Sustainability. The main payment per eligible hectare. |
+| **CRISS** | Complementary Redistributive Income Support. An extra payment per hectare that favours smaller farms. |
+| **CIS-YF** | Complementary Income Support for Young Farmers. |
+| **Eco-scheme** | A payment for farming practices that help the climate or environment. |
+| **Coupled support** | A payment tied to producing a specific crop or keeping specific animals. |
+| **PD-xx, DR-xx** | Intervention codes in Romania's CAP Strategic Plan. PD codes are direct payments, DR codes are rural development. |
+| **Cuantum** | The amount paid per unit, such as euro per hectare. |
+| **Advance payment** | The part of a payment made first, such as 70% in the 2025 campaign. The rest follows later. |
+| **UVM** | Unitate vită mare, a livestock unit used to compare different animals. |
+| **Campaign** | The year a farmer applies for. Payments for it usually arrive from that autumn into the next year. |
+| **Bani** | One hundredth of a leu. The app stores all money in bani, so rounding stays exact. |

@@ -13,12 +13,14 @@
   const TILES = [
     ['data-entry="sale"', "plus", "Record sale", "Money coming in"],
     ['data-entry="expense"', "minus", "Add expense", "Money going out"],
-    ['data-go="reserve"', "shield", "Set aside", "For spring inputs"],
-    ['data-jump="coming"', "cal", "Bills", "4 coming up"],
+    ['data-go="reserve"', "shield", "Set aside", "For spring inputs", "t-b"],
+    ['data-jump="coming"', "cal", "Bills", "4 coming up", "t-c"],
+    ['data-go="stats"', "chart", "Forecast", "The next 12 months"],
+    ['data-go="fields"', "sprout", "Fields", "Margin per crop"],
   ];
-  const tiles = (only) => TILES.filter((_, i) => !only || only.includes(i)).map(([a, ic, t, s]) => `<button type="button" ${a}><span class="i">${icon(ic)}</span><span class="go">${icon("arrow")}</span><span class="t"><b>${t}</b><small>${s}</small></span></button>`).join("");
+  const tiles = (only) => only.map((i) => TILES[i]).map(([a, ic, t, s, tone = ""]) => `<button type="button" class="${tone}" ${a}><span class="i">${icon(ic)}</span><span class="go">${icon("arrow")}</span><span class="t"><b>${t}</b><small>${s}</small></span></button>`).join("");
 
-  const STEPS = ["var(--a)", "var(--b)", "var(--ink-a)", "var(--ink-b)", "var(--hero)", "var(--hair-2)"];
+  const STEPS = [1, 2, 3, 4, 5, 6].map((i) => `var(--ch${i})`);
   function donut() {
     const C = 2 * Math.PI * 15.9; let off = 0, ring = "";
     FF.COSTS.forEach(([, , a], i) => { const l = a / FF.costTotal * C; ring += `<circle cx="21" cy="21" r="15.9" fill="none" stroke-width="5" style="stroke:${STEPS[i]}" stroke-dasharray="${Math.max(l - .7, .2).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}"/>`; off += l; });
@@ -41,7 +43,7 @@
     html("recent", S.tx.slice(0, 5).map(FF.txRow).join(""));
     html("res-card", FF.resCard());
     html("clean", FF.cleanList());
-    html("months", `<div class="mrow head"><span>Month</span><span>In</span><span>Out</span><span>Closing balance</span></div>` + FF.table(S.path).map((r) => `<div class="mrow${r.low ? " low" : ""}"><span>${r.m}${r.low ? ", tightest" : ""}</span><span>${lei(r.in, false)}</span><span>${lei(r.out, false)}</span><span class="v">${lei(r.bal)}</span></div>`).join(""));
+    html("months", `<div class="mrow head"><span>Month</span><span>In</span><span>Out</span><span>Closing balance</span></div>` + FF.table(S.path).map((r) => `<div class="mrow${r.low ? " low" : ""}"><span>${r.m}${r.low ? ", tightest" : ""}</span><span data-l="In">${lei(r.in, false)}</span><span data-l="Out">${lei(r.out, false)}</span><span class="v">${lei(r.bal)}</span></div>`).join(""));
   }
 
   window.Desk = {
@@ -52,10 +54,12 @@
         document.querySelectorAll("[data-right]").forEach((e) => (e.scrollTop = 0));
       };
       FF.start();
-      document.querySelectorAll(".chart").forEach(FF.mountChart);
-      html("tiles", tiles());
+      const C = window.Charts, each = (sel, fn) => document.querySelectorAll(sel).forEach(fn);
+      each(".chart", C ? C.forecast : FF.mountChart);
+      html("tiles", tiles([2, 4, 3, 5]));
       html("tiles-2", tiles([2, 3]));
-      html("donut", donut());
+      html("donut", C ? C.donutHTML() : donut());
+      if (C) { each(".pie-chart", C.donut); each('[data-chart="costs"]', C.costs); each('[data-chart="crops"]', C.crops); }
       html("costs", FF.costRows());
       html("rules", FF.ruleRows());
       html("crops", FF.CROPS.map((c) => `<article class="card crop"><h2>${c.n}${FF.cropState(c)}</h2><p class="n20">${c.m}</p><p class="lab">margin per hectare</p>${FF.cropBody(c).replace(/^.*?<\/div>/, "")}</article>`).join(""));

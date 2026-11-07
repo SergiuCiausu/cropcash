@@ -16,6 +16,7 @@ export async function writeReport(store: Store, run: RunStats, dir: string = REP
     pendingLinks: await store.pendingLinkCount(),
     events: await store.runEvents(run.id),
     errors: run.errors,
+    problems: await store.problemSources(),
     digest: renderDigest({
       today: date,
       opportunities: await store.opportunities(),

@@ -1,9 +1,11 @@
 import type { RobotsCache, RobotsCacheEntry } from '../src/fetcher.ts';
 import type { SeedSource } from '../src/seed.ts';
+import { PROBLEM_STATES } from '../src/store.ts';
 import type { PageLink } from '../src/links.ts';
 import type { Opportunity, OpportunityEvent, OpportunityKind } from '../src/opportunities/types.ts';
 import type {
-  FinishedRun, KnownLink, NewEvent, NewSnapshot, PendingLink, RunEvent, RunStats, Source, SourcePatch, Store,
+  FinishedRun, KnownLink, NewEvent, NewSnapshot, PendingLink, ProblemSource, ProblemState, RunEvent, RunStats, Source,
+  SourcePatch, Store,
 } from '../src/store.ts';
 
 /** A plain in-memory Store, for testing the cascade without Supabase. */
@@ -81,6 +83,17 @@ export class MemoryStore implements Store {
       });
     }
     this.links.find((l) => l.id === link.id)!.added = true;
+  }
+  async problemSources(): Promise<ProblemSource[]> {
+    return this.sources.flatMap((s) => {
+      const state = PROBLEM_STATES.find((p) => p === s.state);
+      if (!state) return [];
+      const event = this.events.filter((e) => e.sourceId === s.id && e.kind === state).at(-1);
+      return [{
+        institution: s.institution, title: s.title, url: s.url, state,
+        failureCount: s.failure_count ?? 0, reason: event?.detail ?? null,
+      }];
+    });
   }
   async runEvents(runId: number): Promise<RunEvent[]> {
     return this.events.filter((e) => e.runId === runId).map((e) => {

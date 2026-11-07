@@ -2,7 +2,10 @@
    All figures are fictional. Money is held as integer bani and formatted by lei(). */
 (function () {
   const PALETTES = [
-    { id: "water", name: "Field & Water", note: "Green and cyan", v: { a: "#10B981", b: "#22D3EE", "ink-a": "#047857", "ink-b": "#0E7490", "tint-a": "#DDF6EC", "tint-b": "#D8F5FA", bg: "#F6FAF8", deep1: "#065F52", deep2: "#0E7490", hero: "#B4E85C" } },
+    { id: "violet", name: "Field & Violet", note: "Lime and violet", v: { "a": "#5BA52A", "ink-a": "#3D7A13", "tint-a": "#E9F7D3", b: "#7C5CFC", "ink-b": "#5B3CD6", "tint-b": "#ECE8FF", bg: "#F8F8F3", deep1: "#2C5A14", deep2: "#4A32B0", hero: "#B4E85C" } },
+    { id: "gold", name: "Field & Gold", note: "Lime and gold", v: { "a": "#5BA52A", "ink-a": "#3D7A13", "tint-a": "#E9F7D3", b: "#F2B81F", "ink-b": "#8A5C00", "tint-b": "#FFF2C9", bg: "#FBFAF1", deep1: "#2C5A14", deep2: "#8A5C00", hero: "#B4E85C" } },
+    /* Two jobs: violet marks estimates and simulated money, gold marks what needs attention */
+    { id: "both", name: "Field, Violet & Gold", note: "Violet for estimates, gold for bills", v: { "a": "#5BA52A", "ink-a": "#3D7A13", "tint-a": "#E9F7D3", b: "#7C5CFC", "ink-b": "#5B3CD6", "tint-b": "#ECE8FF", c: "#F2B81F", "ink-c": "#8A5C00", "tint-c": "#FFF2C9", bg: "#FBFAF3", deep1: "#2C5A14", deep2: "#4A32B0", hero: "#B4E85C" } },
     { id: "wheat", name: "Ripe Wheat", note: "Gold and olive", v: { a: "#E0A526", b: "#7C8B3A", "ink-a": "#855500", "ink-b": "#525E26", "tint-a": "#FBEFCF", "tint-b": "#EBEFD6", bg: "#FBF8F0", deep1: "#5F4108", deep2: "#856410", hero: "#F5CE4E" } },
     { id: "clay", name: "Turned Soil", note: "Terracotta and sage", v: { a: "#C8683A", b: "#6F9A7C", "ink-a": "#9A431C", "ink-b": "#3C674D", "tint-a": "#F8E4D9", "tint-b": "#DFEDE3", bg: "#FAF6F2", deep1: "#6F2E13", deep2: "#A04E27", hero: "#F6AE7E" } },
     { id: "vine", name: "Vineyard", note: "Plum and vine leaf", v: { a: "#8E3A74", b: "#6E9B46", "ink-a": "#7A2E63", "ink-b": "#46692A", "tint-a": "#F3E1EE", "tint-b": "#E5F0D9", bg: "#FAF6F9", deep1: "#4A1B40", deep2: "#7A2E63", hero: "#E6AEDC" } },
@@ -52,10 +55,10 @@
   const INPUTS = [9000, 26250, 2000, 6000, 34000, 28000, 12000, 8000, 18000, 6000, 12250, 1000];
   const FIXED = 9450, F = { poor: .8, expected: 1, good: 1.15 };
   const COMING = [
-    { ic: "bank", name: "Loan instalment", sub: "Monthly payment", bani: -345000, date: "12 nov." },
-    { ic: "sack", name: "AgroNova Inputs", sub: "Winter fertiliser", bani: -575000, date: "15 nov." },
+    { ic: "bank", tone: "c", name: "Loan instalment", sub: "Monthly payment", bani: -345000, date: "12 nov." },
+    { ic: "sack", tone: "c", name: "AgroNova Inputs", sub: "Winter fertiliser", bani: -575000, date: "15 nov." },
     { ic: "down", tone: "b", name: "APIA subsidy", sub: "Sample amount", bani: 4620000, date: "16 dec.", status: "Estimated" },
-    { ic: "map", name: "Land rent", sub: "Yearly payment", bani: -2625000, date: "20 dec." },
+    { ic: "map", tone: "c", name: "Land rent", sub: "Yearly payment", bani: -2625000, date: "20 dec." },
   ];
   const RECENT = [
     { ic: "drop", tone: "b", name: "Fuel Depot Bărăgan", sub: "Diesel", bani: -325000, date: "6 nov.", status: "Pending" },
@@ -148,17 +151,25 @@
   }
 
   /* ---- Palette ---- */
+  const DEFAULT = document.documentElement.dataset.defaultPalette || "violet";
+  const LAYOUT = (location.pathname.split("/").pop() || "index").replace(/\.html$/, "");
+  const KEY = `farm-palette:${LAYOUT}`;
+  /* Single-accent palettes use their second color for both jobs */
+  /* Six-category chart colors, each set checked with the dataviz palette validator */
+  const FIELD_CH = ["#5BA52A", "#7C5CFC", "#3D7A13", "#5B3CD6", "#C98A00", "#B8476A"];
+  const CH = { violet: FIELD_CH, gold: FIELD_CH, both: FIELD_CH, wheat: ["#B8860B", "#5B6FC8", "#2F7A4A", "#A04A12", "#5E8F1E", "#C0425A"], clay: ["#C8683A", "#6A5BC8", "#2F9A6C", "#8F3A12", "#B08A1E", "#3A6FC0"], vine: ["#8E3A74", "#5F9E2E", "#C25BA8", "#3A6E1A", "#B08A1E", "#5B6FC8"] };
+  const tokens = (p) => ({ c: p.v.b, "ink-c": p.v["ink-b"], "tint-c": p.v["tint-b"], dn: p.v.c || p.v.hero, ...Object.fromEntries(CH[p.id].map((c, i) => [`ch${i + 1}`, c])), ...p.v });
   function palette(id, save = true) {
-    const p = PALETTES.find((x) => x.id === id) || PALETTES[0];
-    for (const [k, v] of Object.entries(p.v)) document.documentElement.style.setProperty(`--${k}`, v);
+    const p = PALETTES.find((x) => x.id === id) || PALETTES.find((x) => x.id === DEFAULT);
+    for (const [k, v] of Object.entries(tokens(p))) document.documentElement.style.setProperty(`--${k}`, v);
     document.documentElement.dataset.palette = p.id;
     const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = p.v.bg;
     document.querySelectorAll("[data-pal]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.pal === p.id));
-    if (save) { try { localStorage.setItem("farm-mobile-palette", p.id); } catch (e) {} }
+    if (save) { try { localStorage.setItem(KEY, p.id); } catch (e) {} }
   }
   function mountPalette(host) {
     host.classList.add("pal");
-    host.innerHTML = `<button type="button" class="pal-btn" aria-label="Color palette" aria-expanded="false"><span class="pal-dot"></span></button><div class="pal-menu" hidden><p>Color palette</p>${PALETTES.map((p) => `<button type="button" class="pal-opt" data-pal="${p.id}" aria-pressed="false" style="--c1:${p.v.a};--c2:${p.v.b}"><i></i><span>${p.name}<small>${p.note}</small></span>${icon("check")}</button>`).join("")}</div>`;
+    host.innerHTML = `<button type="button" class="pal-btn" aria-label="Color palette" aria-expanded="false"><span class="pal-dot"></span></button><div class="pal-menu" hidden><p>Color palette</p>${PALETTES.map((p) => `<button type="button" class="pal-opt" data-pal="${p.id}" aria-pressed="false" style="--c1:${p.v.a};--c2:${p.v.b};--c3:${tokens(p).c}"><i></i><span>${p.name}<small>${p.note}</small></span>${icon("check")}</button>`).join("")}</div>`;
     const btn = host.querySelector(".pal-btn"), menu = host.querySelector(".pal-menu");
     const set = (open) => { menu.hidden = !open; btn.setAttribute("aria-expanded", open); };
     btn.addEventListener("click", () => set(menu.hidden));
@@ -247,8 +258,9 @@
 
   /* ---- Boot ---- */
   const q = new URLSearchParams(location.search);
-  let saved = null; try { saved = localStorage.getItem("farm-mobile-palette"); } catch (e) {}
-  palette(q.get("palette") || saved || "water", false);
+  /* A saved cyan choice no longer exists, so it falls through to this layout's default */
+  let saved = null; try { saved = localStorage.getItem(KEY) || localStorage.getItem("farm-mobile-palette"); } catch (e) {}
+  palette(q.get("palette") || saved || DEFAULT, false);
 
   document.addEventListener("click", (e) => {
     const t = e.target.closest("[data-go],[data-entry],[data-rule],[data-cost],[data-move],[data-path],[data-undo],[data-jump]");
@@ -268,7 +280,7 @@
     if (e.data.view) go(e.data.view);
   });
 
-  const FF = { S, PALETTES, palette, icon, lei, signed, series, lowOf, table, balance, on, emit, txRow, costRows, cropBody, cropState, resCard, cleanList, ruleRows, mountChart, mountPalette, spring, reduced, go, toast, closeEntry, COMING, CROPS, COSTS, costTotal, CLEAN, MONTHS_LONG,
+  const FF = { S, PALETTES, tokens, palette, icon, lei, signed, series, lowOf, table, balance, on, emit, txRow, costRows, cropBody, cropState, resCard, cleanList, ruleRows, mountChart, mountPalette, spring, reduced, go, toast, closeEntry, COMING, CROPS, COSTS, costTotal, CLEAN, MONTHS, MONTHS_LONG,
     get dialog() { return dlg; },
     start() {
       document.querySelector(".app").insertAdjacentHTML("beforeend", `<div class="toast" id="toast" role="status"><span></span><button type="button" data-undo>Undo</button></div>`);
