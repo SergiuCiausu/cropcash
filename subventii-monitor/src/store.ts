@@ -77,6 +77,20 @@ export interface RunEvent {
   diff: string | null;
 }
 
+/** States that need a person to look at the source, worst first. */
+export const PROBLEM_STATES = ['gone', 'blocked', 'error', 'suspicious', 'needs_manual'] as const;
+export type ProblemState = (typeof PROBLEM_STATES)[number];
+
+export interface ProblemSource {
+  institution: string;
+  title: string;
+  url: string;
+  state: ProblemState;
+  failureCount: number;
+  /** The detail of the latest event for this state. */
+  reason: string | null;
+}
+
 export interface RunStats {
   id: number;
   started: string;
@@ -108,6 +122,8 @@ export interface Store {
   /** Starts monitoring a link. Harmless if the URL is already a source. */
   addDiscoveredSource(link: PendingLink): Promise<void>;
   runEvents(runId: number): Promise<RunEvent[]>;
+  /** Every source currently in a problem state, not only those that failed this run. */
+  problemSources(): Promise<ProblemSource[]>;
   runStats(runId?: number): Promise<RunStats | null>;
   startRun(kind: string): Promise<number>;
   finishRun(id: number, stats: FinishedRun): Promise<void>;

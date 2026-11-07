@@ -20,13 +20,13 @@ Plans are in `subventii-plan.md`, terms in `glossary.md`. Last updated 2026-11-0
 | B4 Digest in the daily report | Built | Fixtures only |
 | B5 Extra sources | Partly replaced | See below |
 
-Tests: 134 passing, typecheck clean.
+Tests: 139 passing, typecheck clean.
 
 ## To run it for real
 
 Needs a hosted Supabase project.
 
-1. Run the three files in `supabase/migrations/`, in name order, in the SQL Editor.
+1. Run the four files in `supabase/migrations/`, in name order, with `supabase db push` or in the SQL Editor.
 2. Fill `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env`.
 3. Run `pnpm seed`, then `pnpm monitor` twice. The second run should show few downloads and no false changes.
 
@@ -60,6 +60,7 @@ Needs a hosted Supabase project.
 
 - Links: silent first pass, keyword score, version grouping, at most 25 new sources per run.
 - Report: Romanian Markdown, with "Nu s-a schimbat nimic." on quiet days.
+- Every report ends with "Starea surselor": all sources with a current problem and the reason, including older ones.
 - Left: try both on real pages.
 
 ## Plan B
@@ -92,3 +93,19 @@ Needs a hosted Supabase project.
 - B3's hand-check of 30 calls hasn't been done. On current MIPE data, no call is labelled direct and 46 are conditional.
 - The EC API page confirms the API is public, but no usage limits were found. The client waits 2 seconds between requests.
 - AFIR components have no applicant text, so all are labelled direct.
+
+## Daily schedule
+
+Windows task "Subventii Monitor" runs `scripts/daily.cmd` every day at 07:00, with one retry after a crash. Logs are in `subventii-monitor/data/logs/monitor.log`. If the PC is off at 07:00, it runs when the PC is next on and the user is logged in.
+
+## Open issue: undici crash
+
+The first real `pnpm monitor` crashed on `assert(!this.paused)` in undici. It's a known undici bug (nodejs/undici#5360): a server closes the connection while reading is paused. Reproduced locally on 7.30.2 and 6.29.1. The fix is only in undici 8, which needs Node 22.19 or newer, and this machine has 22.14.
+
+- Run 1 (2026-11-07) still checked all 179 sources and saved them, but it has no report and no finish time.
+- Until this is fixed, a run can crash at any point. The next run picks up whatever was still due.
+- Fix: upgrade Node to 22.19 or newer, then `pnpm add undici@^8.12.4`, and rerun the crash test.
+
+## Next: the app
+
+`app-functions-plan.md` plans the subsidy calculators and the app's functions, milestones C1 to C7. Nothing from it is built yet.
