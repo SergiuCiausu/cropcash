@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en" data-variant="Tractor" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0C100B">
+<title>Farm Futures: Tractor</title>
+<!-- Dark hero: the light strands of 1-lights, drawn as a tractor in Field, Violet & Gold.
+     Every section below it uses the Rail app's own styles, sample farm and charts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../farm-app/mobile/shared.css">
+<link rel="stylesheet" href="../farm-app/desktop/desktop.css">
+<style>
+:root { --ink: #0C100B; --night-text: #F4F7EC; --night-muted: #B7C0AC; --night-line: rgba(205, 235, 150, .28); --lime: #B4E85C; --gold: #F2B81F; }
+html, body { height: auto; }
+html { scroll-behavior: smooth; }
+body { place-items: normal; overflow-x: hidden; overscroll-behavior: auto; }
+a { color: inherit; text-decoration: none; }
+.wrap { width: min(1120px, calc(100vw - 48px)); margin-inline: auto; }
+
+/* Hero: the only dark part of the page */
+.top { position: absolute; inset: 0 0 auto; z-index: 5; color: var(--night-text); }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 84px; }
+.nav .logo .mark { background: var(--lime); color: var(--ink); }
+.nav ul { display: flex; gap: 32px; font-size: 14px; color: var(--night-muted); }
+.nav ul a { display: inline-block; padding: 8px 0; }
+.nav .pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--night-line); border-radius: 999px; font-size: 13.5px; font-weight: 500; transition: background-color 150ms ease, color 150ms ease; }
+@media (hover: hover) and (pointer: fine) { .nav ul a:hover { color: var(--night-text); } .nav .pill:hover { background: var(--lime); color: var(--ink); } .btn-ring:hover .rg { border-color: var(--lime); } }
+.hero { position: relative; min-height: min(100svh, 1200px); display: flex; align-items: center; overflow: hidden; isolation: isolate; background: var(--ink); color: var(--night-text); border-radius: 0 0 28px 28px; }
+.hero :focus-visible, .top :focus-visible { outline-color: var(--gold); outline-offset: 3px; }
+#tractor { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.hero .wrap { padding-block: 120px 96px; }
+.copy { max-width: 520px; }
+.hero h1 { color: var(--night-text); font-weight: 200; font-size: clamp(32px, 4.6vw, 66px); line-height: 1.06; letter-spacing: -.035em; }
+.hero h1 span { display: block; white-space: nowrap; }
+.hero h1 .b { color: var(--lime); }
+.hero .lead { margin-top: 24px; max-width: 42ch; font-size: 17px; color: var(--night-muted); }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; margin-top: 32px; }
+.btn-lime { min-height: 48px; padding: 0 24px; background: var(--lime); color: var(--ink); font-size: 15px; }
+.btn-ring { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; font-size: 15px; font-weight: 500; }
+.btn-ring .rg { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--night-line); border-radius: 50%; font-size: 16px; transition: border-color 150ms ease; }
+.btn-ring .rg .ic { transform: rotate(90deg); }
+
+#tethers { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; }
+#tethers path { fill: none; stroke: rgba(215, 240, 165, .5); stroke-width: 1; stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw 1.8s .8s cubic-bezier(.16, 1, .3, 1) forwards; }
+#tethers circle { fill: var(--gold); opacity: 0; animation: pop .5s 2.2s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { to { opacity: 1; } }
+.call { position: absolute; z-index: 2; width: 214px; padding: 12px 16px; background: rgba(15, 21, 13, .78); border: 1px solid var(--night-line); border-radius: 12px; opacity: 0; animation: rise .8s 1.4s cubic-bezier(.16, 1, .3, 1) forwards; }
+.call:nth-of-type(2) { animation-delay: 1.6s; }
+.call:nth-of-type(3) { animation-delay: 1.8s; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.call small { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.3; color: var(--night-muted); }
+.call small i { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.call.est small i { background: #A793FF; }
+.call b { display: block; margin-top: 4px; font-size: 20px; font-weight: 400; letter-spacing: -.02em; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.call .track { height: 3px; margin-top: 8px; border-radius: 3px; background: rgba(205, 235, 150, .22); overflow: hidden; }
+.call .track i { display: block; height: 100%; background: #A793FF; transform-origin: left; }
+.tag { position: absolute; left: max(24px, calc(50vw - 560px)); bottom: 28px; z-index: 2; font-size: 13px; color: var(--night-muted); }
+.tag b { font-weight: 500; color: var(--gold); }
+
+/* Everything below the hero is the app */
+section.band { padding: 96px 0 0; scroll-margin-top: 0; }
+.head { margin-bottom: 32px; }
+.head h2 { max-width: 22ch; }
+.head .lead { margin-top: 8px; }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.steps li { display: grid; align-content: space-between; gap: 32px; min-height: 192px; padding: 16px; border: 1px solid var(--hair); border-radius: 20px; background: var(--hero-tint); }
+.steps li.t-b { background: var(--tint-b); }
+.steps li.t-c { background: #FFF2C9; }
+.steps .ic { font-size: 24px; }
+.steps b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.3; }
+.steps p { margin-top: 4px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.card p.sub-c { font-size: 14px; color: var(--text-2); margin-bottom: 8px; }
+.crop-m + .crop-m { margin-top: 12px; }
+.has-recharts [data-f="margins"] { display: none; }
+[data-chart] { margin-top: 12px; }
+.lead-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.chart-card { padding: 24px; border-radius: 20px; }
+.chart.big { height: 300px; margin-top: 12px; }
+.side-stats { display: grid; grid-auto-rows: 1fr; gap: 8px; }
+.kpi { padding: 16px; }
+.kpi .lbl { font-size: 13px; color: var(--text-2); }
+.kpi .sub2 { font-size: 14px; font-variant-numeric: tabular-nums; }
+.note-b { margin-top: 12px; }
+.trust li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
+.trust b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.4; }
+.trust p { margin-top: 2px; font-size: 14px; color: var(--text-2); }
+.close-c { margin: 96px 0 0; padding: 48px 32px; align-items: center; text-align: center; gap: 24px; }
+.close-c h2 { font-size: 28px; line-height: 1.15; letter-spacing: -.03em; }
+.close-c p { max-width: 46ch; color: var(--on-hero-2); }
+footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; padding: 24px 0 32px; font-size: 13px; color: var(--text-2); }
+
+@media (max-width: 1179px) {
+  .nav ul, .call, #tethers { display: none; }
+  .hero { align-items: flex-end; }
+  .hero .wrap { padding-block: 56svh 64px; }
+  #tractor { -webkit-mask-image: linear-gradient(#000 50%, transparent 64%); mask-image: linear-gradient(#000 50%, transparent 64%); }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tag { position: static; margin-top: 24px; }
+}
+@media (max-width: 760px) {
+  .wrap { width: calc(100vw - 32px); }
+  .nav { height: 72px; }
+  .nav .pill { display: none; }
+  .bento { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .bento > *, .bento > .s4, .bento > .s5, .bento > .s6, .bento > .s7, .bento > .s8, .bento > .s12 { grid-column: 1 / -1; }
+  section.band { padding-top: 64px; }
+  h2, .n28 { font-size: 24px; }
+  .steps { gap: 12px; }
+  .steps li { min-height: 164px; padding: 12px; gap: 16px; }
+  .chart-card { padding: 16px; }
+  .card { padding: 16px; }
+  .chart.big { height: 220px; }
+  .seg { display: grid; width: 100%; }
+  .seg button { min-width: 0; min-height: 48px; padding: 0 4px; }
+  .side-stats { grid-auto-rows: auto; }
+  .close-c { margin-top: 64px; padding: 32px 16px; }
+  .close-c h2 { font-size: 24px; }
+  .donut { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
+  .pie { width: 112px; height: 112px; }
+  .pie-c { font-size: 14px; }
+}
+@media (max-width: 359px) {
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .steps li { min-height: 0; }
+  .tm b, .tm small, .cl b { overflow: visible; white-space: normal; text-overflow: clip; }
+  .donut { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .donut .leg { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #tethers path { animation: none; stroke-dashoffset: 0; }
+  #tethers circle { animation: none; opacity: 1; }
+  .call { animation: none; opacity: 1; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <nav class="nav wrap" aria-label="Main">
+    <a class="logo" href="#main"><span class="mark" data-ic="sprout"></span><span>Farm Futures</span></a>
+    <ul>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#forecast">Forecast</a></li>
+      <li><a href="#trust">Trust</a></li>
+    </ul>
+    <a class="pill" href="../farm-app/desktop/2-rail.html">Open the sample farm <span data-ic="arrow"></span></a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero" aria-label="Introduction">
+    <canvas id="tractor" aria-hidden="true"></canvas>
+    <svg id="tethers" aria-hidden="true"></svg>
+    <div class="wrap">
+      <div class="copy">
+        <h1><span>Know your land.</span><span class="b">Grow your margin.</span></h1>
+        <p class="lead">A money app for Romanian farms that shows what each crop earns, when cash gets tight and what to set aside for spring.</p>
+        <div class="actions">
+          <a class="btn btn-lime" href="../farm-app/desktop/2-rail.html">Open the sample farm <span data-ic="arrow"></span></a>
+          <a class="btn-ring" href="#how"><span class="rg" data-ic="arrow"></span>See how it works</a>
+        </div>
+        <p class="tag"><b>Sample data.</b> Dealu Verde is a fictional 42 ha farm. Nothing here moves real money.</p>
+      </div>
+    </div>
+    <aside class="call" data-anchor="590,84" style="right:4%;top:14%" aria-label="Sample: expected closing balance">
+      <small><i></i>Expected, October 2027</small><b id="c-end"></b>
+    </aside>
+    <aside class="call est" data-anchor="604,288" style="right:3.5%;top:69%" aria-label="Sample: spring reserve">
+      <small><i></i>Spring reserve, simulated</small><b id="c-res"></b><div class="track"><i id="c-fill"></i></div>
+    </aside>
+    <aside class="call" data-anchor="450,308" style="right:31%;top:79%" aria-label="Sample: tightest month">
+      <small><i></i>Tightest month, <span id="c-month"></span></small><b id="c-low"></b>
+    </aside>
+  </section>
+
+  <div class="wrap">
+    <section class="band" id="how">
+      <div class="head"><h2>From a shoebox of receipts to a clear season</h2><p class="lead">Four steps, each small enough to finish between jobs on the farm.</p></div>
+      <ol class="steps">
+        <li><span data-ic="sack"></span><div><b>Record what moves</b><p>Add a sale or an expense in a few taps, and undo it if you slip.</p></div></li>
+        <li class="t-c"><span data-ic="cal"></span><div><b>See what is coming</b><p>Loan payments, land rent and input bills, listed before they land.</p></div></li>
+        <li class="t-b"><span data-ic="shield"></span><div><b>Set money aside</b><p>Find costs worth a second look and move them toward spring inputs.</p></div></li>
+        <li><span data-ic="chart"></span><div><b>Read the year ahead</b><p>Twelve months of cash, with a poor, expected and good harvest.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="band" id="features">
+      <div class="head"><h2>The whole farm on one page</h2><p class="lead">These cards are the app itself, showing the Dealu Verde sample farm.</p></div>
+      <div class="bento">
+        <section class="card s7"><div class="card-h"><h2>Coming up</h2><span>Next 6 weeks</span></div><ol data-f="coming"></ol></section>
+        <section class="card s5"><div class="card-h"><h2>Season costs</h2><span>2026</span></div><div id="donut"></div><ol data-f="costs"></ol></section>
+        <section class="card s7"><div class="card-h"><h2>Margin per hectare</h2><span>Season 2026</span></div><div data-f="margins"></div><div data-chart="crops"></div></section>
+        <section class="cta field s5"><div><p class="eyebrow">Spring inputs</p><h2 data-f="togo"></h2><p>Three small costs could free up money this month.</p></div><div class="prog"><div class="meter"><i data-f="res-fill"></i></div><div class="prog-k"><span><b data-f="res"></b> set aside</span><span>Goal 60.000 lei</span></div></div></section>
+      </div>
+    </section>
+
+    <section class="band" id="forecast">
+      <div class="head"><h2>Will the money last to harvest?</h2><p class="lead">Switch the harvest and watch the year change. A range, not a promise.</p></div>
+      <div class="bento">
+        <section class="chart-card field s8">
+          <div class="lead-row"><div><p class="sub" style="font-size:13px;font-weight:500">End of October 2027</p><p class="n28" data-f="end"></p></div>
+          <div class="seg" role="group" aria-label="Harvest outcome"><button type="button" data-path="poor" aria-pressed="false">Poor</button><button type="button" data-path="expected" aria-pressed="true">Expected</button><button type="button" data-path="good" aria-pressed="false">Good</button></div></div>
+          <div class="chart big"></div>
+        </section>
+        <div class="s4 side-stats">
+          <section class="card kpi"><p class="lbl">Tightest month</p><p class="n20" data-f="low-m"></p><p class="sub2" data-f="low-v"></p></section>
+          <section class="card kpi"><p class="lbl">If the harvest is poor</p><p class="n20" data-f="poor"></p></section>
+          <section class="card kpi"><p class="lbl">If the harvest is good</p><p class="n20" data-f="good"></p></section>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="trust">
+      <div class="head"><h2>Honest about what it knows</h2></div>
+      <ul class="bento trust">
+        <li class="card s6"><span class="ti b" data-ic="chart"></span><div><b>Ranges, not promises</b><p>Every forecast shows a poor, expected and good harvest side by side.</p></div></li>
+        <li class="card s6"><span class="ti b" data-ic="seed"></span><div><b>Estimates say so</b><p>Subsidies, stored crops and pending payments carry a clear label.</p></div></li>
+        <li class="card s6"><span class="ti b" data-ic="shield"></span><div><b>Reserves are simulated</b><p>This demo connects to no bank, and nothing here moves real money.</p></div></li>
+        <li class="card s6"><span class="ti b" data-ic="check"></span><div><b>Mistakes are easy to undo</b><p>Every sale, expense and transfer comes with an Undo.</p></div></li>
+      </ul>
+    </section>
+
+    <section class="cta field close-c">
+      <h2>Start with a sample farm</h2>
+      <p>Explore Dealu Verde first. No sign-up and no bank connection needed.</p>
+      <a class="btn btn-dark" href="../farm-app/desktop/2-rail.html">Open the sample farm <span data-ic="arrow"></span></a>
+    </section>
+    <footer><span>Farm Futures</span><span>Demo data, no real bank connected. Nothing here moves real money.</span></footer>
+  </div>
+</main>
+
+<script src="../farm-app/mobile/shared.js"></script>
+<script>
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rand = (a, b) => a + Math.random() * (b - a);
+document.querySelectorAll("[data-ic]").forEach((e) => e.insertAdjacentHTML("afterbegin", FF.icon(e.dataset.ic)));
+
+/* ---------- Tractor of light ----------
+   Same method as the bird in 1-lights: scene space is 736 x 414, a static layer holds thousands
+   of additive strands, and a live layer sends sparks along them. The tractor is carved out of
+   the strands, then redrawn from the same light. */
+(function tractor() {
+  const canvas = document.getElementById("tractor");
+  const ctx = canvas.getContext("2d");
+  const hero = canvas.parentElement;
+  const SW = 736, SH = 414;
+  let W, H, DPR, scale, ox, oy, staticLayer, tracks = [], sparks = [];
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+
+  const noise = (x, y) => Math.sin(x * 1.3 + Math.sin(y * 1.7)) * .5 + Math.sin(y * 2.1 + Math.sin(x * .9) * 1.4) * .5;
+  function strand(p0, c1, c2, p1, wob, steps = 46) {
+    const pts = [], seedX = rand(0, 90), seedY = rand(0, 90);
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps, m = 1 - t, a = wob * t * t;
+      pts.push([
+        m*m*m*p0[0] + 3*m*m*t*c1[0] + 3*m*t*t*c2[0] + t*t*t*p1[0] + noise(seedX + t * 4.5, seedY) * a,
+        m*m*m*p0[1] + 3*m*m*t*c1[1] + 3*m*t*t*c2[1] + t*t*t*p1[1] + noise(seedY, seedX + t * 4.5) * a,
+      ]);
+    }
+    return pts;
+  }
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const lerpP = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+
+  /* Each fan interpolates between two guide curves [p0, c1, c2, p1]. */
+  const fans = [
+    { // exhaust plume, the upper wing
+      a: [[391,138],[398,92],[440,46],[474,-14]], b: [[393,138],[470,112],[590,62],[752,-14]], n: 1800, wob: 28, hue: "plume" },
+    { // air pulled off the back of the cab
+      a: [[556,124],[590,104],[640,60],[664,-14]], b: [[566,186],[624,178],[704,128],[792,40]], n: 1400, wob: 34, hue: "violet" },
+    { // furrows opening behind the rear wheel
+      a: [[520,303],[590,301],[680,272],[792,212]], b: [[540,305],[600,340],[680,400],[762,440]], n: 1700, wob: 30, hue: "field" },
+    { // furrows running down the front of the frame
+      a: [[420,305],[470,340],[500,390],[500,440]], b: [[500,305],[540,340],[600,390],[642,440]], n: 1200, wob: 32, hue: "violet" },
+    { // ploughed ground trailing under the headline
+      a: [[340,305],[290,318],[200,342],[60,348]], b: [[400,305],[340,370],[260,410],[120,440]], n: 750, wob: 34, hue: "deep" },
+  ];
+  const colors = {
+    plume:  ["rgba(232,250,185,", "rgba(150,120,255,"],
+    violet: ["rgba(200,188,255,", "rgba(112,84,245,"],
+    field:  ["rgba(226,250,170,", "rgba(128,210,62,"],
+    deep:   ["rgba(165,225,100,", "rgba(96,74,225,"],
+  };
+
+  /* Silhouette, facing left */
+  const REAR = [500, 240, 62], FRONT = [356, 272, 31];
+  const hood = new Path2D("M328 216 Q328 204 340 202 L434 192 Q440 191 440 198 L440 254 L328 254 Z");
+  const frame = new Path2D("M320 254 L456 254 L456 274 L402 274 L390 264 L320 264 Z");
+  const cab = new Path2D("M434 196 L447 126 Q448 120 456 120 L536 120 Q544 120 545 128 L553 196 Z");
+  const roof = new Path2D("M438 120 Q438 109 450 109 L548 109 Q560 109 560 120 Z");
+  const stack = new Path2D("M387 200 L387 150 Q387 140 396 138 L396 197 Z");
+  const weight = new Path2D("M311 232 L328 228 L328 266 L313 266 Q307 250 311 232 Z");
+  const pillar = new Path2D("M492 120 L492 196");
+  const fender = new Path2D(); fender.arc(REAR[0], REAR[1], REAR[2] + 11, Math.PI * 1.02, Math.PI * 1.98);
+  const parts = [hood, frame, cab, roof, stack];
+
+  function build() {
+    const r = hero.getBoundingClientRect();
+    W = r.width; H = r.height;
+    DPR = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    const narrow = W < 1180;
+    if (narrow) { // The tractor sits in the top half, above the copy
+      scale = Math.min(W / 300, H * .48 / 205);
+      ox = W * .5 - 436 * scale; oy = H * .1 - 109 * scale;
+    } else {
+      scale = Math.max(W / 736, H / 414);
+      ox = (W - SW * scale) / 2 + W * .06; oy = (H - SH * scale) / 2;
+    }
+
+    staticLayer = document.createElement("canvas");
+    staticLayer.width = canvas.width; staticLayer.height = canvas.height;
+    const s = staticLayer.getContext("2d");
+    s.setTransform(DPR * scale, 0, 0, DPR * scale, DPR * ox, DPR * oy);
+    s.globalCompositeOperation = "lighter";
+    s.lineCap = "round";
+    tracks = [];
+    const density = narrow ? .55 : 1;
+
+    fans.forEach((f) => {
+      for (let i = 0, count = Math.floor(f.n * density); i < count; i++) {
+        const t = Math.pow(Math.random(), .85);
+        const add = (p) => [p[0] + rand(-5, 5), p[1] + rand(-5, 5)];
+        const pts = strand(add(lerpP(f.a[0], f.b[0], t)), add(lerpP(f.a[1], f.b[1], t)), add(lerpP(f.a[2], f.b[2], t)), add(lerpP(f.a[3], f.b[3], t)), f.wob);
+        const [c0, c1] = colors[f.hue], a = rand(.035, .14), split = 24;
+        s.lineWidth = rand(.14, .34);
+        s.strokeStyle = c0 + a + ")";
+        s.beginPath(); pts.slice(0, split + 1).forEach((p, k) => (k ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1]))); s.stroke();
+        s.strokeStyle = c1 + a * .7 + ")";
+        s.beginPath(); pts.slice(split).forEach((p, k) => (k ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1]))); s.stroke();
+        if (i % 3 === 0) tracks.push(pts);
+      }
+    });
+
+    // Carve the tractor out of the strands.
+    s.globalCompositeOperation = "destination-out";
+    s.fillStyle = "#000";
+    parts.concat(weight).forEach((p) => s.fill(p));
+    s.lineWidth = 6; s.strokeStyle = "#000"; s.stroke(fender);
+    for (const [x, y, rad] of [REAR, FRONT]) { s.beginPath(); s.arc(x, y, rad + 5, 0, 7); s.fill(); }
+    s.globalCompositeOperation = "lighter";
+
+    /* Fine strands inside a shape */
+    const inside = (path, count, draw) => { s.save(); s.clip(path); for (let i = 0; i < count; i++) draw(i); s.restore(); };
+    const rim = (path, w = .7, alpha = .55, tint = "236,250,205", glow = "rgba(180,232,92,.9)", blur = 5) => {
+      s.lineWidth = w; s.strokeStyle = `rgba(${tint},${alpha})`; s.shadowColor = glow; s.shadowBlur = blur * scale;
+      for (let i = 0; i < 3; i++) { s.save(); s.translate(rand(-.5, .5), rand(-.5, .5)); s.stroke(path); s.restore(); }
+      s.shadowBlur = 0;
+    };
+
+    // Hood: long strands following its top line, brightest along the edges.
+    inside(hood, 1300 * density, () => {
+      const v = Math.random(), edge = Math.pow(Math.abs(v - .5) * 2, 2.4), x0 = rand(326, 430), len = rand(14, 70);
+      const y = (x) => lerp(lerp(203, 192, (x - 328) / 112), 254, v);
+      s.strokeStyle = `rgba(${215 + edge * 30},${238 + edge * 12},${150 + edge * 60},${rand(.05, .16) + edge * .24})`;
+      s.lineWidth = rand(.14, .34);
+      s.beginPath(); s.moveTo(x0, y(x0)); s.lineTo(x0 + len, y(x0 + len)); s.stroke();
+    });
+    // Grille and side vents.
+    s.strokeStyle = "rgba(236,250,205,.7)"; s.lineWidth = .5;
+    for (let y = 212; y < 252; y += 5) { s.beginPath(); s.moveTo(329, y); s.lineTo(346, y - .6); s.stroke(); }
+    s.lineWidth = .8; s.strokeStyle = "rgba(236,250,205,.55)";
+    for (let y = 222; y < 244; y += 7) { s.beginPath(); s.moveTo(380, y); s.lineTo(424, y - 3); s.stroke(); }
+
+    // Cab glass: violet reflections on dark.
+    inside(cab, 900 * density, () => {
+      const x = rand(430, 570), y = rand(118, 196), len = rand(10, 46);
+      s.strokeStyle = `rgba(${Math.random() < .3 ? "225,218,255" : "150,125,255"},${rand(.03, .15)})`;
+      s.lineWidth = rand(.14, .34);
+      s.beginPath(); s.moveTo(x, y); s.lineTo(x - len * .55, y + len); s.stroke();
+    });
+    inside(roof, 260 * density, () => {
+      const x = rand(438, 548), y = rand(109, 120);
+      s.strokeStyle = `rgba(226,250,170,${rand(.08, .24)})`; s.lineWidth = rand(.14, .34);
+      s.beginPath(); s.moveTo(x, y); s.lineTo(x + rand(10, 40), y); s.stroke();
+    });
+    inside(frame, 260 * density, () => {
+      const x = rand(320, 456), y = rand(254, 274);
+      s.strokeStyle = `rgba(150,125,255,${rand(.05, .2)})`; s.lineWidth = rand(.14, .34);
+      s.beginPath(); s.moveTo(x, y); s.lineTo(x + rand(8, 34), y); s.stroke();
+    });
+
+    rim(cab, .7, .5, "214,204,255", "rgba(124,92,252,.95)", 6);
+    rim(pillar, .6, .4, "214,204,255", "rgba(124,92,252,.95)", 4);
+    [roof, hood, stack, frame].forEach((p) => rim(p));
+    rim(fender, 1.5, .62);
+
+    // Wheels: tread lugs make it read as a tractor before anything else does.
+    const wheel = ([cx, cy, rad], lugs) => {
+      const at = (r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+      s.globalCompositeOperation = "destination-out"; s.beginPath(); s.arc(cx, cy, rad + 1, 0, 7); s.fill(); s.globalCompositeOperation = "lighter";
+      for (let i = 0; i < 1400 * density * rad / 62; i++) {
+        const k = rand(.64, 1), a = rand(0, 6.283), edge = Math.pow((k - .64) / .36, 3);
+        s.strokeStyle = `rgba(226,246,185,${rand(.04, .14) + edge * .16})`; s.lineWidth = rand(.14, .32);
+        s.beginPath(); s.arc(cx, cy, k * rad, a, a + rand(.12, .6)); s.stroke();
+      }
+      for (let i = 0; i < lugs; i++) {
+        const a = i / lugs * 6.283;
+        for (let k = 0; k < 7; k++) {
+          const o = rand(-.035, .035), p = at(rad * .8, a + o - .1), q = at(rad * 1.045, a + o + .1);
+          s.strokeStyle = `rgba(236,250,205,${rand(.2, .6)})`; s.lineWidth = rand(.3, .7);
+          s.beginPath(); s.moveTo(p[0], p[1]); s.lineTo(q[0], q[1]); s.stroke();
+        }
+      }
+      for (let i = 0; i < 280 * density * rad / 62; i++) {
+        const a = rand(0, 6.283), p = at(rad * .34, a), q = at(rad * .62, a + rand(-.05, .05));
+        s.strokeStyle = `rgba(170,150,255,${rand(.06, .22)})`; s.lineWidth = rand(.14, .34);
+        s.beginPath(); s.moveTo(p[0], p[1]); s.lineTo(q[0], q[1]); s.stroke();
+      }
+      const ring = new Path2D(); ring.arc(cx, cy, rad * .64, 0, 7); rim(ring, .9, .7);
+      // Hub: pale steel, the one solid part of the picture.
+      s.globalCompositeOperation = "source-over";
+      s.fillStyle = "#C9D3C2"; s.beginPath(); s.arc(cx, cy, rad * .3, 0, 7); s.fill();
+      s.fillStyle = "#3A443A"; s.beginPath(); s.arc(cx, cy, rad * .12, 0, 7); s.fill();
+      for (let i = 0; i < 8; i++) { const p = at(rad * .21, i / 8 * 6.283); s.beginPath(); s.arc(p[0], p[1], Math.max(.8, rad * .022), 0, 7); s.fill(); }
+      s.globalCompositeOperation = "lighter";
+    };
+    wheel(REAR, 30); wheel(FRONT, 18);
+
+    // Front weight in the same steel, with the hard edges the beak had.
+    s.globalCompositeOperation = "source-over";
+    s.fillStyle = "#C9D3C2"; s.fill(weight);
+    s.strokeStyle = "#3A443A"; s.lineWidth = .7;
+    for (let y = 237; y < 262; y += 8) { s.beginPath(); s.moveTo(310, y); s.lineTo(328, y); s.stroke(); }
+    s.globalCompositeOperation = "lighter";
+
+    // Headlight, the one warm point on the machine.
+    s.globalCompositeOperation = "source-over";
+    s.fillStyle = "#0C100B"; s.beginPath(); s.arc(340, 216, 5.4, 0, 7); s.fill();
+    s.globalCompositeOperation = "lighter";
+    const eg = s.createRadialGradient(340, 216, .3, 340, 216, 4.6);
+    eg.addColorStop(0, "#FFF4C8"); eg.addColorStop(.55, "#F2B81F"); eg.addColorStop(1, "rgba(242,184,31,.1)");
+    s.fillStyle = eg; s.beginPath(); s.arc(340, 216, 4.6, 0, 7); s.fill();
+    for (let i = 0; i < 150 * density; i++) {
+      s.strokeStyle = `rgba(245,206,78,${rand(.02, .08)})`; s.lineWidth = rand(.14, .34);
+      s.beginPath(); s.moveTo(336, 216); s.lineTo(rand(276, 306), rand(196, 240)); s.stroke();
+    }
+
+    // Grain and soil dust.
+    for (let i = 0; i < 2200 * density; i++) {
+      const p = tracks[Math.floor(Math.random() * tracks.length)], q = p[Math.floor(rand(8, p.length))];
+      const gold = Math.random() < .28, sz = Math.random() < .05 ? rand(.7, 1.5) : rand(.15, .55);
+      s.fillStyle = gold ? `rgba(245,206,78,${rand(.4, .95)})` : `rgba(226,246,190,${rand(.3, .9)})`;
+      s.beginPath(); s.arc(q[0] + rand(-7, 7), q[1] + rand(-7, 7), sz, 0, 7); s.fill();
+    }
+
+    sparks = Array.from({ length: reduced ? 0 : (narrow ? 260 : 620) }, () => newSpark(true));
+    paint(performance.now());
+  }
+
+  function newSpark(any) {
+    return { track: tracks[Math.floor(Math.random() * tracks.length)], t: any ? Math.random() : rand(0, .25), speed: rand(.0005, .0022), size: rand(.3, 1.05), gold: Math.random() < .34, phase: rand(0, 6) };
+  }
+  function paint(now) {
+    pointer.x += (pointer.tx - pointer.x) * .05;
+    pointer.y += (pointer.ty - pointer.y) * .05;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(staticLayer, pointer.x * 10 * DPR, pointer.y * 8 * DPR);
+    ctx.globalCompositeOperation = "lighter";
+    ctx.setTransform(DPR * scale, 0, 0, DPR * scale, DPR * (ox + pointer.x * 18), DPR * (oy + pointer.y * 14));
+    for (const p of sparks) {
+      p.t += p.speed;
+      if (p.t > 1) Object.assign(p, newSpark(false));
+      const f = p.t * (p.track.length - 1), i = Math.floor(f), k = f - i;
+      const a = p.track[i], b = p.track[Math.min(i + 1, p.track.length - 1)];
+      const tw = .5 + .5 * Math.sin(now * .004 + p.phase), fade = Math.min(1, Math.min(p.t, 1 - p.t) * 8);
+      ctx.fillStyle = p.gold ? `rgba(245,206,78,${.9 * tw * fade})` : `rgba(226,246,190,${.85 * tw * fade})`;
+      ctx.beginPath(); ctx.arc(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, p.size, 0, 7); ctx.fill();
+    }
+  }
+
+  let running = false;
+  function loop(now) { if (!running) return; paint(now); requestAnimationFrame(loop); }
+  function start() { if (!running && !reduced) { running = true; requestAnimationFrame(loop); } }
+  function stop() { running = false; }
+
+  /* Thin lines from each data card to a point on the picture. */
+  function drawTethers() {
+    const svg = document.getElementById("tethers"), box = hero.getBoundingClientRect();
+    svg.innerHTML = "";
+    svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+    hero.querySelectorAll(".call").forEach((call) => {
+      if (getComputedStyle(call).display === "none") return;
+      const r = call.getBoundingClientRect(), [ax, ay] = call.dataset.anchor.split(",").map(Number);
+      const tx = ox + ax * scale, ty = oy + ay * scale, L = r.left - box.left, T = r.top - box.top;
+      const above = tx > L && tx < L + r.width;
+      const sx = above ? tx : (tx < L ? L : L + r.width), sy = above ? T : T + r.height / 2, bend = Math.sign(tx - sx) * 40;
+      const d = above ? `M${sx} ${sy} L${tx} ${ty}` : `M${sx} ${sy} C${sx + bend} ${sy}, ${tx - bend} ${ty}, ${tx} ${ty}`;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", d); svg.appendChild(path);
+      path.style.setProperty("--len", Math.ceil(path.getTotalLength()));
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", tx); dot.setAttribute("cy", ty); dot.setAttribute("r", 3);
+      svg.appendChild(dot);
+    });
+  }
+
+  build();
+  drawTethers();
+  start();
+  new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop())).observe(hero);
+  addEventListener("pointermove", (e) => { pointer.tx = e.clientX / innerWidth - .5; pointer.ty = e.clientY / innerHeight - .5; }, { passive: true });
+  let t, lastW = innerWidth;
+  addEventListener("resize", () => {
+    clearTimeout(t);
+    t = setTimeout(() => { if (innerWidth !== lastW || innerWidth > 720) { lastW = innerWidth; build(); drawTethers(); } }, 200);
+  });
+})();
+
+/* ---------- The app's sample farm ---------- */
+(function farm() {
+  const { S, lei } = FF, GOAL = 6000000;
+  const each = (k, fn) => document.querySelectorAll(`[data-f="${k}"]`).forEach(fn);
+  const set = (k, v) => each(k, (e) => (e.textContent = v));
+  const exp = FF.series("expected"), low0 = FF.lowOf(exp);
+  document.getElementById("c-end").textContent = lei(exp[11]);
+  document.getElementById("c-res").textContent = `${lei(S.reserve, false).replace(" lei", "")} / ${lei(GOAL, false)}`;
+  document.getElementById("c-fill").style.transform = `scaleX(${S.reserve / GOAL})`;
+  document.getElementById("c-month").textContent = low0.month;
+  document.getElementById("c-low").textContent = lei(low0.v);
+
+  each("coming", (e) => (e.innerHTML = FF.COMING.map(FF.txRow).join("")));
+  each("costs", (e) => (e.innerHTML = FF.costRows()));
+  each("margins", (e) => (e.innerHTML = FF.CROPS.map((c) => `<div class="crop-m"><div class="crop-l"><span>${c.n}, ${c.ha} ha</span><span>${c.m} / ha</span></div><div class="bar"><i style="transform:scaleX(${(c.mv / 2131).toFixed(3)})"></i></div></div>`).join("")));
+  FF.on(() => {
+    const s = FF.series(S.path), low = FF.lowOf(s);
+    set("end", lei(s[11])); set("low-m", low.month); set("low-v", lei(low.v));
+    set("poor", lei(FF.series("poor")[11])); set("good", lei(FF.series("good")[11]));
+    set("res", lei(S.reserve)); set("togo", `${lei(GOAL - S.reserve)} still to set aside`);
+    each("res-fill", (e) => (e.style.transform = `scaleX(${Math.min(1, S.reserve / GOAL)})`));
+  });
+
+  /* Recharts loads only as the charts come near, so the hero stays fast.
+     If it cannot load, the app's plain bars and hand-drawn forecast stay on the page. */
+  const LIBS = ["react@18.3.1/umd/react.production.min.js", "react-dom@18.3.1/umd/react-dom.production.min.js", "react-is@18.3.1/umd/react-is.production.min.js", "recharts@3.10.1/umd/Recharts.js"].map((p) => `https://unpkg.com/${p}`);
+  const load = (src) => new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.append(s); });
+  async function charts() {
+    try { for (const src of [...LIBS, "../farm-app/desktop/charts.js"]) await load(src); } catch (e) { /* plain versions stay */ }
+    const C = window.Charts, big = document.querySelector(".chart.big");
+    if (!C) return FF.mountChart(big);
+    document.getElementById("donut").innerHTML = C.donutHTML();
+    C.donut(document.querySelector(".pie-chart"));
+    C.crops(document.querySelector('[data-chart="crops"]'));
+    C.forecast(big);
+  }
+  const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); charts(); } }, { rootMargin: "300px 0px" });
+  io.observe(document.getElementById("features"));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "data": {
+    "goal_id": "goal_greece",
+    "status": "paused_one_month",
+    "skip_month": "2026-11",
+    "options": [
+      {
+        "choice": "keep_amount",
+        "monthly": 475.0,
+        "projected_finish": "2027-07-11"
+      },
+      {
+        "choice": "keep_date",
+        "monthly": 542.86,
+        "projected_finish": "2027-06-11"
+      }
+    ],
+    "message": "Using the plan, not failing it."
+  }
+}

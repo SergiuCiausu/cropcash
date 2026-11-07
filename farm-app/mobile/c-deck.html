@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Farm Futures: Deck</title>
+<!--
+  Refined UI, Daylight with one bright color field as the hero. Text on it is off-black.
+  Sections: Hero (swipeable glass deck, three stat tiles) > Action tiles > Reserve callout > Costs > Coming up > Recent
+  Flat color only: no gradients and no blooms, by request. Depth comes from solid tones, glass panels and hairlines.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+:root {
+  --pal-radius: 16px;
+}
+body, button, input { font-family: "Geist", system-ui, sans-serif; }
+body { line-height: 1.5; }
+.scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(112px + var(--safe-b)); }
+.eyebrow { font-size: 11.5px; font-weight: 500; letter-spacing: .08em; line-height: 1.35; text-transform: uppercase; color: var(--on-hero-2); }
+
+/* Hero: solid deep color with a soft bottom curve */
+.hero { padding: calc(8px + var(--safe-t)) 0 16px; background: var(--hero); color: var(--on-hero); border-radius: 0 0 28px 28px; }
+.hero :focus-visible { outline-color: var(--on-hero); }
+.head { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; }
+.head > div:first-child { flex: 1; min-width: 0; }
+.head p { font-size: 15px; font-weight: 500; letter-spacing: -.01em; line-height: 1.3; }
+.head .eyebrow { margin-top: 2px; font-size: 11.5px; letter-spacing: .08em; font-weight: 500; }
+.pal-menu { color: var(--text-1); border-color: var(--hair); }
+
+.glass { background: var(--glass); border: 1px solid var(--glass-line); border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5); }
+.deck { display: flex; gap: 8px; padding: 12px 16px 4px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.deck::-webkit-scrollbar, .crops::-webkit-scrollbar { display: none; }
+.pcard { flex: 0 0 calc(100% - 24px); display: flex; flex-direction: column; min-height: 216px; padding: 16px; scroll-snap-align: center; scroll-snap-stop: always; }
+.pcard .l { font-size: 13px; font-weight: 500; line-height: 1.45; color: var(--on-hero-2); }
+h1, .big { font-size: 30px; font-weight: 600; letter-spacing: -.035em; line-height: 1.1; color: var(--on-hero); font-variant-numeric: tabular-nums; }
+.big { margin-top: 2px; }
+.pcard .spacer { flex: 1; }
+.pcard .s { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 10px; font-size: 13px; color: var(--on-hero-2); }
+.pcard .s + .s { padding-top: 4px; }
+.pcard .s b { color: var(--on-hero); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pcard .meter { height: 8px; margin-top: 16px; border-radius: 8px; background: rgba(24, 32, 28, .14); overflow: hidden; }
+.pcard .meter i { display: block; height: 100%; border-radius: inherit; background: var(--on-hero); transform-origin: left; transition: transform .5s var(--ease-out); }
+#mini { height: 112px; margin-top: 8px; }
+.hero .c-line { stroke: var(--on-hero); stroke-width: 2; }
+.hero .c-band { fill: var(--on-hero); opacity: .1; }
+.hero .c-base { stroke: rgba(24, 32, 28, .22); }
+.hero .c-dot { fill: var(--hero); stroke: var(--on-hero); }
+.hero .c-lab { fill: var(--on-hero-2); font-size: 11.5px; }
+.hero .c-lab.on { fill: var(--on-hero); }
+.dots { display: flex; justify-content: center; gap: 2px; }
+.dots button { display: grid; place-items: center; width: 28px; height: 28px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(24, 32, 28, .3); transition: background-color 150ms ease, transform 150ms var(--ease-out); }
+.dots [aria-current] i { background: var(--on-hero); transform: scale(1.3); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 4px 16px 0; }
+.stats div { min-width: 0; padding: 10px 10px 12px; border-radius: 14px; }
+.stats dt { font-size: 11.5px; font-weight: 500; line-height: 1.35; color: var(--on-hero-2); }
+.stats dd { margin: 2px 0 0; font-size: 13px; font-weight: 600; letter-spacing: -.01em; line-height: 1.3; font-variant-numeric: tabular-nums; color: var(--on-hero); }
+dl { margin: 0; }
+
+.seg { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin: 12px 16px 0; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-line); }
+.seg .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 999px; background: var(--surface); transition: transform 220ms var(--ease-out); }
+.seg button { position: relative; min-height: 44px; font-size: 13.5px; font-weight: 500; color: var(--on-hero); transition: color 120ms ease; }
+.seg button[aria-pressed="true"] { color: var(--on-hero); font-weight: 600; }
+.panel { margin: 10px 16px 0; padding: 16px; }
+.panel .sub { font-size: 13px; color: var(--on-hero-2); }
+#chart { height: 188px; margin-top: 10px; }
+.res-card .res-label, .res-card .res-note { color: var(--on-hero-2); }
+.res-card .res-label { font-size: 13px; font-weight: 500; }
+.res-card .res-amt { margin-top: 2px; font-size: 30px; letter-spacing: -.035em; line-height: 1.1; color: var(--on-hero); }
+.res-card .bar { height: 8px; background: rgba(24, 32, 28, .14); }
+.res-card .bar i { background: var(--on-hero); }
+
+/* Daylight */
+.pad { padding: 16px 16px 0; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tiles button { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 8px 8px; align-items: start; min-height: 104px; padding: 12px; border: 1px solid var(--hair); border-radius: 18px; background: var(--hero-tint); text-align: left; transition: transform 140ms var(--ease-out); }
+.tiles button:nth-child(3) { background: var(--tint-b); }
+.tiles button:nth-child(4) { background: var(--tint-c); }
+.tiles button:active, .cta a:active, .cta button:active { transform: scale(.97); }
+.tiles .i { display: block; font-size: 22px; color: var(--text-1); }
+.tiles .go { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--hair-2); background: var(--surface); font-size: 14px; color: var(--text-1); }
+.tiles .t { grid-column: 1 / -1; align-self: end; }
+.tiles b { display: block; font-size: 15px; font-weight: 600; letter-spacing: -.01em; line-height: 1.25; }
+.tiles small { font-size: 13px; line-height: 1.35; color: var(--text-2); }
+
+.cta { margin-top: 16px; padding: 16px; border-radius: 20px; background: var(--hero); color: var(--on-hero); }
+.cta .eyebrow { margin: 0 0 4px; font-size: 11.5px; }
+.cta h2 { font-size: 18px; font-weight: 600; letter-spacing: -.02em; line-height: 1.3; }
+.cta p { margin-top: 4px; font-size: 14px; color: var(--on-hero-2); }
+.cta :focus-visible { outline-color: var(--on-hero); }
+.pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; padding: 0 16px; border-radius: 999px; background: #1A1A1A; color: #FAF9F7; font-size: 14px; font-weight: 500; transition: transform 140ms var(--ease-out); }
+.pill .ic { font-size: 15px; }
+
+.card { margin-top: 16px; padding: 16px; background: var(--surface); border: 1px solid var(--hair); border-radius: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+.card h2 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.4; }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.card-h span { font-size: 13px; color: var(--text-2); }
+.donut { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; margin-top: 8px; }
+.ring { position: relative; width: 112px; height: 112px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring div { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 15px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ring small { font-size: 11.5px; font-weight: 500; color: var(--text-2); }
+.leg li { display: flex; align-items: center; gap: 8px; min-height: 24px; font-size: 13px; }
+.leg i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.leg span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leg b { font-weight: 500; font-variant-numeric: tabular-nums; }
+ol > .tx + .tx, ol > .cost + .cost, .clean li + li, .rule + .rule { border-top: 1px solid var(--hair); }
+.ti { border-radius: 12px; background: var(--hero-tint); color: var(--text-1); }
+.ti.b { background: var(--tint-b); color: var(--ink-b); }
+.ti.c { background: var(--tint-c); color: var(--ink-c); }
+.crops { display: flex; gap: 8px; padding: 16px 16px 4px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; }
+.crops article { flex: 0 0 calc(100% - 44px); padding: 16px; scroll-snap-align: center; background: var(--surface); border: 1px solid var(--hair); border-radius: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+.crops h2 { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 8px; }
+.st-pill { padding: 2px 8px; border-radius: 99px; background: var(--hero-tint); color: var(--text-1); font-size: 11.5px; font-weight: 500; }
+.margin { font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.lab { font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+.note { margin: 12px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-2); }
+.chipb { border-radius: 10px; font-size: 13px; }
+.btn-move { border-radius: 999px; font-size: 14px; font-weight: 500; background: #1A1A1A; }
+#entry input { border-radius: 10px; }
+.e-acts button { border-radius: 999px; font-size: 14px; font-weight: 500; }
+
+.tabs { position: absolute; z-index: 40; left: 12px; right: 12px; bottom: calc(12px + var(--safe-b)); display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; border-radius: 22px; background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(12px) saturate(170%); backdrop-filter: blur(12px) saturate(170%); border: 1px solid var(--hair); box-shadow: 0 8px 30px rgba(20, 32, 26, .1); }
+.tabs button { display: grid; justify-items: center; gap: 2px; min-height: 54px; padding-top: 7px; border-radius: 18px; font-size: 12px; font-weight: 500; color: var(--text-2); }
+.tabs .ic { font-size: 21px; }
+.tabs [aria-current] { background: var(--hero); color: var(--on-hero); font-weight: 600; }
+.toast { bottom: calc(92px + var(--safe-b)); }
+@media (prefers-reduced-transparency: reduce) { .tabs { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* Entrance plays once, on first open only */
+@media (prefers-reduced-motion: no-preference) {
+  .first .rise { animation: rise 320ms var(--ease-out) both; animation-delay: calc(var(--i) * 45ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+}
+@media (prefers-reduced-motion: reduce) { .pcard .meter i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app first" id="app">
+  <div class="scroll" id="scroll">
+    <div class="hero">
+      <header class="head">
+        <div><p id="greet"></p><p class="eyebrow">Dealu Verde, sample data</p></div>
+        <div data-pal-host></div>
+      </header>
+
+      <div data-view="home">
+        <div class="deck rise" style="--i:0" id="deck" tabindex="0" aria-label="Accounts, swipe to change">
+          <article class="pcard glass"><p class="l">Estimated balance</p><h1 id="bal"></h1><div class="chart" id="mini"></div></article>
+          <article class="pcard glass"><p class="l">Spring reserve, simulated</p><p class="big" id="res2"></p><div class="meter"><i id="res-fill"></i></div><div class="spacer"></div><div class="s"><span>Goal</span><b>60.000 lei</b></div><div class="s"><span>Due by</span><b>1 mar. 2027</b></div></article>
+          <article class="pcard glass"><p class="l">Stored maize, estimated value</p><p class="big">60.000,00 lei</p><div class="spacer"></div><div class="s"><span>In storage</span><b>60 t</b></div><div class="s"><span>Price</span><b>1.000 lei / t</b></div></article>
+        </div>
+        <div class="dots" id="dots" role="group" aria-label="Choose account"></div>
+        <dl class="stats rise" style="--i:1">
+          <div class="glass"><dt>Tightest</dt><dd id="s-low-m"></dd><dd id="s-low-v"></dd></div>
+          <div class="glass"><dt>Next bill</dt><dd>12 nov.</dd><dd id="s-bill"></dd></div>
+          <div class="glass"><dt>Reserve</dt><dd id="s-pct"></dd><dd>of goal</dd></div>
+        </dl>
+      </div>
+
+      <div data-view="stats" hidden>
+        <div class="head" style="min-height:0;padding-top:8px"><div><p class="eyebrow">End of October 2027</p><h1 id="end" style="margin-top:2px"></h1></div></div>
+        <div class="seg" role="group" aria-label="Harvest outcome"><span class="thumb" id="thumb"></span>
+          <button type="button" data-path="poor" aria-pressed="false">Poor</button>
+          <button type="button" data-path="expected" aria-pressed="true">Expected</button>
+          <button type="button" data-path="good" aria-pressed="false">Good</button>
+        </div>
+        <div class="panel glass"><p class="sub">Cash for the next 12 months. A range, not a promise.</p><div class="chart" id="chart"></div></div>
+        <dl class="stats" style="padding-top:8px">
+          <div class="glass"><dt>Tightest</dt><dd id="f-low-m"></dd><dd id="f-low-v"></dd></div>
+          <div class="glass"><dt>If poor</dt><dd id="f-poor"></dd></div>
+          <div class="glass"><dt>If good</dt><dd id="f-good"></dd></div>
+        </dl>
+      </div>
+
+      <div data-view="fields" hidden>
+        <div class="head" style="min-height:0;padding-top:8px"><div><p class="eyebrow">Season 2026</p><h1 style="margin-top:2px">Your fields</h1></div></div>
+        <dl class="stats" style="padding-top:12px">
+          <div class="glass"><dt>Farmed</dt><dd>42 ha</dd></div>
+          <div class="glass"><dt>Crops</dt><dd>3</dd></div>
+          <div class="glass"><dt>Costs / ha</dt><dd>3.869,05 lei</dd></div>
+        </dl>
+      </div>
+
+      <div data-view="reserve" hidden>
+        <div class="panel glass res-host" id="res"></div>
+      </div>
+    </div>
+
+    <div data-view="home" class="pad">
+      <div class="tiles rise" style="--i:2">
+        <button type="button" data-entry="sale"><span class="i" data-ic="plus"></span><span class="go" data-ic="arrow"></span><span class="t"><b>Record sale</b><small>Money coming in</small></span></button>
+        <button type="button" data-entry="expense"><span class="i" data-ic="minus"></span><span class="go" data-ic="arrow"></span><span class="t"><b>Add expense</b><small>Money going out</small></span></button>
+        <button type="button" data-go="reserve"><span class="i" data-ic="shield"></span><span class="go" data-ic="arrow"></span><span class="t"><b>Set aside</b><small>For spring inputs</small></span></button>
+        <button type="button" data-jump="coming"><span class="i" data-ic="cal"></span><span class="go" data-ic="arrow"></span><span class="t"><b>Bills</b><small>4 coming up</small></span></button>
+      </div>
+      <section class="cta rise" style="--i:3">
+        <p class="eyebrow">Spring inputs</p>
+        <h2 id="cta-t"></h2>
+        <p>Three small costs could free up money this month.</p>
+        <button type="button" class="pill" data-go="reserve">See the costs <span data-ic="arrow"></span></button>
+      </section>
+      <section class="card rise" style="--i:4">
+        <div class="card-h"><h2>Season costs</h2><span>2026</span></div>
+        <div class="donut"><div class="ring"><svg viewBox="0 0 42 42" id="ring" aria-hidden="true"></svg><div><span>162.500</span><small>lei total</small></div></div><ul class="leg" id="leg"></ul></div>
+      </section>
+      <section class="card" id="coming"><div class="card-h"><h2>Coming up</h2><span>Next 6 weeks</span></div><ol id="coming-list"></ol></section>
+      <section class="card"><div class="card-h"><h2>Recent activity</h2></div><ol id="recent"></ol></section>
+    </div>
+
+    <div data-view="stats" class="pad" hidden>
+      <section class="card" style="margin-top:0"><h2>Where the season's money went</h2><ol id="costs" style="margin-top:4px"></ol></section>
+    </div>
+
+    <div data-view="fields" hidden>
+      <div class="crops" id="crops" tabindex="0" aria-label="Crops, swipe to compare"></div>
+      <div class="pad" style="padding-top:0"><p class="note">Costs are shared evenly per hectare, so margins are a simple estimate.</p></div>
+    </div>
+
+    <div data-view="reserve" class="pad" hidden>
+      <section class="card" style="margin-top:0"><h2>Costs worth a second look</h2><div id="clean"></div></section>
+      <section class="card"><h2>Rules</h2><div id="rules"></div></section>
+    </div>
+  </div>
+
+  <nav class="tabs" aria-label="Main">
+    <button type="button" data-go="home" data-ic="home">Home</button>
+    <button type="button" data-go="stats" data-ic="chart">Forecast</button>
+    <button type="button" data-go="fields" data-ic="sprout">Fields</button>
+    <button type="button" data-go="reserve" data-ic="shield">Reserves</button>
+  </nav>
+</div>
+<script src="shared.js"></script>
+<script>
+const { S, lei } = FF, $ = (i) => document.getElementById(i);
+const HEADS = { home: "Good morning, Maria", stats: "Forecast", fields: "Fields", reserve: "Reserves" };
+FF.onView = (v) => { $("greet").textContent = HEADS[v]; };
+FF.onPath = (p) => { $("thumb").style.transform = `translateX(${["poor", "expected", "good"].indexOf(p) * 100}%)`; };
+
+function render() {
+  const s = FF.series(S.path), low = FF.lowOf(s), pct = Math.round(S.reserve / 6000000 * 100);
+  $("bal").textContent = lei(FF.balance());
+  $("res2").textContent = lei(S.reserve);
+  $("res-fill").style.transform = `scaleX(${Math.min(1, S.reserve / 6000000)})`;
+  $("s-low-m").textContent = $("f-low-m").textContent = low.month;
+  $("s-low-v").textContent = $("f-low-v").textContent = lei(low.v);
+  $("s-bill").textContent = lei(FF.COMING[0].bani);
+  $("s-pct").textContent = `${pct}%`;
+  $("end").textContent = lei(s[11]);
+  $("f-poor").textContent = lei(FF.series("poor")[11]);
+  $("f-good").textContent = lei(FF.series("good")[11]);
+  $("cta-t").textContent = `${lei(6000000 - S.reserve)} still to set aside`;
+  $("coming-list").innerHTML = FF.COMING.map(FF.txRow).join("");
+  $("recent").innerHTML = S.tx.map(FF.txRow).join("");
+  $("res").innerHTML = FF.resCard();
+  $("clean").innerHTML = FF.cleanList();
+}
+FF.start();
+FF.mountChart($("mini"));
+FF.mountChart($("chart"));
+FF.onPath(S.path);
+$("costs").innerHTML = FF.costRows();
+$("rules").innerHTML = FF.ruleRows();
+$("crops").innerHTML = FF.CROPS.map((c) => `<article><h2>${c.n}${FF.cropState(c)}</h2><p class="margin">${c.m}</p><p class="lab">margin per hectare</p>${FF.cropBody(c).replace(/^.*?<\/div>/, "")}</article>`).join("");
+
+/* Donut in palette colors: two hues in stepped strength, neutral for the smallest */
+const STEPS = ["var(--a)", "var(--b)", "var(--ink-a)", "var(--ink-b)", "var(--dn)", "var(--hair-2)"];
+const C = 2 * Math.PI * 15.9; let off = 0, ring = "";
+FF.COSTS.forEach(([, , a], i) => { const l = a / FF.costTotal * C; ring += `<circle cx="21" cy="21" r="15.9" fill="none" stroke-width="5" style="stroke:${STEPS[i]}" stroke-dasharray="${Math.max(l - .7, .2).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}"/>`; off += l; });
+$("ring").innerHTML = ring;
+$("leg").innerHTML = FF.COSTS.map(([, n, a], i) => `<li><i style="background:${STEPS[i]}"></i><span>${n}</span><b>${Math.round(a / FF.costTotal * 100)}%</b></li>`).join("");
+
+/* Deck dots follow the native scroll position */
+const deck = $("deck"), cards = [...deck.children], NAMES = ["Balance", "Spring reserve", "Stored maize"];
+$("dots").innerHTML = cards.map((_, i) => `<button type="button" data-i="${i}" aria-label="${NAMES[i]}"${i ? "" : ' aria-current="true"'}><i></i></button>`).join("");
+const dots = [...$("dots").children];
+$("dots").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) deck.scrollTo({ left: cards[+b.dataset.i].offsetLeft - 16, behavior: FF.reduced() ? "auto" : "smooth" }); });
+const io = new IntersectionObserver((es) => es.forEach((e) => {
+  if (e.isIntersecting) dots.forEach((d, i) => (i === cards.indexOf(e.target) ? d.setAttribute("aria-current", "true") : d.removeAttribute("aria-current")));
+}), { root: deck, threshold: .6 });
+cards.forEach((c) => io.observe(c));
+
+/* Status bar follows the hero color, not the page color */
+const meta = document.querySelector('meta[name="theme-color"]');
+const syncBar = () => { meta.content = getComputedStyle(document.documentElement).getPropertyValue("--hero").trim(); };
+new MutationObserver(syncBar).observe(document.documentElement, { attributes: true, attributeFilter: ["data-palette"] });
+syncBar();
+FF.on(render);
+setTimeout(() => $("app").classList.remove("first"), 900);
+</script>
+</body>
+</html>

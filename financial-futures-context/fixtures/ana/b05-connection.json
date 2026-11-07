@@ -1,0 +1,35 @@
+{
+  "data": {
+    "id": "200000000000000001",
+    "customer_id": "100000000000000001",
+    "customer_identifier": "user_ana_8f3a21",
+    "provider_code": "mock_demobank_ro",
+    "provider_name": "Demo Bank Romania (simulated)",
+    "country_code": "RO",
+    "status": "active",
+    "categorization": "personal",
+    "automatic_refresh": true,
+    "next_refresh_possible_at": "2026-11-07T08:48:12Z",
+    "created_at": "2026-11-07T07:47:30Z",
+    "updated_at": "2026-11-07T07:48:12Z",
+    "last_consent_id": "300000000000000001",
+    "last_attempt": {
+      "consent_id": "300000000000000001",
+      "fetch_from_date": "2026-08-07",
+      "fetch_to_date": "2026-11-07",
+      "fetch_scopes": [
+        "accounts",
+        "balance",
+        "transactions"
+      ],
+      "finished": true,
+      "locale": "ro",
+      "success_at": "2026-11-07T07:48:12Z",
+      "fail_at": null,
+      "fail_error_class": null,
+      "last_stage": {
+        "name": "finish"
+      }
+    }
+  }
+}

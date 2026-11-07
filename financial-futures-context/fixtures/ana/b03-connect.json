@@ -1,0 +1,7 @@
+{
+  "data": {
+    "expires_at": "2026-11-07T08:45:00Z",
+    "connect_url": "https://app.local/mock-bank/approve?token=demo_7f2c9a",
+    "customer_id": "100000000000000001"
+  }
+}

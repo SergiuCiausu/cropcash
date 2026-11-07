@@ -1,0 +1,46 @@
+{
+  "data": [
+    {
+      "id": "500000000000000098",
+      "account_id": "400000000000000004",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-02",
+      "amount": -420.4,
+      "currency_code": "RON",
+      "description": "EMAG.RO MARKETPLACE",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "eMAG",
+        "mcc": "5311",
+        "account_balance_snapshot": -420.4
+      },
+      "created_at": "2026-11-02T06:00:00Z",
+      "updated_at": "2026-11-02T06:00:00Z"
+    },
+    {
+      "id": "500000000000000099",
+      "account_id": "400000000000000004",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-05",
+      "amount": -200.0,
+      "currency_code": "RON",
+      "description": "DECATHLON BANEASA",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Decathlon",
+        "mcc": "5941",
+        "account_balance_snapshot": -620.4
+      },
+      "created_at": "2026-11-05T06:00:00Z",
+      "updated_at": "2026-11-05T06:00:00Z"
+    }
+  ],
+  "meta": {
+    "next_id": null,
+    "next_page": null
+  }
+}

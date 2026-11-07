@@ -1,0 +1,14 @@
+{
+  "data": {
+    "consent_id": "300000000000000001",
+    "customer_id": "100000000000000001",
+    "connection_id": "200000000000000001",
+    "custom_fields": {},
+    "consent_status": "expired",
+    "reason": "expired"
+  },
+  "meta": {
+    "version": "6",
+    "time": "2027-05-06T00:00:00Z"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "id": "600000000000000001",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "pending",
+      "made_on": "2026-11-07",
+      "amount": -64.2,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411"
+      },
+      "created_at": "2026-11-07T07:48:00Z",
+      "updated_at": "2026-11-07T07:48:00Z"
+    }
+  ],
+  "meta": {
+    "next_id": null,
+    "next_page": null
+  }
+}

@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Futures: Silk</title>
+<!--
+  Refined UI, Daylight. Accent: green #10B981 + cyan #22D3EE. Texture: background-texture-idea.jpg.
+  Sections: Nav > Hero (split) > Features (3 equal cards) > Forecast deep-dive > Final CTA > Footer
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Refined UI tokens, Daylight only. Accent pair: custom green and cyan. */
+:root {
+  --font-sans: "Geist", "Instrument Sans", "Inter Tight", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --text-h1: 36px; --lh-h1: 1.1;  --tr-h1: -0.035em;
+  --text-h2: 28px; --lh-h2: 1.15; --tr-h2: -0.03em;
+  --text-h3: 20px; --lh-h3: 1.3;  --tr-h3: -0.02em;
+  --text-h4: 16px; --lh-h4: 1.4;  --tr-h4: -0.01em;
+  --text-lead: 17px; --lh-lead: 1.55;
+  --text-body: 15px; --lh-body: 1.6;
+  --text-sm: 14px;   --lh-sm: 1.55;
+  --text-xs: 13px;   --lh-xs: 1.45;
+  --container: 1200px; --gutter: 24px; --space-section: 96px; --space-header: 48px; --grid-gap: 16px;
+  --radius-card: 20px; --radius-inner: 12px; --radius-btn: 10px; --radius-pill: 999px;
+  --accent-a: #10B981; --accent-b: #22D3EE;
+  --ink-a: #047857; --ink-b: #0E7490;
+  --tint-a: #DDF6EC; --tint-b: #D8F5FA;
+  --bg: #FAF9F7; --surface: #FFFFFF; --surface-2: #F4F3F0;
+  --border: rgba(20, 20, 20, 0.07); --border-strong: rgba(20, 20, 20, 0.12);
+  --text-1: #1A1A1A; --text-2: #5C5C5F; --text-3: #6C6C70; /* darkened from #9A9A9E so real text passes AA */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04); --shadow-float: 0 8px 30px rgba(20, 20, 40, 0.08);
+  --bloom-opacity: 0.45;
+}
+@media (max-width: 640px) {
+  :root { --text-h1: 30px; --text-h2: 24px; --text-h3: 18px; --space-section: 64px; --space-header: 32px; --gutter: 16px; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; background: var(--bg); color: var(--text-1); font-family: var(--font-sans); font-size: var(--text-body); line-height: var(--lh-body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+main { overflow-x: clip; }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--text-1); text-wrap: balance; }
+h1 { font-size: var(--text-h1); line-height: var(--lh-h1); letter-spacing: var(--tr-h1); }
+h2 { font-size: var(--text-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-h2); }
+h3 { font-size: var(--text-h3); line-height: var(--lh-h3); letter-spacing: var(--tr-h3); }
+h4 { font-size: var(--text-h4); line-height: var(--lh-h4); letter-spacing: var(--tr-h4); }
+p { margin: 0; text-wrap: pretty; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; }
+svg { display: block; }
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.lead { font-size: var(--text-lead); line-height: var(--lh-lead); color: var(--text-2); max-width: 46ch; }
+.text-sm { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--text-2); }
+.eyebrow { font-size: 11.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-a); }
+.tabular { font-variant-numeric: tabular-nums; }
+.container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+.section { position: relative; padding: var(--space-section) 0; }
+.section-header { display: grid; gap: 16px; margin-bottom: var(--space-header); justify-items: start; }
+:focus-visible { outline: 2px solid var(--ink-a); outline-offset: 2px; border-radius: 6px; }
+
+/* Cards */
+.card { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+.card-visual { position: relative; height: 260px; overflow: hidden; }
+.card-body { padding: 24px; display: grid; gap: 8px; }
+.bento { display: grid; gap: var(--grid-gap); grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.span-4 { grid-column: span 4; } .span-5 { grid-column: span 5; } .span-6 { grid-column: span 6; }
+.span-7 { grid-column: span 7; } .span-8 { grid-column: span 8; } .span-12 { grid-column: span 12; }
+@media (max-width: 860px) { .bento > * { grid-column: span 12; } }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); font: 500 var(--text-xs)/1 var(--font-sans); text-decoration: none; border: 1px solid transparent; cursor: pointer; white-space: nowrap; transition: transform .15s ease, background .15s ease, border-color .15s ease; }
+.btn-primary { background: #1A1A1A; color: #fff; }
+.btn-ghost { background: rgba(255,255,255,.6); color: var(--text-1); border-color: var(--border-strong); }
+.btn:hover { transform: translateY(-1px); }
+.btn-primary:hover { background: #2C2C2C; }
+.btn-ghost:hover { background: #fff; }
+.btn .ic { width: 14px; height: 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.demo-note { font-size: 13px; line-height: 1.45; color: var(--text-3); }
+
+/* Nav */
+.nav { position: sticky; top: 0; z-index: 50; height: 60px; display: flex; align-items: center; border-bottom: 1px solid transparent; transition: background .2s, border-color .2s; }
+.nav .container { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.nav.is-scrolled { background: color-mix(in srgb, var(--bg) 75%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom-color: var(--border); }
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; letter-spacing: -.02em; color: var(--text-1); text-decoration: none; white-space: nowrap; }
+.logo i { width: 22px; height: 22px; border-radius: 7px; background: radial-gradient(circle at 30% 25%, #fff, var(--accent-b) 42%, var(--accent-a) 78%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.5); }
+.links { display: flex; gap: 28px; }
+.links a { font-size: 13.5px; color: var(--text-2); text-decoration: none; }
+.links a:hover { color: var(--text-1); }
+.nav-cta { display: flex; gap: 8px; }
+@media (max-width: 860px) { .links { display: none; } }
+@media (max-width: 480px) { .nav-cta .btn-ghost { display: none; } }
+
+/* Light */
+.bloom { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); translate: -50% -50%; border-radius: 50%; pointer-events: none; background: radial-gradient(circle at 35% 35%, var(--accent-a), transparent 60%), radial-gradient(circle at 70% 65%, var(--accent-b), transparent 60%); filter: blur(60px); opacity: var(--bloom-opacity); }
+.bloom.a { background: radial-gradient(circle, var(--accent-a), transparent 62%); }
+.bloom.b { background: radial-gradient(circle, var(--accent-b), transparent 62%); }
+@media (prefers-reduced-motion: no-preference) {
+  .bloom.drift { animation: drift 14s ease-in-out infinite alternate; }
+  @keyframes drift { to { translate: -44% -56%; } }
+  .caret { animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+}
+
+/* Fragments */
+.frag { position: absolute; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-float); font-size: 12px; line-height: 1.4; color: var(--text-1); }
+.frag-p { padding: 14px; }
+.dim { opacity: .35; filter: blur(.6px); }
+.fade-b { -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent); }
+.fade-r { -webkit-mask-image: linear-gradient(to right, #000 80%, transparent); mask-image: linear-gradient(to right, #000 80%, transparent); }
+.mt { color: var(--text-3); font-size: 11.5px; }
+.ml { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mr { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 9px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.mr:last-child { border-bottom: 0; }
+.mr b { display: block; font-weight: 500; font-size: 12.5px; line-height: 1.3; }
+.mr .amt { font-weight: 500; font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tile { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: var(--surface-2); color: var(--text-2); font-size: 14px; }
+.tile.g { background: var(--tint-a); color: var(--ink-a); }
+.tile.c { background: var(--tint-b); color: var(--ink-b); }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 500; line-height: 1.35; background: var(--tint-a); color: var(--ink-a); white-space: nowrap; }
+.badge.c { background: var(--tint-b); color: var(--ink-b); }
+.badge.n { background: var(--surface-2); color: var(--text-2); }
+.num20 { font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.pos { color: var(--ink-a); }
+.meter { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 6px; background: var(--accent-a); }
+.meter.c i { background: var(--accent-b); }
+.sw { position: relative; width: 28px; height: 16px; flex: none; border-radius: 99px; background: rgba(20,20,20,.14); }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.sw.on { background: var(--accent-a); }
+.sw.on::after { left: 14px; }
+.caret { display: inline-block; width: 1.5px; height: 1.15em; background: var(--text-1); vertical-align: -0.2em; margin-left: 1px; }
+.cursor { position: absolute; filter: drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+
+/* Real controls */
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); max-width: 100%; }
+.seg button { border: 0; background: none; cursor: pointer; min-height: 32px; padding: 0 12px; border-radius: 999px; font: 500 13px/1 var(--font-sans); color: var(--text-2); white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text-1); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+/* Close and footer */
+.final { text-align: center; }
+.final .container { position: relative; }
+.final .lead { margin: 16px auto 28px; }
+.final .actions { justify-content: center; }
+footer { position: relative; border-top: 1px solid var(--border); padding: 48px 0 40px; font-size: 13px; color: var(--text-3); }
+.fcols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
+.fcols h2 { font-size: 12px; font-weight: 500; letter-spacing: 0; line-height: 1.4; color: var(--text-2); margin-bottom: 12px; }
+.fcols a { display: block; color: var(--text-3); text-decoration: none; margin-bottom: 8px; }
+.fcols a:hover { color: var(--text-1); }
+.fcols p { max-width: 40ch; }
+.copy { margin-top: 32px; font-size: 12px; }
+@media (max-width: 640px) { .fcols { grid-template-columns: 1fr 1fr; } .fcols > :first-child { grid-column: 1 / -1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Silk: folds of light behind everything */
+.silk { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+body { background: transparent; }
+html { background: var(--bg); }
+.nav { top: 12px; height: auto; border: 0; padding: 0; margin-top: 12px; }
+.nav .container { max-width: calc(var(--container) - 2 * var(--gutter)); width: calc(100% - 2 * var(--gutter)); height: 60px; padding: 0 12px 0 16px; background: rgba(255,255,255,.62); border: 1px solid rgba(255,255,255,.85); border-radius: 18px; box-shadow: var(--shadow-float); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.nav.is-scrolled { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* Hero */
+.hero { padding: 72px 0 72px; }
+.hero .container { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.14fr); gap: 48px; align-items: center; }
+.hero h1 { margin-top: 16px; max-width: 15ch; }
+.hero .lead { margin-top: 16px; }
+.hero .actions { margin-top: 28px; }
+.hero .demo-note { margin-top: 16px; }
+.frame { position: relative; height: 480px; }
+.pane { position: absolute; inset: 0 44px 0 44px; border-radius: 44px; background: rgba(255,255,255,.34); border: 1px solid rgba(255,255,255,.9); box-shadow: inset 0 0 0 8px rgba(255,255,255,.22), var(--shadow-float); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); overflow: hidden; }
+.pane .bloom { --bloom-opacity: .55; }
+.board { left: 16px; right: -8px; top: 52px; padding: 18px; }
+.board .amtbig { font-size: 26px; font-weight: 600; letter-spacing: -.024em; line-height: 1.2; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.months { display: grid; grid-template-columns: repeat(12, 1fr); align-items: end; gap: 5px; height: 188px; margin-top: 14px; }
+.months i { display: block; border-radius: 5px 5px 2px 2px; background: linear-gradient(to top, #A7EBD3, #BDEFF6); }
+.months i.low { background: var(--accent-a); }
+.mlabels { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; margin-top: 6px; text-align: center; font-size: 11px; color: var(--text-3); }
+.mlabels .on { color: var(--ink-a); font-weight: 600; }
+.chip { position: absolute; z-index: 2; padding: 12px 14px; font-size: 12px; background: rgba(255,255,255,.76); border: 1px solid rgba(255,255,255,.95); border-radius: 16px; box-shadow: var(--shadow-float); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.chip.tl { right: 0; top: 0; width: 148px; }
+.chip.lo { left: 0; bottom: 36px; width: 214px; }
+.chip.re { right: 8px; bottom: 28px; width: 176px; }
+
+/* Features */
+.card-visual .frag { z-index: 1; }
+.alert { left: 28px; right: -28px; top: 28px; padding: 14px 60px 12px 14px; }
+.alert .ml.r { padding: 3px 0; }
+.alert .ml.hl { margin: 2px -8px 0; padding: 4px 8px; border-radius: 7px; background: var(--tint-a); color: var(--ink-a); font-weight: 500; }
+.alert .ml.hl .mt { color: inherit; }
+.alert2 { left: 44px; right: -44px; top: 14px; height: 80px; }
+.bills { left: 28px; right: 28px; top: 28px; padding: 6px 14px; }
+.goal { left: 28px; right: -24px; top: 28px; padding: 16px 60px 16px 16px; }
+.rules { left: 56px; right: -24px; top: 152px; padding: 6px 60px 6px 14px; }
+.rules .ml { padding: 7px 0; border-bottom: 1px solid var(--border); }
+
+/* Deep-dive */
+.dive .card { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+.chartwrap { position: relative; padding: 24px; overflow: hidden; border-right: 1px solid var(--border); }
+.chartwrap > *:not(.bloom) { position: relative; }
+.chartwrap .top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+#chart { width: 100%; height: auto; margin-top: 12px; overflow: visible; }
+.side-list { padding: 24px; display: grid; gap: 20px; align-content: start; }
+.side-list h3 { font-size: var(--text-h4); line-height: var(--lh-h4); letter-spacing: var(--tr-h4); }
+.final .silkbloom { --bloom-opacity: .22; }
+.card { background: rgba(255,255,255,.84); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+
+@media (max-width: 960px) {
+  .hero .container { grid-template-columns: 1fr; gap: 40px; }
+  .dive .card { grid-template-columns: 1fr; }
+  .chartwrap { border-right: 0; border-bottom: 1px solid var(--border); }
+}
+@media (max-width: 640px) {
+  .hero { padding: 48px 0; }
+  .frame { height: 372px; }
+  .pane { inset: 0 8px; border-radius: 32px; }
+  .board { left: 12px; right: 0; top: 44px; }
+  .months { height: 108px; gap: 3px; }
+  .mlabels { gap: 3px; }
+  .mlabels span:nth-child(even) { visibility: hidden; }
+  .chip.tl { top: 0; right: 4px; }
+  .chip.lo { left: 0; bottom: 0; }
+  #chart text { font-size: 28px; }
+  #chart text:nth-of-type(even) { display: none; }
+  #chart #line { stroke-width: 4; }
+  .chip.re { display: none; }
+}
+</style>
+</head>
+<body>
+<svg class="silk" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs>
+<linearGradient id="bg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F2FAF7"/><stop offset=".5" stop-color="#EDF8F6"/><stop offset="1" stop-color="#F1FAFB"/></linearGradient>
+<linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BDEFDD" stop-opacity="0"/><stop offset=".5" stop-color="#BDEFDD" stop-opacity=".95"/><stop offset="1" stop-color="#BDEFDD" stop-opacity="0"/></linearGradient><linearGradient id="fc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFEEF6" stop-opacity="0"/><stop offset=".5" stop-color="#BFEEF6" stop-opacity=".95"/><stop offset="1" stop-color="#BFEEF6" stop-opacity="0"/></linearGradient><linearGradient id="fw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".5" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+<filter id="soft" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="26"/></filter>
+<filter id="edge" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="2.5"/></filter>
+</defs>
+<rect width="1600" height="1000" fill="url(#bg)"/>
+<g filter="url(#soft)"><path d="M-200.0 152.0 C-128.6 152.0,-128.6 133.0,-57.1 133.0 C14.3 133.0,14.3 111.2,85.7 111.2 C157.1 111.2,157.1 85.7,228.6 85.7 C300.0 85.7,300.0 56.1,371.4 56.1 C442.9 56.1,442.9 22.0,514.3 22.0 C585.7 22.0,585.7 -16.6,657.1 -16.6 C728.6 -16.6,728.6 -59.1,800.0 -59.1 C871.4 -59.1,871.4 -105.2,942.9 -105.2 C1014.3 -105.2,1014.3 -153.9,1085.7 -153.9 C1157.1 -153.9,1157.1 -204.5,1228.6 -204.5 C1300.0 -204.5,1300.0 -255.9,1371.4 -255.9 C1442.9 -255.9,1442.9 -307.4,1514.3 -307.4 C1585.7 -307.4,1585.7 -358.1,1657.1 -358.1 C1728.6 -358.1,1728.6 -407.4,1800.0 -407.4 L1800.0 -269.8 L1657.1 -222.4 L1514.3 -173.3 L1371.4 -122.6 L1228.6 -71.1 L1085.7 -19.5 L942.9 31.4 L800.0 80.5 L657.1 127.1 L514.3 170.3 L371.4 209.4 L228.6 244.2 L85.7 274.5 L-57.1 300.6 L-200.0 322.9 Z" fill="url(#fw)"/><path d="M-200.0 315.5 C-128.6 315.5,-128.6 292.6,-57.1 292.6 C14.3 292.6,14.3 265.9,85.7 265.9 C157.1 265.9,157.1 234.9,228.6 234.9 C300.0 234.9,300.0 199.4,371.4 199.4 C442.9 199.4,442.9 159.6,514.3 159.6 C585.7 159.6,585.7 115.8,657.1 115.8 C728.6 115.8,728.6 68.8,800.0 68.8 C871.4 68.8,871.4 19.3,942.9 19.3 C1014.3 19.3,1014.3 -31.7,1085.7 -31.7 C1157.1 -31.7,1157.1 -83.4,1228.6 -83.4 C1300.0 -83.4,1300.0 -134.9,1371.4 -134.9 C1442.9 -134.9,1442.9 -185.3,1514.3 -185.3 C1585.7 -185.3,1585.7 -234.2,1657.1 -234.2 C1728.6 -234.2,1728.6 -281.2,1800.0 -281.2 L1800.0 -80.7 L1657.1 -36.0 L1514.3 10.8 L1371.4 59.5 L1228.6 109.9 L1085.7 161.3 L942.9 213.1 L800.0 264.4 L657.1 314.3 L514.3 361.8 L371.4 406.2 L228.6 446.7 L85.7 482.8 L-57.1 514.5 L-200.0 541.8 Z" fill="url(#fg)"/><path d="M-200.0 543.7 C-128.6 543.7,-128.6 515.7,-57.1 515.7 C14.3 515.7,14.3 483.3,85.7 483.3 C157.1 483.3,157.1 446.5,228.6 446.5 C300.0 446.5,300.0 405.3,371.4 405.3 C442.9 405.3,442.9 360.4,514.3 360.4 C585.7 360.4,585.7 312.5,657.1 312.5 C728.6 312.5,728.6 262.3,800.0 262.3 C871.4 262.3,871.4 210.8,942.9 210.8 C1014.3 210.8,1014.3 159.0,1085.7 159.0 C1157.1 159.0,1157.1 107.7,1228.6 107.7 C1300.0 107.7,1300.0 57.5,1371.4 57.5 C1442.9 57.5,1442.9 9.1,1514.3 9.1 C1585.7 9.1,1585.7 -37.4,1657.1 -37.4 C1728.6 -37.4,1728.6 -81.8,1800.0 -81.8 L1800.0 81.7 L1657.1 123.8 L1514.3 167.9 L1371.4 214.2 L1228.6 262.4 L1085.7 312.4 L942.9 363.8 L800.0 415.7 L657.1 467.3 L514.3 517.8 L371.4 566.3 L228.6 611.7 L85.7 653.5 L-57.1 691.0 L-200.0 724.1 Z" fill="url(#fw)"/><path d="M-200.0 723.4 C-128.6 723.4,-128.6 690.8,-57.1 690.8 C14.3 690.8,14.3 653.7,85.7 653.7 C157.1 653.7,157.1 612.4,228.6 612.4 C300.0 612.4,300.0 567.3,371.4 567.3 C442.9 567.3,442.9 519.1,514.3 519.1 C585.7 519.1,585.7 468.8,657.1 468.8 C728.6 468.8,728.6 417.2,800.0 417.2 C871.4 417.2,871.4 365.3,942.9 365.3 C1014.3 365.3,1014.3 313.9,1085.7 313.9 C1157.1 313.9,1157.1 263.7,1228.6 263.7 C1300.0 263.7,1300.0 215.3,1371.4 215.3 C1442.9 215.3,1442.9 168.8,1514.3 168.8 C1585.7 168.8,1585.7 124.5,1657.1 124.5 C1728.6 124.5,1728.6 82.2,1800.0 82.2 L1800.0 317.8 L1657.1 358.1 L1514.3 400.1 L1371.4 444.2 L1228.6 490.4 L1085.7 538.6 L942.9 588.6 L800.0 640.0 L657.1 692.0 L514.3 743.8 L371.4 794.5 L228.6 843.1 L85.7 888.7 L-57.1 930.7 L-200.0 968.5 Z" fill="url(#fc)"/><path d="M-200.0 968.7 C-128.6 968.7,-128.6 930.3,-57.1 930.3 C14.3 930.3,14.3 887.6,85.7 887.6 C157.1 887.6,157.1 841.5,228.6 841.5 C300.0 841.5,300.0 792.5,371.4 792.5 C442.9 792.5,442.9 741.5,514.3 741.5 C585.7 741.5,585.7 689.6,657.1 689.6 C728.6 689.6,728.6 637.7,800.0 637.7 C871.4 637.7,871.4 586.5,942.9 586.5 C1014.3 586.5,1014.3 536.7,1085.7 536.7 C1157.1 536.7,1157.1 488.7,1228.6 488.7 C1300.0 488.7,1300.0 442.9,1371.4 442.9 C1442.9 442.9,1442.9 399.1,1514.3 399.1 C1585.7 399.1,1585.7 357.4,1657.1 357.4 C1728.6 357.4,1728.6 317.3,1800.0 317.3 L1800.0 505.0 L1657.1 543.6 L1514.3 583.4 L1371.4 624.8 L1228.6 668.3 L1085.7 713.9 L942.9 761.6 L800.0 811.2 L657.1 862.4 L514.3 914.4 L371.4 966.4 L228.6 1017.7 L85.7 1067.1 L-57.1 1113.8 L-200.0 1157.0 Z" fill="url(#fw)"/><path d="M-200.0 1146.4 C-128.6 1146.4,-128.6 1102.5,-57.1 1102.5 C14.3 1102.5,14.3 1055.3,85.7 1055.3 C157.1 1055.3,157.1 1005.6,228.6 1005.6 C300.0 1005.6,300.0 954.1,371.4 954.1 C442.9 954.1,442.9 902.0,514.3 902.0 C585.7 902.0,585.7 850.1,657.1 850.1 C728.6 850.1,728.6 799.1,800.0 799.1 C871.4 799.1,871.4 749.7,942.9 749.7 C1014.3 749.7,1014.3 702.3,1085.7 702.3 C1157.1 702.3,1157.1 657.1,1228.6 657.1 C1300.0 657.1,1300.0 614.0,1371.4 614.0 C1442.9 614.0,1442.9 572.8,1514.3 572.8 C1585.7 572.8,1585.7 533.2,1657.1 533.2 C1728.6 533.2,1728.6 494.8,1800.0 494.8 L1800.0 754.0 L1657.1 791.4 L1514.3 829.6 L1371.4 868.9 L1228.6 909.8 L1085.7 952.6 L942.9 997.5 L800.0 1044.7 L657.1 1093.9 L514.3 1144.7 L371.4 1196.7 L228.6 1248.9 L85.7 1300.6 L-57.1 1350.8 L-200.0 1398.5 Z" fill="url(#fg)"/><path d="M-200.0 1397.1 C-128.6 1397.1,-128.6 1348.9,-57.1 1348.9 C14.3 1348.9,14.3 1298.4,85.7 1298.4 C157.1 1298.4,157.1 1246.6,228.6 1246.6 C300.0 1246.6,300.0 1194.3,371.4 1194.3 C442.9 1194.3,442.9 1142.5,514.3 1142.5 C585.7 1142.5,585.7 1091.8,657.1 1091.8 C728.6 1091.8,728.6 1042.9,800.0 1042.9 C871.4 1042.9,871.4 996.1,942.9 996.1 C1014.3 996.1,1014.3 951.5,1085.7 951.5 C1157.1 951.5,1157.1 909.0,1228.6 909.0 C1300.0 909.0,1300.0 868.4,1371.4 868.4 C1442.9 868.4,1442.9 829.3,1514.3 829.3 C1585.7 829.3,1585.7 791.3,1657.1 791.3 C1728.6 791.3,1728.6 754.0,1800.0 754.0 L1800.0 954.1 L1657.1 990.9 L1514.3 1028.0 L1371.4 1065.7 L1228.6 1104.5 L1085.7 1144.9 L942.9 1187.1 L800.0 1231.4 L657.1 1277.9 L514.3 1326.6 L371.4 1377.1 L228.6 1429.0 L85.7 1481.3 L-57.1 1533.4 L-200.0 1584.2 Z" fill="url(#fw)"/><path d="M-200.0 1562.2 C-128.6 1562.2,-128.6 1511.1,-57.1 1511.1 C14.3 1511.1,14.3 1458.9,85.7 1458.9 C157.1 1458.9,157.1 1406.6,228.6 1406.6 C300.0 1406.6,300.0 1354.9,371.4 1354.9 C442.9 1354.9,442.9 1304.6,514.3 1304.6 C585.7 1304.6,585.7 1256.2,657.1 1256.2 C728.6 1256.2,728.6 1210.0,800.0 1210.0 C871.4 1210.0,871.4 1166.0,942.9 1166.0 C1014.3 1166.0,1014.3 1124.2,1085.7 1124.2 C1157.1 1124.2,1157.1 1084.1,1228.6 1084.1 C1300.0 1084.1,1300.0 1045.5,1371.4 1045.5 C1442.9 1045.5,1442.9 1007.9,1514.3 1007.9 C1585.7 1007.9,1585.7 970.9,1657.1 970.9 C1728.6 970.9,1728.6 934.2,1800.0 934.2 L1800.0 1194.8 L1657.1 1231.3 L1514.3 1267.8 L1371.4 1304.6 L1228.6 1342.0 L1085.7 1380.4 L942.9 1420.2 L800.0 1461.7 L657.1 1505.4 L514.3 1551.3 L371.4 1599.5 L228.6 1649.6 L85.7 1701.2 L-57.1 1753.6 L-200.0 1806.0 Z" fill="url(#fc)"/></g>
+<g filter="url(#edge)" opacity=".8"><path d="M-200.0 723.4 C-128.6 723.4,-128.6 690.8,-57.1 690.8 C14.3 690.8,14.3 653.7,85.7 653.7 C157.1 653.7,157.1 612.4,228.6 612.4 C300.0 612.4,300.0 567.3,371.4 567.3 C442.9 567.3,442.9 519.1,514.3 519.1 C585.7 519.1,585.7 468.8,657.1 468.8 C728.6 468.8,728.6 417.2,800.0 417.2 C871.4 417.2,871.4 365.3,942.9 365.3 C1014.3 365.3,1014.3 313.9,1085.7 313.9 C1157.1 313.9,1157.1 263.7,1228.6 263.7 C1300.0 263.7,1300.0 215.3,1371.4 215.3 C1442.9 215.3,1442.9 168.8,1514.3 168.8 C1585.7 168.8,1585.7 124.5,1657.1 124.5 C1728.6 124.5,1728.6 82.2,1800.0 82.2" fill="none" stroke="#fff" stroke-width="3"/><path d="M-200.0 723.4 C-128.6 723.4,-128.6 690.8,-57.1 690.8 C14.3 690.8,14.3 653.7,85.7 653.7 C157.1 653.7,157.1 612.4,228.6 612.4 C300.0 612.4,300.0 567.3,371.4 567.3 C442.9 567.3,442.9 519.1,514.3 519.1 C585.7 519.1,585.7 468.8,657.1 468.8 C728.6 468.8,728.6 417.2,800.0 417.2 C871.4 417.2,871.4 365.3,942.9 365.3 C1014.3 365.3,1014.3 313.9,1085.7 313.9 C1157.1 313.9,1157.1 263.7,1228.6 263.7 C1300.0 263.7,1300.0 215.3,1371.4 215.3 C1442.9 215.3,1442.9 168.8,1514.3 168.8 C1585.7 168.8,1585.7 124.5,1657.1 124.5 C1728.6 124.5,1728.6 82.2,1800.0 82.2" transform="translate(0 9)" fill="none" stroke="#9ADFCF" stroke-opacity=".35" stroke-width="9"/><path d="M-200.0 1146.4 C-128.6 1146.4,-128.6 1102.5,-57.1 1102.5 C14.3 1102.5,14.3 1055.3,85.7 1055.3 C157.1 1055.3,157.1 1005.6,228.6 1005.6 C300.0 1005.6,300.0 954.1,371.4 954.1 C442.9 954.1,442.9 902.0,514.3 902.0 C585.7 902.0,585.7 850.1,657.1 850.1 C728.6 850.1,728.6 799.1,800.0 799.1 C871.4 799.1,871.4 749.7,942.9 749.7 C1014.3 749.7,1014.3 702.3,1085.7 702.3 C1157.1 702.3,1157.1 657.1,1228.6 657.1 C1300.0 657.1,1300.0 614.0,1371.4 614.0 C1442.9 614.0,1442.9 572.8,1514.3 572.8 C1585.7 572.8,1585.7 533.2,1657.1 533.2 C1728.6 533.2,1728.6 494.8,1800.0 494.8" fill="none" stroke="#fff" stroke-width="3"/><path d="M-200.0 1146.4 C-128.6 1146.4,-128.6 1102.5,-57.1 1102.5 C14.3 1102.5,14.3 1055.3,85.7 1055.3 C157.1 1055.3,157.1 1005.6,228.6 1005.6 C300.0 1005.6,300.0 954.1,371.4 954.1 C442.9 954.1,442.9 902.0,514.3 902.0 C585.7 902.0,585.7 850.1,657.1 850.1 C728.6 850.1,728.6 799.1,800.0 799.1 C871.4 799.1,871.4 749.7,942.9 749.7 C1014.3 749.7,1014.3 702.3,1085.7 702.3 C1157.1 702.3,1157.1 657.1,1228.6 657.1 C1300.0 657.1,1300.0 614.0,1371.4 614.0 C1442.9 614.0,1442.9 572.8,1514.3 572.8 C1585.7 572.8,1585.7 533.2,1657.1 533.2 C1728.6 533.2,1728.6 494.8,1800.0 494.8" transform="translate(0 9)" fill="none" stroke="#9ADFCF" stroke-opacity=".35" stroke-width="9"/><path d="M-200.0 315.5 C-128.6 315.5,-128.6 292.6,-57.1 292.6 C14.3 292.6,14.3 265.9,85.7 265.9 C157.1 265.9,157.1 234.9,228.6 234.9 C300.0 234.9,300.0 199.4,371.4 199.4 C442.9 199.4,442.9 159.6,514.3 159.6 C585.7 159.6,585.7 115.8,657.1 115.8 C728.6 115.8,728.6 68.8,800.0 68.8 C871.4 68.8,871.4 19.3,942.9 19.3 C1014.3 19.3,1014.3 -31.7,1085.7 -31.7 C1157.1 -31.7,1157.1 -83.4,1228.6 -83.4 C1300.0 -83.4,1300.0 -134.9,1371.4 -134.9 C1442.9 -134.9,1442.9 -185.3,1514.3 -185.3 C1585.7 -185.3,1585.7 -234.2,1657.1 -234.2 C1728.6 -234.2,1728.6 -281.2,1800.0 -281.2" fill="none" stroke="#fff" stroke-width="3"/><path d="M-200.0 315.5 C-128.6 315.5,-128.6 292.6,-57.1 292.6 C14.3 292.6,14.3 265.9,85.7 265.9 C157.1 265.9,157.1 234.9,228.6 234.9 C300.0 234.9,300.0 199.4,371.4 199.4 C442.9 199.4,442.9 159.6,514.3 159.6 C585.7 159.6,585.7 115.8,657.1 115.8 C728.6 115.8,728.6 68.8,800.0 68.8 C871.4 68.8,871.4 19.3,942.9 19.3 C1014.3 19.3,1014.3 -31.7,1085.7 -31.7 C1157.1 -31.7,1157.1 -83.4,1228.6 -83.4 C1300.0 -83.4,1300.0 -134.9,1371.4 -134.9 C1442.9 -134.9,1442.9 -185.3,1514.3 -185.3 C1585.7 -185.3,1585.7 -234.2,1657.1 -234.2 C1728.6 -234.2,1728.6 -281.2,1800.0 -281.2" transform="translate(0 9)" fill="none" stroke="#9ADFCF" stroke-opacity=".35" stroke-width="9"/></g>
+</svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol><symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol><symbol id="bank" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M19 21V10M9.5 21V10M14.5 21V10M3 10l9-6 9 6Z"/></symbol><symbol id="sack" viewBox="0 0 24 24"><path d="M6.5 8.5h11l1.5 12h-14Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></symbol><symbol id="down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m6 13 6 6 6-6"/></symbol><symbol id="map" viewBox="0 0 24 24"><path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7Z"/><path d="M9 4v13M15 7v13"/></symbol><symbol id="home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19Z"/><path d="M9.5 20.5V14h5v6.5"/></symbol><symbol id="chart" viewBox="0 0 24 24"><path d="M5 20v-7M12 20V5M19 20v-10"/></symbol><symbol id="sprout" viewBox="0 0 24 24"><path d="M12 21v-9"/><path d="M12 12C12 8 9 5.5 4.5 5.5 4.5 10 7.5 12 12 12Z"/><path d="M12 14c0-3.5 2.5-6 7.5-6 0 4.5-3 6-7.5 6Z"/></symbol><symbol id="shield" viewBox="0 0 24 24"><path d="M12 3.5 5 6v5.5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6Z"/><path d="m9 12 2.2 2.2L15.2 10"/></symbol><symbol id="tool" viewBox="0 0 24 24"><path d="M20 7.5a5 5 0 0 1-6.700 4.700l-6.800 6.800a2 2 0 0 1-2.800-2.800l6.800-6.800A5 5 0 0 1 17 4l-3 3 3 3Z"/></symbol><symbol id="drop" viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.5 6 7.5 6 10.5a6 6 0 0 1-12 0c0-3 2.5-6 6-10.5Z"/></symbol></defs></svg>
+<header class="nav" id="nav">
+  <div class="container">
+    <a class="logo" href="#top"><i></i>Farm Futures</a>
+    <nav class="links" aria-label="Main"><a href="#features">Features</a><a href="#forecast">Forecast</a><a href="../farm-app/preview.html">Preview</a></nav>
+    <div class="nav-cta"><a class="btn btn-ghost" href="../farm-app/preview.html">See both views</a><a class="btn btn-primary" href="../farm-app/index.html">Open sample farm</a></div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="container">
+      <div>
+        <p class="eyebrow">For farms paid at harvest</p>
+        <h1>Know the money lasts until harvest</h1>
+        <p class="lead">Farm Futures turns one big payday a year into a clear plan, with every bill, subsidy and lean month in one view.</p>
+        <div class="actions"><a class="btn btn-primary" href="../farm-app/index.html">Open sample farm <svg class="ic"><use href="#arrow"/></svg></a><a class="btn btn-ghost" href="#forecast">See the forecast</a></div>
+        <p class="demo-note">Sample farm shown. Demo data, no real bank connected.</p>
+      </div>
+      <div class="frame" aria-hidden="true">
+        <div class="pane">
+          <div class="bloom a drift" style="--x:24%;--y:26%;--size:360px"></div>
+          <div class="bloom b" style="--x:78%;--y:78%;--size:360px"></div>
+        </div>
+        <div class="frag board">
+          <span class="mt">Estimated balance, Dealu Verde</span>
+          <div class="amtbig">140.170,50 lei</div>
+          <div class="months"><i style="height:74%"></i><i style="height:80%"></i><i style="height:73%"></i><i style="height:100%"></i><i style="height:74%"></i><i style="height:51%"></i><i style="height:38%"></i><i style="height:28%"></i><i class=low style="height:11%"></i><i style="height:61%"></i><i style="height:95%"></i><i style="height:88%"></i></div>
+          <div class="mlabels"><span>N</span><span>D</span><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span class="on">J</span><span>A</span><span>S</span><span>O</span></div>
+        </div>
+        <div class="chip tl"><div class="mt">Next harvest</div><div class="num20">9 months</div></div>
+        <div class="chip lo"><div class="mt">Tightest month</div><div class="ml"><b style="font-weight:600;font-size:15px" class="tabular">18.070,50 lei</b><span class="badge">July</span></div></div>
+        <div class="chip re"><div class="ml"><span class="mt">Spring reserve</span><b style="font-weight:600">63%</b></div><div class="meter c" style="margin-top:7px"><i style="width:63%"></i></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header"><h2>Built around how a farm gets paid</h2><p class="lead">Money comes in bursts and goes out all year. Each view starts from that.</p></div>
+      <div class="bento">
+        <article class="card span-4">
+          <div class="card-visual" aria-hidden="true">
+            <div class="bloom a" style="--x:20%;--y:30%;--size:300px"></div>
+            <div class="frag alert2 dim"></div>
+            <div class="frag alert fade-r">
+              <div class="ml"><span style="display:flex;gap:8px;align-items:center"><span class="tile g"><svg class="ic"><use href="#bell"/></svg></span><b style="font-weight:600;font-size:12.5px">Lean months ahead</b></span><span class="mt">4 weeks' notice</span></div>
+              <p style="margin:10px 0 6px;color:var(--text-2)">April to July takes 103.800 lei off the balance.</p>
+              <div class="ml r"><span class="mt">April</span><span class="tabular">84.420,50 lei</span></div>
+              <div class="ml r"><span class="mt">May</span><span class="tabular">62.970,50 lei</span></div>
+              <div class="ml r"><span class="mt">June</span><span class="tabular">45.520,50 lei</span></div>
+              <div class="ml hl"><span class="mt">July</span><span class="tabular">18.070,50 lei</span></div>
+            </div>
+            <svg class="cursor" style="left:62%;top:180px" width="16" height="16" viewBox="0 0 16 16"><path d="M2 1l11 6.5-4.6 1.1L6.3 13z" fill="#111" stroke="#fff"/></svg>
+          </div>
+          <div class="card-body"><h3 style="font:600 var(--text-h4)/var(--lh-h4) var(--font-sans);letter-spacing:var(--tr-h4)">Warned before the lean months</h3><p class="text-sm">See the tightest month early enough to change the plan.</p></div>
+        </article>
+        <article class="card span-4">
+          <div class="card-visual" aria-hidden="true">
+            <div class="bloom b" style="--x:80%;--y:24%;--size:300px"></div>
+            <div class="frag bills fade-b">
+              <div class="mr"><span class="tile"><svg class="ic"><use href="#bank"/></svg></span><div><b>Loan instalment</b><span class="mt">12 nov.</span></div><span class="amt">−3.450,00</span></div>
+              <div class="mr"><span class="tile"><svg class="ic"><use href="#sack"/></svg></span><div><b>AgroNova Inputs</b><span class="mt">15 nov.</span></div><span class="amt">−5.750,00</span></div>
+              <div class="mr" style="background:var(--tint-a);margin:0 -8px;padding:7px 8px;border-radius:9px;border:0"><span class="tile g"><svg class="ic"><use href="#down"/></svg></span><div><b>APIA subsidy</b><span class="mt" style="color:var(--ink-a)">16 dec., estimated</span></div><span class="amt pos">+46.200,00</span></div>
+              <div class="mr"><span class="tile"><svg class="ic"><use href="#map"/></svg></span><div><b>Land rent</b><span class="mt">20 dec.</span></div><span class="amt">−26.250,00</span></div>
+              <div class="mr"><span class="tile"><svg class="ic"><use href="#sack"/></svg></span><div><b>Seed order</b><span class="mt">8 feb.</span></div><span class="amt">−6.000,00</span></div>
+            </div>
+          </div>
+          <div class="card-body"><h3 style="font:600 var(--text-h4)/var(--lh-h4) var(--font-sans);letter-spacing:var(--tr-h4)">Every bill and subsidy on one line</h3><p class="text-sm">Land rent, loans and inputs sit next to the money expected in.</p></div>
+        </article>
+        <article class="card span-4">
+          <div class="card-visual" aria-hidden="true">
+            <div class="bloom" style="--x:30%;--y:74%;--size:320px"></div>
+            <div class="frag goal">
+              <div class="mt">Spring inputs reserve</div>
+              <div class="num20">38.000,00 lei</div>
+              <div class="meter" style="margin-top:10px"><i style="width:63%"></i></div>
+              <div class="ml" style="margin-top:6px"><span class="mt">of 60.000 lei</span><span class="mt">By 1 mar.</span></div>
+            </div>
+            <div class="frag rules fade-r">
+              <div class="ml"><span>Set aside 5% of every sale</span><i class="sw on"></i></div>
+              <div class="ml" style="border:0"><span>Warn before lean months</span><i class="sw on"></i></div>
+            </div>
+          </div>
+          <div class="card-body"><h3 style="font:600 var(--text-h4)/var(--lh-h4) var(--font-sans);letter-spacing:var(--tr-h4)">Reserves that fill themselves</h3><p class="text-sm">Set a rule once and part of each sale waits for spring. Simulated in this demo.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dive" id="forecast" style="padding-top:0">
+    <div class="container">
+      <div class="section-header"><h2>A range for next year, not a promise</h2><p class="lead">Switch the harvest and watch the year change. Your fixed costs stay, and the income moves.</p></div>
+      <div class="card">
+        <div class="chartwrap">
+          <div class="bloom" style="--x:72%;--y:64%;--size:380px;--bloom-opacity:.26"></div>
+          <div class="top">
+            <div><div class="mt">End of October 2027</div><div class="num20" id="end"></div></div>
+            <div class="seg" role="group" aria-label="Harvest outcome">
+              <button type="button" data-p="poor" aria-pressed="false">Poor</button>
+              <button type="button" data-p="expected" aria-pressed="true">Expected</button>
+              <button type="button" data-p="good" aria-pressed="false">Good</button>
+            </div>
+          </div>
+          <svg id="chart" viewBox="0 0 760 300" role="img" aria-label="Projected cash for twelve months, lowest in July on every harvest outcome"><defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#059669"/><stop offset="1" stop-color="#0891B2"/></linearGradient></defs><line x1="6" x2="754" y1="274" y2="274" stroke="rgba(20,20,20,.1)"/><path d="M6.0 84.0 C37.2 84.0,37.2 109.0,68.3 109.0 C99.5 109.0,99.5 94.8,130.7 94.8 C161.8 94.8,161.8 110.3,193.0 110.3 C224.2 110.3,224.2 37.7,255.3 37.7 C286.5 37.7,286.5 96.6,317.7 96.6 C348.8 96.6,348.8 147.4,380.0 147.4 C411.2 147.4,411.2 176.4,442.3 176.4 C473.5 176.4,473.5 200.1,504.7 200.1 C535.8 200.1,535.8 237.3,567.0 237.3 C598.2 237.3,598.2 105.1,629.3 105.1 C660.5 105.1,660.5 14.0,691.7 14.0 C722.8 14.0,722.8 28.2,754.0 28.2 L754.0 139.9 L691.7 125.8 L629.3 180.1 L567.0 265.8 L504.7 228.6 L442.3 204.9 L380.0 175.8 L317.7 125.1 L255.3 66.2 L193.0 110.3 L130.7 94.8 L68.3 109.0 L6.0 84.0 Z" fill="#10B981" opacity=".1"/><path id="line" d="" fill="none" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round"/><circle id="dot" r="5" fill="#fff" stroke="#047857" stroke-width="2.2"/><text x="68.3" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Nov</text><text x="130.7" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Dec</text><text x="193.0" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Jan</text><text x="255.3" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Feb</text><text x="317.7" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Mar</text><text x="380.0" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Apr</text><text x="442.3" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">May</text><text x="504.7" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Jun</text><text x="567.0" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Jul</text><text x="629.3" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Aug</text><text x="691.7" y="294" text-anchor="middle" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Sep</text><text x="754.0" y="294" text-anchor="end" font-size="12" fill="#6C6C70" font-family="Geist, sans-serif">Oct</text></svg>
+        </div>
+        <div class="side-list">
+          <div><h3>Tightest month</h3><p class="text-sm" id="lowtext"></p></div>
+          <div><h3>Subsidy counted as an estimate</h3><p class="text-sm">It stays the same across harvests, and it's labeled until the money arrives.</p></div>
+          <div><h3>Assumptions you can see</h3><p class="text-sm">Poor means crop income 20% below expected. Good means 15% above.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section final">
+    <div class="container">
+      <div class="bloom silkbloom" style="--x:50%;--y:50%;--size:520px"></div>
+      <h2 style="position:relative">Start with a sample farm</h2>
+      <p class="lead" style="position:relative">Walk through a full season of sample numbers. No sign-up and no bank connection.</p>
+      <div class="actions" style="position:relative"><a class="btn btn-primary" href="../farm-app/index.html">Open sample farm <svg class="ic"><use href="#arrow"/></svg></a></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fcols">
+      <div><a class="logo" href="#top" style="margin-bottom:12px"><i></i>Farm Futures</a><p>A money planning demo for working farms. Sample data only, and nothing here moves real money.</p></div>
+      <div><h2>Sample app</h2><a href="../farm-app/index.html">Home</a><a href="../farm-app/index.html?view=stats">Forecast</a><a href="../farm-app/index.html?view=fields">Fields</a><a href="../farm-app/index.html?view=reserve">Reserves</a></div>
+      <div><h2>This page</h2><a href="#top">Top</a><a href="#features">Features</a><a href="../farm-app/preview.html">Phone and laptop preview</a></div>
+    </div>
+    <p class="copy">Farm Futures is a working name. Forecasts are estimates, not financial advice.</p>
+  </div>
+</footer>
+<script>
+const nav = document.getElementById("nav");
+const DATA = {"poor": {"d": "M6.0 84.0 C37.2 84.0,37.2 109.0,68.3 109.0 C99.5 109.0,99.5 94.8,130.7 94.8 C161.8 94.8,161.8 110.3,193.0 110.3 C224.2 110.3,224.2 66.2,255.3 66.2 C286.5 66.2,286.5 125.1,317.7 125.1 C348.8 125.1,348.8 175.8,380.0 175.8 C411.2 175.8,411.2 204.9,442.3 204.9 C473.5 204.9,473.5 228.6,504.7 228.6 C535.8 228.6,535.8 265.8,567.0 265.8 C598.2 265.8,598.2 180.1,629.3 180.1 C660.5 180.1,660.5 125.8,691.7 125.8 C722.8 125.8,722.8 139.9,754.0 139.9", "lx": 567.0, "ly": 265.8}, "expected": {"d": "M6.0 84.0 C37.2 84.0,37.2 109.0,68.3 109.0 C99.5 109.0,99.5 94.8,130.7 94.8 C161.8 94.8,161.8 110.3,193.0 110.3 C224.2 110.3,224.2 49.9,255.3 49.9 C286.5 49.9,286.5 108.8,317.7 108.8 C348.8 108.8,348.8 159.6,380.0 159.6 C411.2 159.6,411.2 188.6,442.3 188.6 C473.5 188.6,473.5 212.3,504.7 212.3 C535.8 212.3,535.8 249.5,567.0 249.5 C598.2 249.5,598.2 137.2,629.3 137.2 C660.5 137.2,660.5 61.9,691.7 61.9 C722.8 61.9,722.8 76.1,754.0 76.1", "lx": 567.0, "ly": 249.5}, "good": {"d": "M6.0 84.0 C37.2 84.0,37.2 109.0,68.3 109.0 C99.5 109.0,99.5 94.8,130.7 94.8 C161.8 94.8,161.8 110.3,193.0 110.3 C224.2 110.3,224.2 37.7,255.3 37.7 C286.5 37.7,286.5 96.6,317.7 96.6 C348.8 96.6,348.8 147.4,380.0 147.4 C411.2 147.4,411.2 176.4,442.3 176.4 C473.5 176.4,473.5 200.1,504.7 200.1 C535.8 200.1,535.8 237.3,567.0 237.3 C598.2 237.3,598.2 105.1,629.3 105.1 C660.5 105.1,660.5 14.0,691.7 14.0 C722.8 14.0,722.8 28.2,754.0 28.2", "lx": 567.0, "ly": 237.3}};
+const TEXT = {
+  poor: ["98.918,50 lei", "July falls to 6.070,50 lei if crop income comes in 20% lower."],
+  expected: ["146.030,50 lei", "July reaches 18.070,50 lei before wheat money arrives in August."],
+  good: ["181.364,50 lei", "July holds at 27.070,50 lei with crop income 15% higher."],
+};
+function pick(p) {
+  document.getElementById("line").setAttribute("d", DATA[p].d);
+  const dot = document.getElementById("dot");
+  dot.setAttribute("cx", DATA[p].lx); dot.setAttribute("cy", DATA[p].ly);
+  document.getElementById("end").textContent = TEXT[p][0];
+  document.getElementById("lowtext").textContent = TEXT[p][1];
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.p === p));
+}
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => pick(b.dataset.p)));
+pick("expected");
+</script>
+</body>
+</html>

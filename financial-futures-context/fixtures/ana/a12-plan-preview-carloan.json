@@ -1,0 +1,15 @@
+{
+  "data": {
+    "plan_id": "plan_carloan",
+    "monthly_payment": 1050.09,
+    "total_repaid": 63005.58,
+    "total_interest": 13005.58,
+    "monthly_leftover_after": 273.94,
+    "impact": {
+      "retirement_pot_expected_change_pct": -7.5,
+      "greece_trip": "short by 201.06 RON a month"
+    },
+    "card_text": "Retirement savings: −7.5%",
+    "synced": false
+  }
+}

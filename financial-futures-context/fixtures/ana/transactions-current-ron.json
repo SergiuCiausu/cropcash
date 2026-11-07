@@ -1,0 +1,1809 @@
+{
+  "data": [
+    {
+      "id": "500000000000000001",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-07",
+      "amount": -86.0,
+      "currency_code": "RON",
+      "description": "SALAD BOX VICTORIEI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Salad Box Victoriei",
+        "mcc": "5812",
+        "account_balance_snapshot": 2290.51
+      },
+      "created_at": "2026-08-07T06:00:00Z",
+      "updated_at": "2026-08-07T06:00:00Z"
+    },
+    {
+      "id": "500000000000000002",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-08",
+      "amount": -80.0,
+      "currency_code": "RON",
+      "description": "DIGI ROMANIA INTERNET TV",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Digi",
+        "account_balance_snapshot": 2210.51
+      },
+      "created_at": "2026-08-08T06:00:00Z",
+      "updated_at": "2026-08-08T06:00:00Z"
+    },
+    {
+      "id": "500000000000000003",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-09",
+      "amount": -214.3,
+      "currency_code": "RON",
+      "description": "KAUFLAND BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Kaufland",
+        "mcc": "5411",
+        "account_balance_snapshot": 1996.21
+      },
+      "created_at": "2026-08-09T06:00:00Z",
+      "updated_at": "2026-08-09T06:00:00Z"
+    },
+    {
+      "id": "500000000000000004",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-09",
+      "amount": -289.9,
+      "currency_code": "RON",
+      "description": "EMAG.RO",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Emag.Ro",
+        "mcc": "5311",
+        "account_balance_snapshot": 1706.31
+      },
+      "created_at": "2026-08-09T06:00:00Z",
+      "updated_at": "2026-08-09T06:00:00Z"
+    },
+    {
+      "id": "500000000000000005",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-10",
+      "amount": 6800.0,
+      "currency_code": "RON",
+      "description": "NOVA RETAIL SRL SALARIU AUG",
+      "category": "salary",
+      "extra": {
+        "payer_information": "Nova Retail SRL",
+        "account_balance_snapshot": 8506.31
+      },
+      "created_at": "2026-08-10T06:00:00Z",
+      "updated_at": "2026-08-10T06:00:00Z"
+    },
+    {
+      "id": "500000000000000006",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-11",
+      "amount": -64.3,
+      "currency_code": "RON",
+      "description": "GLOVO BUCURESTI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Glovo Bucuresti",
+        "mcc": "5812",
+        "account_balance_snapshot": 8442.01
+      },
+      "created_at": "2026-08-11T06:00:00Z",
+      "updated_at": "2026-08-11T06:00:00Z"
+    },
+    {
+      "id": "500000000000000007",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-12",
+      "amount": -25.99,
+      "currency_code": "RON",
+      "description": "SPOTIFY P2B3C4",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "Spotify",
+        "mcc": "5815",
+        "account_balance_snapshot": 8416.02
+      },
+      "created_at": "2026-08-12T06:00:00Z",
+      "updated_at": "2026-08-12T06:00:00Z"
+    },
+    {
+      "id": "500000000000000008",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-13",
+      "amount": -96.2,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 8319.82
+      },
+      "created_at": "2026-08-13T06:00:00Z",
+      "updated_at": "2026-08-13T06:00:00Z"
+    },
+    {
+      "id": "500000000000000009",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-14",
+      "amount": -172.4,
+      "currency_code": "RON",
+      "description": "ENEL ENERGIE FACTURA",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Enel Energie",
+        "account_balance_snapshot": 8147.42
+      },
+      "created_at": "2026-08-14T06:00:00Z",
+      "updated_at": "2026-08-14T06:00:00Z"
+    },
+    {
+      "id": "500000000000000010",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-15",
+      "amount": -39.99,
+      "currency_code": "RON",
+      "description": "STREAMPLUS SUBSCRIPTION",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "StreamPlus",
+        "mcc": "4899",
+        "account_balance_snapshot": 8107.43
+      },
+      "created_at": "2026-08-15T06:00:00Z",
+      "updated_at": "2026-08-15T06:00:00Z"
+    },
+    {
+      "id": "500000000000000011",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-16",
+      "amount": -176.85,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 7930.58
+      },
+      "created_at": "2026-08-16T06:00:00Z",
+      "updated_at": "2026-08-16T06:00:00Z"
+    },
+    {
+      "id": "500000000000000012",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-17",
+      "amount": -112.0,
+      "currency_code": "RON",
+      "description": "CARU CU BERE",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Caru Cu Bere",
+        "mcc": "5812",
+        "account_balance_snapshot": 7818.58
+      },
+      "created_at": "2026-08-17T06:00:00Z",
+      "updated_at": "2026-08-17T06:00:00Z"
+    },
+    {
+      "id": "500000000000000013",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-17",
+      "amount": -149.99,
+      "currency_code": "RON",
+      "description": "DECATHLON BANEASA",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Decathlon",
+        "mcc": "5311",
+        "account_balance_snapshot": 7668.59
+      },
+      "created_at": "2026-08-17T06:00:00Z",
+      "updated_at": "2026-08-17T06:00:00Z"
+    },
+    {
+      "id": "500000000000000014",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-18",
+      "amount": -118.6,
+      "currency_code": "RON",
+      "description": "ENGIE ROMANIA FACTURA GAZ",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Engie",
+        "account_balance_snapshot": 7549.99
+      },
+      "created_at": "2026-08-18T06:00:00Z",
+      "updated_at": "2026-08-18T06:00:00Z"
+    },
+    {
+      "id": "500000000000000015",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-19",
+      "amount": -29.2,
+      "currency_code": "RON",
+      "description": "5 TO GO",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "5 To Go",
+        "mcc": "5812",
+        "account_balance_snapshot": 7520.79
+      },
+      "created_at": "2026-08-19T06:00:00Z",
+      "updated_at": "2026-08-19T06:00:00Z"
+    },
+    {
+      "id": "500000000000000016",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-20",
+      "amount": -14.99,
+      "currency_code": "RON",
+      "description": "APPLE.COM/BILL ICLOUD",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "iCloud",
+        "mcc": "5818",
+        "account_balance_snapshot": 7505.8
+      },
+      "created_at": "2026-08-20T06:00:00Z",
+      "updated_at": "2026-08-20T06:00:00Z"
+    },
+    {
+      "id": "500000000000000017",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-21",
+      "amount": -118.4,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 7387.4
+      },
+      "created_at": "2026-08-21T06:00:00Z",
+      "updated_at": "2026-08-21T06:00:00Z"
+    },
+    {
+      "id": "500000000000000018",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-22",
+      "amount": -29.99,
+      "currency_code": "RON",
+      "description": "PHOTOEDIT PRO MONTHLY",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "PhotoEdit Pro",
+        "mcc": "5818",
+        "account_balance_snapshot": 7357.41
+      },
+      "created_at": "2026-08-22T06:00:00Z",
+      "updated_at": "2026-08-22T06:00:00Z"
+    },
+    {
+      "id": "500000000000000019",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-23",
+      "amount": -71.6,
+      "currency_code": "RON",
+      "description": "WOLT BUCURESTI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Wolt Bucuresti",
+        "mcc": "5812",
+        "account_balance_snapshot": 7285.81
+      },
+      "created_at": "2026-08-23T06:00:00Z",
+      "updated_at": "2026-08-23T06:00:00Z"
+    },
+    {
+      "id": "500000000000000020",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-24",
+      "amount": -231.75,
+      "currency_code": "RON",
+      "description": "KAUFLAND BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Kaufland",
+        "mcc": "5411",
+        "account_balance_snapshot": 7054.06
+      },
+      "created_at": "2026-08-24T06:00:00Z",
+      "updated_at": "2026-08-24T06:00:00Z"
+    },
+    {
+      "id": "500000000000000021",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-25",
+      "amount": -45.0,
+      "currency_code": "RON",
+      "description": "ORANGE ROMANIA ABONAMENT",
+      "category": "mobile_phone",
+      "extra": {
+        "payee_information": "Orange",
+        "account_balance_snapshot": 7009.06
+      },
+      "created_at": "2026-08-25T06:00:00Z",
+      "updated_at": "2026-08-25T06:00:00Z"
+    },
+    {
+      "id": "500000000000000022",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-26",
+      "amount": -118.4,
+      "currency_code": "RON",
+      "description": "MAMMA MIA TRATTORIA",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Mamma Mia Trattoria",
+        "mcc": "5812",
+        "account_balance_snapshot": 6890.66
+      },
+      "created_at": "2026-08-26T06:00:00Z",
+      "updated_at": "2026-08-26T06:00:00Z"
+    },
+    {
+      "id": "500000000000000023",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-27",
+      "amount": -160.11,
+      "currency_code": "RON",
+      "description": "H&M AFI COTROCENI",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "H&M",
+        "mcc": "5311",
+        "account_balance_snapshot": 6730.55
+      },
+      "created_at": "2026-08-27T06:00:00Z",
+      "updated_at": "2026-08-27T06:00:00Z"
+    },
+    {
+      "id": "500000000000000024",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-08-28",
+      "amount": -182.45,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 6548.1
+      },
+      "created_at": "2026-08-28T06:00:00Z",
+      "updated_at": "2026-08-28T06:00:00Z"
+    },
+    {
+      "id": "500000000000000025",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-01",
+      "amount": -129.0,
+      "currency_code": "RON",
+      "description": "FITZONE GYM ABONAMENT",
+      "category": "health_and_fitness",
+      "extra": {
+        "payee_information": "FitZone",
+        "mcc": "7997",
+        "account_balance_snapshot": 6419.1
+      },
+      "created_at": "2026-09-01T06:00:00Z",
+      "updated_at": "2026-09-01T06:00:00Z"
+    },
+    {
+      "id": "500000000000000026",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-01",
+      "amount": -140.0,
+      "currency_code": "RON",
+      "description": "STB ABONAMENT LUNAR",
+      "category": "public_transport",
+      "extra": {
+        "payee_information": "STB",
+        "account_balance_snapshot": 6279.1
+      },
+      "created_at": "2026-09-01T06:00:00Z",
+      "updated_at": "2026-09-01T06:00:00Z"
+    },
+    {
+      "id": "500000000000000027",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-02",
+      "amount": -187.4,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 6091.7
+      },
+      "created_at": "2026-09-02T06:00:00Z",
+      "updated_at": "2026-09-02T06:00:00Z"
+    },
+    {
+      "id": "500000000000000028",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-03",
+      "amount": -2300.0,
+      "currency_code": "RON",
+      "description": "CHIRIE SEPTEMBRIE IONESCU M",
+      "category": "rent",
+      "extra": {
+        "payee_information": "Ionescu Maria (landlord)",
+        "account_balance_snapshot": 3791.7
+      },
+      "created_at": "2026-09-03T06:00:00Z",
+      "updated_at": "2026-09-03T06:00:00Z"
+    },
+    {
+      "id": "500000000000000029",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-04",
+      "amount": -38.5,
+      "currency_code": "RON",
+      "description": "STARBUCKS UNIRII",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Starbucks Unirii",
+        "mcc": "5812",
+        "account_balance_snapshot": 3753.2
+      },
+      "created_at": "2026-09-04T06:00:00Z",
+      "updated_at": "2026-09-04T06:00:00Z"
+    },
+    {
+      "id": "500000000000000030",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-05",
+      "amount": -59.99,
+      "currency_code": "RON",
+      "description": "NETFLIX.COM",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "Netflix",
+        "mcc": "4899",
+        "account_balance_snapshot": 3693.21
+      },
+      "created_at": "2026-09-05T06:00:00Z",
+      "updated_at": "2026-09-05T06:00:00Z"
+    },
+    {
+      "id": "500000000000000031",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-06",
+      "amount": -142.65,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 3550.56
+      },
+      "created_at": "2026-09-06T06:00:00Z",
+      "updated_at": "2026-09-06T06:00:00Z"
+    },
+    {
+      "id": "500000000000000032",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-07",
+      "amount": -86.0,
+      "currency_code": "RON",
+      "description": "SALAD BOX VICTORIEI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Salad Box Victoriei",
+        "mcc": "5812",
+        "account_balance_snapshot": 3464.56
+      },
+      "created_at": "2026-09-07T06:00:00Z",
+      "updated_at": "2026-09-07T06:00:00Z"
+    },
+    {
+      "id": "500000000000000033",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-08",
+      "amount": -80.0,
+      "currency_code": "RON",
+      "description": "DIGI ROMANIA INTERNET TV",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Digi",
+        "account_balance_snapshot": 3384.56
+      },
+      "created_at": "2026-09-08T06:00:00Z",
+      "updated_at": "2026-09-08T06:00:00Z"
+    },
+    {
+      "id": "500000000000000034",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-09",
+      "amount": -214.3,
+      "currency_code": "RON",
+      "description": "KAUFLAND BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Kaufland",
+        "mcc": "5411",
+        "account_balance_snapshot": 3170.26
+      },
+      "created_at": "2026-09-09T06:00:00Z",
+      "updated_at": "2026-09-09T06:00:00Z"
+    },
+    {
+      "id": "500000000000000035",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-09",
+      "amount": -289.9,
+      "currency_code": "RON",
+      "description": "EMAG.RO",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Emag.Ro",
+        "mcc": "5311",
+        "account_balance_snapshot": 2880.36
+      },
+      "created_at": "2026-09-09T06:00:00Z",
+      "updated_at": "2026-09-09T06:00:00Z"
+    },
+    {
+      "id": "500000000000000036",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-10",
+      "amount": 6800.0,
+      "currency_code": "RON",
+      "description": "NOVA RETAIL SRL SALARIU SEP",
+      "category": "salary",
+      "extra": {
+        "payer_information": "Nova Retail SRL",
+        "account_balance_snapshot": 9680.36
+      },
+      "created_at": "2026-09-10T06:00:00Z",
+      "updated_at": "2026-09-10T06:00:00Z"
+    },
+    {
+      "id": "500000000000000037",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-11",
+      "amount": -64.3,
+      "currency_code": "RON",
+      "description": "GLOVO BUCURESTI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Glovo Bucuresti",
+        "mcc": "5812",
+        "account_balance_snapshot": 9616.06
+      },
+      "created_at": "2026-09-11T06:00:00Z",
+      "updated_at": "2026-09-11T06:00:00Z"
+    },
+    {
+      "id": "500000000000000038",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-12",
+      "amount": -25.99,
+      "currency_code": "RON",
+      "description": "SPOTIFY P2B3C4",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "Spotify",
+        "mcc": "5815",
+        "account_balance_snapshot": 9590.07
+      },
+      "created_at": "2026-09-12T06:00:00Z",
+      "updated_at": "2026-09-12T06:00:00Z"
+    },
+    {
+      "id": "500000000000000039",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-13",
+      "amount": -96.2,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 9493.87
+      },
+      "created_at": "2026-09-13T06:00:00Z",
+      "updated_at": "2026-09-13T06:00:00Z"
+    },
+    {
+      "id": "500000000000000040",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-14",
+      "amount": 89.99,
+      "currency_code": "RON",
+      "description": "RAMBURSARE EMAG.RO",
+      "category": "refund",
+      "extra": {
+        "payer_information": "eMAG",
+        "account_balance_snapshot": 9583.86
+      },
+      "created_at": "2026-09-14T06:00:00Z",
+      "updated_at": "2026-09-14T06:00:00Z"
+    },
+    {
+      "id": "500000000000000041",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-14",
+      "amount": -168.9,
+      "currency_code": "RON",
+      "description": "ENEL ENERGIE FACTURA",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Enel Energie",
+        "account_balance_snapshot": 9414.96
+      },
+      "created_at": "2026-09-14T06:00:00Z",
+      "updated_at": "2026-09-14T06:00:00Z"
+    },
+    {
+      "id": "500000000000000042",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-15",
+      "amount": -39.99,
+      "currency_code": "RON",
+      "description": "STREAMPLUS SUBSCRIPTION",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "StreamPlus",
+        "mcc": "4899",
+        "account_balance_snapshot": 9374.97
+      },
+      "created_at": "2026-09-15T06:00:00Z",
+      "updated_at": "2026-09-15T06:00:00Z"
+    },
+    {
+      "id": "500000000000000043",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-16",
+      "amount": -176.85,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 9198.12
+      },
+      "created_at": "2026-09-16T06:00:00Z",
+      "updated_at": "2026-09-16T06:00:00Z"
+    },
+    {
+      "id": "500000000000000044",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-17",
+      "amount": -112.0,
+      "currency_code": "RON",
+      "description": "CARU CU BERE",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Caru Cu Bere",
+        "mcc": "5812",
+        "account_balance_snapshot": 9086.12
+      },
+      "created_at": "2026-09-17T06:00:00Z",
+      "updated_at": "2026-09-17T06:00:00Z"
+    },
+    {
+      "id": "500000000000000045",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-17",
+      "amount": -149.99,
+      "currency_code": "RON",
+      "description": "DECATHLON BANEASA",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Decathlon",
+        "mcc": "5311",
+        "account_balance_snapshot": 8936.13
+      },
+      "created_at": "2026-09-17T06:00:00Z",
+      "updated_at": "2026-09-17T06:00:00Z"
+    },
+    {
+      "id": "500000000000000046",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-18",
+      "amount": -131.2,
+      "currency_code": "RON",
+      "description": "ENGIE ROMANIA FACTURA GAZ",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Engie",
+        "account_balance_snapshot": 8804.93
+      },
+      "created_at": "2026-09-18T06:00:00Z",
+      "updated_at": "2026-09-18T06:00:00Z"
+    },
+    {
+      "id": "500000000000000047",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-19",
+      "amount": -29.2,
+      "currency_code": "RON",
+      "description": "5 TO GO",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "5 To Go",
+        "mcc": "5812",
+        "account_balance_snapshot": 8775.73
+      },
+      "created_at": "2026-09-19T06:00:00Z",
+      "updated_at": "2026-09-19T06:00:00Z"
+    },
+    {
+      "id": "500000000000000048",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-20",
+      "amount": -14.99,
+      "currency_code": "RON",
+      "description": "APPLE.COM/BILL ICLOUD",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "iCloud",
+        "mcc": "5818",
+        "account_balance_snapshot": 8760.74
+      },
+      "created_at": "2026-09-20T06:00:00Z",
+      "updated_at": "2026-09-20T06:00:00Z"
+    },
+    {
+      "id": "500000000000000049",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-21",
+      "amount": -118.4,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 8642.34
+      },
+      "created_at": "2026-09-21T06:00:00Z",
+      "updated_at": "2026-09-21T06:00:00Z"
+    },
+    {
+      "id": "500000000000000050",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-22",
+      "amount": -29.99,
+      "currency_code": "RON",
+      "description": "PHOTOEDIT PRO MONTHLY",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "PhotoEdit Pro",
+        "mcc": "5818",
+        "account_balance_snapshot": 8612.35
+      },
+      "created_at": "2026-09-22T06:00:00Z",
+      "updated_at": "2026-09-22T06:00:00Z"
+    },
+    {
+      "id": "500000000000000051",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-23",
+      "amount": -71.6,
+      "currency_code": "RON",
+      "description": "WOLT BUCURESTI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Wolt Bucuresti",
+        "mcc": "5812",
+        "account_balance_snapshot": 8540.75
+      },
+      "created_at": "2026-09-23T06:00:00Z",
+      "updated_at": "2026-09-23T06:00:00Z"
+    },
+    {
+      "id": "500000000000000052",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-24",
+      "amount": -231.75,
+      "currency_code": "RON",
+      "description": "KAUFLAND BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Kaufland",
+        "mcc": "5411",
+        "account_balance_snapshot": 8309.0
+      },
+      "created_at": "2026-09-24T06:00:00Z",
+      "updated_at": "2026-09-24T06:00:00Z"
+    },
+    {
+      "id": "500000000000000053",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-25",
+      "amount": -45.0,
+      "currency_code": "RON",
+      "description": "ORANGE ROMANIA ABONAMENT",
+      "category": "mobile_phone",
+      "extra": {
+        "payee_information": "Orange",
+        "account_balance_snapshot": 8264.0
+      },
+      "created_at": "2026-09-25T06:00:00Z",
+      "updated_at": "2026-09-25T06:00:00Z"
+    },
+    {
+      "id": "500000000000000054",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-26",
+      "amount": -118.4,
+      "currency_code": "RON",
+      "description": "MAMMA MIA TRATTORIA",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Mamma Mia Trattoria",
+        "mcc": "5812",
+        "account_balance_snapshot": 8145.6
+      },
+      "created_at": "2026-09-26T06:00:00Z",
+      "updated_at": "2026-09-26T06:00:00Z"
+    },
+    {
+      "id": "500000000000000055",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-27",
+      "amount": -160.11,
+      "currency_code": "RON",
+      "description": "H&M AFI COTROCENI",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "H&M",
+        "mcc": "5311",
+        "account_balance_snapshot": 7985.49
+      },
+      "created_at": "2026-09-27T06:00:00Z",
+      "updated_at": "2026-09-27T06:00:00Z"
+    },
+    {
+      "id": "500000000000000056",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-09-28",
+      "amount": -182.45,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 7803.04
+      },
+      "created_at": "2026-09-28T06:00:00Z",
+      "updated_at": "2026-09-28T06:00:00Z"
+    },
+    {
+      "id": "500000000000000057",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-01",
+      "amount": -129.0,
+      "currency_code": "RON",
+      "description": "FITZONE GYM ABONAMENT",
+      "category": "health_and_fitness",
+      "extra": {
+        "payee_information": "FitZone",
+        "mcc": "7997",
+        "account_balance_snapshot": 7674.04
+      },
+      "created_at": "2026-10-01T06:00:00Z",
+      "updated_at": "2026-10-01T06:00:00Z"
+    },
+    {
+      "id": "500000000000000058",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-01",
+      "amount": -140.0,
+      "currency_code": "RON",
+      "description": "STB ABONAMENT LUNAR",
+      "category": "public_transport",
+      "extra": {
+        "payee_information": "STB",
+        "account_balance_snapshot": 7534.04
+      },
+      "created_at": "2026-10-01T06:00:00Z",
+      "updated_at": "2026-10-01T06:00:00Z"
+    },
+    {
+      "id": "500000000000000059",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-02",
+      "amount": -187.4,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 7346.64
+      },
+      "created_at": "2026-10-02T06:00:00Z",
+      "updated_at": "2026-10-02T06:00:00Z"
+    },
+    {
+      "id": "500000000000000060",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-03",
+      "amount": -2300.0,
+      "currency_code": "RON",
+      "description": "CHIRIE OCTOMBRIE IONESCU M",
+      "category": "rent",
+      "extra": {
+        "payee_information": "Ionescu Maria (landlord)",
+        "account_balance_snapshot": 5046.64
+      },
+      "created_at": "2026-10-03T06:00:00Z",
+      "updated_at": "2026-10-03T06:00:00Z"
+    },
+    {
+      "id": "500000000000000061",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-04",
+      "amount": -38.5,
+      "currency_code": "RON",
+      "description": "STARBUCKS UNIRII",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Starbucks Unirii",
+        "mcc": "5812",
+        "account_balance_snapshot": 5008.14
+      },
+      "created_at": "2026-10-04T06:00:00Z",
+      "updated_at": "2026-10-04T06:00:00Z"
+    },
+    {
+      "id": "500000000000000062",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-05",
+      "amount": -59.99,
+      "currency_code": "RON",
+      "description": "NETFLIX.COM",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "Netflix",
+        "mcc": "4899",
+        "account_balance_snapshot": 4948.15
+      },
+      "created_at": "2026-10-05T06:00:00Z",
+      "updated_at": "2026-10-05T06:00:00Z"
+    },
+    {
+      "id": "500000000000000063",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-06",
+      "amount": -142.65,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 4805.5
+      },
+      "created_at": "2026-10-06T06:00:00Z",
+      "updated_at": "2026-10-06T06:00:00Z"
+    },
+    {
+      "id": "500000000000000064",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-07",
+      "amount": -86.0,
+      "currency_code": "RON",
+      "description": "SALAD BOX VICTORIEI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Salad Box Victoriei",
+        "mcc": "5812",
+        "account_balance_snapshot": 4719.5
+      },
+      "created_at": "2026-10-07T06:00:00Z",
+      "updated_at": "2026-10-07T06:00:00Z"
+    },
+    {
+      "id": "500000000000000065",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-08",
+      "amount": -80.0,
+      "currency_code": "RON",
+      "description": "DIGI ROMANIA INTERNET TV",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Digi",
+        "account_balance_snapshot": 4639.5
+      },
+      "created_at": "2026-10-08T06:00:00Z",
+      "updated_at": "2026-10-08T06:00:00Z"
+    },
+    {
+      "id": "500000000000000066",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-09",
+      "amount": -214.3,
+      "currency_code": "RON",
+      "description": "KAUFLAND BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Kaufland",
+        "mcc": "5411",
+        "account_balance_snapshot": 4425.2
+      },
+      "created_at": "2026-10-09T06:00:00Z",
+      "updated_at": "2026-10-09T06:00:00Z"
+    },
+    {
+      "id": "500000000000000067",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-09",
+      "amount": -289.9,
+      "currency_code": "RON",
+      "description": "EMAG.RO",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Emag.Ro",
+        "mcc": "5311",
+        "account_balance_snapshot": 4135.3
+      },
+      "created_at": "2026-10-09T06:00:00Z",
+      "updated_at": "2026-10-09T06:00:00Z"
+    },
+    {
+      "id": "500000000000000068",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-10",
+      "amount": 6800.0,
+      "currency_code": "RON",
+      "description": "NOVA RETAIL SRL SALARIU OCT",
+      "category": "salary",
+      "extra": {
+        "payer_information": "Nova Retail SRL",
+        "account_balance_snapshot": 10935.3
+      },
+      "created_at": "2026-10-10T06:00:00Z",
+      "updated_at": "2026-10-10T06:00:00Z"
+    },
+    {
+      "id": "500000000000000069",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-11",
+      "amount": -64.3,
+      "currency_code": "RON",
+      "description": "GLOVO BUCURESTI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Glovo Bucuresti",
+        "mcc": "5812",
+        "account_balance_snapshot": 10871.0
+      },
+      "created_at": "2026-10-11T06:00:00Z",
+      "updated_at": "2026-10-11T06:00:00Z"
+    },
+    {
+      "id": "500000000000000070",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-12",
+      "amount": -25.99,
+      "currency_code": "RON",
+      "description": "SPOTIFY P2B3C4",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "Spotify",
+        "mcc": "5815",
+        "account_balance_snapshot": 10845.01
+      },
+      "created_at": "2026-10-12T06:00:00Z",
+      "updated_at": "2026-10-12T06:00:00Z"
+    },
+    {
+      "id": "500000000000000071",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-13",
+      "amount": -96.2,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 10748.81
+      },
+      "created_at": "2026-10-13T06:00:00Z",
+      "updated_at": "2026-10-13T06:00:00Z"
+    },
+    {
+      "id": "500000000000000072",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-14",
+      "amount": -180.0,
+      "currency_code": "RON",
+      "description": "ENEL ENERGIE FACTURA",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Enel Energie",
+        "account_balance_snapshot": 10568.81
+      },
+      "created_at": "2026-10-14T06:00:00Z",
+      "updated_at": "2026-10-14T06:00:00Z"
+    },
+    {
+      "id": "500000000000000073",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-15",
+      "amount": -39.99,
+      "currency_code": "RON",
+      "description": "STREAMPLUS SUBSCRIPTION",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "StreamPlus",
+        "mcc": "4899",
+        "account_balance_snapshot": 10528.82
+      },
+      "created_at": "2026-10-15T06:00:00Z",
+      "updated_at": "2026-10-15T06:00:00Z"
+    },
+    {
+      "id": "500000000000000074",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-16",
+      "amount": -176.85,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 10351.97
+      },
+      "created_at": "2026-10-16T06:00:00Z",
+      "updated_at": "2026-10-16T06:00:00Z"
+    },
+    {
+      "id": "500000000000000075",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-17",
+      "amount": -112.0,
+      "currency_code": "RON",
+      "description": "CARU CU BERE",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Caru Cu Bere",
+        "mcc": "5812",
+        "account_balance_snapshot": 10239.97
+      },
+      "created_at": "2026-10-17T06:00:00Z",
+      "updated_at": "2026-10-17T06:00:00Z"
+    },
+    {
+      "id": "500000000000000076",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-17",
+      "amount": -149.99,
+      "currency_code": "RON",
+      "description": "DECATHLON BANEASA",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "Decathlon",
+        "mcc": "5311",
+        "account_balance_snapshot": 10089.98
+      },
+      "created_at": "2026-10-17T06:00:00Z",
+      "updated_at": "2026-10-17T06:00:00Z"
+    },
+    {
+      "id": "500000000000000077",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-18",
+      "amount": -160.0,
+      "currency_code": "RON",
+      "description": "ENGIE ROMANIA FACTURA GAZ",
+      "category": "utilities",
+      "extra": {
+        "payee_information": "Engie",
+        "account_balance_snapshot": 9929.98
+      },
+      "created_at": "2026-10-18T06:00:00Z",
+      "updated_at": "2026-10-18T06:00:00Z"
+    },
+    {
+      "id": "500000000000000078",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-18",
+      "amount": -1450.0,
+      "currency_code": "RON",
+      "description": "SERVICE AUTO POPA SRL",
+      "category": "car_and_transport",
+      "extra": {
+        "payee_information": "Service Auto Popa SRL",
+        "mcc": "7538",
+        "account_balance_snapshot": 8479.98
+      },
+      "created_at": "2026-10-18T06:00:00Z",
+      "updated_at": "2026-10-18T06:00:00Z"
+    },
+    {
+      "id": "500000000000000079",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-19",
+      "amount": -29.2,
+      "currency_code": "RON",
+      "description": "5 TO GO",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "5 To Go",
+        "mcc": "5812",
+        "account_balance_snapshot": 8450.78
+      },
+      "created_at": "2026-10-19T06:00:00Z",
+      "updated_at": "2026-10-19T06:00:00Z"
+    },
+    {
+      "id": "500000000000000080",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-20",
+      "amount": -14.99,
+      "currency_code": "RON",
+      "description": "APPLE.COM/BILL ICLOUD",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "iCloud",
+        "mcc": "5818",
+        "account_balance_snapshot": 8435.79
+      },
+      "created_at": "2026-10-20T06:00:00Z",
+      "updated_at": "2026-10-20T06:00:00Z"
+    },
+    {
+      "id": "500000000000000081",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-21",
+      "amount": -118.4,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 8317.39
+      },
+      "created_at": "2026-10-21T06:00:00Z",
+      "updated_at": "2026-10-21T06:00:00Z"
+    },
+    {
+      "id": "500000000000000082",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-22",
+      "amount": -29.99,
+      "currency_code": "RON",
+      "description": "PHOTOEDIT PRO MONTHLY",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "PhotoEdit Pro",
+        "mcc": "5818",
+        "account_balance_snapshot": 8287.4
+      },
+      "created_at": "2026-10-22T06:00:00Z",
+      "updated_at": "2026-10-22T06:00:00Z"
+    },
+    {
+      "id": "500000000000000083",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-23",
+      "amount": -71.6,
+      "currency_code": "RON",
+      "description": "WOLT BUCURESTI",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Wolt Bucuresti",
+        "mcc": "5812",
+        "account_balance_snapshot": 8215.8
+      },
+      "created_at": "2026-10-23T06:00:00Z",
+      "updated_at": "2026-10-23T06:00:00Z"
+    },
+    {
+      "id": "500000000000000084",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-24",
+      "amount": -231.75,
+      "currency_code": "RON",
+      "description": "KAUFLAND BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Kaufland",
+        "mcc": "5411",
+        "account_balance_snapshot": 7984.05
+      },
+      "created_at": "2026-10-24T06:00:00Z",
+      "updated_at": "2026-10-24T06:00:00Z"
+    },
+    {
+      "id": "500000000000000085",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-25",
+      "amount": -45.0,
+      "currency_code": "RON",
+      "description": "ORANGE ROMANIA ABONAMENT",
+      "category": "mobile_phone",
+      "extra": {
+        "payee_information": "Orange",
+        "account_balance_snapshot": 7939.05
+      },
+      "created_at": "2026-10-25T06:00:00Z",
+      "updated_at": "2026-10-25T06:00:00Z"
+    },
+    {
+      "id": "500000000000000086",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-26",
+      "amount": -118.4,
+      "currency_code": "RON",
+      "description": "MAMMA MIA TRATTORIA",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Mamma Mia Trattoria",
+        "mcc": "5812",
+        "account_balance_snapshot": 7820.65
+      },
+      "created_at": "2026-10-26T06:00:00Z",
+      "updated_at": "2026-10-26T06:00:00Z"
+    },
+    {
+      "id": "500000000000000087",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-27",
+      "amount": -160.11,
+      "currency_code": "RON",
+      "description": "H&M AFI COTROCENI",
+      "category": "shopping",
+      "extra": {
+        "payee_information": "H&M",
+        "mcc": "5311",
+        "account_balance_snapshot": 7660.54
+      },
+      "created_at": "2026-10-27T06:00:00Z",
+      "updated_at": "2026-10-27T06:00:00Z"
+    },
+    {
+      "id": "500000000000000088",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-10-28",
+      "amount": -182.45,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 7478.09
+      },
+      "created_at": "2026-10-28T06:00:00Z",
+      "updated_at": "2026-10-28T06:00:00Z"
+    },
+    {
+      "id": "500000000000000089",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-01",
+      "amount": -129.0,
+      "currency_code": "RON",
+      "description": "FITZONE GYM ABONAMENT",
+      "category": "health_and_fitness",
+      "extra": {
+        "payee_information": "FitZone",
+        "mcc": "7997",
+        "account_balance_snapshot": 7349.09
+      },
+      "created_at": "2026-11-01T06:00:00Z",
+      "updated_at": "2026-11-01T06:00:00Z"
+    },
+    {
+      "id": "500000000000000090",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-01",
+      "amount": -140.0,
+      "currency_code": "RON",
+      "description": "STB ABONAMENT LUNAR",
+      "category": "public_transport",
+      "extra": {
+        "payee_information": "STB",
+        "account_balance_snapshot": 7209.09
+      },
+      "created_at": "2026-11-01T06:00:00Z",
+      "updated_at": "2026-11-01T06:00:00Z"
+    },
+    {
+      "id": "500000000000000091",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-02",
+      "amount": -187.4,
+      "currency_code": "RON",
+      "description": "LIDL DISCOUNT BUCURESTI",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Lidl",
+        "mcc": "5411",
+        "account_balance_snapshot": 7021.69
+      },
+      "created_at": "2026-11-02T06:00:00Z",
+      "updated_at": "2026-11-02T06:00:00Z"
+    },
+    {
+      "id": "500000000000000092",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-03",
+      "amount": -2300.0,
+      "currency_code": "RON",
+      "description": "CHIRIE NOIEMBRIE IONESCU M",
+      "category": "rent",
+      "extra": {
+        "payee_information": "Ionescu Maria (landlord)",
+        "account_balance_snapshot": 4721.69
+      },
+      "created_at": "2026-11-03T06:00:00Z",
+      "updated_at": "2026-11-03T06:00:00Z"
+    },
+    {
+      "id": "500000000000000093",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-04",
+      "amount": -38.5,
+      "currency_code": "RON",
+      "description": "STARBUCKS UNIRII",
+      "category": "eating_out",
+      "extra": {
+        "payee_information": "Starbucks Unirii",
+        "mcc": "5812",
+        "account_balance_snapshot": 4683.19
+      },
+      "created_at": "2026-11-04T06:00:00Z",
+      "updated_at": "2026-11-04T06:00:00Z"
+    },
+    {
+      "id": "500000000000000094",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "transfer",
+      "status": "posted",
+      "made_on": "2026-11-04",
+      "amount": -200.0,
+      "currency_code": "RON",
+      "description": "TRANSFER CONT ECONOMII",
+      "category": "transfer",
+      "extra": {
+        "payee": "RO27DEMO0000000000000002",
+        "account_balance_snapshot": 4483.19
+      },
+      "created_at": "2026-11-04T06:00:00Z",
+      "updated_at": "2026-11-04T06:00:00Z"
+    },
+    {
+      "id": "500000000000000095",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-05",
+      "amount": -59.99,
+      "currency_code": "RON",
+      "description": "NETFLIX.COM",
+      "category": "entertainment",
+      "extra": {
+        "payee_information": "Netflix",
+        "mcc": "4899",
+        "account_balance_snapshot": 4423.2
+      },
+      "created_at": "2026-11-05T06:00:00Z",
+      "updated_at": "2026-11-05T06:00:00Z"
+    },
+    {
+      "id": "500000000000000096",
+      "account_id": "400000000000000001",
+      "duplicated": false,
+      "mode": "normal",
+      "status": "posted",
+      "made_on": "2026-11-06",
+      "amount": -142.65,
+      "currency_code": "RON",
+      "description": "MEGA IMAGE 0412",
+      "category": "groceries",
+      "extra": {
+        "payee_information": "Mega Image",
+        "mcc": "5411",
+        "account_balance_snapshot": 4280.55
+      },
+      "created_at": "2026-11-06T06:00:00Z",
+      "updated_at": "2026-11-06T06:00:00Z"
+    }
+  ],
+  "meta": {
+    "next_id": null,
+    "next_page": null
+  }
+}

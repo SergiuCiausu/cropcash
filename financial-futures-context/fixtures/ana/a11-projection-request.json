@@ -1,0 +1,37 @@
+{
+  "as_of": "2026-11-07",
+  "person": {
+    "age": 29,
+    "retirement_age": 65
+  },
+  "starting_position": {
+    "cash_ron": 7430.55,
+    "cash_eur": 210.0,
+    "eur_to_ron": 4.97,
+    "pension_pillar_2": 21400.0,
+    "credit_card_debt": 620.4
+  },
+  "monthly": {
+    "net_income": 6800.0,
+    "essential_spending": 4255.0,
+    "other_spending": 1420.0,
+    "pillar_2_contribution": 552.14,
+    "own_retirement_saving": 300.0
+  },
+  "goals": [
+    {
+      "goal_id": "goal_greece",
+      "monthly": 475.0,
+      "deadline": "2027-07-01"
+    }
+  ],
+  "retirement_spending_monthly": 2500.0,
+  "assumptions": {
+    "real_return": {
+      "cautious": 0.02,
+      "expected": 0.04,
+      "optimistic": 0.06
+    },
+    "real_salary_growth": 0.0
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "data": [
+    {
+      "currency_code": "EUR",
+      "rate": 1.153,
+      "fail": false
+    },
+    {
+      "currency_code": "RON",
+      "rate": 0.232,
+      "fail": false
+    }
+  ],
+  "meta": {
+    "issued_on": "2026-11-07"
+  }
+}

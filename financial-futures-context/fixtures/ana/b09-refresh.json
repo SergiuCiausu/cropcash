@@ -1,0 +1,6 @@
+{
+  "data": {
+    "expires_at": "2026-11-08T08:00:00Z",
+    "connect_url": "https://app.local/mock-bank/approve?token=demo_refresh_19ab"
+  }
+}
