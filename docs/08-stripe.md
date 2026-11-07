@@ -98,6 +98,7 @@ Fermierul **nu vede nimic din Stripe**: nici dashboard, nici pagini de onboardin
 ### Comanda de dezvoltare
 ```bash
 stripe listen \
+  --events payment_intent.succeeded,invoice.paid,payout.paid,payout.failed \
   --forward-to localhost:3001/api/webhooks/stripe \
   --forward-connect-to localhost:3001/api/webhooks/stripe
 ```
