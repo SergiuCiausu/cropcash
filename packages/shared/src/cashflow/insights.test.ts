@@ -30,12 +30,11 @@ describe('cropEconomics', () => {
 });
 
 describe('reserves', () => {
-  it('a bad year costs Ion about 26.000 lei over the next 12 months', () => {
+  it('a bad year costs Ion ≈ 33.100 lei over the next 12 months (docs/07 §5)', () => {
     const target = riskFundTarget(normal, bad);
     expect(target % 10_000).toBe(0);
     // Wheat −8.400, corn −9.975, APIA balance lower, costs higher.
-    expect(target).toBeGreaterThan(1_800_000);
-    expect(target).toBeLessThan(3_500_000);
+    expect(target).toBe(3_310_000);
   });
 
   it('spring: March–May costs vs. money on hand at the end of February', () => {

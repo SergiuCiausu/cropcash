@@ -41,9 +41,10 @@
   - **Fișiere:** `apps/api/src/stripe/*`, `routes/webhooks.ts`, `routes/demo.ts`, `jobs/payoutScheduler.ts`.
   - **Gata când:** „Simulează avansul” → transfer → ecranul B3 → „Dăm timpul înainte 6 luni” → 6 payouts `paid` și 6 facturi `invoice.paid` vizibile în aplicație. Webhooks idempotente.
 
-- [ ] **7. Fondul de risc și pensia** · ~3 h · bonus
+- [x] **7. Fondul de risc și pensia** · ~3 h · bonus
   - **Fișiere:** `packages/shared/src/risk/*`, `pension/*` (+ teste), `screens/ImiAjung/Fond*`, `Pensie*`.
   - **Gata când:** simularea dă ≈ 29.450 lei pentru 55 de ani / 200 lei / 4%, ținta fondului pentru Ion e ≈ 20.000 lei, iar butonul „Pornesc” creează subscription-ul.
+  - **Făcut:** simularea dă 29.450 lei (test). Ținta fondului pentru Ion e **33.100 lei**, nu 20.000: `riskFundTarget()` include acum vânzarea de porumb și costurile maxime (vezi `07-architecture.md` §5). Ecranele stau în UI-ul echipei: `screens/app/blocks.tsx` (`RiskFundBody`, Î2) și `screens/app/MoneyCards.tsx` (`PensionCard`, Î3, cu slider). Parametrii noi sunt în `plan-params.json` (P19, P20). Offline: simularea și fondul merg fără net; „Pornesc” cere net.
 
 - [ ] **8. Prognoza de vânzări și scenariile** · ~4 h · bonus
   - **Fișiere:** `cashflow/scenarios.ts` (+ test), `screens/ImiAjung/Scenarii*`, `Vanzare*`, plus Open-Meteo sau CSV INS, dacă le avem.

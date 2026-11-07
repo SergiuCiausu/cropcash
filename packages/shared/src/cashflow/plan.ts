@@ -1,6 +1,9 @@
 import type { AppData } from '../data';
 import { computeSubsidies, normalizeParcels } from '../subsidies';
+import { riskFundProgress, worstBadYears } from '../risk';
+import { pensionParams, suggestPension } from '../pension';
 import {
+  ageFromBirthYear,
   declaredCredits,
   envelopesFromStored,
   extrasFromStored,
@@ -21,6 +24,8 @@ export interface StoredTransaction {
 }
 
 export interface PlanFarm extends StoredFarm {
+  /** County code (e.g. 'TR'), for the county yield history. */
+  county?: string | null;
   demo_now?: string | null;
   transactions?: StoredTransaction[];
   pension_plans?: { monthly_bani: number; status: string } | { monthly_bani: number; status: string }[] | null;
@@ -125,15 +130,22 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
     debtsDue,
   });
 
+  const pension = pensionParams(data);
+
   return {
     today,
     month,
+    age: ageFromBirthYear(farm.birth_year, Number(today.slice(0, 4))),
     subsidies,
     startBalance,
     timelines,
     economics,
     totalHa: parcels.reduce((s, p) => s + p.areaAri, 0) / 100,
     riskTarget,
+    riskFund: riskFundProgress(envelopes.risk_fund, riskTarget),
+    badYears: worstBadYears(data, farm.county, parcels.map((p) => p.cropId)),
+    pension,
+    pensionSuggested: suggestPension(salary.salary, pension),
     spring: springNeed(timelines.medium),
     costs: costsByCrop(timelines.medium),
     envelopes,

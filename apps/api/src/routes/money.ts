@@ -1,7 +1,7 @@
 import express, { Router, type Request } from 'express';
 import type Stripe from 'stripe';
 import { z } from 'zod';
-import { computeFarmPlan, type AppData } from '@cropcash/shared';
+import { computeFarmPlan, pensionParams, type AppData } from '@cropcash/shared';
 import type { AdminRepo } from '../db/admin';
 import type { MoneyService } from '../stripe/money';
 
@@ -47,7 +47,9 @@ export function moneyRouter(deps: MoneyDeps): Router {
   });
 
   r.post('/pension', async (req, res) => {
-    const parsed = z.object({ monthlyLei: z.number().int().min(10).max(5000) }).safeParse(req.body);
+    // Same range as the slider on screen Î3 (plan-params.json).
+    const { sliderMinLei, sliderMaxLei } = pensionParams(deps.data);
+    const parsed = z.object({ monthlyLei: z.number().int().min(sliderMinLei).max(sliderMaxLei) }).safeParse(req.body);
     if (!parsed.success) return void res.status(400).json({ error: 'invalid_input' });
     const farm = await myFarm(req, res);
     if (!farm) return void res.status(404).json({ error: 'no_farm' });

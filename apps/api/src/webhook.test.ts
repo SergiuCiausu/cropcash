@@ -104,3 +104,32 @@ describe('POST /api/webhooks/stripe', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('POST /api/pension (step 7)', () => {
+  it('accepts only the slider range from plan-params.json and starts the subscription', async () => {
+    const { admin } = memoryAdmin();
+    admin.farmByUser = async () => ({ id: 'farm-1', stripe_customer_id: 'cus_1', pension_plans: null }) as never;
+    const app = makeApp(admin);
+    const start = vi.spyOn(MoneyService.prototype, 'startPension').mockResolvedValue();
+    const post = (monthlyLei: unknown) =>
+      request(app).post('/api/pension').set('Authorization', 'Bearer good').send({ monthlyLei });
+
+    const { slider_min_lei, slider_max_lei } = data.params.pension;
+    expect((await post(slider_min_lei.value - 10)).status).toBe(400);
+    expect((await post(slider_max_lei.value + 10)).status).toBe(400);
+    expect((await post(200.5)).status).toBe(400);
+    expect(start).not.toHaveBeenCalled();
+
+    expect((await post(200)).status).toBe(201);
+    expect(start).toHaveBeenCalledWith(expect.objectContaining({ id: 'farm-1' }), 20_000);
+    start.mockRestore();
+  });
+
+  it('refuses a second pension', async () => {
+    const { admin } = memoryAdmin();
+    admin.farmByUser = async () =>
+      ({ id: 'farm-1', stripe_customer_id: 'cus_1', pension_plans: [{ monthly_bani: 20_000, status: 'active' }] }) as never;
+    const res = await request(makeApp(admin)).post('/api/pension').set('Authorization', 'Bearer good').send({ monthlyLei: 200 });
+    expect(res.status).toBe(409);
+  });
+});

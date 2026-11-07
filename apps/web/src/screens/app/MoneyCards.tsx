@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { t } from '../../i18n';
 import { api } from '../../api/client';
 import { Icon } from '../../components/Icon';
+import { leiToBani, simulatePension } from '@cropcash/shared';
 import { cropName, type Farm, type FarmPlan } from '../../lib/plan';
 import { formatDayMonth, formatDayMonthYear, formatLei } from '../../lib/format';
 
@@ -153,22 +154,29 @@ export function DemoCard({
   );
 }
 
-/** Pension contribution (simulated Pilon III) as a monthly Stripe subscription. Step 7 adds the 65-year simulation. */
+/**
+ * Screen Î3: old-age savings. The slider and the 65-year simulation work offline
+ * (packages/shared/src/pension); "Pornesc" creates the Stripe subscription and needs the net.
+ */
 export function PensionCard({ farm, plan, onChanged, className = '' }: { farm: Farm; plan: FarmPlan; onChanged: () => Promise<void>; className?: string }) {
-  const suggested = Math.max(50, Math.floor(((plan.salary.salary / 100) * 0.05) / 50) * 50);
-  const [amount, setAmount] = useState(String(suggested));
+  const p = plan.pension;
+  const [lei, setLei] = useState(plan.pensionSuggested / 100);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saved = -plan.transactions.filter((tx) => tx.kind === 'pension').reduce((s, tx) => s + tx.amount_bani, 0);
+  const active = plan.pensionMonthly > 0;
+  const monthly = active ? plan.pensionMonthly : leiToBani(lei);
+  const sim = simulatePension(plan.age, monthly, p);
 
   const start = async () => {
-    const monthlyLei = Number(amount.replace(/[.\s]/g, ''));
-    if (!Number.isInteger(monthlyLei) || monthlyLei < 10 || monthlyLei > 5000) return setError(t('pension.invalid'));
+    if (!Number.isInteger(lei) || lei < p.sliderMinLei || lei > p.sliderMaxLei) {
+      return setError(t('pension.invalid', { min: p.sliderMinLei, max: p.sliderMaxLei }));
+    }
     if (!navigator.onLine) return setError(t('offline.needed.save_plan'));
     setBusy(true);
     setError(null);
     try {
-      await api('/api/pension', { method: 'POST', body: JSON.stringify({ monthlyLei }) });
+      await api('/api/pension', { method: 'POST', body: JSON.stringify({ monthlyLei: lei }) });
       await onChanged();
     } catch {
       setError(t('common.error'));
@@ -182,7 +190,7 @@ export function PensionCard({ farm, plan, onChanged, className = '' }: { farm: F
       <div className="card-h">
         <h2>{t('pension.title')}</h2>
       </div>
-      {plan.pensionMonthly > 0 ? (
+      {active ? (
         <>
           <p className="n20">{t('pension.active', { amount: formatLei(plan.pensionMonthly) })}</p>
           <p className="muted">{t('pension.saved', { amount: formatLei(saved) })}</p>
@@ -190,26 +198,65 @@ export function PensionCard({ farm, plan, onChanged, className = '' }: { farm: F
       ) : (
         <>
           <p className="muted">{t('pension.lead')}</p>
-          {farm.stripe_account_id ? (
-            <>
-              <label className="field-l">
-                {t('pension.amount')}
-                <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ''))} />
-              </label>
-              {error && (
-                <p role="alert" className="err">
-                  {error}
-                </p>
-              )}
-              <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void start()}>
-                {busy ? t('common.wait') : t('pension.start')}
-              </button>
-            </>
-          ) : (
-            <p className="note" style={{ marginTop: 8 }}>{t('demo.needSetup')}</p>
-          )}
+          <label className="field-l" style={{ marginTop: 12 }}>
+            {t('pension.amount')}: <b>{t('pension.amountValue', { amount: formatLei(monthly) })}</b>
+            <input
+              type="range"
+              min={p.sliderMinLei}
+              max={p.sliderMaxLei}
+              step={p.sliderStepLei}
+              value={lei}
+              onChange={(e) => setLei(Number(e.target.value))}
+              style={{ width: '100%', minHeight: 44, accentColor: 'var(--ink-b)' }}
+            />
+          </label>
+          <p className="note">{t('pension.suggested', { amount: formatLei(plan.pensionSuggested), pct: p.suggestMaxPctOfSalary })}</p>
         </>
       )}
+
+      {sim ? (
+        <div style={{ marginTop: 14 }}>
+          <p className="res-label">{t('pension.result', { age: p.targetAge })}</p>
+          <p className="res-amt">
+            {formatLei(sim.atTarget.probable, 1000)} {t('common.lei')}
+          </p>
+          <p className="muted">{t('pension.resultMonthly', { amount: formatLei(sim.perMonthAfter, 5), years: p.payoutYears })}</p>
+          <p className="note" style={{ marginTop: 6 }}>{t('pension.paidIn', { amount: formatLei(sim.paidIn) })}</p>
+          <details style={{ marginTop: 8 }}>
+            <summary className="note" style={{ cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' }}>
+              {t('pension.howTitle')}
+            </summary>
+            <p className="note">
+              {t('pension.howBody', {
+                probable: p.returnsPct.probable,
+                low: p.returnsPct.low,
+                high: p.returnsPct.high,
+                min: formatLei(sim.atTarget.low, 1000),
+                max: formatLei(sim.atTarget.high, 1000),
+              })}
+            </p>
+            <p className="note" style={{ marginTop: 6 }}>{t('pension.vehicle')}</p>
+          </details>
+        </div>
+      ) : (
+        <p className="note" style={{ marginTop: 8 }}>{t('pension.tooOld', { age: p.targetAge })}</p>
+      )}
+
+      {!active &&
+        (farm.stripe_account_id ? (
+          <>
+            {error && (
+              <p role="alert" className="err">
+                {error}
+              </p>
+            )}
+            <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void start()}>
+              {busy ? t('common.wait') : t('pension.start')}
+            </button>
+          </>
+        ) : (
+          <p className="note" style={{ marginTop: 8 }}>{t('demo.needSetup')}</p>
+        ))}
     </section>
   );
 }

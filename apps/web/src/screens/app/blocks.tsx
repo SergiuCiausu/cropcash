@@ -25,7 +25,7 @@ import {
   formatMonthYear,
   formatMonthYearLower,
 } from '../../lib/format';
-import { cropName, type FarmPlan } from '../../lib/plan';
+import { countyName, cropName, type FarmPlan } from '../../lib/plan';
 import { entryTitle } from '../../lib/entryText';
 
 const data = loadData();
@@ -400,9 +400,11 @@ export function SalaryCta({
 
 /* ── Reserves ──────────────────────────────────────────────────────────── */
 
+/** Screen Î2: the bad-years fund. Works offline (computed on the device). */
 export function RiskFundBody({ plan }: { plan: FarmPlan }) {
-  const saved = plan.envelopes.risk_fund;
-  const pct = plan.riskTarget ? Math.min(1, saved / plan.riskTarget) : 0;
+  const { saved, missing, done } = plan.riskFund;
+  const pct = plan.riskFund.pct / 100;
+  const bad = plan.badYears;
   return (
     <div>
       <p className="res-label">{t('reserve.badYearTitle')}</p>
@@ -416,9 +418,27 @@ export function RiskFundBody({ plan }: { plan: FarmPlan }) {
         <span>{t('reserve.badYearHave')}</span>
         <span>{t('reserve.badYearOf', { amount: formatLei(plan.riskTarget) })}</span>
       </div>
+      <p className="res-note" style={{ display: 'block', fontWeight: 600 }}>
+        {done ? t('reserve.badYearDone') : t('reserve.badYearMissing', { amount: formatLei(missing) })}
+      </p>
+      {bad && (
+        <p className="res-note" style={{ display: 'block' }}>
+          {t('reserve.badYearFreq', {
+            county: countyName(bad.county),
+            crop: cropName(bad.cropId).toLocaleLowerCase('ro-RO'),
+            bad: bad.bad,
+            total: bad.total,
+          })}
+        </p>
+      )}
       <p className="res-note" style={{ display: 'block' }}>
         {t('reserve.badYearWhy', { amount: formatLei(plan.riskTarget) })}
       </p>
+      {!done && (
+        <p className="res-note" style={{ display: 'block' }}>
+          {t('reserve.badYearHow', { pct: plan.riskPct })}
+        </p>
+      )}
     </div>
   );
 }

@@ -220,7 +220,11 @@
     "springOk": "Îți ajung, dacă nu-i cheltui pe altceva până atunci.",
     "springShort": "Îți lipsesc cam {amount} lei. Gândește-te de acum de unde îi iei.",
     "springNone": "Nu vedem luni grele în următorul an.",
-    "note": "Mai bine puși deoparte din toamnă"
+    "note": "Mai bine puși deoparte din toamnă",
+    "badYearFreq": "În {county}, la {crop}, {bad} din {total} ani au fost proști.",
+    "badYearMissing": "Mai ai de strâns {amount} lei.",
+    "badYearDone": "Fondul e plin. De acum, banii din încasări merg în celelalte plicuri.",
+    "badYearHow": "Punem deoparte {pct}% din fiecare încasare (APIA, recoltă), până se umple."
   },
   "subsidy": {
     "hello": "Bună, {name}!",
@@ -393,11 +397,20 @@
   },
   "pension": {
     "title": "Bătrânețe",
-    "lead": "Pune deoparte o sumă mică în fiecare lună. În demo e un abonament Stripe care simulează Pilonul III.",
-    "amount": "Cât pui pe lună (lei)",
-    "start": "Pornește",
+    "lead": "Cât pui deoparte în fiecare lună pentru bătrânețe?",
+    "amount": "Cât pui pe lună",
+    "amountValue": "{amount} lei pe lună",
+    "suggested": "Îți propunem {amount} lei: cel mult {pct}% din salariul tău, ca să nu-ți lipsească.",
+    "result": "La {age} de ani ai cam",
+    "resultMonthly": "Adică vreo {amount} lei în plus pe lună, timp de {years} ani.",
+    "paidIn": "Din banii ăștia, {amount} lei îi pui tu. Restul vine din creștere.",
+    "howTitle": "Cum am socotit",
+    "howBody": "Cifra de mai sus e pentru o creștere de {probable}% pe an. Dacă banii cresc doar cu {low}% pe an, ai cam {min} lei. Dacă cresc cu {high}% pe an, cam {max} lei. E o simulare, nu o promisiune și nu e un sfat de investiții.",
+    "vehicle": "În demo, banii pleacă lunar printr-un abonament Stripe de test, care simulează Pilonul III. Nu se deschide un cont real.",
+    "tooOld": "Simularea e pentru cine are sub {age} de ani. Poți pune totuși bani deoparte în fiecare lună.",
+    "start": "Pornesc",
     "active": "Pui {amount} lei pe lună.",
     "saved": "Până acum: {amount} lei",
-    "invalid": "Scrie o sumă între 10 și 5.000 lei."
+    "invalid": "Alege o sumă între {min} și {max} lei."
   }
 }

@@ -1,11 +1,78 @@
 {
   "meta": {
-    "description": "Parametrii de produs pentru plan (plicuri, salariu, credit). Nu sunt cifre oficiale: sunt presupuneri de produs, listate în docs/11-open-questions.md (P5, P7, P8)."
+    "description": "Parametrii de produs pentru plan (plicuri, salariu, credit). Nu sunt cifre oficiale: sunt presupuneri de produs, listate în docs/11-open-questions.md (P5, P6, P7, P8)."
   },
-  "salary_round_lei": { "value": 50, "status": "presupunere", "note": "Salariul se rotunjește în jos la 50 lei (P8)." },
-  "credit_round_lei": { "value": 100, "status": "presupunere", "note": "Creditul sugerat se rotunjește în sus la 100 lei (P8)." },
-  "risk_fund_pct_of_inflow": { "value": 10, "status": "presupunere", "note": "10% din fiecare încasare merge în fondul pentru ani proști, până la țintă (P5)." },
-  "pension_suggest_max_pct_of_salary": { "value": 5, "status": "presupunere", "note": "Contribuția de pensie sugerată (P7)." },
+  "salary_round_lei": {
+    "value": 50,
+    "status": "presupunere",
+    "note": "Salariul se rotunjește în jos la 50 lei (P8)."
+  },
+  "credit_round_lei": {
+    "value": 100,
+    "status": "presupunere",
+    "note": "Creditul sugerat se rotunjește în sus la 100 lei (P8)."
+  },
+  "risk_fund_pct_of_inflow": {
+    "value": 10,
+    "status": "presupunere",
+    "note": "10% din fiecare încasare merge în fondul pentru ani proști, până la țintă (P5)."
+  },
+  "pension_suggest_max_pct_of_salary": {
+    "value": 5,
+    "status": "presupunere",
+    "note": "Contribuția de pensie sugerată (P7)."
+  },
+  "pension": {
+    "target_age": {
+      "value": 65,
+      "status": "presupunere",
+      "note": "Vârsta până la care simulăm contribuția (docs/05 §4)."
+    },
+    "annual_return_pct": {
+      "low": 2,
+      "probable": 4,
+      "high": 6,
+      "status": "presupunere",
+      "note": "Randamente ilustrative, nu promisiuni și nu consultanță (P6)."
+    },
+    "payout_years": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Pe câți ani împărțim suma strânsă ca să o arătăm în lei pe lună. Ilustrare simplă, nu o anuitate reală (docs/05 §4)."
+    },
+    "round_lei": {
+      "value": 50,
+      "status": "presupunere",
+      "note": "Contribuția sugerată se rotunjește în jos la 50 lei (P7)."
+    },
+    "slider_min_lei": {
+      "value": 50,
+      "status": "presupunere",
+      "note": "Ecranul Î3: slider între 50 și 500 lei (docs/06)."
+    },
+    "slider_max_lei": {
+      "value": 500,
+      "status": "presupunere",
+      "note": "Ecranul Î3 (docs/06)."
+    },
+    "slider_step_lei": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Pasul slider-ului."
+    }
+  },
+  "bad_year": {
+    "threshold_pct_of_mean": {
+      "value": 80,
+      "status": "presupunere",
+      "note": "An prost = producția județului sub 80% din media pe ultimii ani (docs/07 §5)."
+    },
+    "window_years": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Câți ani de istoric INS numărăm (docs/07 §5)."
+    }
+  },
   "credit": {
     "max_pct_of_subsidy": {
       "value": 90,
@@ -13,8 +80,20 @@
       "source": "Comunicat APIA, 27 mai 2026 (docs/02-problem-context.md)",
       "note": "Creditul pe adeverința APIA: până la 90% din subvenția de încasat."
     },
-    "bank_margin_over_robor_pct": { "value": 2, "status": "confirmat-2026", "source": "Comunicat APIA, 27 mai 2026" },
-    "ifn_margin_over_robor_pct": { "value": 8, "status": "confirmat-2026", "source": "Comunicat APIA, 27 mai 2026" },
-    "robor_6m_pct": { "value": null, "status": "DE-VERIFICAT", "note": "Lipsește valoarea curentă; dobânda nu intră încă în calcul." }
+    "bank_margin_over_robor_pct": {
+      "value": 2,
+      "status": "confirmat-2026",
+      "source": "Comunicat APIA, 27 mai 2026"
+    },
+    "ifn_margin_over_robor_pct": {
+      "value": 8,
+      "status": "confirmat-2026",
+      "source": "Comunicat APIA, 27 mai 2026"
+    },
+    "robor_6m_pct": {
+      "value": null,
+      "status": "DE-VERIFICAT",
+      "note": "Lipsește valoarea curentă; dobânda nu intră încă în calcul."
+    }
   }
 }

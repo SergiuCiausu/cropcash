@@ -165,6 +165,21 @@ export const PlanParamsFileSchema = z.object({
   credit_round_lei: PositiveParam,
   risk_fund_pct_of_inflow: z.object({ value: z.number().min(0).max(100) }).passthrough(),
   pension_suggest_max_pct_of_salary: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+  pension: z.object({
+    target_age: PositiveParam,
+    annual_return_pct: z
+      .object({ low: z.number().min(0), probable: z.number().min(0), high: z.number().min(0) })
+      .passthrough(),
+    payout_years: PositiveParam,
+    round_lei: PositiveParam,
+    slider_min_lei: PositiveParam,
+    slider_max_lei: PositiveParam,
+    slider_step_lei: PositiveParam,
+  }),
+  bad_year: z.object({
+    threshold_pct_of_mean: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+    window_years: PositiveParam,
+  }),
   credit: z.object({
     max_pct_of_subsidy: z.object({ value: z.number().min(0).max(100) }).passthrough(),
     bank_margin_over_robor_pct: Param,
@@ -200,9 +215,18 @@ export const CropSchema = z.object({
 });
 export type Crop = z.infer<typeof CropSchema>;
 
+/** One year of county-level yield for a crop (INS). Empty until the data is downloaded. */
+export const CountyYieldSchema = z.object({
+  county: z.string(),
+  crop_id: z.string(),
+  year: z.number().int(),
+  yield_t_per_ha: z.number().nonnegative(),
+});
+export type CountyYield = z.infer<typeof CountyYieldSchema>;
+
 export const CropsFileSchema = z.object({
   meta: z.object({ source_url: z.string().url() }).passthrough(),
   crops: z.array(CropSchema),
-  county_history: z.object({ status: StatusSchema, data: z.array(z.unknown()) }).passthrough(),
+  county_history: z.object({ status: StatusSchema, data: z.array(CountyYieldSchema) }).passthrough(),
 });
 export type CropsFile = z.infer<typeof CropsFileSchema>;
