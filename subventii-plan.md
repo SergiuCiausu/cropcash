@@ -21,7 +21,7 @@ Checked on the live sites on 7 November 2026.
 | MADR's `Last-Modified` on HTML appears to be the request time. | Never treat it as proof of a change. |
 | PDFs on APIA, ONVPV, AFIR and MADR have real `ETag` or `Last-Modified`. | PDFs can be skipped with headers alone. |
 | APIA and ONVPV return a real `304` with 0 bytes, on HTML and PDFs. | Conditional requests work. |
-| Several servers, including all of APIA and MADR, omit the intermediate certificate. Node rejects them; browsers and Windows don't. | `certs/intermediates.pem` holds the 3 missing certificates. Verification stays on. Run `pnpm update-certs` if a site starts failing with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. |
+| Several servers, including all of APIA and MADR, omit the intermediate certificate. Node rejects them; browsers and Windows don't. | `certs/intermediates.pem` holds the 3 missing certificates. Verification stays on. Run `npm run update-certs` if a site starts failing with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. |
 | AFIR `/api/file/document` links return 404 on HEAD and 302 on GET. | Resolve the redirect first, then check the real file. |
 | The EC returned `Content-Length: 0` on HEAD for an HTML page. | Treat 0 as unknown. |
 | `robots.txt` no longer matches section 3 of the spec. MADR, APIA, MIPE, ANSVSA and RRN-PAC do not block general bots from the listed paths. DAJ Botoșani and MySMIS resources do block us. | Read the rules live on each run. Do not hardcode a blocklist. |
@@ -35,7 +35,7 @@ Checked on the live sites on 7 November 2026.
 
 ## Stack
 
-Node 22, TypeScript, pnpm.
+Node 22, TypeScript, npm (workspace of the CropCash repo).
 
 | Job | Choice |
 |---|---|
@@ -77,7 +77,7 @@ subventii-monitor/
     report/
       daily.ts           change report
       digest.ts          farmer digest, closing-soon alerts
-  supabase/migrations/   database schema
+  (schema: ../supabase/migrations/004–007)
   certs/                 intermediates.pem
   scripts/               update-certs.ts
   tests/
@@ -137,7 +137,7 @@ Writes aren't in one transaction. The source row is updated last, so a crash can
 | # | Work | Done when |
 |---|---|---|
 | A1 ✓ | Project setup, seed, fetcher | All 180 URLs load (Neamț has none). First pass lists every 404, redirect and block. See `reports/first-pass-2026-11-07.md`. |
-| A2 | Cascade, extraction, tests, Supabase | A local test server covers `304`, unchanged hash, changed hash and the AFIR redirect. At least one real server returns `304`. `pnpm seed` and `pnpm monitor` work on the hosted Supabase project. |
+| A2 | Cascade, extraction, tests, Supabase | A local test server covers `304`, unchanged hash, changed hash and the AFIR redirect. At least one real server returns `304`. `npm run seed` and `npm run monitor` work on the hosted Supabase project. |
 | A3 | Selectors, then noise check, then the issues below | Two runs a few minutes apart report no changes on those sites. AFIR's sessions list is captured in full. |
 | A4 | Links, keyword scoring, PDF version grouping | A new link added to a test page appears in the report; baseline links do not. |
 | A5 | Daily report | Report lists new, changed, gone and error sources with diffs. On a quiet day it says only that. |

@@ -26,9 +26,9 @@ Tests: 139 passing, typecheck clean.
 
 Needs a hosted Supabase project.
 
-1. Run the four files in `supabase/migrations/`, in name order, with `supabase db push` or in the SQL Editor.
+1. From the repo root, run `npm run db:migrate`. The monitor schema is `supabase/migrations/004`–`007` (with the app schema), already applied on the shared project.
 2. Fill `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env`.
-3. Run `pnpm seed`, then `pnpm monitor` twice. The second run should show few downloads and no false changes.
+3. Run `npm run seed`, then `npm run monitor` twice. The second run should show few downloads and no false changes.
 
 ## Plan A
 
@@ -100,11 +100,11 @@ Windows task "Subventii Monitor" runs `scripts/daily.cmd` every day at 07:00, wi
 
 ## Open issue: undici crash
 
-The first real `pnpm monitor` crashed on `assert(!this.paused)` in undici. It's a known undici bug (nodejs/undici#5360): a server closes the connection while reading is paused. Reproduced locally on 7.30.2 and 6.29.1. The fix is only in undici 8, which needs Node 22.19 or newer, and this machine has 22.14.
+The first real `npm run monitor` crashed on `assert(!this.paused)` in undici. It's a known undici bug (nodejs/undici#5360): a server closes the connection while reading is paused. Reproduced locally on 7.30.2 and 6.29.1. The fix is only in undici 8, which needs Node 22.19 or newer, and this machine has 22.14.
 
 - Run 1 (2026-11-07) still checked all 179 sources and saved them, but it has no report and no finish time.
 - Until this is fixed, a run can crash at any point. The next run picks up whatever was still due.
-- Fix: upgrade Node to 22.19 or newer, then `pnpm add undici@^8.12.4`, and rerun the crash test.
+- Fix: upgrade Node to 22.19 or newer, then `npm install undici@^8.12.4 -w subventii-monitor`, and rerun the crash test.
 
 ## Next: the app
 

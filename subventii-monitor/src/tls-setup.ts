@@ -1,7 +1,7 @@
 // Some government servers send their own certificate but not the intermediate
 // that links it to a trusted root. Browsers and Windows fetch it themselves;
 // Node doesn't. Trusting those intermediates keeps verification fully on.
-// `pnpm update-certs` refreshes the file.
+// `npm run update-certs` refreshes the file.
 import fs from 'node:fs';
 import path from 'node:path';
 import tls from 'node:tls';

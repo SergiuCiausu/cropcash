@@ -1,8 +1,8 @@
 // Finds pages whose extracted text changes when nothing real happened.
 //
-//   pnpm noise-check fetch first     saves every HTML source's raw page
-//   pnpm noise-check fetch second    same again, some minutes later
-//   pnpm noise-check compare first second
+//   npm run noise-check -- fetch first     saves every HTML source's raw page
+//   npm run noise-check -- fetch second    same again, some minutes later
+//   npm run noise-check -- compare first second
 //
 // Comparing re-runs extraction on the saved pages, so selectors can be tuned
 // without sending the sites any more requests.
@@ -122,6 +122,6 @@ if (command === 'fetch' && a) {
 } else if (command === 'compare' && a && b) {
   await compare(a, b);
 } else {
-  console.error('Usage: pnpm noise-check fetch <label> | compare <labelA> <labelB>');
+  console.error('Usage: npm run noise-check -- fetch <label> | compare <labelA> <labelB>');
   process.exitCode = 1;
 }

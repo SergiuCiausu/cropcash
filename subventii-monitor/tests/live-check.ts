@@ -1,4 +1,4 @@
-// Manual check against real sites: pnpm exec tsx tests/live-check.ts
+// Manual check against real sites: npx tsx tests/live-check.ts
 // Runs the cascade twice in memory. Nothing is written to Supabase.
 import { checkSource } from '../src/detect.ts';
 import { loadUserAgent } from '../src/config.ts';

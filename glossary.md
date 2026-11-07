@@ -191,7 +191,7 @@ These are plain-language explanations for working on the project, not legal or f
 |---|---|
 | **TypeScript** | JavaScript with type checking. |
 | **Node.js** | Runs JavaScript or TypeScript outside a browser. |
-| **pnpm** | Installs project libraries. |
+| **npm** | Installs project libraries. The whole repo is one npm workspace. |
 | **cheerio** | Reads HTML with selectors. The TypeScript counterpart to BeautifulSoup. |
 | **BeautifulSoup** | The popular Python library for reading HTML. |
 | **defuddle** | Finds a page's main content automatically. Our fallback when there's no custom selector. |
