@@ -6,27 +6,73 @@
   "schemes": {
     "PD-01": {
       "actual": [
-        { "year": 2023, "value": 97.57, "status": "din-brief" },
-        { "year": 2024, "value": 96.39, "status": "din-2024" },
-        { "year": 2025, "value": 89.34, "status": "din-2025" },
-        { "year": 2026, "value": 101.03, "status": "confirmat-2026", "note": "Referință pentru avans, nu cuantum final." }
+        {
+          "year": 2023,
+          "value": 97.57,
+          "status": "din-brief"
+        },
+        {
+          "year": 2024,
+          "value": 96.39,
+          "status": "din-2024"
+        },
+        {
+          "year": 2025,
+          "value": 89.34,
+          "status": "din-2025"
+        },
+        {
+          "year": 2026,
+          "value": 101.03,
+          "status": "confirmat-2026",
+          "note": "Referință pentru avans, nu cuantum final.",
+          "is_reference": true
+        }
       ],
       "planned_pns": [
-        { "year": 2023, "value": 96.47 },
-        { "year": 2024, "value": 97.85 },
-        { "year": 2025, "value": 99.27 },
-        { "year": 2026, "value": 100.66 },
-        { "year": 2027, "value": 103.06 }
+        {
+          "year": 2023,
+          "value": 96.47
+        },
+        {
+          "year": 2024,
+          "value": 97.85
+        },
+        {
+          "year": 2025,
+          "value": 99.27
+        },
+        {
+          "year": 2026,
+          "value": 100.66
+        },
+        {
+          "year": 2027,
+          "value": 103.06
+        }
       ],
       "planned_status": "din-brief",
       "source_url": null
     },
     "PD-28": {
       "campaign_2025_timeline": [
-        { "stage": "planificat", "value": 58.18 },
-        { "stage": "anunțat", "value": 20 },
-        { "stage": "stabilit", "value": 32.9366, "note": "Au fost declarate ~5,9 milioane ha, peste estimări." },
-        { "stage": "proiect de majorare", "value": 40.2089 }
+        {
+          "stage": "planificat",
+          "value": 58.18
+        },
+        {
+          "stage": "anunțat",
+          "value": 20
+        },
+        {
+          "stage": "stabilit",
+          "value": 32.9366,
+          "note": "Au fost declarate ~5,9 milioane ha, peste estimări."
+        },
+        {
+          "stage": "proiect de majorare",
+          "value": 40.2089
+        }
       ],
       "status": "din-2025",
       "source_urls": [
@@ -34,10 +80,30 @@
         "https://www.economica.net/?p=932602"
       ]
     },
-    "PD-02": { "actual": [], "planned_pns": [], "status": "DE-VERIFICAT", "note": "Lipsește istoricul. Se folosesc factorii de la PD-01." },
-    "PD-03": { "actual": [], "planned_pns": [], "status": "DE-VERIFICAT", "note": "Lipsește istoricul. Se folosesc factorii de la PD-01." },
-    "PD-04": { "actual": [], "planned_pns": [], "status": "DE-VERIFICAT", "note": "Lipsește istoricul. Se folosesc factorii de la PD-01." },
-    "PD-05": { "actual": [], "planned_pns": [], "status": "DE-VERIFICAT", "note": "Lipsește istoricul. Se folosesc factorii de la PD-01." }
+    "PD-02": {
+      "actual": [],
+      "planned_pns": [],
+      "status": "DE-VERIFICAT",
+      "note": "Lipsește istoricul. Se folosesc factorii de la PD-01."
+    },
+    "PD-03": {
+      "actual": [],
+      "planned_pns": [],
+      "status": "DE-VERIFICAT",
+      "note": "Lipsește istoricul. Se folosesc factorii de la PD-01."
+    },
+    "PD-04": {
+      "actual": [],
+      "planned_pns": [],
+      "status": "DE-VERIFICAT",
+      "note": "Lipsește istoricul. Se folosesc factorii de la PD-01."
+    },
+    "PD-05": {
+      "actual": [],
+      "planned_pns": [],
+      "status": "DE-VERIFICAT",
+      "note": "Lipsește istoricul. Se folosesc factorii de la PD-01."
+    }
   },
   "range_policy": {
     "description": "Factorii se calculează în cod, nu se scriu de mână. factor_an = actual / planned_pns, pentru anii care au ambele valori (2023–2025).",

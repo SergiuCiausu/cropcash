@@ -3,7 +3,14 @@
     "campaign_year": 2026,
     "currency": "EUR",
     "description": "Scheme APIA pentru campania 2026, folosite de motorul de subvenții. Cuantumurile sunt cele de referință pentru avansul 2026.",
-    "status_values": ["confirmat-2026", "din-2025", "din-2024", "din-2020", "din-brief", "DE-VERIFICAT"],
+    "status_values": [
+      "confirmat-2026",
+      "din-2025",
+      "din-2024",
+      "din-2020",
+      "din-brief",
+      "DE-VERIFICAT"
+    ],
     "sources": [
       "https://www.economica.net/?p=981850",
       "https://financiarul.ro/agricultura/avansul-apia-incepe-pe-16-octombrie-cu-sume-maxime-intre-219-18-si-399/"
@@ -52,6 +59,7 @@
       "code": "PD-01",
       "name_ro": "Sprijin de bază (BISS)",
       "unit": "ha",
+      "units_field": "total_ha",
       "amount_eur": 101.03,
       "advance_pct": 75,
       "advance_amount_eur": 75.77,
@@ -59,11 +67,26 @@
       "max_ha": null,
       "eligibility": {
         "rules": [
-          { "field": "total_ha", "op": ">=", "value": 1, "status": "DE-VERIFICAT", "note": "Pragul minim de 1 ha pe fermă nu apare în sursele verificate." }
+          {
+            "field": "total_ha",
+            "op": ">=",
+            "value": 1,
+            "status": "DE-VERIFICAT",
+            "note": "Pragul minim de 1 ha pe fermă nu apare în sursele verificate."
+          }
         ],
-        "parcel_min_ha": { "value": 0.3, "status": "DE-VERIFICAT" }
+        "parcel_min_ha": {
+          "value": 0.3,
+          "status": "DE-VERIFICAT"
+        }
       },
-      "combinable_with": ["PD-02", "PD-03", "PD-04", "PD-05", "PD-28"],
+      "combinable_with": [
+        "PD-02",
+        "PD-03",
+        "PD-04",
+        "PD-05",
+        "PD-28"
+      ],
       "source_url": "https://www.economica.net/?p=981850",
       "year": 2026,
       "status": "confirmat-2026"
@@ -72,6 +95,7 @@
       "code": "PD-02",
       "name_ro": "Sprijin redistributiv (CRISS)",
       "unit": "ha",
+      "units_field": "total_ha",
       "amount_eur": 55.69,
       "advance_pct": 75,
       "advance_amount_eur": null,
@@ -79,11 +103,28 @@
       "max_ha": null,
       "eligibility": {
         "rules": [
-          { "field": "total_ha", "op": ">=", "value": 1, "status": "DE-VERIFICAT" },
-          { "field": "total_ha", "op": "<=", "value": 50, "status": "DE-VERIFICAT", "note": "Peste 50 ha se pierde sprijinul pe toată suprafața. De verificat în textul PS PAC." }
+          {
+            "field": "total_ha",
+            "op": ">=",
+            "value": 1,
+            "status": "DE-VERIFICAT"
+          },
+          {
+            "field": "total_ha",
+            "op": "<=",
+            "value": 50,
+            "status": "DE-VERIFICAT",
+            "note": "Peste 50 ha se pierde sprijinul pe toată suprafața. De verificat în textul PS PAC."
+          }
         ]
       },
-      "combinable_with": ["PD-01", "PD-03", "PD-04", "PD-05", "PD-28"],
+      "combinable_with": [
+        "PD-01",
+        "PD-03",
+        "PD-04",
+        "PD-05",
+        "PD-28"
+      ],
       "source_url": "https://folositor.ro/ghid/cat-castiga-un-fermier-in-romania",
       "year": 2026,
       "status": "confirmat-2026",
@@ -93,6 +134,7 @@
       "code": "PD-03",
       "name_ro": "Sprijin pentru tineri fermieri",
       "unit": "ha",
+      "units_field": "total_ha",
       "amount_eur": 55.36,
       "advance_pct": 75,
       "advance_amount_eur": null,
@@ -101,12 +143,23 @@
       "max_ha_status": "DE-VERIFICAT",
       "eligibility": {
         "rules": [
-          { "field": "age", "op": "<", "value": 40, "status": "confirmat-2026" }
+          {
+            "field": "age",
+            "op": "<",
+            "value": 40,
+            "status": "confirmat-2026"
+          }
         ],
         "other_conditions_status": "DE-VERIFICAT",
         "note": "Probabil există condiții suplimentare (prima instalare, pregătire profesională, plafon de ha). Nu sunt în sursele verificate."
       },
-      "combinable_with": ["PD-01", "PD-02", "PD-04", "PD-05", "PD-28"],
+      "combinable_with": [
+        "PD-01",
+        "PD-02",
+        "PD-04",
+        "PD-05",
+        "PD-28"
+      ],
       "source_url": "https://www.economica.net/?p=981850",
       "year": 2026,
       "status": "confirmat-2026"
@@ -115,6 +168,7 @@
       "code": "PD-04",
       "name_ro": "Eco-schemă pentru teren arabil",
       "unit": "ha",
+      "units_field": "arable_ha",
       "amount_eur": 56.28,
       "advance_pct": 75,
       "advance_amount_eur": 42.21,
@@ -122,22 +176,49 @@
       "max_ha": null,
       "eligibility": {
         "rules": [
-          { "field": "arable_ha", "op": ">=", "value": 10.01, "status": "confirmat-2026" },
           {
-            "if": { "field": "arable_ha", "op": "<=", "value": 30 },
-            "then": [ { "field": "distinct_crops", "op": ">=", "value": 2 } ],
+            "field": "arable_ha",
+            "op": ">=",
+            "value": 10.01,
             "status": "confirmat-2026"
           },
           {
-            "if": { "field": "arable_ha", "op": ">", "value": 30 },
+            "if": {
+              "field": "arable_ha",
+              "op": "<=",
+              "value": 30
+            },
+            "then": [
+              {
+                "field": "distinct_crops",
+                "op": ">=",
+                "value": 2
+              }
+            ],
+            "status": "confirmat-2026"
+          },
+          {
+            "if": {
+              "field": "arable_ha",
+              "op": ">",
+              "value": 30
+            },
             "then": [],
             "status": "DE-VERIFICAT",
             "note": "Condițiile de diversificare peste 30 ha nu sunt în sursele verificate."
           }
         ],
-        "parcel_min_ha": { "value": 0.3, "status": "confirmat-2026" }
+        "parcel_min_ha": {
+          "value": 0.3,
+          "status": "confirmat-2026"
+        }
       },
-      "combinable_with": ["PD-01", "PD-02", "PD-03", "PD-28"],
+      "combinable_with": [
+        "PD-01",
+        "PD-02",
+        "PD-03",
+        "PD-28"
+      ],
       "source_url": "https://agrointel.ro/wp-content/uploads/2025/02/pd-04-agrointeligenta.pdf",
       "year": 2026,
       "status": "confirmat-2026"
@@ -146,6 +227,7 @@
       "code": "PD-05",
       "name_ro": "Eco-schemă pentru ferme mici",
       "unit": "ha",
+      "units_field": "total_ha",
       "amount_eur": 100,
       "advance_pct": 75,
       "advance_amount_eur": 75,
@@ -154,10 +236,20 @@
       "max_ha_note": "Nu e clar dacă e plafonul fermei (ferma ≤ 10 ha) sau suprafața plătită (maximum 10 ha). În MVP îl tratăm ca plafon al fermei.",
       "eligibility": {
         "rules": [
-          { "field": "total_ha", "op": "<=", "value": 10, "status": "DE-VERIFICAT" }
+          {
+            "field": "total_ha",
+            "op": "<=",
+            "value": 10,
+            "status": "DE-VERIFICAT"
+          }
         ]
       },
-      "combinable_with": ["PD-01", "PD-02", "PD-03", "PD-28"],
+      "combinable_with": [
+        "PD-01",
+        "PD-02",
+        "PD-03",
+        "PD-28"
+      ],
       "source_url": null,
       "year": 2026,
       "status": "DE-VERIFICAT"
@@ -166,6 +258,7 @@
       "code": "PD-28",
       "name_ro": "Eco-schemă pentru zone neproductive",
       "unit": "ha",
+      "units_field": "unproductive_ha",
       "amount_eur": null,
       "advance_pct": null,
       "advance_amount_eur": null,
@@ -173,11 +266,22 @@
       "max_ha": null,
       "eligibility": {
         "rules": [
-          { "field": "unproductive_ha", "op": ">", "value": 0, "status": "DE-VERIFICAT" }
+          {
+            "field": "unproductive_ha",
+            "op": ">",
+            "value": 0,
+            "status": "DE-VERIFICAT"
+          }
         ]
       },
       "note": "Cuantumul pentru 2026 nu e cunoscut. Istoricul din 2025 e în subsidies-history.json. Nu intră în calculul MVP.",
-      "combinable_with": ["PD-01", "PD-02", "PD-03", "PD-04", "PD-05"],
+      "combinable_with": [
+        "PD-01",
+        "PD-02",
+        "PD-03",
+        "PD-04",
+        "PD-05"
+      ],
       "source_url": "https://www.economica.net/?p=932602",
       "year": 2026,
       "status": "DE-VERIFICAT"
@@ -186,6 +290,7 @@
       "code": "CPL-VACI-LAPTE",
       "name_ro": "Sprijin cuplat pentru vaci de lapte",
       "unit": "cap",
+      "units_field": "dairy_cows",
       "amount_eur": 347.81,
       "advance_pct": null,
       "advance_amount_eur": null,
@@ -193,7 +298,13 @@
       "max_ha": null,
       "eligibility": {
         "rules": [
-          { "field": "dairy_cows", "op": ">", "value": 0, "status": "DE-VERIFICAT", "note": "Numărul minim de capete și condițiile de înregistrare nu sunt verificate." }
+          {
+            "field": "dairy_cows",
+            "op": ">",
+            "value": 0,
+            "status": "DE-VERIFICAT",
+            "note": "Numărul minim de capete și condițiile de înregistrare nu sunt verificate."
+          }
         ]
       },
       "combinable_with": [],
@@ -205,6 +316,7 @@
       "code": "CPL-VITA-CARNE",
       "name_ro": "Sprijin cuplat pentru vită de carne",
       "unit": "cap",
+      "units_field": "beef_cattle",
       "amount_eur": 244.72,
       "advance_pct": null,
       "advance_amount_eur": null,
@@ -212,7 +324,13 @@
       "max_ha": null,
       "eligibility": {
         "rules": [
-          { "field": "beef_cattle", "op": ">", "value": 0, "status": "DE-VERIFICAT", "note": "Numărul minim de capete și condițiile de înregistrare nu sunt verificate." }
+          {
+            "field": "beef_cattle",
+            "op": ">",
+            "value": 0,
+            "status": "DE-VERIFICAT",
+            "note": "Numărul minim de capete și condițiile de înregistrare nu sunt verificate."
+          }
         ]
       },
       "combinable_with": [],
@@ -224,13 +342,29 @@
   "test_cases": [
     {
       "id": "ion-15ha-2-culturi",
-      "input": { "total_ha": 15, "arable_ha": 15, "distinct_crops": 2, "age": 55, "dairy_cows": 0, "beef_cattle": 0, "unproductive_ha": 0 },
-      "expected_schemes": ["PD-01", "PD-02", "PD-04"],
-      "expected_total_eur": 3195.00,
-      "expected_by_scheme_eur": { "PD-01": 1515.45, "PD-02": 835.35, "PD-04": 844.20 },
+      "input": {
+        "total_ha": 15,
+        "arable_ha": 15,
+        "distinct_crops": 2,
+        "age": 55,
+        "dairy_cows": 0,
+        "beef_cattle": 0,
+        "unproductive_ha": 0
+      },
+      "expected_schemes": [
+        "PD-01",
+        "PD-02",
+        "PD-04"
+      ],
+      "expected_total_eur": 3195,
+      "expected_by_scheme_eur": {
+        "PD-01": 1515.45,
+        "PD-02": 835.35,
+        "PD-04": 844.2
+      },
       "exchange_rate_param": 5.28,
-      "expected_total_lei": 16869.60,
-      "expected_advance_lei": 12652.20
+      "expected_total_lei": 16869.6,
+      "expected_advance_lei": 12652.2
     }
   ]
 }

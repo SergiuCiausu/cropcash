@@ -16,7 +16,7 @@
   - **Fișiere:** `apps/web/src/auth/*`, `apps/api/src/middleware/auth.ts`, `supabase/migrations/001_init.sql`.
   - **Gata când:** fără login nu se vede nimic, iar un user nu poate citi datele altui user (test pe RLS).
 
-- [ ] **2. JSON-uri de date + motorul de subvenții + teste** · ~4 h · MINIM
+- [x] **2. JSON-uri de date + motorul de subvenții + teste** · ~4 h · MINIM
   - **Obiectiv:** `computeSubsidies(profile)` → interval, tranșe, motive.
   - **Fișiere:** `packages/shared/src/data/*` (loader și scheme Zod pentru `docs/data/*.json`), `money/`, `subsidies/`, `subsidies.test.ts`.
   - **Gata când:** test case-ul de 3.195,00 € / 16.869,60 lei / avans 12.652,20 lei trece, plus testele de limită din `03-subsidies.md` §8. Niciun număr hardcodat în afara JSON-urilor.

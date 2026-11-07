@@ -11,6 +11,7 @@ subvenție_lei = Σ_schemă ( unități_eligibile(schemă) × cuantum_eur(schem�
 - `unități_eligibile` înseamnă hectare eligibile (sau capete, la schemele cuplate), după regulile de eligibilitate și `max_ha`.
 - `curs` depinde de fondul schemei (`FEGA` / `FEADR`).
 - **Precizia:** calculăm în **eurocenți și bani, ca numere întregi**, ca să evităm erorile de virgulă mobilă. Hectarele se țin în sutimi de hectar (ari). Rotunjirea se face la cent pentru fiecare schemă, apoi se adună.
+- **Conversia în lei se face pe totalul în euro al fiecărui fond, nu pe fiecare schemă.** Dacă am converti schemă cu schemă, rotunjirile s-ar aduna: pentru Ion ar ieși 16.869,61 lei, nu 16.869,60. Suma în lei pe fiecare schemă e doar orientativă (`leiIndicative`). Soldul în lei = totalul în lei − avansul în lei, ca avansul și soldul să dea mereu exact totalul.
 
 ## 2. Mecanismul cuantumului (de ce suma e incertă)
 
