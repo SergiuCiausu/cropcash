@@ -11,7 +11,7 @@
   - **Fișiere:** `package.json` (workspaces), `apps/web` (Vite + React + TS + Tailwind + PWA), `apps/api` (Express + TS), `packages/shared`, `vitest.config.ts`, `.gitignore`, `git init`.
   - **Gata când:** `npm run dev` pornește web (5173) și api (3001), `npm test` rulează un test trivial, iar `npm run build` trece.
 
-- [ ] **1b. Login (Supabase Auth)** · ~2 h · MINIM
+- [x] **1b. Login (Supabase Auth)** · ~2 h · MINIM
   - **Obiectiv:** login și înregistrare cu email + parolă; API-ul verifică JWT-ul Supabase; RLS activ.
   - **Fișiere:** `apps/web/src/auth/*`, `apps/api/src/middleware/auth.ts`, `supabase/migrations/001_init.sql`.
   - **Gata când:** fără login nu se vede nimic, iar un user nu poate citi datele altui user (test pe RLS).

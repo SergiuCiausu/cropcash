@@ -16,7 +16,10 @@ Deploy: front pe **Netlify**, API pe **VPS RareCloud** (pm2 + Caddy cu HTTPS), D
 npm install
 npm run dev          # web :5173 + api :3001
 npm run build
-npm test             # Vitest
+npm test             # Vitest (unit, offline)
+npm run test:integration  # pe Supabase-ul real din .env (RLS, auth)
+npm run db:migrate   # aplică supabase/migrations/*.sql (SUPABASE_DB_URL, pooler eu-west-2)
+npm run typecheck
 npm run seed:demo    # datele lui Ion
 stripe listen --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
 ```

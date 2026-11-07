@@ -1,11 +1,16 @@
 import { createApp } from './app';
+import { supabaseFactory } from './db/supabase';
+import { loadEnv } from './env';
+import { supabaseTokenVerifier } from './middleware/auth';
 
-const port = Number(process.env.PORT ?? 3001);
-const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
+const env = loadEnv();
 
-createApp(corsOrigins).listen(port, () => {
-  console.log(`[api] listening on http://localhost:${port}`);
+const app = createApp({
+  corsOrigins: env.corsOrigins,
+  verifyToken: supabaseTokenVerifier(env.supabaseUrl),
+  db: supabaseFactory(env.supabaseUrl, env.supabaseAnonKey, env.supabaseServiceKey),
+});
+
+app.listen(env.port, () => {
+  console.log(`[api] listening on http://localhost:${env.port}`);
 });

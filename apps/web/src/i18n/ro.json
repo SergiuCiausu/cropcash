@@ -2,5 +2,39 @@
   "app": {
     "name": "CropCash",
     "tagline": "Banii fermei, pe înțelesul tău"
+  },
+  "common": {
+    "wait": "Așteaptă puțin…"
+  },
+  "auth": {
+    "loginTitle": "Intră în cont",
+    "registerTitle": "Fă-ți cont",
+    "email": "Adresa de email",
+    "password": "Parola",
+    "passwordHint": "Cel puțin 6 caractere.",
+    "loginButton": "Intră",
+    "registerButton": "Fă-mi cont",
+    "switchToRegister": "N-ai cont? Fă-ți unul",
+    "switchToLogin": "Ai deja cont? Intră",
+    "logout": "Ieși din cont",
+    "checkEmail": "Ți-am trimis un email. Apasă pe linkul din el, apoi intră în cont.",
+    "errors": {
+      "invalid_credentials": "Emailul sau parola nu sunt bune.",
+      "user_already_exists": "Există deja un cont cu emailul ăsta. Intră în cont.",
+      "weak_password": "Parola e prea scurtă. Pune cel puțin 6 caractere.",
+      "email_not_confirmed": "Încă n-ai apăsat pe linkul din email.",
+      "over_email_send_rate_limit": "Prea multe încercări. Mai încearcă peste câteva minute.",
+      "validation_failed": "Verifică adresa de email.",
+      "generic": "Nu a mers. Mai încearcă o dată."
+    }
+  },
+  "home": {
+    "loggedInAs": "Ești în cont ca {email}",
+    "noFarmYet": "Încă nu ne-ai spus nimic despre fermă."
+  },
+  "offline": {
+    "needed": {
+      "login": "Pornește internetul ca să intri în cont."
+    }
   }
 }

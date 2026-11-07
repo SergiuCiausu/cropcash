@@ -355,6 +355,8 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 
 ## 9. Login și aplicația pe telefon
 
+- **Verificarea în API:** token-urile Supabase sunt semnate ES256. API-ul le verifică local, cu cheile publice ale proiectului (JWKS, puse în cache de `jose`), fără un apel la Supabase pentru fiecare cerere. Apoi interoghează baza **ca utilizatorul respectiv** (cheia publică + token-ul lui), ca să se aplice RLS. Cheia secretă (`admin()`) e doar pentru webhooks, job-uri și seed.
+- **RLS** e testat pe proiectul real cu `npm run test:integration`: doi utilizatori, izolare la citire și scriere, plus un token falsificat.
 - **Auth:** Supabase Auth cu **email + parolă**. Magic link-ul e incomod în PWA, pentru că linkul se deschide în browser, nu în aplicația instalată. Login-ul cu telefon (SMS OTP) e mai potrivit pentru fermieri, dar cere un furnizor de SMS plătit. E în roadmap.
 - **Pe telefon:** PWA instalabil („Adaugă pe ecranul principal”), cu manifest, iconițe și ecran de pornire. Merge pe Android și iOS fără magazin de aplicații. Dacă vrem în Play Store sau App Store, același cod se împachetează cu Capacitor (vezi open questions).
 - **Contul demo:** `ion@cropcash.demo`, creat de `npm run seed:demo`.
