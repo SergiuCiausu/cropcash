@@ -4,15 +4,24 @@ import calendarJson from '../../../../docs/data/calendar-2026.json';
 import cropsJson from '../../../../docs/data/crops-reference.json';
 import countiesJson from '../../../../docs/data/counties.json';
 import planParamsJson from '../../../../docs/data/plan-params.json';
+import pensionFundsJson from '../../../../docs/data/pension-funds.json';
+import pensionOptionsJson from '../../../../docs/data/pension-options.json';
+import fundingGuidesJson from '../../../../docs/data/funding-guides.json';
 import {
   CalendarFileSchema,
   CountiesFileSchema,
+  FundingGuidesFileSchema,
+  PensionFundsFileSchema,
+  PensionOptionsFileSchema,
   PlanParamsFileSchema,
   CropsFileSchema,
   HistoryFileSchema,
   SubsidiesFileSchema,
   type CalendarFile,
   type CountiesFile,
+  type FundingGuidesFile,
+  type PensionFundsFile,
+  type PensionOptionsFile,
   type PlanParamsFile,
   type CropsFile,
   type HistoryFile,
@@ -29,6 +38,9 @@ export interface AppData {
   crops: CropsFile;
   counties: CountiesFile;
   params: PlanParamsFile;
+  pensionFunds: PensionFundsFile;
+  pensionOptions: PensionOptionsFile;
+  fundingGuides: FundingGuidesFile;
 }
 
 let cached: AppData | null = null;
@@ -43,6 +55,9 @@ export function loadData(): AppData {
       crops: CropsFileSchema.parse(cropsJson),
       counties: CountiesFileSchema.parse(countiesJson),
       params: PlanParamsFileSchema.parse(planParamsJson),
+      pensionFunds: PensionFundsFileSchema.parse(pensionFundsJson),
+      pensionOptions: PensionOptionsFileSchema.parse(pensionOptionsJson),
+      fundingGuides: FundingGuidesFileSchema.parse(fundingGuidesJson),
     };
   }
   return cached;

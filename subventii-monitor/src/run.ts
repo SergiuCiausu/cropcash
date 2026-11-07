@@ -1,8 +1,10 @@
 import PQueue from 'p-queue';
 import { checkSource, type Stop } from './detect.ts';
+import { checkFarmerPages, type PageStore } from './farmer-pages.ts';
 import { Fetcher } from './fetcher.ts';
 import { refreshStatuses, syncOpportunities } from './opportunities/sync.ts';
 import type { Draft } from './opportunities/types.ts';
+import type { PageReader, TextLimits } from './read-page.ts';
 import type { Source, Store } from './store.ts';
 
 const HOST_CONCURRENCY = 10;
@@ -20,6 +22,13 @@ export interface RunSummary {
 
 /** Reads calls that don't come from a monitored page. It must throw on failure. */
 export type FetchCalls = () => Promise<Draft[]>;
+
+/** The pages farmers added, checked apart from the official sources. */
+export interface FarmerPages {
+  store: PageStore;
+  read: PageReader;
+  limits: TextLimits;
+}
 
 /** An empty answer is treated as a failure, or every stored call would close. */
 async function syncEuCalls(store: Store, fetchCalls: FetchCalls, runId: number, today: string): Promise<void> {
@@ -49,6 +58,7 @@ export async function runChecks(
   log: (message: string) => void = console.log,
   now: Date = new Date(),
   fetchCalls?: FetchCalls,
+  farmerPages?: FarmerPages,
 ): Promise<RunSummary> {
   const sources = await store.dueSources(now);
   const runId = await store.startRun('daily');
@@ -99,6 +109,12 @@ export async function runChecks(
   };
   if (fetchCalls) await attempt('Apeluri UE', () => syncEuCalls(store, fetchCalls, runId, today));
   await attempt('Actualizare stare apeluri', () => refreshStatuses(store, runId, today));
+  if (farmerPages) {
+    await attempt('Surse adăugate de fermieri', async () => {
+      const { checked, changed } = await checkFarmerPages(farmerPages.store, farmerPages.read, farmerPages.limits, log, now);
+      log(`Farmer pages: ${checked} checked, ${changed} changed`);
+    });
+  }
 
   await store.finishRun(runId, { requests: fetcher.requests, bytes: fetcher.bytes, stops, errors });
   return { runId, checked: sources.length, requests: fetcher.requests, bytes: fetcher.bytes, stops, newSources, errors };

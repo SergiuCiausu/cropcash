@@ -2,7 +2,7 @@ import express, { Router, type Request } from 'express';
 import type Stripe from 'stripe';
 import { z } from 'zod';
 import { computeFarmPlan, pensionParams, type AppData } from '@cropcash/shared';
-import type { AdminRepo } from '../db/admin';
+import type { AdminRepo, MoneyFarm } from '../db/admin';
 import type { MoneyService } from '../stripe/money';
 
 export interface MoneyDeps {
@@ -46,19 +46,51 @@ export function moneyRouter(deps: MoneyDeps): Router {
     res.json({ stripeAccountId: ready.stripe_account_id, demoNow: ready.demo_now });
   });
 
-  r.post('/pension', async (req, res) => {
-    // Same range as the slider on screen Î3 (plan-params.json).
+  /** Same range as the slider on the pension page (plan-params.json). */
+  const pensionAmount = () => {
     const { sliderMinLei, sliderMaxLei } = pensionParams(deps.data);
-    const parsed = z.object({ monthlyLei: z.number().int().min(sliderMinLei).max(sliderMaxLei) }).safeParse(req.body);
+    return z.object({ monthlyLei: z.number().int().min(sliderMinLei).max(sliderMaxLei) });
+  };
+  const running = (farm: MoneyFarm) => [farm.pension_plans ?? []].flat().some((p) => p.status === 'active');
+  /**
+   * The pension comes out of the salary, so any change fixes the salary again at what is safe now,
+   * as accepting the split or changing a credit does (docs/08 §1c). Stopping gives the money back.
+   */
+  const fixSalary = async (userId: string) => {
+    const farm = await deps.admin.farmByUser(userId);
+    if (farm) await deps.admin.setSalary(farm.id, computeFarmPlan(farm, deps.data).salary.salary);
+  };
+
+  r.post('/pension', async (req, res) => {
+    const parsed = pensionAmount().safeParse(req.body);
     if (!parsed.success) return void res.status(400).json({ error: 'invalid_input' });
     const farm = await myFarm(req, res);
     if (!farm) return void res.status(404).json({ error: 'no_farm' });
     if (!farm.stripe_customer_id) return void res.status(409).json({ error: 'stripe_not_set_up' });
-    const plans = farm.pension_plans;
-    const active = Array.isArray(plans) ? plans.some((p) => p.status === 'active') : plans?.status === 'active';
-    if (active) return void res.status(409).json({ error: 'pension_exists' });
+    if (running(farm)) return void res.status(409).json({ error: 'pension_exists' });
     await deps.money.startPension(farm, parsed.data.monthlyLei * 100);
+    await fixSalary(res.locals.auth.userId);
     res.status(201).json({ ok: true });
+  });
+
+  r.put('/pension', async (req, res) => {
+    const parsed = pensionAmount().safeParse(req.body);
+    if (!parsed.success) return void res.status(400).json({ error: 'invalid_input' });
+    const farm = await myFarm(req, res);
+    if (!farm) return void res.status(404).json({ error: 'no_farm' });
+    if (!running(farm)) return void res.status(409).json({ error: 'no_pension' });
+    await deps.money.changePension(farm, parsed.data.monthlyLei * 100);
+    await fixSalary(res.locals.auth.userId);
+    res.status(204).end();
+  });
+
+  r.delete('/pension', async (req, res) => {
+    const farm = await myFarm(req, res);
+    if (!farm) return void res.status(404).json({ error: 'no_farm' });
+    if (!running(farm)) return void res.status(409).json({ error: 'no_pension' });
+    await deps.money.stopPension(farm);
+    await fixSalary(res.locals.auth.userId);
+    res.status(204).end();
   });
 
   // ── Demo controls (test mode only) ───────────────────────────────────────

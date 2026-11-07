@@ -241,6 +241,32 @@ export class MoneyService {
     await this.syncPensionInvoices(farm);
   }
 
+  /**
+   * A new monthly amount from the next invoice on. No proration: the month already paid stays as it was,
+   * and nothing is charged or given back for it.
+   */
+  async changePension(farm: MoneyFarm, monthlyBani: number): Promise<void> {
+    const subId = runningSubscription(farm);
+    const sub = await this.stripe.subscriptions.retrieve(subId);
+    const price = await this.stripe.prices.create({
+      unit_amount: monthlyBani,
+      currency: 'ron',
+      recurring: { interval: 'month' },
+      product_data: { name: 'Contribuție pensie (simulare Pilon III)' },
+    });
+    await this.stripe.subscriptions.update(subId, {
+      items: [{ id: sub.items.data[0]!.id, price: price.id }],
+      proration_behavior: 'none',
+    });
+    await this.repo.updatePension(farm.id, { monthly_bani: monthlyBani });
+  }
+
+  /** Stops the contributions now. What was paid stays paid; nothing is given back. */
+  async stopPension(farm: MoneyFarm): Promise<void> {
+    await this.stripe.subscriptions.cancel(runningSubscription(farm), { prorate: false });
+    await this.repo.updatePension(farm.id, { status: 'stopped' });
+  }
+
   /** Records every paid pension invoice (idempotent): works with or without webhooks. */
   async syncPensionInvoices(farm: MoneyFarm): Promise<AdvanceEvent[]> {
     if (!farm.stripe_customer_id) return [];
@@ -316,8 +342,15 @@ export class MoneyService {
   async syncPayouts(farm: MoneyFarm): Promise<void> {
     if (!farm.stripe_account_id) return;
     for await (const po of this.stripe.payouts.list({ limit: 100 }, { stripeAccount: farm.stripe_account_id })) {
-      if (po.status === 'paid' || po.status === 'failed') await this.repo.setPayoutStatus(po.id, po.status);
+      if (po.status === 'paid' || po.status === 'failed') await this.markPayout(po.id, po.status);
     }
+  }
+
+  /** A salary is booked as gone when it's sent, so a failed one has to give the money back. */
+  private async markPayout(id: string, status: 'paid' | 'failed'): Promise<number> {
+    const updated = await this.repo.setPayoutStatus(id, status);
+    if (updated > 0 && status === 'failed') await this.repo.removePayoutTransaction(id);
+    return updated;
   }
 
   private async waitForClock(id: string): Promise<void> {
@@ -361,7 +394,7 @@ export class MoneyService {
         // The webhook can beat our own insert (test payouts settle almost instantly): retry briefly.
         const status = event.type === 'payout.paid' ? 'paid' : 'failed';
         for (let i = 0; i < 5; i++) {
-          if ((await this.repo.setPayoutStatus(event.data.object.id, status)) > 0) return;
+          if ((await this.markPayout(event.data.object.id, status)) > 0) return;
           await this.sleep(1000);
         }
         return;
@@ -372,3 +405,9 @@ export class MoneyService {
   }
 }
 
+/** The Stripe subscription of the pension that is running. Throws if there is none. */
+function runningSubscription(farm: MoneyFarm): string {
+  const plan = [farm.pension_plans ?? []].flat().find((p) => p.status === 'active') as { stripe_subscription_id?: string | null } | undefined;
+  if (!plan?.stripe_subscription_id) throw new Error('no running pension');
+  return plan.stripe_subscription_id;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "farm-motion",
+  "private": true,
+  "description": "Remotion source for the four looping card illustrations on landing-variations/10-harvest.html",
+  "scripts": { "studio": "remotion studio src/index.jsx", "build": "node render.mjs" },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "@remotion/google-fonts": "4.0.541",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.541"
+  }
+}

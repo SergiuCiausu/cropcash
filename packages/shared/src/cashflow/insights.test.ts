@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadData } from '../data';
 import { computeSubsidies, normalizeParcels } from '../subsidies';
 import { buildTimeline, type TimelineOptions } from './timeline';
-import { costsByCrop, cropEconomics, riskFundTarget, springNeed, upcoming } from './insights';
+import { costsByCrop, cropEconomics, springNeed, upcoming } from './insights';
 
 const data = loadData();
 const crop = (id: string) => data.crops.crops.find((c) => c.id === id)!;
@@ -30,13 +30,6 @@ describe('cropEconomics', () => {
 });
 
 describe('reserves', () => {
-  it('a bad year costs Ion ≈ 33.100 lei over the next 12 months (docs/07 §5)', () => {
-    const target = riskFundTarget(normal, bad);
-    expect(target % 10_000).toBe(0);
-    // Wheat −8.400, corn −9.975, APIA balance lower, costs higher.
-    expect(target).toBe(3_310_000);
-  });
-
   it('spring: March–May costs vs. money on hand at the end of February', () => {
     const s = springNeed(normal);
     expect(s.firstMonth).toBe('2027-03');

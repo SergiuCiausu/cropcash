@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Prognoză · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Prognoză</h1><p class="lead">Cum arată banii tăi în următoarele 12 luni.</p></div></header>
+    <p class="offline" data-offline hidden>Nu ai internet. Prognoza se calculează pe telefon, din datele salvate.</p>
+    <div class="vtabs page-tabs" role="group" aria-label="Ce fel de an" id="years"></div>
+
+    <div class="fc-pair" id="pair">
+    <section class="card fc-main">
+      <div class="card-h"><h2 id="c-title"></h2><span id="c-low"></span></div>
+      <div class="chart fc-chart" id="fc"></div>
+      <p class="note">Linia plină e anul ales, înainte de salariu și pensie. Liniile punctate sunt ceilalți doi ani.</p>
+      <div class="fc-keys" id="keys"></div>
+    </section>
+
+    <section class="card" id="ani">
+      <div class="card-h"><h2>Următorii ani</h2><span id="l-kind"></span></div>
+      <div class="vtabs" role="group" aria-label="Ce fel de ani" id="years-long"></div>
+      <div class="ha-row l-range">
+        <label for="l-years">În câți ani? <output id="l-out" for="l-years"></output></label>
+        <input type="range" id="l-years" min="1" step="1">
+      </div>
+      <p class="l-head" id="l-head"></p>
+      <p class="lead" id="l-range"></p>
+      <div class="chart fc-chart" id="l-chart"></div>
+      <div class="fc-keys l-keys" id="l-keys"></div>
+      <p class="note" id="l-first"></p>
+      <p class="note">O estimare, nu o promisiune. Fiecare an e la fel ca cel ales, cu prețurile, costurile și subvențiile de azi, deci „ani slabi” înseamnă că toți ar ieși slabi. Regulile pentru subvenții sunt stabilite până în <span id="l-rules"></span>. „Rămân” e înainte de salariu și pensie.</p>
+      <div class="ob-actions"><a class="btn btn-line" href="recolte.html#strans">Schimbă recolta</a></div>
+    </section>
+    </div>
+
+    <section class="cta field verdict" id="bad" hidden></section>
+
+    <section class="card" id="real" hidden>
+      <div class="card-h"><h2>Plan și realitate</h2><span><a href="recolte.html">Notează</a></span></div>
+      <div id="real-body"></div>
+    </section>
+
+    <div class="bento">
+      <section class="card s6"><h2>De unde vin banii</h2><ul class="bars" id="in"></ul></section>
+      <section class="card s6"><h2>Unde se duc banii</h2><ul class="bars out" id="out"></ul></section>
+      <section class="card s12">
+        <div class="card-h"><h2>Culturile tale, într-un an normal</h2><span>Estimat</span></div>
+        <table class="crop-table" id="crops"></table>
+      </section>
+    </div>
+
+    <p class="note gap" id="foot"></p>
+    <a class="btn btn-dark next-step" href="salariu.html">Mai departe: cât poți scoate pe lună</a>
+  </div>
+</main>
+<script src="../vendor/react.production.min.js"></script>
+<script src="../vendor/react-dom.production.min.js"></script>
+<script src="../vendor/react-is.production.min.js"></script>
+<script src="../vendor/Recharts.js"></script>
+<script src="../mobile/shared.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="chart.js"></script>
+<script src="prognoza.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

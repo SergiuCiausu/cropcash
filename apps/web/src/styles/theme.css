@@ -224,3 +224,45 @@ label.field-l { display: block; margin-top: 12px; font-size: 14px; font-weight: 
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media (prefers-contrast: more) { :root { --hair: rgba(20, 32, 26, 0.4); --hair-2: rgba(20, 32, 26, 0.7); --text-2: #2f3633; --text-3: #3a423e; } }
+
+/* Weather card (Culturi tab) */
+.wx-alert { margin-top: 8px; padding: 8px 12px; border-radius: 12px; background: var(--hero); font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--text-1); }
+.wx-table { width: 100%; margin: 8px 0; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.wx-table th, .wx-table td { padding: 8px 8px 8px 0; text-align: left; font-weight: 400; border-top: 1px solid var(--hair); }
+.wx-table th:last-child, .wx-table td:last-child { padding-right: 0; text-align: right; }
+.wx-table thead th { border-top: 0; font-size: 12px; font-weight: 500; color: var(--text-2); }
+.wx-table tbody th { font-weight: 500; }
+.wx-table .wx-frost { font-weight: 600; }
+.weather .note + .note { margin-top: 4px; }
+.wx-credit { margin-top: 4px; }
+.wx-credit a { color: inherit; text-decoration: underline; }
+
+/* Currency toggle (account sheet) and the note shown outside lei */
+.cur-toggle { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; padding: 3px; border: 1px solid var(--hair); border-radius: 12px; }
+.cur-toggle button { min-height: 44px; border-radius: 9px; font-weight: 500; }
+.cur-toggle button[aria-pressed='true'] { background: var(--on-hero); color: var(--surface); font-weight: 600; }
+.cur-toggle button:disabled { opacity: 0.4; }
+.cur-note { margin: 0; padding: 6px 16px; font-size: 13px; text-align: center; color: var(--text-2); }
+
+/* Demo controls and what was paid */
+.demo { padding: 10px 16px; border-bottom: 1px solid var(--hair); background: var(--surface); }
+.demo-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.demo-paid { list-style: none; margin: 10px 0 0; padding: 0; font-size: 14px; }
+.demo-paid li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+.demo-split { list-style: none; margin: 12px 0; padding: 0; }
+.demo-split li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--hair); }
+
+/* Funding calls */
+.opp-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.opp-list li + li { border-top: 1px solid var(--hair); }
+.opp-list button, .opp-list a { display: block; width: 100%; padding: 10px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.opp-list b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.opp-list small { display: block; margin-top: 2px; }
+.opp-doubt { color: var(--text-2); }
+.opp-title { margin: 12px 0 4px; font-size: 18px; overflow-wrap: anywhere; }
+.opp-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 12px 0; }
+.opp-facts dd { margin: 0; font-weight: 600; }
+.opp-reasons { margin: 8px 0; padding-left: 18px; }
+.sheet .cur-toggle { flex-wrap: wrap; margin-bottom: 12px; }
+.sheet .input + .muted, .sheet .input + .opp-list { margin-top: 10px; }
+.sheet a.btn { margin-top: 8px; text-align: center; }

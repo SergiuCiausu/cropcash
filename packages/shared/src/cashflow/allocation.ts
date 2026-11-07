@@ -2,30 +2,27 @@ import type { Bani } from '../money';
 import { applyPct } from '../money';
 import type { Timeline } from './timeline';
 
-export type EnvelopeKind = 'spring_inputs' | 'debts' | 'salary' | 'risk_fund' | 'pension';
-export const ENVELOPE_KINDS: EnvelopeKind[] = ['salary', 'spring_inputs', 'debts', 'risk_fund', 'pension'];
+/** The database enum still has 'risk_fund', from the bad-year fund that was removed. It is never used. */
+export type EnvelopeKind = 'spring_inputs' | 'debts' | 'salary' | 'pension';
+export const ENVELOPE_KINDS: EnvelopeKind[] = ['salary', 'spring_inputs', 'debts', 'pension'];
 
 export type Envelopes = Record<EnvelopeKind, Bani>;
 
 export interface AllocationInput {
   /** Money to split (bani). */
   amount: Bani;
-  /** Is this money an income (APIA, harvest)? The bad-year share only applies to income. */
+  /** Is this money an income (APIA, harvest)? */
   isIncome: boolean;
   salary: Bani;
   pensionMonthly: Bani;
-  riskPct: number;
-  riskRemaining: Bani;
   /** Months this money has to last: until the next income in the plan (at least 1). */
   monthsCovered: number;
   /** Declared credit repayments due before the next income (bani). */
   debtsDue: Bani;
-  /** Income received and not yet shared with the bad-year fund (overrides `isIncome`). */
-  incomeForRisk?: Bani;
 }
 
 /**
- * Proposes how to split money into envelopes. Order: debts, bad-year share,
+ * Proposes how to split money into envelopes. Order: debts,
  * pension and salary for the months covered, and the rest for farm costs.
  * Nothing is lost: the parts always add up to `amount`.
  */
@@ -37,12 +34,10 @@ export function proposeAllocation(a: AllocationInput): Envelopes {
     return v;
   };
   const debts = take(a.debtsDue);
-  const riskBase = a.incomeForRisk ?? (a.isIncome ? a.amount : 0);
-  const risk_fund = take(Math.min(applyPct(riskBase, a.riskPct), a.riskRemaining));
   const pension = take(a.pensionMonthly * a.monthsCovered);
   const salary = take(a.salary * a.monthsCovered);
   const spring_inputs = left;
-  return { salary, spring_inputs, debts, risk_fund, pension };
+  return { salary, spring_inputs, debts, pension };
 }
 
 /**

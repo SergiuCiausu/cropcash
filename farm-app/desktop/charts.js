@@ -32,16 +32,20 @@
       if (index === 0 || (!wide && i % 2 && i !== low)) return h("g");
       return h("text", { x, y: y + 12, textAnchor: "middle", className: `c-lab${i === low ? " on" : ""}` }, payload.value);
     };
-    if (el.classList.contains("big")) el.insertAdjacentHTML("afterend", `<ul class="ch-leg"><li><i class="l"></i>Selected path</li><li><i class="r"></i>Poor to good harvest</li><li><i class="d"></i>Tightest month</li></ul>`);
+    if (el.classList.contains("big")) el.insertAdjacentHTML("afterend", `<ul class="ch-leg"><li><i class="l"></i>Selected path</li><li><i class="r"></i>Other harvests</li><li><i class="d"></i>Tightest month</li></ul>`);
     mount(el, label, (animate) => {
       const cur = pts(S.path), hi = pts("good"), lo = pts("poor"), low = FF.lowOf(FF.series(S.path));
-      const data = cur.map((v, i) => ({ m: i ? MONTHS[i - 1] : "now", long: i ? MONTHS_LONG[i - 1] : "Today", v, range: [Math.min(lo[i], hi[i]), Math.max(lo[i], hi[i])] }));
+      const mid = pts("expected"), NAME = { poor: "Poor", expected: "Expected", good: "Good" };
+      const data = cur.map((v, i) => ({ m: i ? MONTHS[i - 1] : "now", long: i ? MONTHS_LONG[i - 1] : "Today", v, poor: lo[i], expected: mid[i], good: hi[i] }));
       const min = Math.min(0, ...lo), max = Math.max(...hi, ...lo);
+      const others = Object.keys(NAME).filter((k) => k !== S.path).sort((a, b) => data[12][b] - data[12][a]);
+      const endLabel = (k, above) => ({ x, y, index }) => (index === 12 ? h("text", { x: x - 2, y: y + (above ? -7 : 15), textAnchor: "end", className: "c-lab" }, NAME[k]) : null);
+      const dotted = (k, i) => h(R.Line, { key: k, dataKey: k, type: "monotone", stroke: "var(--on-hero-2)", strokeWidth: 1.6, strokeDasharray: "1 5", strokeLinecap: "round", dot: false, activeDot: false, label: endLabel(k, i === 0), legendType: "none", tooltipType: "none", isAnimationActive: false });
       return box(h(R.ComposedChart, { data, margin: { top: 10, right: 14, bottom: 0, left: 2 } },
         h(R.XAxis, { dataKey: "m", scale: "point", interval: 0, tickLine: false, axisLine: { stroke: "var(--hair-2)" }, height: 26, tick: tick(low.i) }),
         h(R.YAxis, { hide: true, domain: [min, max] }),
-        h(R.Tooltip, { cursor: { stroke: "var(--on-hero-2)", strokeWidth: 1 }, isAnimationActive: false, content: tipOf((d) => ({ title: d.long, lines: d.range[0] === d.range[1] ? [lei(d.v)] : [lei(d.v), `Range ${lei(d.range[0], false)} to ${lei(d.range[1], false)}`] })) }),
-        h(R.Area, { dataKey: "range", type: "monotone", stroke: "none", fill: "var(--on-hero)", fillOpacity: .1, activeDot: false, legendType: "none", isAnimationActive: animate, animationDuration: 250, tooltipType: "none" }),
+        h(R.Tooltip, { cursor: { stroke: "var(--on-hero-2)", strokeWidth: 1 }, isAnimationActive: false, content: tipOf((d) => ({ title: d.long, lines: d.poor === d.good ? [lei(d.v)] : [lei(d.v), ...others.map((k) => `${NAME[k]}: ${lei(d[k], false)}`)] })) }),
+        ...others.map(dotted),
         h(R.Line, { dataKey: "v", type: "monotone", stroke: "var(--on-hero)", strokeWidth: 2.2, strokeLinecap: "round", dot: false, activeDot: { r: 5, fill: "var(--surface)", stroke: "var(--on-hero)", strokeWidth: 2 }, isAnimationActive: animate, animationDuration: 250 }),
         h(R.ReferenceDot, { x: MONTHS[low.i], y: low.v, r: 5, fill: "var(--hero)", stroke: "var(--on-hero)", strokeWidth: 2, ifOverflow: "visible" })));
     });

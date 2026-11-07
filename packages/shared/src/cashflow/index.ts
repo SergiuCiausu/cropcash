@@ -6,3 +6,4 @@ export * from './allocation';
 export * from './plan';
 export * from './simulate';
 export * from './scenarios';
+export * from './seasons';

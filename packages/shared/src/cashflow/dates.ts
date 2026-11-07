@@ -48,3 +48,13 @@ export function midpoint(start: IsoDate, end: IsoDate): IsoDate {
 
 /** ISO dates compare correctly as strings. */
 export const maxDate = (a: IsoDate, b: IsoDate) => (a > b ? a : b);
+
+/** Today's date in Romania, for servers whose clock isn't on Romanian time. */
+export function todayInRomania(now: Date): IsoDate {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Bucharest',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}

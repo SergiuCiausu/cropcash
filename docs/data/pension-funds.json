@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "description": "Fondurile Pilonului III și suma minimă lunară cerută de fiecare. Sunt în ordine alfabetică: aplicația nu recomandă un fond (docs/05-taxes-pension.md §3).",
+    "checked_on": "2026-11-07",
+    "statuses": "confirmat-administrator = suma apare într-un document sau pe o pagină a administratorului. DE-VERIFICAT = sursă neoficială, surse care nu se potrivesc sau lipsește (docs/11-open-questions.md)."
+  },
+  "funds": [
+    {
+      "id": "azt-moderato",
+      "name": "AZT Moderato",
+      "administrator": "Allianz-Țiriac Pensii Private",
+      "min_monthly_lei": 50,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://www.ipensii.ro/fondurile-de-pensii-facultative/",
+      "note": "Doar dintr-o sursă neoficială, fără dată. Documentul cu informații-cheie pentru AZT Vivace, același administrator, are 50 lei."
+    },
+    {
+      "id": "azt-vivace",
+      "name": "AZT Vivace",
+      "administrator": "Allianz-Țiriac Pensii Private",
+      "min_monthly_lei": 50,
+      "status": "confirmat-administrator",
+      "source_url": "https://www.allianztiriac.ro/content/dam/onemarketing/cee/azro/aztpensii/documente/administrare-fonduri/Document_Privind_Informatii_Cheie_fond_AZT_Vivace_V0_15_10_2025_DICP.pdf",
+      "note": "Document cu informații-cheie, 15.10.2025."
+    },
+    {
+      "id": "bcr-plus",
+      "name": "BCR Plus",
+      "administrator": "BCR Pensii",
+      "min_monthly_lei": 35,
+      "status": "confirmat-administrator",
+      "source_url": "https://www.pensiibcr.ro/ro/angajator/pensia-facultativa",
+      "note": "Pagina e pentru angajatori și nu are dată."
+    },
+    {
+      "id": "esential",
+      "name": "Esențial",
+      "administrator": "Carpathia Pensii",
+      "min_monthly_lei": 30,
+      "status": "confirmat-administrator",
+      "source_url": "https://www.carpathiapensii.ro/index.php/pensia-pilon-iii/despre-pensia-facultativa-esential/",
+      "note": "Pagina nu are dată."
+    },
+    {
+      "id": "nn-activ",
+      "name": "NN Activ",
+      "administrator": "NN Asigurări de Viață",
+      "min_monthly_lei": 45,
+      "status": "confirmat-administrator",
+      "source_url": "https://www.nn.ro/pensii/pensii-facultative",
+      "note": "Suma e dată pentru toate fondurile Pilonului III ale NN, nu separat pe fond."
+    },
+    {
+      "id": "nn-optim",
+      "name": "NN Optim",
+      "administrator": "NN Asigurări de Viață",
+      "min_monthly_lei": 45,
+      "status": "confirmat-administrator",
+      "source_url": "https://www.nn.ro/pensii/pensii-facultative",
+      "note": "Suma e dată pentru toate fondurile Pilonului III ale NN, nu separat pe fond."
+    },
+    {
+      "id": "pensia-mea",
+      "name": "Pensia Mea",
+      "administrator": "BT Pensii",
+      "min_monthly_lei": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://btpensii.ro/pensia-pilon-III/despre",
+      "note": "Sursele nu se potrivesc: 50 lei în întrebările frecvente BT, 60 lei pe o pagină de campanie BT. Paginile n-au putut fi deschise pentru verificare."
+    },
+    {
+      "id": "pensia-mea-plus",
+      "name": "Pensia Mea Plus",
+      "administrator": "BT Pensii",
+      "min_monthly_lei": 50,
+      "status": "confirmat-administrator",
+      "source_url": "https://intreb.bancatransilvania.ro/ce-este-pensia-mea-plus/",
+      "note": "Pagină actualizată la 17 februarie 2026. Fostul fond BRD Medio."
+    },
+    {
+      "id": "raiffeisen-acumulare",
+      "name": "Raiffeisen Acumulare",
+      "administrator": null,
+      "min_monthly_lei": 100,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://www.raiffeisen.ro/ro/persoane-fizice/produsele-noastre/investitii/fonduri-de-pensii-facultative.html",
+      "note": "Doar dintr-un rezultat de căutare. Pagina n-a putut fi deschisă pentru verificare, iar administratorul nu e confirmat."
+    },
+    {
+      "id": "stabil",
+      "name": "Stabil",
+      "administrator": "Generali Pensii Private",
+      "min_monthly_lei": 25,
+      "status": "confirmat-administrator",
+      "source_url": "https://www.generali.ro/pensii/pensii-facultative/fond-de-pensii-stabil/intrebari-frecvente/",
+      "note": "Pagina nu are dată."
+    }
+  ]
+}

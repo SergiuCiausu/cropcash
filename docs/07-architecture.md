@@ -4,14 +4,16 @@
 
 | Strat | Tehnologie | De ce |
 |---|---|---|
-| Frontend | React + Vite + TypeScript + Tailwind, ca PWA | Build rapid, mobile-first ușor, instalabil pe telefon fără magazin de aplicații. |
+| Frontend | `farm-app`: pagini HTML + JS simplu, ca PWA. Logica vine din `packages/shared`, împachetată de esbuild în `engine.js` | Fiecare pagină se deschide repede pe un telefon ieftin și merge offline. `apps/web` (React + Vite + Tailwind) a fost prima interfață; nu se mai folosește (`docs/farm-app-wiring.md`). |
 | Backend | Node.js + Express + TypeScript | Aceeași limbă ca frontend-ul, așa că logica (subvenții, netezire) e partajată. |
 | DB și auth | Supabase (Postgres) | Auth și Postgres gata făcute, fără ops, cu un tier gratuit suficient pentru demo. |
 | Plăți | Stripe, **doar în test mode** | Connect, payouts, subscriptions și Test Clocks acoperă tot flow-ul banilor (challenge-ul e Stripe). |
-| AI | Claude API + Zod | Extragere structurată din PDF-uri APIA și din paginile AFIR/MADR, validată strict. |
-| Date externe | Open-Meteo, CSV-uri INS în `docs/data/` | Open-Meteo e gratuit și fără cheie. INS nu are un API comod, așa că pregătim datele offline. |
+| AI | Claude API + Zod | Asistentul din aplicație și extragere structurată din PDF-uri APIA și din paginile AFIR/MADR, validată strict. |
+| Voce | Recunoașterea și vorbirea din browser, în română | Fără cheie și fără server în plus. De testat pe un telefon ieftin (§11). |
+| Notificări | Web Push din API, prin service worker-ul PWA | Aplicația vorbește prima, fără magazin de aplicații. |
+| Date externe | Open-Meteo, CSV-uri INS în `docs/data/` | Open-Meteo e gratuit și fără cheie doar pentru uz necomercial; aplicațiile cu abonamente intră la uz comercial, deci la lansare trecem pe plan plătit sau pe instanță proprie (`open-meteo-vps-setup.md`). INS nu are un API comod, așa că pregătim datele offline. |
 | Deploy | Netlify (front), **VPS pe RareCloud** (API), Supabase (DB + auth, cloud) | Netlify servește PWA-ul static. Pe VPS rulează un proces Node permanent (webhooks, scheduler, job-uri), sub control complet. |
-| Offline | `vite-plugin-pwa` (Workbox) + IndexedDB (TanStack Query persistat) | Aplicația se deschide și arată ultimele date fără net. Detalii în §8. |
+| Offline | Service worker-ul din `farm-app/sw.js` + copii în localStorage (fermă, oportunități, outbox) | Aplicația se deschide și arată ultimele date fără net. Detalii în §8. |
 | Teste | Vitest | Nativ cu Vite și rapid. Obligatoriu pentru motorul de subvenții și netezire. |
 
 ## 2. Structura de foldere (monorepo cu npm workspaces)
@@ -31,8 +33,8 @@ cropcash/
 │       └── src/
 │           ├── routes/       farmers, subsidies, plan, envelopes, stripe, webhooks
 │           ├── stripe/       connect, payouts, subscriptions, testClock
-│           ├── jobs/         payoutScheduler, fundingRadar (Could)
-│           ├── ai/           pdfExtract, fundingExtract (Claude + Zod)
+│           ├── jobs/         payoutScheduler, weeklySummary, springGapWarning, deadlineReminders, fundingRadar (Could)
+│           ├── ai/           assistant, tools, pendingActions, pdfExtract, fundingExtract (Claude + Zod)
 │           └── db/           client Supabase, queries
 ├── packages/
 │   └── shared/               LOGICĂ PURĂ, fără I/O, testată
@@ -41,7 +43,6 @@ cropcash/
 │           ├── money/        tipuri Cents/Bani, rotunjiri
 │           ├── subsidies/    motorul de reguli (03-subsidies.md)
 │           ├── cashflow/     calendarul banilor, netezirea, scenariile
-│           ├── risk/         fondul de risc
 │           └── pension/      simularea pensiei
 ├── supabase/migrations/      schema SQL
 └── docs/
@@ -58,11 +59,13 @@ cropcash/
 | `Crop` | id ('grau', 'porumb', 'floarea-soarelui'), name_ro | date de referință din `crops-reference.json` (nu se ține în DB) |
 | `SubsidyScheme` | code, name_ro, unit, amount_eur, fund, ... | din `subsidies-2026.json` (nu se ține în DB) |
 | `ExpectedPayment` | id, farmer_id, kind (apia_advance, apia_balance, crop_sale, fuel_refund, credit, other_in, input_cost, rent, loan_repayment, tax, other_out), direction (in/out), amount_min_bani, amount_probable_bani, amount_max_bani, window_start, window_end, scheme_code?, status (planned/received/cancelled) | N–1 Farmer |
-| `Envelope` | id, farmer_id, kind (spring_inputs, debts, salary, risk_fund, pension), balance_bani, target_bani? | N–1 Farmer, 1–N Transaction |
+| `Envelope` | id, farmer_id, kind (spring_inputs, debts, salary, pension), balance_bani, target_bani? | N–1 Farmer, 1–N Transaction |
 | `Transaction` | id, farmer_id, envelope_id?, amount_bani (+/−), occurred_at, source (stripe_transfer, payout, manual, allocation), stripe_object_id?, expected_payment_id? | N–1 Farmer, N–1 Envelope |
 | `Payout` | id, farmer_id, amount_bani, scheduled_for (date), stripe_payout_id?, status (scheduled/pending/paid/failed) | N–1 Farmer |
 | `PensionPlan` | id, farmer_id, monthly_bani, vehicle (pilon3/cei_s/cei_d), stripe_subscription_id, started_at, status | 1–1 Farmer |
 | `FuelLog` | id, farmer_id, date, liters, invoice_no, supplier, parcel_id?, quarter | N–1 Farmer |
+| `source_changes`, `documents` (monitorul) | ce s-a schimbat pe o pagină oficială; pasaje pentru căutare | scrise doar de `subventii-monitor`; aplicația le citește |
+| `opportunity_follows` | farmer_id, stable_key | finanțările puse de fermier în calendar |
 | `opportunities` (monitorul) | stable_key, kind (afir/mipe/ec), programme, title, status, open_date, deadline, budget_eur, applicants, relevance, confidence, url | scrise doar de `subventii-monitor` cu cheia secretă. Tabelul vechi `funding_opportunities` a fost scos (migrarea 008). |
 
 Banii se țin în **bani, ca numere întregi** (`bigint`), niciodată ca float.
@@ -77,6 +80,7 @@ Banii se țin în **bani, ca numere întregi** (`bigint`), niciodată ca float.
 create type payment_kind as enum ('apia_advance','apia_balance','crop_sale','fuel_refund','credit','other_in',
   'input_cost','rent','loan_repayment','tax','other_out');
 create type envelope_kind as enum ('spring_inputs','debts','salary','risk_fund','pension');
+-- 'risk_fund' a rămas în enum de la fondul pentru ani proști, scos pe 7 nov 2026. Codul nu-l mai folosește.
 
 create table farmers (
   id uuid primary key default gen_random_uuid(),
@@ -188,11 +192,10 @@ create policy own_farmer on farmers for all using (user_id = auth.uid());
 - `B0`: soldul de start (în bani);
 - `months[1..H]`: lunile de la luna curentă până la orizont. **Orizontul** e luna dinaintea următoarei încasări mari și sigure (de exemplu, următorul avans APIA sau următoarea recoltă principală). Implicit H ≤ 15;
 - pentru fiecare lună m: `in[m]` și `out[m]`, din `ExpectedPayment`, în scenariul ales (vezi secțiunea 5);
-- `fixed[m]`: alocările planificate (pensia lunară, contribuția la fondul de risc);
-- `reserve`: soldul minim care trebuie păstrat (implicit 0, configurabil).
+- `fixed[m]`: alocările planificate (pensia lunară).
 
 ### Ieșire
-- `S`: salariul lunar maxim, constant, pentru care soldul la sfârșitul fiecărei luni rămâne ≥ `reserve`;
+- `S`: salariul lunar maxim, constant, pentru care soldul la sfârșitul fiecărei luni rămâne ≥ 0;
 - `bindingMonth`: luna care limitează salariul (pentru explicația din UI: „din cauza lui iunie”);
 - `gap`: dacă `S` e sub ținta fermierului, cât credit de punte trebuie și în ce lună.
 
@@ -231,6 +234,7 @@ Complexitate O(H). E o funcție pură, deci testabilă cu tabele de date.
 | Nicio încasare în orizont | orizontul se limitează la 12 luni; salariul vine doar din `B0` |
 | Încasarea are fereastră (sold APIA 1 dec – 30 iun) | data se alege după scenariu: pesimist = ultima zi, mediu = mijlocul, optimist = prima zi |
 | Încasarea vine mai devreme decât în plan | la fiecare încasare reală se **recalculează** (rolling), iar salariul poate doar să crească sau să rămână la fel în luna curentă |
+| Plata unui salariu într-o lună fără încasări | se plătește suma de luna trecută. Scade doar dacă altfel banii nu ajung |
 | Încasarea e mai mică decât minimul | se recalculează imediat și se trimite notificare: „Am scăzut salariul la X lei ca să-ți ajungă până în {lună}.” |
 | Salariul deja plătit în luna curentă | e inclus în `out` pentru luna curentă și nu se mai plătește o dată |
 | Rotunjirea | `S` se rotunjește în jos la 50 de lei, creditul se rotunjește în sus la 100 de lei |
@@ -238,41 +242,41 @@ Complexitate O(H). E o funcție pură, deci testabilă cu tabele de date.
 
 ### Exemplu numeric (Ion, scenariul mediu, orizont noiembrie 2026 – septembrie 2027, H = 11)
 
-**Presupuneri de demo:** soldul la 1 noiembrie 2026 e de 35.000 lei, după vânzarea porumbului. Cheltuielile sunt costurile medii din `crops-reference.json` (grâu 8 × 4.250 = 34.000 lei, porumb 7 × 5.000 = 35.000 lei), pe lunile de acolo. Pensia e de 200 lei/lună, iar fondul de risc primește 10% din fiecare încasare.
+**Presupuneri de demo:** exemplul folosește cursul provizoriu de 5,28 lei/€, ca să rămână ușor de urmărit (aplicația folosește 5,2788). Soldul la 1 noiembrie 2026 e de 35.000 lei, după vânzarea porumbului. Cheltuielile sunt costurile medii din `crops-reference.json` (grâu 8 × 4.250 = 34.000 lei, porumb 7 × 5.000 = 35.000 lei), pe lunile de acolo. Pensia e de 200 lei/lună.
 
 | Lună | Intră | Iese | Cumulat (fără salariu) | Plafon = cumulat / m |
 |---|---|---|---|---|
-| Noi | avans 12.652,20 | 200 + 1.265,22 | 46.186,98 | 46.187 |
-| Dec | — | 200 | 45.986,98 | 22.993 |
-| Ian | — | 200 | 45.786,98 | 15.262 |
-| Feb | — | 200 | 45.586,98 | 11.397 |
-| Mar | sold 4.217,40 | 13.750 + 200 + 421,74 | 35.432,64 | 7.087 |
-| Apr | — | 20.850 + 200 | 14.382,64 | 2.397 |
-| Mai | — | 5.250 + 200 | 8.932,64 | 1.276 |
-| **Iun** | — | 3.500 + 200 | **5.232,64** | **654** ← limitează |
-| Iul | grâu 42.000 | 5.100 + 200 + 4.200 | 37.732,64 | 4.190 |
-| Aug | — | 200 | 37.532,64 | 3.753 |
-| Sep | — | 5.100 + 200 | 32.232,64 | 2.930 |
+| Noi | avans 12.652,20 | 200 | 47.452,20 | 47.452 |
+| Dec | — | 200 | 47.252,20 | 23.626 |
+| Ian | — | 200 | 47.052,20 | 15.684 |
+| Feb | — | 200 | 46.852,20 | 11.713 |
+| Mar | sold 4.217,40 | 13.750 + 200 | 37.119,60 | 7.424 |
+| Apr | — | 20.850 + 200 | 16.069,60 | 2.678 |
+| Mai | — | 5.250 + 200 | 10.619,60 | 1.517 |
+| **Iun** | — | 3.500 + 200 | **6.919,60** | **865** ← limitează |
+| Iul | grâu 42.000 | 5.100 + 200 | 43.619,60 | 4.847 |
+| Aug | — | 200 | 43.419,60 | 4.342 |
+| Sep | — | 5.100 + 200 | 38.119,60 | 3.465 |
 
-- **Fără credit:** S = **650 lei/lună**, limitat de iunie.
-- **Cu ținta de 2.400 lei/lună:** `bridgeCreditNeeded` dă **14.000 lei**, luați în aprilie. Asta e sub 90% din subvenția estimată pentru 2027, deci încape în creditul pe adeverință. La sfârșitul lui septembrie rămân ~19.800 lei, care acoperă cheltuielile din octombrie. Creditul se întoarce din avansul următor.
+- **Fără credit:** S = **850 lei/lună**, limitat de iunie.
+- **Cu ținta de 2.400 lei/lună:** `bridgeCreditNeeded` dă **12.300 lei**, luați în mai. Asta e sub 90% din subvenția estimată pentru 2027, deci încape în creditul pe adeverință. La sfârșitul lui septembrie rămân ~24.000 lei, care acoperă cheltuielile din octombrie. Creditul se întoarce din avansul următor.
 - **Mesajul pentru pitch:** „CropCash nu te scapă de credit. Îți spune din noiembrie de cât credit ai nevoie și când, ca să ai 2.400 lei în fiecare lună.”
 
 ### Ce e implementat (pasul 5, `packages/shared/src/cashflow/smoothing.ts`)
-- `maxSafeSalary`, `bridgeCreditNeeded` și `suggestCredit` sunt funcții pure, cu teste. Exemplul de mai sus iese exact: **650 lei** fără credit, **14.000 lei** din aprilie pentru 2.400 lei pe lună.
+- `maxSafeSalary`, `bridgeCreditNeeded` și `suggestCredit` sunt funcții pure, cu teste. Exemplul de mai sus iese exact: **850 lei** fără credit, **12.300 lei** din mai pentru 2.400 lei pe lună.
 - **Creditul sugerat (`suggestCredit`)** respectă patru reguli:
   1. e cel mult `max_pct_of_subsidy` (90%) din subvenția probabilă, **minus creditele deja declarate** (aceeași adeverință), inclusiv după rotunjire;
   2. există abia din luna în care se deschide următoarea cerere APIA (martie), pentru că adeverința se eliberează după depunerea cererii;
   3. se propune doar dacă există luni grele și salariul e limitat de o lună de dinaintea finalului planului;
-  4. pentru Ion, sugestia automată e 14.800 lei pentru 2.500 lei pe lună în exemplul din docs (orizont de 11 luni, pensie 200 lei).
-- **În aplicație** (12 luni, plăți APIA în ultima zi, fără pensie până la pasul 7), Ion are **850 lei** fără credit și **2.700 lei** cu un credit de 14.800 lei în aprilie.
-- **Cota de 10% pentru fondul de risc** se ia doar din venituri reale (APIA, recoltă), nu din credit și nici din banii pe care îi are deja.
-- **Plicurile:** `proposeAllocation` împarte suma în ordinea datorii → ani proști → pensie și salariu pentru lunile acoperite → restul pentru cheltuielile fermei. Salvarea trece prin funcția SQL `set_envelopes`, care refuză suma dacă depășește banii pe care îi are fermierul.
+  4. pentru Ion, sugestia automată e 15.100 lei pentru 2.750 lei pe lună în exemplul din docs (orizont de 11 luni, pensie 200 lei).
+- **În aplicație** (12 luni, plăți APIA în ultima zi, fără pensie până la pasul 7), Ion are **1.050 lei** fără credit și **2.950 lei** cu un credit de 15.100 lei în aprilie.
+- **Fără fond pentru ani proști** (scos pe 7 nov 2026): nimic din încasări nu se mai pune deoparte pentru un an slab, așa că salariul crește cu cât mergea în fond (pentru Ion, cu 200 lei pe lună).
+- **Plicurile:** `proposeAllocation` împarte suma în ordinea datorii → pensie și salariu pentru lunile acoperite → restul pentru cheltuielile fermei. Salvarea trece prin funcția SQL `set_envelopes`, care refuză suma dacă depășește banii pe care îi are fermierul.
 
 ### Creditul în aplicație (decizie: varianta A + C)
 - **A, informativ:** dacă `S < S_target`, UI-ul arată: „Ca să ai {S_target} lei pe lună, o să ai nevoie de ~{amount} lei în {lună}. Fermierii iau de obicei credit pe adeverința APIA.” Fără bănci numite și fără link-uri către oferte. Ținta implicită `S_target` = media surplusului pe orizont (`cum_H / H`), rotunjită în jos la 50 de lei. Fermierul o poate modifica.
 - **C, creditul declarat de fermier:** pe ecranul „Îmi ajung?”, butonul „Iau un credit” deschide un formular cu suma, luna și luna rambursării. Creditul devine două `ExpectedPayment`: `credit` (in) și `loan_repayment` (out). Netezirea îl include automat.
-- Fără un credit declarat, salariul afișat e întotdeauna cel sigur fără credit (650 lei pentru Ion). Varianta A apare doar ca sugestie.
+- Fără un credit declarat, salariul afișat e întotdeauna cel sigur fără credit (850 lei pentru Ion, cu pensia de 200 lei). Varianta A apare doar ca sugestie.
 
 ## 5. Scenariile
 
@@ -295,16 +299,8 @@ Prețul în anul de secetă rămâne „mediu”, nu „min”. Când producția
 | Subvenție (lei) | ≈ 17.060 | 16.869,60 | ≈ 15.180 |
 | **Total venit** | ≈ 136.260 | 102.094,60 | ≈ 82.030 |
 
-### Fondul de risc
-```
-țintă_fond = Σ net(an normal) − Σ net(an slab), pe următoarele 12 luni   // riskFundTarget(); pentru Ion ≈ 33.100 lei
-            // (include vânzarea de porumb din octombrie și costurile maxime; versiunea veche, doar pe venit, dădea ≈ 20.000)
-contribuție = 10% din fiecare încasare, până se atinge ținta   (presupunere de produs, editabilă)
-p_an_prost = ani_proști / ani_istoric        // din INS pe județ și cultură; DE-VERIFICAT
-an_prost  ⇔ producția județului < 80% din media pe 10 ani   (prag = presupunere)
-```
-
-Mesajul din UI: „În Teleorman, la porumb, {k} din 10 ani au fost proști. Ca să treci de un an prost, îți trebuie cam 20.000 lei deoparte.”
+### Anul slab, fără fond
+Fondul pentru ani proști a fost scos pe 7 nov 2026, la cererea echipei. Anul slab rămâne doar ca scenariu: Prognoză arată cât intră mai puțin decât într-un an normal și cu cât rămâne fermierul mai puțin la sfârșitul celor 12 luni (pentru Ion, 33.062 lei). Nimic nu se mai pune deoparte pentru el.
 
 ## 6. Motorul de reguli pentru subvenții
 
@@ -321,9 +317,16 @@ Mesajul din UI: „În Teleorman, la porumb, {k} din 10 ani au fost proști. Ca 
 | GET | `/api/farmers/:id/subsidies` | intervalul de subvenție |
 | GET | `/api/farmers/:id/plan?scenario=medium` | calendarul, salariul, `bindingMonth` și creditul de punte |
 | POST | `/api/farmers/:id/allocations` | confirmă împărțirea unei încasări pe plicuri |
-| POST | `/api/farmers/:id/pension` | creează PensionPlan și subscription-ul |
+| POST | `/api/farmers/:id/pension` | creează PensionPlan și subscription-ul (în cod: `POST /api/pension`) |
+| PUT | `/api/pension` | altă sumă lunară, de la următoarea plată |
+| DELETE | `/api/pension` | oprește pensia; ce s-a plătit rămâne |
 | POST | `/api/demo/simulate-apia-advance` | plată de test și transfer către contul conectat |
-| POST | `/api/demo/advance-clock` | avansează Test Clock-ul (vezi `08-stripe.md`) |
+| POST | `/api/demo/advance` | avansează Test Clock-ul (vezi `08-stripe.md`) |
+| GET | `/api/weather` | prognoza pe 7 zile pentru județul fermei, din Open-Meteo, păstrată 3 ore pe județ |
+| POST | `/api/assistant/messages` | un mesaj către asistent; întoarce răspunsul, sursele și acțiunile de confirmat |
+| POST | `/api/assistant/actions/:id/confirm` | execută o acțiune propusă, după apăsarea fermierului |
+| POST | `/api/assistant/actions/:id/reject` | respinge o acțiune propusă |
+| POST | `/api/notifications/subscriptions` | salvează abonamentul Web Push al telefonului |
 | POST | `/api/webhooks/stripe` | webhooks (platformă și Connect) |
 
 Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Supabase>`. API-ul verifică token-ul și scoate `user_id` din el.
@@ -339,11 +342,11 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 - Dacă se pierde copia de pe telefon, nu se pierde nimic: la următoarea conectare se descarcă din nou din Supabase.
 
 ### Cum funcționează
-1. **Aplicația:** service worker-ul (`vite-plugin-pwa`) pune în cache HTML, JS, CSS, fonturile, iconițele și **JSON-urile din `docs/data/`**, care sunt incluse în build.
+1. **Aplicația:** service worker-ul (`farm-app/sw.js`, scris de `npm run build:farm`) pune în cache HTML, JS, CSS, fonturile și **JSON-urile din `docs/data/`**, care sunt incluse în `engine.js`. În `farm-app`, copia fermei, a oportunităților și outbox-ul stau în localStorage, nu în IndexedDB, iar butoanele care cer net au `data-needs-net` în loc de `<NeedsInternet>` (`docs/farm-app-wiring.md`, W9). Punctele 2–4 de mai jos descriu `apps/web`.
 2. **Datele fermierului:** fiecare răspuns de la API (profil, plăți așteptate, plicuri, tranzacții, plan) e salvat în IndexedDB, cu TanStack Query persistat și `networkMode: 'offlineFirst'`. La deschidere se afișează imediat ultima versiune, apoi se actualizează dacă e net.
 3. **Calculele rulează pe telefon:** motorul de subvenții, netezirea, scenariile și pensia sunt în `packages/shared`, adică funcții pure importate și în frontend. Offline poți schimba scenariul sau slider-ul de pensie și vezi rezultatul imediat.
 4. **Scrierile mărunte** (sarcină „Am făcut”, o intrare la motorină) intră într-o **outbox** în IndexedDB și se trimit automat când revine netul. Există un singur utilizator pe cont, deci nu apar conflicte reale. Regula: câștigă ultima scriere.
-5. **Tot ce mișcă bani** (confirmarea plicurilor, pornirea pensiei, simularea avansului, avansarea timpului) **cere net**. Nu punem bani în coadă.
+5. **Tot ce mișcă bani** (confirmarea plicurilor, pornirea pensiei, simularea avansului, avansarea timpului) **cere net**. Nu punem bani în coadă. Înregistrarea unei vânzări sau cheltuieli nu mută bani, doar notează ce s-a întâmplat, așa că intră în outbox (`docs/f4-screens.md`).
 
 ### Ce merge și ce nu
 
@@ -353,11 +356,15 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 | Scenarii, toggle-ul de secetă, slider-ul de pensie, prognoza | ✅ calculate local | — |
 | Subvenția recalculată după o schimbare de hectare | ✅ calculată local; salvarea merge în outbox | — |
 | Sarcini „Am făcut”, intrări la motorină | ✅ prin outbox | „Se trimite când ai internet.” |
+| Vânzări și cheltuieli înregistrate, schimbarea datelor fermei | ✅ prin outbox; salariul apare „provizoriu” până se trimit | „Se trimite când ai internet.” |
 | Login (prima dată) | ❌ | „Pornește internetul ca să intri în cont.” |
 | Confirmarea împărțirii pe plicuri | ❌ | „Pornește internetul ca să muți banii.” |
 | Pornirea sau modificarea pensiei | ❌ | „Pornește internetul ca să pornești pensia.” |
 | Încărcarea PDF-ului APIA (AI) | ❌ | „Pornește internetul ca să citim hârtia de la APIA.” |
-| Radarul de fonduri, vremea, actualizarea prețurilor | ❌ (se arată ultima versiune) | „Pornește internetul ca să vezi ce e nou.” |
+| Radarul de fonduri, actualizarea prețurilor | ❌ (se arată ultima versiune) | „Pornește internetul ca să vezi ce e nou.” |
+| Asistentul și vocea | ❌ | „Pornește internetul ca să vorbești cu mine.” |
+| Notificările | ✅ cardul „Mesaje” arată ultima listă salvată; mesajele noi cer net | — |
+| Vremea | ✅ ultima prognoză salvată pe telefon, doar zilele rămase. Nu schimbă niciodată cifrele din plan | „Date din {data}. Pornește internetul ca să vezi ce e nou.” |
 | Demo: simularea avansului, „Dăm timpul înainte” | ❌ | — |
 
 Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net: le dezactivează și arată mesajul din `ro.json`. Starea online combină `navigator.onLine` cu un ping eșuat la `/api/health`. `navigator.onLine` singur minte, de exemplu când telefonul e conectat la WiFi fără internet.
@@ -388,3 +395,24 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 **De ce HTTPS pe VPS e obligatoriu:** Netlify servește pe HTTPS, iar browserul blochează apelurile de la o pagină HTTPS către un API HTTP (mixed content). Și webhooks-urile Stripe cer un endpoint HTTPS. Avem nevoie de un domeniu sau subdomeniu care să pointeze spre IP-ul VPS-ului.
 
 **CORS:** API-ul acceptă doar originea Netlify și `localhost:5173`.
+
+## 11. Asistentul, vocea și notificările
+
+Intră în demo din decizia din 7 noiembrie 2026, ca pașii 9c–9e din `10-plan.md`. Notificările sunt pasul 9f. Detaliile sunt în `docs/functions.md`, secțiunile 14, 16 și 17.
+
+**Asistentul**
+- Rulează pe API, cu modelul din `ANTHROPIC_MODEL`. Fără `ANTHROPIC_API_KEY`, doar asistentul e oprit.
+- Uneltele vin din registrul de funcții, așa că butoanele și AI-ul dau aceleași cifre. AI-ul nu face calcule singur.
+- O funcție `read` rulează direct. O funcție `confirm` devine o acțiune în așteptare, păstrată pe server, și se execută doar după apăsarea fermierului. O funcție `user` nu e unealtă.
+- Textul din pagini, PDF-uri și mesaje e date, nu instrucțiuni.
+- Uneltele rulează cu token-ul fermierului, deci RLS se aplică și aici.
+
+**Vocea**
+- E doar altă cale spre asistent, cu aceleași reguli. Audio nu se păstrează, iar la API ajunge doar textul.
+- Fermierul vede ce a înțeles aplicația înainte de trimitere. Vorbirea nu confirmă niciodată o scriere.
+- Riscul principal e recunoașterea românei pe un telefon ieftin, cu semnal slab. De aceea, pasul 9e începe cu un test. Dacă pică, un serviciu pe server e o schimbare de arhitectură și întrebăm înainte.
+
+**Notificările**
+- Job-urile rulează pe VPS, lângă `payoutScheduler`.
+- Fiecare mesaj ajunge și în cardul „Mesaje”, ca să nu se piardă dacă Web Push e refuzat sau nu merge pe telefon.
+- Sumele exacte nu apar pe ecranul blocat.

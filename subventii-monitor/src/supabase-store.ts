@@ -1,12 +1,14 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { RobotsCache } from './fetcher.ts';
+import type { WatchedPage, WatchedPagePatch } from './farmer-pages.ts';
 import { PROBLEM_STATES } from './store.ts';
 import type { PageLink } from './links.ts';
 import type { Opportunity, OpportunityEvent, OpportunityKind } from './opportunities/types.ts';
 import type { SeedSource } from './seed.ts';
+import { splitPassages } from './documents.ts';
 import type {
   FinishedRun, KnownLink, NewEvent, NewSnapshot, PendingLink, ProblemSource, ProblemState, RunEvent, RunStats, Source,
-  SourcePatch, Store,
+  SourcePatch, Store, NewSourceChange,
 } from './store.ts';
 
 const BUCKET = 'snapshots';
@@ -84,6 +86,23 @@ export class SupabaseStore implements Store {
 
   constructor(url: string, secretKey: string) {
     this.db = createClient(url, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  }
+
+  async duePages(now: Date): Promise<WatchedPage[]> {
+    return check(
+      await this.db.from('watched_pages').select('id, url, title, content_hash, failure_count')
+        .lte('next_due', now.toISOString()).order('id').limit(PAGE_SIZE),
+      'due pages',
+    ) as WatchedPage[];
+  }
+
+  async pageText(id: number): Promise<string | null> {
+    const row = check(await this.db.from('watched_pages').select('text').eq('id', id).single(), 'page text') as { text: string | null };
+    return row.text;
+  }
+
+  async updatePage(id: number, patch: WatchedPagePatch): Promise<void> {
+    check(await this.db.from('watched_pages').update(patch).eq('id', id), 'update page');
   }
 
   async upsertSources(sources: SeedSource[]): Promise<void> {
@@ -164,6 +183,40 @@ export class SupabaseStore implements Store {
     if (!path) return null;
     const blob = check(await this.db.storage.from(BUCKET).download(path), `download ${path}`);
     return blob ? blob.text() : null;
+  }
+
+  async addSourceChange({ source, kind, shortDiff }: NewSourceChange): Promise<void> {
+    check(
+      await this.db.from('source_changes').insert({
+        source_id: source.id,
+        institution: source.institution,
+        title: source.title,
+        url: source.url,
+        kind,
+        short_diff: shortDiff,
+      }),
+      'add source change',
+    );
+  }
+
+  async saveDocument(source: Pick<Source, 'id' | 'institution' | 'title' | 'url'>, text: string): Promise<void> {
+    check(await this.db.from('documents').delete().eq('source_id', source.id), 'clear document');
+    const rows = splitPassages(text).map((body, position) => ({
+      source_id: source.id,
+      position,
+      institution: source.institution,
+      title: source.title,
+      url: source.url,
+      body,
+    }));
+    for (let i = 0; i < rows.length; i += WRITE_BATCH) {
+      check(await this.db.from('documents').insert(rows.slice(i, i + WRITE_BATCH)), 'save document');
+    }
+  }
+
+  async sourcesWithText(): Promise<Source[]> {
+    const rows = check(await this.db.from('sources').select('*').gt('text_chars', 0).order('id'), 'sources with text');
+    return rows as Source[];
   }
 
   async addEvent(e: NewEvent): Promise<void> {

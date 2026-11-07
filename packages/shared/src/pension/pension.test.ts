@@ -1,69 +1,89 @@
 import { describe, expect, it } from 'vitest';
 import { loadData } from '../data';
-import { futureValue, pensionParams, simulatePension, suggestPension } from './index';
+import { pensionMinimum, simulatePension, suggestPension } from './index';
 
-const params = pensionParams(loadData());
-
-/** C × ((1 + i)^n − 1) / i, the closed form from docs/05 §4. */
-const closedForm = (c: number, n: number, pct: number) => {
-  const i = pct / 1200;
-  return (c * ((1 + i) ** n - 1)) / i;
-};
-
-describe('futureValue', () => {
-  it('zero return = just the sum of contributions', () => {
-    expect(futureValue(20_000, 120, 0)).toBe(2_400_000);
-  });
-
-  it('stays within a lei of the closed form, and is an integer', () => {
-    for (const pct of [2, 4, 6]) {
-      const v = futureValue(20_000, 120, pct);
-      expect(Number.isInteger(v)).toBe(true);
-      expect(Math.abs(v - closedForm(20_000, 120, pct))).toBeLessThan(100);
-    }
-  });
-
-  it('rejects non-integer money', () => {
-    expect(() => futureValue(200.5, 12, 4)).toThrow();
-  });
-});
+const data = loadData();
+const ion = { age: 55, monthly: 20_000, annualPct: 4, targetAge: 65 };
 
 describe('simulatePension', () => {
-  it('Ion: 55 years, 200 lei/month, 4% → ≈ 29.450 lei at 65, 24.000 lei paid in', () => {
-    const s = simulatePension(55, 20_000, params)!;
-    expect(s.months).toBe(120);
-    expect(s.paidIn).toBe(2_400_000);
-    expect(Math.round(s.atTarget.probable / 100 / 10) * 10).toBe(29_450);
-    // 29.450 / 120 ≈ 245 lei per month over 10 years (docs/05 §4).
-    expect(Math.round(s.perMonthAfter / 100)).toBe(245);
+  it('matches the docs example: 200 lei a month from 55 at 4%', () => {
+    const r = simulatePension(ion);
+    expect(r.months).toBe(120);
+    expect(r.paidIn).toBe(2_400_000);
+    expect(r.total / 100).toBeCloseTo(29449.96, 0);
+    expect(Math.round(r.monthlyEquivalent / 100)).toBe(245);
   });
 
-  it('scenarios are ordered low < probable < high', () => {
-    const s = simulatePension(55, 20_000, params)!;
-    expect(s.atTarget.low).toBeLessThan(s.atTarget.probable);
-    expect(s.atTarget.probable).toBeLessThan(s.atTarget.high);
-    expect(s.atTarget.low).toBeGreaterThan(s.paidIn);
+  it('returns whole bani', () => {
+    expect(Number.isInteger(simulatePension({ ...ion, monthly: 12_345 }).total)).toBe(true);
   });
 
-  it('no simulation at or past the target age', () => {
-    expect(simulatePension(65, 20_000, params)).toBeNull();
-    expect(simulatePension(70, 20_000, params)).toBeNull();
+  it('gives back exactly what was put in at 0%', () => {
+    const r = simulatePension({ ...ion, annualPct: 0 });
+    expect(r.total).toBe(r.paidIn);
   });
 
-  it('one year left: 12 contributions', () => {
-    expect(simulatePension(64, 10_000, params)!.paidIn).toBe(120_000);
+  it('has nothing to simulate from the target age on', () => {
+    expect(simulatePension({ ...ion, age: 65 })).toEqual({ months: 0, paidIn: 0, total: 0, monthlyEquivalent: 0 });
+    expect(simulatePension({ ...ion, age: 70 }).months).toBe(0);
+  });
+
+  it('grows with a higher return', () => {
+    const at = (annualPct: number) => simulatePension({ ...ion, annualPct }).total;
+    expect(at(2)).toBeLessThan(at(4));
+    expect(at(4)).toBeLessThan(at(6));
   });
 });
 
 describe('suggestPension', () => {
-  it('at most 5% of the salary, rounded down to 50 lei', () => {
-    expect(suggestPension(240_000, params)).toBe(10_000); // 2.400 → 120 → 100 lei
-    expect(suggestPension(500_000, params)).toBe(25_000); // 5.000 → 250 lei
+  it('stays within 5% of the salary and rounds down to 50 lei', () => {
+    expect(suggestPension(400_000, data).monthly).toBe(20_000);
+    expect(suggestPension(270_000, data).monthly).toBe(10_000);
   });
 
-  it('kept inside the slider range', () => {
-    expect(suggestPension(65_000, params)).toBe(5_000); // 650 → 32 → min 50 lei
-    expect(suggestPension(0, params)).toBe(5_000);
-    expect(suggestPension(100_000_000, params)).toBe(50_000); // max 500 lei
+  it('suggests the 50 lei minimum when 5% is under it, and says it is above the usual share', () => {
+    expect(suggestPension(85_000, data)).toMatchObject({ monthly: 5_000, aboveShare: true });
+    expect(suggestPension(270_000, data).aboveShare).toBe(false);
+  });
+
+  it('suggests nothing with no salary', () => {
+    expect(suggestPension(0, data)).toMatchObject({ monthly: 0, aboveShare: false });
+  });
+});
+
+describe('fund minimums', () => {
+  it('uses the chosen fund, up or down from the default', () => {
+    expect(pensionMinimum(data, 'stabil')).toMatchObject({ amount: 2_500, verified: true });
+    expect(suggestPension(85_000, data, 'stabil').monthly).toBe(2_500);
+    expect(suggestPension(85_000, data, 'raiffeisen-acumulare')).toMatchObject({ monthly: 10_000, aboveShare: true });
+  });
+
+  it('keeps the share of the salary when that is more than the minimum', () => {
+    expect(suggestPension(400_000, data, 'stabil').monthly).toBe(20_000);
+  });
+
+  it('never presents an unconfirmed minimum as confirmed', () => {
+    expect(pensionMinimum(data, 'azt-moderato')).toMatchObject({ amount: 5_000, verified: false });
+    expect(pensionMinimum(data, 'raiffeisen-acumulare').verified).toBe(false);
+  });
+
+  it('falls back to the default, marked unverified, when the figure is missing', () => {
+    expect(pensionMinimum(data, 'pensia-mea')).toMatchObject({ amount: 5_000, verified: false });
+  });
+
+  it('uses the default with no fund, or a fund no longer on the list', () => {
+    expect(pensionMinimum(data)).toMatchObject({ amount: 5_000, fund: null, verified: true });
+    expect(pensionMinimum(data, 'gone').fund).toBeNull();
+  });
+
+  it('lists the funds alphabetically, so the order recommends nothing', () => {
+    const names = data.pensionFunds.funds.map((f) => f.name);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'ro')));
+  });
+
+  it('marks every missing figure DE-VERIFICAT', () => {
+    for (const f of data.pensionFunds.funds) {
+      if (f.min_monthly_lei === null) expect(f.status).toBe('DE-VERIFICAT');
+    }
   });
 });

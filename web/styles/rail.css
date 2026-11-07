@@ -1,0 +1,126 @@
+/* Rail layout: sidebar, page header and phone bottom bar. Shared by 2-rail.html and farm-app/subsidies. */
+.shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100dvh; }
+.rail { position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; gap: 24px; padding: 20px 12px 12px; border-radius: 0 28px 28px 0; }
+.rail .logo { padding: 8px 12px 0; }
+.rail nav { display: grid; gap: 4px; }
+.rail nav button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--on-hero-2); text-align: left; transition: background-color 140ms ease; }
+.rail nav .ic { font-size: 19px; }
+.rail nav [aria-current] { background: var(--glass); box-shadow: inset 0 0 0 1px var(--glass-line); color: var(--on-hero); font-weight: 600; }
+@media (hover: hover) and (pointer: fine) { .rail nav button:not([aria-current]):hover { background: rgba(255, 255, 255, .22); } }
+.farm { margin-top: auto; padding: 12px; border-radius: 16px; font-size: 13px; line-height: 1.45; color: var(--on-hero-2); }
+.farm b { display: block; font-size: 14px; color: var(--on-hero); }
+.farm .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 4px; border-top: 1px solid var(--glass-line); color: var(--on-hero); font-weight: 500; }
+.pal.up .pal-menu, .up .pal-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; transform-origin: bottom left; }
+.main { padding: 24px 32px 48px; min-width: 0; }
+.main > div { max-width: 1120px; margin-inline: auto; }
+.page-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.page-h .lead { margin-top: 8px; font-size: 15px; }
+.page-h .acts { display: flex; gap: 8px; }
+.btn-line { background: var(--surface); border-color: var(--hair-2); }
+.acct { display: flex; flex-direction: column; min-height: 248px; }
+.acct .lbl { font-size: 13px; font-weight: 500; color: var(--text-2); }
+.acct .spacer { flex: 1; }
+.acct .kv { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--text-2); }
+.acct .kv + .kv { margin-top: 4px; }
+.acct .kv b { color: var(--text-1); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.acct .meter { margin-top: 16px; }
+.prog .meter { margin-top: 0; }
+.acct.field { border: 0; box-shadow: none; }
+.acct.field .lbl { color: var(--on-hero-2); }
+.acct.field .chart { height: 136px; margin-top: 8px; }
+.gap { margin-top: 16px; }
+.lead-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.chart.big { height: 300px; margin-top: 12px; }
+.chart-card { padding: 24px; border-radius: 20px; }
+.side-stats { display: grid; grid-auto-rows: 1fr; gap: 8px; }
+.side-stats .stats { grid-template-columns: minmax(0, 1fr); }
+.kpi { padding: 16px; }
+.kpi .lbl { font-size: 13px; color: var(--text-2); }
+.kpi .sub2 { font-size: 14px; font-variant-numeric: tabular-nums; }
+.g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.gap-b { margin-bottom: 16px; }
+.m-crops [data-chart] { margin-top: 12px; }
+.m-top, .m-farm, .m-acts { display: none; }
+.cta h2 { font-size: 20px; line-height: 1.3; letter-spacing: -.02em; }
+.span2 { grid-row: span 2; }
+@media (max-width: 1180px) { .shell { grid-template-columns: 208px minmax(0, 1fr); } .main { padding: 24px 20px 40px; } .acct .n28 { font-size: 24px; } .page-h .lead { display: none; } }
+
+/* Phone: the sidebar becomes a lime bottom bar, and a short lime top bar frames the page.
+   Short landscape phones land here too, because the sidebar would not fit their height. */
+@media (max-width: 760px), (max-height: 500px) {
+  .shell { display: block; }
+  .rail { position: fixed; z-index: 40; top: auto; left: 0; right: 0; bottom: 0; height: auto; gap: 0; padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + var(--safe-b)) max(8px, env(safe-area-inset-left)); border-radius: 20px 20px 0 0; }
+  .rail .logo, .rail .farm { display: none; }
+  .rail nav { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .rail nav button { flex-direction: column; justify-content: center; gap: 2px; min-height: 54px; padding: 0 4px; border-radius: 14px; font-size: 12px; line-height: 1.2; text-align: center; }
+  .rail nav .ic { font-size: 21px; }
+  .m-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: calc(60px + var(--safe-t)); padding: var(--safe-t) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); border-radius: 0 0 20px 20px; }
+  .main { padding: 16px max(16px, env(safe-area-inset-right)) calc(92px + var(--safe-b)) max(16px, env(safe-area-inset-left)); }
+  .pal-btn { width: 48px; height: 48px; }
+  .page-h { display: block; margin-bottom: 16px; }
+  .page-h .acts { display: none; }
+  h1 { font-size: 30px; }
+  .m-farm { display: block; margin-top: 4px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+  .card, .cta, .chart-card { padding: 16px; }
+  .card, .cta, .chart-card, .tiles button { border-radius: 18px; }
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .bento > *, .bento > .s3, .bento > .s4, .bento > .s5, .bento > .s6, .bento > .s7, .bento > .s8, .bento > .s12 { grid-column: 1 / -1; }
+  .bento > .acct.half { grid-column: span 1; }
+  .span2 { grid-row: auto; }
+  .gap { margin-top: 12px; }
+  .acct { min-height: 0; }
+  .acct.half { min-height: 176px; }
+  .acct .n28, .n28 { font-size: 24px; }
+  .n20, .acct .n20 { font-size: 18px; }
+  .acct .lbl, .acct .kv { font-size: 13px; }
+  .acct .meter { margin-top: 12px; }
+  .acct .spacer { min-height: 12px; }
+  .m-acts { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 8px; }
+  .m-acts .btn { width: 100%; min-height: 48px; font-size: 14px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .tiles button { min-height: 112px; padding: 12px; gap: 8px; }
+  .tiles .go { width: 28px; height: 28px; font-size: 14px; }
+  .tiles .i { font-size: 22px; }
+  .tiles b { font-size: 15px; }
+  .tiles small { font-size: 13px; }
+  .m-1 { order: 1; } .m-2 { order: 2; } .m-3 { order: 3; } .m-4 { order: 4; }
+  .tx { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; }
+  .donut { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
+  .pie { width: 112px; height: 112px; }
+  .gap-b { margin-bottom: 12px; }
+  .leg li { font-size: 13px; }
+  .lead-row { display: block; }
+  .seg { display: grid; width: 100%; margin-top: 12px; }
+  .seg button { min-width: 0; min-height: 48px; padding: 0 4px; }
+  .chart.big { height: 220px; }
+  .side-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; gap: 12px; }
+  .side-stats > :first-child { grid-column: 1 / -1; }
+  .kpi { padding: 12px 16px; }
+  .cost-grid { grid-template-columns: minmax(0, 1fr); }
+  .cost-grid > .cost + .cost { border-top: 1px solid var(--hair); }
+  .mrow.head { display: none; }
+  .mrow { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; min-height: 0; padding: 8px 0; }
+  .mrow span:nth-child(1) { grid-area: 1 / 1; font-weight: 500; }
+  .mrow span:nth-child(4) { grid-area: 1 / 2; text-align: right; }
+  .mrow span:nth-child(2) { grid-area: 2 / 1; text-align: left; }
+  .mrow span:nth-child(3) { grid-area: 2 / 2; text-align: right; }
+  .mrow span:nth-child(2), .mrow span:nth-child(3) { font-size: 13px; }
+  .mrow span[data-l]::before { content: attr(data-l) " "; color: var(--text-2); }
+  .mrow.low { padding: 8px 12px; }
+  .g3 { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .res-amt { font-size: 30px; }
+  .chipb { min-height: 48px; min-width: 88px; }
+  .toast { left: 12px; right: 12px; width: auto; bottom: calc(84px + var(--safe-b)); }
+  .cta .btn { min-height: 48px; }
+}
+/* Landscape phones are short, so the tab bar lies flat */
+@media (max-height: 500px) {
+  .rail nav button { flex-direction: row; gap: 8px; min-height: 44px; font-size: 13px; }
+  .rail nav .ic { font-size: 18px; }
+  .main { padding-bottom: calc(72px + var(--safe-b)); }
+  .toast { bottom: calc(64px + var(--safe-b)); }
+}
+@media (max-width: 519px) { dialog#entry { width: 100%; } }
+@media (max-width: 359px) { .tm b, .tm small, .cl b { overflow: visible; white-space: normal; text-overflow: clip; } .bento > .acct.half { grid-column: 1 / -1; } .acct.half { min-height: 0; } .donut { grid-template-columns: minmax(0, 1fr); justify-items: center; } .leg { width: 100%; } }
+
+/* The farmer's own figures, above the sample data */

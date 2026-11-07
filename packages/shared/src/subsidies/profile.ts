@@ -7,6 +7,8 @@ export interface ParcelInput {
   areaHa: number;
   /** Arable land (default true). Pastures/orchards would be false. */
   isArable?: boolean;
+  /** When this parcel was sown, 'YYYY-MM'. Moves its first harvest. */
+  plantedMonth?: string;
 }
 
 export interface FarmInput {
@@ -22,6 +24,7 @@ export interface Parcel {
   cropId: string;
   areaAri: Ari;
   isArable: boolean;
+  plantedMonth?: string;
 }
 
 /**
@@ -48,7 +51,12 @@ export const AREA_FIELDS: ReadonlySet<ProfileField> = new Set([
 export function normalizeParcels(input: ParcelInput[]): Parcel[] {
   return input.map((p) => {
     if (!(p.areaHa > 0)) throw new Error(`Parcel area must be positive, got ${p.areaHa}`);
-    return { cropId: p.cropId, areaAri: haToAri(p.areaHa), isArable: p.isArable ?? true };
+    return {
+      cropId: p.cropId,
+      areaAri: haToAri(p.areaHa),
+      isArable: p.isArable ?? true,
+      ...(p.plantedMonth ? { plantedMonth: p.plantedMonth } : {}),
+    };
   });
 }
 

@@ -27,6 +27,7 @@
     spray: '<path d="M9 9h6v11.500H9ZM10.500 9V5.500h3V9M16.500 4h.01M19.500 4h.01M18 6.500h.01M19.500 9h.01"/>',
     seed: '<path d="M12 21c-4.500-2-6-6-6-9.500C6 7.500 9 4 12 3c3 1 6 4.500 6 8.500 0 3.500-1.500 7.500-6 9.500Z"/><path d="M12 8v8"/>',
     check: '<path d="m5 12.500 4.500 4.500L19 7.500"/>',
+    hourglass: '<path d="M7 3.500h10M7 20.500h10"/><path d="M8 3.500c0 4.500 8 4.500 8 8.500s-8 4-8 8.500"/><path d="M16 3.500c0 4.500-8 4.500-8 8.500s8 4 8 8.500"/>',
     arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
   };
   const icon = (n) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n].replace(/\.500/g, ".5").replace(/\.200/g, ".2")}</svg>`;
@@ -119,13 +120,15 @@
     const W = el.clientWidth, H = el.clientHeight; if (!W || !H) return;
     const T = 10, B = 26, L = 2, R = 13, pts = (k) => [balance(), ...series(k)];
     const cur = pts(S.path), hi = pts("good"), lo = pts("poor");
+    const NAME = { poor: "Poor", expected: "Expected", good: "Good" };
+    const others = Object.keys(NAME).filter((k) => k !== S.path).sort((a, b) => pts(b)[12] - pts(a)[12]);
     const mx = Math.max(...hi, ...lo), mn = Math.min(0, ...lo);
     const x = (i) => L + i / 12 * (W - L - R), y = (v) => T + (1 - (v - mn) / (mx - mn)) * (H - T - B);
     const map = (a) => a.map((v, i) => [x(i), y(v)]);
-    const band = `${smooth(map(hi))} L${map(lo).reverse().map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L")} Z`;
+    const dotted = others.map((k, i) => { const end = y(pts(k)[12]) + (i ? 15 : -7); return `<path class="c-alt" d="${smooth(map(pts(k)))}"/><text class="c-lab" x="${x(12).toFixed(1)}" y="${end.toFixed(1)}" text-anchor="end">${NAME[k]}</text>`; }).join("");
     const low = lowOf(series(S.path)), step = W < 300 ? 2 : 1;
     const labs = MONTHS.map((m, i) => (i % step && i !== low.i) ? "" : `<text class="c-lab${i === low.i ? " on" : ""}" x="${x(i + 1).toFixed(1)}" y="${H - 6}" text-anchor="middle">${m}</text>`).join("");
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><line class="c-base" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/><path class="c-band" d="${band}"/><path class="c-line" d="${smooth(map(cur))}"/><circle class="c-dot" r="5" cx="${x(low.i + 1).toFixed(1)}" cy="${y(low.v).toFixed(1)}"/>${labs}</svg>`;
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><line class="c-base" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>${dotted}<path class="c-line" d="${smooth(map(cur))}"/><circle class="c-dot" r="5" cx="${x(low.i + 1).toFixed(1)}" cy="${y(low.v).toFixed(1)}"/>${labs}</svg>`;
   }
   function mountChart(el) {
     el.setAttribute("role", "img");
@@ -280,7 +283,7 @@
     if (e.data.view) go(e.data.view);
   });
 
-  const FF = { S, PALETTES, tokens, palette, icon, lei, signed, series, lowOf, table, balance, on, emit, txRow, costRows, cropBody, cropState, resCard, cleanList, ruleRows, mountChart, mountPalette, spring, reduced, go, toast, closeEntry, COMING, CROPS, COSTS, costTotal, CLEAN, MONTHS, MONTHS_LONG,
+  const FF = { S, PALETTES, tokens, palette, icon, lei, signed, series, lowOf, table, balance, on, emit, txRow, costRows, cropBody, cropState, resCard, cleanList, ruleRows, mountChart, mountPalette, spring, reduced, go, toast, closeEntry, COMING, CROPS, COSTS, costTotal, CLEAN, GOAL, MONTHS, MONTHS_LONG,
     get dialog() { return dlg; },
     start() {
       document.querySelector(".app").insertAdjacentHTML("beforeend", `<div class="toast" id="toast" role="status"><span></span><button type="button" data-undo>Undo</button></div>`);

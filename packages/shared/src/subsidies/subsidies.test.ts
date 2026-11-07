@@ -55,7 +55,7 @@ describe('computeSubsidies — reference test case', () => {
     expect(result.totals.eur.probable).toBe(Math.round(tc.expected_total_eur * 100));
   });
 
-  it('total in lei = 16,869.60 at 5.28 and advance = 12,652.20 lei', () => {
+  it('total in lei = 16,865.77 at 5.2788 and advance = 12,649.32 lei', () => {
     expect(result.totals.lei.probable).toBe(Math.round(tc.expected_total_lei * 100));
     expect(result.totals.advanceLei).toBe(Math.round(tc.expected_advance_lei * 100));
     expect(result.totals.advanceEur).toBe(239625);
@@ -92,9 +92,10 @@ describe('computeSubsidies — reference test case', () => {
 });
 
 describe('computeSubsidies — default exchange rate', () => {
-  it('uses the configurable default (5.28) while the 2026 rate is unconfirmed', () => {
+  it('uses the official 2026 FEGA rate, and the default for FEADR until it is confirmed', () => {
     const r = computeSubsidies(ion, data);
-    expect(r.rates.FEGA).toEqual({ value: 5.28, confirmed: false });
+    expect(r.rates.FEGA).toEqual({ value: 5.2788, confirmed: true });
+    expect(r.rates.FEADR).toEqual({ value: 5.2788, confirmed: false });
   });
 
   it('an override is not an official rate', () => {

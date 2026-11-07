@@ -10,12 +10,14 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "@cropcash/shared": "*",
     "@supabase/supabase-js": "^2.119.0",
     "cors": "^2.8.6",
     "express": "^5.3.0",
     "jose": "^6.2.15",
-    "stripe": "^23.1.0"
+    "stripe": "^23.1.0",
+    "subventii-monitor": "*"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -7,6 +7,8 @@ export const StatusSchema = z.enum([
   'din-2024',
   'din-2020',
   'din-brief',
+  /** Typed in by the farmer for a crop of their own (P30). */
+  'de-la-fermier',
   'DE-VERIFICAT',
 ]);
 export type Status = z.infer<typeof StatusSchema>;
@@ -163,7 +165,6 @@ const PositiveParam = z.object({ value: z.number().positive() }).passthrough();
 export const PlanParamsFileSchema = z.object({
   salary_round_lei: PositiveParam,
   credit_round_lei: PositiveParam,
-  risk_fund_pct_of_inflow: z.object({ value: z.number().min(0).max(100) }).passthrough(),
   pension_suggest_max_pct_of_salary: z.object({ value: z.number().min(0).max(100) }).passthrough(),
   pension: z.object({
     target_age: PositiveParam,
@@ -176,21 +177,104 @@ export const PlanParamsFileSchema = z.object({
     slider_max_lei: PositiveParam,
     slider_step_lei: PositiveParam,
   }),
-  bad_year: z.object({
-    threshold_pct_of_mean: z.object({ value: z.number().min(0).max(100) }).passthrough(),
-    window_years: PositiveParam,
+  pension_suggest_min_lei: PositiveParam,
+  opportunities_closing_soon_days: PositiveParam,
+  opportunities_changes_days: PositiveParam,
+  documents: z.object({
+    max_mb: PositiveParam,
+    max_pages: PositiveParam,
+    photo_long_side_px: PositiveParam,
+    reads_per_day: PositiveParam,
   }),
+  sources: z.object({
+    page_size: PositiveParam,
+    farmer_max: PositiveParam,
+    adds_per_day: PositiveParam,
+    ip_adds_per_day: PositiveParam,
+    pages_max: PositiveParam,
+    reads_at_once: PositiveParam,
+    max_mb: PositiveParam,
+    read_timeout_s: PositiveParam,
+    add_deadline_s: PositiveParam,
+    monitor_deadline_s: PositiveParam,
+    preview_chars: PositiveParam,
+    text_chars: PositiveParam,
+  }),
+  pension_round_lei: PositiveParam,
+  pension_demo_lei: PositiveParam,
+  pension_target_age: PositiveParam,
+  pension_return_pct: z.object({ low: z.number().min(0), probable: z.number().min(0), high: z.number().min(0) }).passthrough(),
   credit: z.object({
     max_pct_of_subsidy: z.object({ value: z.number().min(0).max(100) }).passthrough(),
     bank_margin_over_robor_pct: Param,
     ifn_margin_over_robor_pct: Param,
     robor_6m_pct: Param,
   }),
+  long_forecast: z.object({
+    max_years: PositiveParam,
+    subsidy_rules_until_year: PositiveParam,
+  }),
+  weather: z.object({
+    forecast_days: z.object({ value: z.number().int().min(1).max(16) }).passthrough(),
+    cache_hours: PositiveParam,
+    retry_minutes: PositiveParam,
+    timeout_seconds: PositiveParam,
+    frost_min_c: z.object({ value: z.number() }).passthrough(),
+    spray_wind_max_kmh: Param,
+  }),
 });
 export type PlanParamsFile = z.infer<typeof PlanParamsFileSchema>;
 
+export const PensionFundsFileSchema = z.object({
+  funds: z
+    .array(
+      z
+        .object({
+          id: z.string().regex(/^[a-z0-9-]+$/),
+          name: z.string().min(1),
+          administrator: z.string().min(1).nullable(),
+          min_monthly_lei: z.number().positive().nullable(),
+          status: z.enum(['confirmat-administrator', 'DE-VERIFICAT']),
+          source_url: z.url(),
+        })
+        .passthrough(),
+    )
+    .min(1),
+});
+export type PensionFundsFile = z.infer<typeof PensionFundsFileSchema>;
+
+/** A sourced figure: din-presă = from a dated article, DE-VERIFICAT = unconfirmed (docs/11). */
+const SourcedStatus = z.enum(['din-presă', 'DE-VERIFICAT']);
+const SourcedFigure = z.object({ value: z.number().positive(), status: SourcedStatus, source_url: z.url() }).passthrough();
+
+export const PensionOptionsFileSchema = z.object({
+  state: z.object({
+    optional_contract_monthly_lei: SourcedFigure.extend({ from: z.iso.date() }),
+    optional_declaration_yearly_lei: SourcedFigure,
+    minimum_pension_monthly_lei: SourcedFigure,
+    minimum_pension_years: SourcedFigure.extend({ value: z.number().int().positive() }),
+  }),
+  cei: z
+    .object({ available_from: z.iso.date(), ceiling_yearly_lei: z.number().positive().nullable(), status: SourcedStatus, source_url: z.url() })
+    .passthrough(),
+  pilon3: z.object({ status: SourcedStatus, source_url: z.url() }).passthrough(),
+});
+export type PensionOptionsFile = z.infer<typeof PensionOptionsFileSchema>;
+export type PensionFund = PensionFundsFile['funds'][number];
+
 export const CountiesFileSchema = z.object({
-  counties: z.array(z.object({ code: z.string(), name_ro: z.string() })).min(42),
+  counties: z
+    .array(
+      z.object({
+        code: z.string(),
+        name_ro: z.string(),
+        region_ro: z.string(),
+        seat_ro: z.string(),
+        lat: z.number().min(43).max(49),
+        lon: z.number().min(20).max(30),
+      }),
+    )
+    .min(42),
 });
 export type CountiesFile = z.infer<typeof CountiesFileSchema>;
 
@@ -209,6 +293,8 @@ export const CropSchema = z.object({
       what_ro: z.string(),
     }),
   ),
+  /** The month it goes into the ground. Crops sown in autumn are harvested the next year. */
+  sowing_month: z.number().int().min(1).max(12),
   harvest_month: z.number().int().min(1).max(12),
   sale_month_default: z.number().int().min(1).max(12),
   status: StatusSchema,
@@ -230,3 +316,17 @@ export const CropsFileSchema = z.object({
   county_history: z.object({ status: StatusSchema, data: z.array(CountyYieldSchema) }).passthrough(),
 });
 export type CropsFile = z.infer<typeof CropsFileSchema>;
+
+export const FundingGuidesFileSchema = z.object({
+  guides: z.array(
+    z.object({
+      code: z.string().regex(/^DR-\d+$/),
+      title: z.string().min(1),
+      url: z.url(),
+      /** From the guide: false when only a PFA, an individual or family business or a company can apply. */
+      natural_persons_can_apply: z.boolean(),
+      facts: z.array(z.object({ text: z.string().min(1), page: z.number().int().positive() })).min(1),
+    }),
+  ),
+});
+export type FundingGuidesFile = z.infer<typeof FundingGuidesFileSchema>;

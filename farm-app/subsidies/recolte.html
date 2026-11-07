@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Recolte · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1 id="title">Recolte</h1><p class="lead" id="lead">Ce ai strâns, ce ai în pământ și ce ai notat.</p></div></header>
+    <p class="offline" data-offline hidden>Nu ai internet. Ce notezi se trimite când ai internet.</p>
+
+    <div class="bento">
+      <section class="card s12" id="result" hidden>
+        <div class="card-h"><h2>Plan și realitate</h2><span id="r-tag"></span></div>
+        <div id="compare"></div>
+        <div class="ob-actions" id="reopen"></div>
+      </section>
+      <section class="card s12" id="s-crops">
+        <h2 id="crops-title">Culturile tale</h2>
+        <div id="crop-list"></div>
+        <div class="h-links">
+          <button type="button" class="h-quiet" id="g-open" hidden>Notează recolta</button>
+          <button type="button" class="h-quiet" id="p-open">Schimbă semănatul</button>
+          <button type="button" class="h-quiet" id="a-edit" hidden>Schimbă culturile</button>
+        </div>
+      </section>
+      <section class="card s12" id="log">
+        <div id="add">
+          <div class="h-log-h"><h2>Notează</h2><div class="vtabs" role="group" aria-label="Ce notezi" id="kinds"></div></div>
+          <div class="h-paper" id="paper"></div>
+          <p class="note h-paper-note" id="paper-note" role="status" hidden></p>
+          <form class="h-record" id="record" novalidate>
+          <label id="what-box"><span id="what-label"></span><select id="what"></select></label>
+          <label id="for-box" hidden>Pentru<select id="for"></select></label>
+          <label>Suma, în lei<input id="amount" inputmode="numeric" autocomplete="off"></label>
+          <label>Data<input id="date" type="date"></label>
+          <p class="ob-err" id="err" role="alert" hidden></p>
+          <button type="submit" class="btn btn-dark">Salvează</button>
+          </form>
+        </div>
+        <p class="note" id="no-add" hidden></p>
+        <h2 id="log-title" hidden>Ce s-a notat</h2>
+        <div id="records"></div>
+      </section>
+    </div>
+
+    <p class="h-end" id="close-row" hidden><span id="close-q"></span><button type="button" class="h-quiet" id="a-close"></button></p>
+  </div>
+</main>
+<dialog class="h-sheet" id="g-edit" aria-labelledby="g-title">
+  <form id="g-form" novalidate>
+    <h2 id="g-title">Ce ai strâns anul ăsta</h2>
+    <div id="g-rows"></div>
+    <p class="ob-err" id="g-err" role="alert" hidden></p>
+    <div class="ob-actions"><button type="submit" class="btn btn-dark">Salvează</button><button type="button" class="btn btn-line" data-close>Renunță</button></div>
+  </form>
+</dialog>
+<dialog class="h-sheet" id="p-edit" aria-labelledby="p-title">
+  <form id="p-form" novalidate>
+    <p class="ob-err" id="p-err" role="alert" hidden></p>
+    <h2 id="p-title">Ce ai acum în pământ</h2>
+    <div id="p-rows"></div>
+    <div class="ob-actions"><button type="submit" class="btn btn-dark">Salvează</button><button type="button" class="btn btn-line" data-close>Renunță</button></div>
+  </form>
+</dialog>
+<dialog class="h-sheet" id="edit" aria-labelledby="e-title">
+  <form id="edit-form" method="dialog" novalidate>
+    <h2 id="e-title"></h2>
+    <div id="e-crops"></div>
+    <label class="ob-field">Bani la început, în lei<input id="e-open" inputmode="numeric" autocomplete="off"></label>
+    <p class="ob-err" id="e-err" role="alert" hidden></p>
+    <div class="ob-actions"><button type="submit" class="btn btn-dark" value="save">Salvează</button><button type="button" class="btn btn-line" id="e-cancel">Renunță</button></div>
+  </form>
+</dialog>
+<dialog class="h-sheet" id="own" aria-labelledby="o-title">
+  <form id="own-form" novalidate>
+    <h2 id="o-title">Altă cultură</h2>
+    <p class="note">Scrie cifrele tale pentru un an normal. Le folosim pentru salariu și prognoză. La APIA o socotim teren arabil.</p>
+    <label class="ob-field">Numele culturii<input id="o-name" autocomplete="off" maxlength="40"></label>
+    <label class="ob-field" id="o-ha-field">Hectare<input id="o-ha" inputmode="decimal" autocomplete="off"></label>
+    <div class="own-pair">
+      <label class="ob-field">Luna semănatului<select id="o-sow"></select></label>
+      <label class="ob-field">Luna recoltei<select id="o-harvest"></select></label>
+    </div>
+    <div class="own-pair">
+      <label class="ob-field">Tone/ha, an normal<input id="o-yield" inputmode="decimal" autocomplete="off"></label>
+      <label class="ob-field">Tone/ha, an slab<input id="o-bad" inputmode="decimal" autocomplete="off" placeholder="Nu știu"></label>
+    </div>
+    <label class="ob-field">Preț, lei/kg<input id="o-price" inputmode="decimal" autocomplete="off"></label>
+    <p class="own-h">Cheltuieli pe hectar, în lei</p>
+    <div class="own-three">
+      <label class="ob-field">La semănat<input id="o-c-sow" inputmode="numeric" autocomplete="off" placeholder="0"></label>
+      <label class="ob-field">Până la recoltă<input id="o-c-care" inputmode="numeric" autocomplete="off" placeholder="0"></label>
+      <label class="ob-field">La recoltat<input id="o-c-harvest" inputmode="numeric" autocomplete="off" placeholder="0"></label>
+    </div>
+    <p class="ob-err" id="o-err" role="alert" hidden></p>
+    <div class="ob-actions"><button type="submit" class="btn btn-dark">Gata</button><button type="button" class="btn btn-line" id="o-cancel">Renunță</button></div>
+  </form>
+</dialog>
+<dialog class="h-sheet" id="confirm" aria-labelledby="q-title">
+  <h2 id="q-title"></h2>
+  <p class="note" id="q-text"></p>
+  <div class="ob-actions"><button type="button" class="btn btn-dark" id="q-yes"></button><button type="button" class="btn btn-line" id="q-no">Renunță</button></div>
+</dialog>
+<script src="../mobile/shared.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="papers.js"></script>
+<script src="seasons.js"></script>
+<script src="recolte.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

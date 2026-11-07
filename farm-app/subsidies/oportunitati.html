@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Oportunități · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Oportunități</h1><p class="lead">Bani pentru investiții în fermă, din surse oficiale.</p></div></header>
+    <nav class="subnav" aria-label="Subvenții"></nav>
+    <p class="offline" data-offline hidden>Nu ai internet. Vezi ultima listă salvată, cu data ei jos.</p>
+
+    <section class="cta field verdict split" id="verdict"></section>
+    <div class="vtabs" role="group" aria-label="Ce arăt" id="vtabs"></div>
+    <div class="find" id="find" hidden>
+      <input type="search" id="f-text" placeholder="Caută un cuvânt" aria-label="Caută un cuvânt">
+      <button type="button" class="btn btn-line" id="f-toggle" aria-controls="filters" aria-expanded="false">Filtre <span id="f-count"></span></button>
+    </div>
+    <div class="filters four" id="filters" hidden>
+      <label>Program<select id="f-kind"><option value="">Toate</option><option value="afir">AFIR</option><option value="mipe">Fonduri europene (MIPE)</option><option value="ec">Comisia Europeană</option></select></label>
+      <label>Stare<select id="f-status"><option value="">Toate</option><option value="open">Deschis</option><option value="announced">Anunțat</option></select></label>
+      <label>Termen<select id="f-days"><option value="">Oricând</option><option value="30">Sub 30 de zile</option><option value="90">Sub 90 de zile</option></select></label>
+      <label>Bani alocați<select id="f-eur"><option value="0">Oricât</option><option value="1000000">Peste 1 mil. €</option><option value="10000000">Peste 10 mil. €</option></select></label>
+    </div>
+    <div id="list"></div>
+    <p class="note gap" id="foot"></p>
+  </div>
+</main>
+<dialog class="detail" id="detail" aria-labelledby="d-title"></dialog>
+<script src="../mobile/shared.js"></script>
+<script src="data-calls.js"></script>
+<script src="data-sources.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+<script src="oportunitati.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

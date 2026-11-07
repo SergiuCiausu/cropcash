@@ -14,6 +14,7 @@ import {
   type IsoDate,
   type MonthKey,
 } from './dates';
+import { firstSaleMonth, growingMonths } from './seasons';
 
 /** Which values to use: good year, normal year, bad (drought) year. See docs/07 §5. */
 export type AmountScenario = 'good' | 'medium' | 'bad';
@@ -82,11 +83,35 @@ export interface ExtraPayment {
   date: IsoDate;
 }
 
+/** A funding deadline the farmer put in the calendar. */
+export interface FollowedDeadline {
+  id: number;
+  title: string;
+  date: IsoDate;
+}
+
+/** Grain in the barn: the harvest is in, only the sale is left. */
+export interface StoredGrain {
+  id: string;
+  cropId: string;
+  kg: number;
+}
+
 /** Income already received (recorded through Stripe): its planned entry is dropped. */
 export interface ReceivedIncome {
   kind: 'apia_advance' | 'apia_balance' | 'crop_sale';
   date: IsoDate;
   cropId?: string;
+}
+
+/** Money that really moved: a recorded sale or expense, or an APIA payment that arrived. */
+export interface RecordedItem {
+  kind: 'sale' | 'expense' | 'apia_advance' | 'apia_balance';
+  amount: Bani;
+  date: IsoDate;
+  cropId?: string;
+  /** False for money the plan never expected (repairs, rent, old stock). */
+  replacesPlanned: boolean;
 }
 
 export interface TimelineInput {
@@ -95,9 +120,11 @@ export interface TimelineInput {
   /** Money on hand at the start, including everything already received. */
   startBalance: Bani;
   extras?: ExtraPayment[];
+  followed?: FollowedDeadline[];
+  recorded?: RecordedItem[];
   received?: ReceivedIncome[];
-  /** Ids of planned cost entries already paid (recorded as expenses). */
-  paidCostIds?: ReadonlySet<string>;
+  /** Harvest already gathered and not sold yet: counted as sold in the first month (P28). */
+  stored?: StoredGrain[];
 }
 
 /** True when a planned income has already arrived (same kind, inside its window or month). */
@@ -149,6 +176,16 @@ export function cropSaleRange(crop: Crop, areaAri: number): Range {
   };
 }
 
+/** The kilograms are known, so only the price moves. Same price rule as a yearly sale. */
+function storedGrainRange(crop: Crop, kg: number): Range {
+  const value = (leiPerKg: number) => Math.round(kg * leiPerKg * 100);
+  return {
+    min: value(crop.price_lei_per_kg.mean),
+    probable: value(crop.price_lei_per_kg.mean),
+    max: value(crop.price_lei_per_kg.max),
+  };
+}
+
 export function cropCostRange(crop: Crop, areaAri: number, sharePct: number): Range {
   const value = (leiPerHa: number) => Math.round((areaAri * leiPerHa * sharePct) / 100);
   return {
@@ -163,13 +200,40 @@ function occurrences(ev: CalendarEvent, from: IsoDate, to: IsoDate) {
   if (!ev.end) return [];
   const start = ev.start ?? ev.end;
   const out: { start: IsoDate; end: IsoDate; estimated: boolean }[] = [];
-  for (let k = 0; k <= 2; k++) {
+  for (let k = 0; addYears(start, k) <= to; k++) {
     const s = addYears(start, k);
     const e = addYears(ev.end, k);
-    if (e >= from && s <= to) out.push({ start: s, end: e, estimated: k > 0 });
+    if (e >= from) out.push({ start: s, end: e, estimated: k > 0 });
   }
   return out;
 }
+
+/**
+ * The real money is already in the start balance, so a record takes the planned entry of its own
+ * month off the plan. Anything beyond the plan just stays in the balance.
+ * APIA pays inside a window that can span months, so a payment matches on the window instead.
+ */
+function withoutRecorded(entries: TimelineEntry[], recorded: RecordedItem[]): TimelineEntry[] {
+  for (const r of recorded) {
+    if (!r.replacesPlanned) continue;
+    const apia = r.kind === 'apia_advance' || r.kind === 'apia_balance';
+    const kind = r.kind === 'sale' ? 'crop_sale' : r.kind === 'expense' ? 'input_cost' : r.kind;
+    const matches = (e: TimelineEntry) =>
+      apia
+        ? !!e.window && r.date >= e.window.start && r.date <= e.window.end
+        : monthKey(e.date) === monthKey(r.date) && (!r.cropId || e.cropId === r.cropId);
+    let left = r.amount;
+    for (const e of entries) {
+      if (e.kind !== kind || !matches(e)) continue;
+      const used = Math.min(left, e.value);
+      e.value -= used;
+      left -= used;
+    }
+  }
+  return entries.filter((e) => e.value > 0 || !CAN_BE_RECORDED.has(e.kind));
+}
+
+const CAN_BE_RECORDED = new Set<EntryKind>(['crop_sale', 'input_cost', 'apia_advance', 'apia_balance']);
 
 /** Events that only apply when something else exists (e.g. a declared credit). */
 const CONDITIONAL_EVENTS = new Set(['credit-adeverinta-scadenta']);
@@ -178,19 +242,21 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
   const keys = Array.from({ length: opts.months }, (_, i) => addMonths(opts.start, i));
   const from = firstDay(keys[0]!);
   const to = lastDay(keys[keys.length - 1]!);
-  const entries: TimelineEntry[] = [];
+  let entries: TimelineEntry[] = [];
   const crops = new Map(data.crops.crops.map((c) => [c.id, c]));
 
   // ── Crops: cyclic monthly costs and the yearly sale ────────────────────────
   for (const parcel of input.parcels) {
     const crop = crops.get(parcel.cropId);
     if (!crop) continue;
+    const firstSale = parcel.plantedMonth ? firstSaleMonth(crop, parcel.plantedMonth, keys[0]!) : null;
+    // The normal yearly sale starts once the next crop has had time to grow.
+    const yearlyFrom = firstSale ? addMonths(firstSale, growingMonths(crop)) : keys[0]!;
     for (const key of keys) {
       const month = monthOf(key);
       const date = dayInMonth(key, MID_MONTH_DAY);
       for (const exp of crop.expense_months.filter((e) => e.month === month)) {
         const id = costEntryId(crop.id, date);
-        if (input.paidCostIds?.has(id)) continue;
         const amount = cropCostRange(crop, parcel.areaAri, exp.share_pct);
         entries.push({
           id,
@@ -209,7 +275,7 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
         });
       }
       if (
-        crop.sale_month_default === month &&
+        (key === firstSale || (crop.sale_month_default === month && key >= yearlyFrom)) &&
         !alreadyReceived(input.received ?? [], 'crop_sale', { start: firstDay(key), end: lastDay(key) }, crop.id)
       ) {
         const amount = cropSaleRange(crop, parcel.areaAri);
@@ -227,6 +293,25 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
         });
       }
     }
+  }
+
+  for (const grain of input.stored ?? []) {
+    const crop = crops.get(grain.cropId);
+    if (!crop || !(grain.kg > 0)) continue;
+    const amount = storedGrainRange(crop, grain.kg);
+    const date = dayInMonth(keys[0]!, MID_MONTH_DAY);
+    entries.push({
+      id: `stored:${grain.id}:${date}`,
+      kind: 'crop_sale',
+      direction: 'in',
+      amount,
+      value: pick(amount, 'in', opts.amounts),
+      date,
+      window: null,
+      cropId: crop.id,
+      estimated: false,
+      unverified: false,
+    });
   }
 
   // ── APIA payments and deadlines from the calendar ──────────────────────────
@@ -296,6 +381,24 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
     });
   }
 
+  for (const f of input.followed ?? []) {
+    if (f.date < from || f.date > to) continue;
+    entries.push({
+      id: `opportunity:${f.id}`,
+      kind: 'deadline',
+      direction: 'none',
+      amount: null,
+      value: 0,
+      date: f.date,
+      window: null,
+      eventId: `opportunity-${f.id}`,
+      what: f.title,
+      estimated: false,
+      unverified: false,
+    });
+  }
+
+  entries = withoutRecorded(entries, input.recorded ?? []);
   entries.sort((a, b) => (a.date === b.date ? a.id.localeCompare(b.id) : a.date < b.date ? -1 : 1));
 
   // ── Monthly totals and running balance ─────────────────────────────────────

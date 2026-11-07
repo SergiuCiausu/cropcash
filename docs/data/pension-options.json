@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "description": "Ce alte căi are fermierul pentru bătrânețe, ca să explicăm de ce aplicația socotește cu Pilonul III (docs/05-taxes-pension.md §2 și §3). Minimul pe lună la Pilonul III vine din pension-funds.json, nu de aici.",
+    "checked_on": "2026-11-07",
+    "statuses": "din-presă = cifra apare într-un articol cu dată, nu în textul oficial. DE-VERIFICAT = sursa nu se potrivește, lipsește sau cifra s-ar putea fi schimbat (docs/11-open-questions.md)."
+  },
+  "state": {
+    "optional_contract_monthly_lei": {
+      "value": 1081,
+      "from": "2026-07-01",
+      "status": "din-presă",
+      "source_url": "https://alba24.ro/contributia-voluntara-la-pensie-s-a-majorat-din-iulie-2026-care-este-valoarea-minima-care-trebuie-platita-1147199.html",
+      "note": "Contract opțional cu Casa de Pensii: 25% din 4.325 lei. Articol din 7 iulie 2026."
+    },
+    "optional_declaration_yearly_lei": {
+      "value": 12150,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://www.economica.net/asigurarea-optionala-la-pilonul-i-de-pensii-costa-12-150-de-lei-daca-va-asigurati-la-nivelul-salariului-minim-in-2026_907561.html",
+      "note": "Prin Declarația Unică: 48.600 × 25%, la baza din ianuarie 2026. Nu știm dacă se schimbă după iulie (open question 24)."
+    },
+    "minimum_pension_monthly_lei": {
+      "value": 1281,
+      "status": "din-presă",
+      "source_url": "https://www.avocatnet.ro/articol_71675/Cine-beneficiaz%C4%83-de-pensia-minim%C4%83-garantat%C4%83-in-2026.html",
+      "note": "Pensia minimă garantată în 2026. O primește pensionarul, nu e o sumă de plătit."
+    },
+    "minimum_pension_years": {
+      "value": 15,
+      "status": "din-presă",
+      "source_url": "https://www.avocatnet.ro/articol_71675/Cine-beneficiaz%C4%83-de-pensia-minim%C4%83-garantat%C4%83-in-2026.html",
+      "note": "Câți ani de plăți cere pensia minimă garantată."
+    }
+  },
+  "cei": {
+    "available_from": "2027-01-01",
+    "ceiling_yearly_lei": null,
+    "status": "DE-VERIFICAT",
+    "source_url": "https://alba24.ro/romanii-vor-putea-economisi-si-investi-bani-fara-impozit-din-2027-noua-lege-a-fost-publicata-in-monitorul-oficial-1162874.html",
+    "note": "Contul de economii pentru investiții (Legea 202/2026). Plafoanele lipsesc (open question 20)."
+  },
+  "pilon3": {
+    "status": "din-presă",
+    "source_url": "https://www.bugetul.ro/pilonul-3-de-pensii-a-ajuns-la-88-miliarde-de-lei-cine-poate-beneficia-de-acesti-bani-care-este-procedura/",
+    "note": "Pensia facultativă: oricine peste 18 ani, cu sume lunare mici. Plafonul de deducere lipsește (open question 20)."
+  }
+}

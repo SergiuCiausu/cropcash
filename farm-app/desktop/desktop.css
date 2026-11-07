@@ -26,7 +26,6 @@ h2, .n28 { font-size: 28px; line-height: 1.15; letter-spacing: -.03em; font-weig
 .field .lead, .field .eyebrow, .field .sub { color: var(--on-hero-2); }
 .field :focus-visible { outline-color: var(--on-hero); }
 .field .c-line { stroke: var(--on-hero); stroke-width: 2.2; }
-.field .c-band { fill: var(--on-hero); opacity: .1; }
 .field .c-base { stroke: rgba(24, 32, 28, .22); }
 .field .c-dot { fill: var(--hero); stroke: var(--on-hero); }
 .field .c-lab { fill: var(--on-hero-2); }
@@ -50,7 +49,7 @@ h2, .n28 { font-size: 28px; line-height: 1.15; letter-spacing: -.03em; font-weig
 .ch-leg li { display: flex; align-items: center; gap: 6px; }
 .ch-leg i { flex: none; display: block; }
 .ch-leg .l { width: 16px; height: 2px; border-radius: 2px; background: var(--on-hero); }
-.ch-leg .r { width: 16px; height: 10px; border-radius: 3px; background: rgba(24, 32, 28, .14); }
+.ch-leg .r { width: 16px; border-top: 2px dotted var(--on-hero-2); }
 .ch-leg .d { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--on-hero); }
 .c-name { fill: var(--text-1); font-size: 13.5px; }
 .c-val { fill: var(--text-1); font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -94,13 +93,13 @@ html:not(.has-recharts) [data-chart], html:not(.has-recharts) .m-crops { display
 .s7 { grid-column: span 7; } .s8 { grid-column: span 8; } .s12 { grid-column: span 12; }
 
 .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.tiles button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 8px; min-height: 136px; padding: 16px; border: 1px solid var(--hair); border-radius: 20px; background: var(--hero-tint); text-align: left; transition: transform 140ms var(--ease-out); }
-.tiles button.t-b { background: var(--tint-b); }
-.tiles button.t-c { background: var(--tint-c); }
-.tiles button:active { transform: scale(.98); }
+.tiles :is(button, a) { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 8px; min-height: 136px; padding: 16px; border: 1px solid var(--hair); border-radius: 20px; background: var(--hero-tint); text-align: left; transition: transform 140ms var(--ease-out); }
+.tiles :is(button, a).t-b { background: var(--tint-b); }
+.tiles :is(button, a).t-c { background: var(--tint-c); }
+.tiles :is(button, a):active { transform: scale(.98); }
 .tiles .i { font-size: 24px; color: var(--text-1); }
 .tiles .go { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--hair-2); background: var(--surface); font-size: 15px; transition: transform 160ms var(--ease-out); }
-@media (hover: hover) and (pointer: fine) { .tiles button:hover .go { transform: translateX(2px); } }
+@media (hover: hover) and (pointer: fine) { .tiles :is(button, a):hover .go { transform: translateX(2px); } }
 .tiles .t { grid-column: 1 / -1; align-self: end; }
 .tiles b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.3; }
 .tiles small { font-size: 14px; line-height: 1.4; color: var(--text-2); }

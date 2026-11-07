@@ -5,14 +5,15 @@ import type { PageLink } from '../src/links.ts';
 import type { Opportunity, OpportunityEvent, OpportunityKind } from '../src/opportunities/types.ts';
 import type {
   FinishedRun, KnownLink, NewEvent, NewSnapshot, PendingLink, ProblemSource, ProblemState, RunEvent, RunStats, Source,
-  SourcePatch, Store,
-} from '../src/store.ts';
+  SourcePatch, Store, NewSourceChange } from '../src/store.ts';
 
 /** A plain in-memory Store, for testing the cascade without Supabase. */
 export class MemoryStore implements Store {
   sources: (Source & SourcePatch)[] = [];
   snapshots: (NewSnapshot & { id: number })[] = [];
   events: NewEvent[] = [];
+  sourceChanges: NewSourceChange[] = [];
+  documents = new Map<number, string>();
   runs: ({ id: number } & Partial<FinishedRun>)[] = [];
   saved = new Map<string, Opportunity>();
   opportunityEvents: (OpportunityEvent & { runId: number })[] = [];
@@ -54,6 +55,15 @@ export class MemoryStore implements Store {
   }
   async latestText(sourceId: number): Promise<string | null> {
     return this.snapshots.filter((s) => s.sourceId === sourceId).at(-1)?.text ?? null;
+  }
+  async addSourceChange(change: NewSourceChange): Promise<void> {
+    this.sourceChanges.push(change);
+  }
+  async saveDocument(source: { id: number }, text: string): Promise<void> {
+    this.documents.set(source.id, text);
+  }
+  async sourcesWithText(): Promise<Source[]> {
+    return this.sources.filter((s) => (s.text_chars ?? 0) > 0);
   }
   async addEvent(e: NewEvent): Promise<void> {
     this.events.push(e);

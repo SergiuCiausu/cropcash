@@ -9,5 +9,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   // Bundle the shared workspace package (TS source) so dist/ runs standalone on the VPS.
-  noExternal: ['@cropcash/shared'],
+  noExternal: ['@cropcash/shared', 'subventii-monitor'],
+  // The monitor's source is bundled, but its libraries load from node_modules at run time.
+  external: ['cheerio', 'defuddle', 'diff', 'linkedom', 'p-queue', 'robots-parser', 'undici', 'unpdf'],
 });

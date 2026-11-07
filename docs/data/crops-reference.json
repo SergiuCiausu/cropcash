@@ -25,6 +25,7 @@
         { "month": 9, "share_pct": 15, "what_ro": "arat și pregătit terenul" },
         { "month": 10, "share_pct": 30, "what_ro": "sămânță și semănat" }
       ],
+      "sowing_month": 10,
       "harvest_month": 7,
       "sale_month_default": 7,
       "status": "din-2025"
@@ -42,6 +43,7 @@
         { "month": 6, "share_pct": 10, "what_ro": "tratamente" },
         { "month": 10, "share_pct": 15, "what_ro": "recoltat" }
       ],
+      "sowing_month": 4,
       "harvest_month": 10,
       "sale_month_default": 10,
       "status": "din-2025"
@@ -59,6 +61,7 @@
         { "month": 6, "share_pct": 10, "what_ro": "tratamente" },
         { "month": 9, "share_pct": 15, "what_ro": "recoltat" }
       ],
+      "sowing_month": 4,
       "harvest_month": 9,
       "sale_month_default": 9,
       "status": "din-2025"

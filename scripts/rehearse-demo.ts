@@ -8,7 +8,7 @@
 import { execSync } from 'node:child_process';
 import type { AddressInfo } from 'node:net';
 import { createClient } from '@supabase/supabase-js';
-import { computeFarmPlan, loadData, simulatePension, type FarmPlan } from '../packages/shared/src';
+import { computeFarmPlan, loadData, simulatePensionScenarios } from '../packages/shared/src';
 import { createApp } from '../apps/api/src/app';
 import { supabaseRepo } from '../apps/api/src/db/repo';
 import { supabaseAdminRepo } from '../apps/api/src/db/admin';
@@ -62,7 +62,7 @@ async function rehearse(n: number) {
     if (!expect.includes(res.status)) fail(`${method} ${path} → ${res.status} ${await res.text()}`);
     return res.status === 204 ? null : res.json();
   };
-  const plan = async (): Promise<FarmPlan> => computeFarmPlan((await call('GET', '/me')).farmer, data);
+  const plan = async (): Promise<ReturnType<typeof computeFarmPlan>> => computeFarmPlan((await call('GET', '/me')).farmer, data);
 
   try {
     // 1:10 Subsidy as a range.
@@ -71,9 +71,9 @@ async function rehearse(n: number) {
     say('Subvenția', 'cam 16.900, între 15.200 și 17.100', `cam ${lei(tot.probable, 100)}, între ${lei(tot.min, 100)} și ${lei(tot.max, 100)}`);
     say('Ceasul demo', '15 noiembrie 2026', p.today);
 
-    // 2:10 "Au intrat 12.652 lei!" + split + credit.
+    // 2:10 "Au intrat 12.649 lei!" + split + credit.
     const inc = (await call('POST', '/demo/income', { kind: 'apia_advance' })).event as AdvanceEvent;
-    say('Avansul APIA', '12.652 lei', `${lei(inc.amount)} lei`);
+    say('Avansul APIA', '12.649 lei', `${lei(inc.amount)} lei`);
     p = await plan();
     await call('PUT', '/envelopes', p.proposal);
     say('Salariul fără credit', '1.000 lei', `${lei(p.salary.salary)} lei`);
@@ -89,7 +89,7 @@ async function rehearse(n: number) {
 
     // 2:40 Pension: started before moving time, so its contributions show up month by month.
     await call('POST', '/pension', { monthlyLei: 200 });
-    const sim = simulatePension(p.age, 20_000, p.pension) ?? fail('no pension simulation');
+    const sim = simulatePensionScenarios(p.age, 20_000, p.pension) ?? fail('no pension simulation');
     say('Pensia 200 lei', 'cam 29.000 lei la 65', `cam ${lei(sim.atTarget.probable, 1000)} lei la ${p.pension.targetAge}`);
 
     // 2:55 Six months forward.
@@ -110,7 +110,6 @@ async function rehearse(n: number) {
     // 3:25 Drought.
     const yearIn = (sc: 'bad' | 'medium') => p.projection[sc].years.find((x) => x.year === 2027)?.in ?? 0;
     say('Secetă: venit 2027', '~80.000 lei (vs ~98.000)', `${lei(yearIn('bad'), 1000)} lei (vs ${lei(yearIn('medium'), 1000)})`);
-    say('Secetă: fondul țintă', '~30.000 lei', `${lei(p.riskTarget, 1000)} lei, strâns ${lei(p.riskFund.saved)}`);
     say('Secetă: salariul sigur', '0 lei', `${lei(p.salaries.bad.salary)} lei`);
   } finally {
     server.close();

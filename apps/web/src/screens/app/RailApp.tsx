@@ -3,9 +3,10 @@ import { upcoming } from '@cropcash/shared';
 import { t } from '../../i18n';
 import { Icon, type IconName } from '../../components/Icon';
 import { ForecastChart } from '../../components/ForecastChart';
+import { WeatherCard } from '../../components/WeatherCard';
 import { Logo, PaletteMenu } from '../../components/ui';
-import { formatDayMonthYear, formatHa, formatLei, formatMonth, formatMonthCap } from '../../lib/format';
-import { countyName } from '../../lib/plan';
+import { formatHa, formatMoney, formatMonth, formatMonthCap, formatToday, todayIso, formatDayMonthYear } from '../../lib/format';
+import { countyName, useScenarioPlan } from '../../lib/plan';
 import { forecastSeries, monthLabels, scenarioKey } from '../../lib/view';
 import {
   ComingList,
@@ -15,11 +16,11 @@ import {
   EnvelopesCard,
   MarginBars,
   MonthTable,
-  RiskFundBody,
   SalaryCta,
   SpringCard,
   SubsidySummary,
 } from './blocks';
+import { OpportunitiesCard } from './Opportunities';
 import type { ShellProps, View } from './AppShell';
 import { DEMO, DemoCard, PensionCard, SetupCard } from './MoneyCards';
 import { QuarterTable, SaleCard, ScenarioSalaryCard } from './ScenarioCards';
@@ -63,14 +64,14 @@ function Tile({
 
 export function RailApp(p: ShellProps) {
   const { plan, farm, view, go, scenario, setScenario } = p;
+  const scenarioPlan = useScenarioPlan(farm);
   const tl = plan.timelines.medium;
   const sel = plan.timelines[scenario];
   const next = upcoming(tl, plan.today);
   const series = forecastSeries(plan);
   const labels = monthLabels(tl);
   const firstName = farm.name.split(/\s+/)[0] ?? farm.name;
-  const fundPct = plan.riskTarget ? Math.min(1, plan.envelopes.risk_fund / plan.riskTarget) : 0;
-  const lowLabel = t('forecast.chartLabel', { month: formatMonth(sel.lowest.key), amount: formatLei(sel.lowest.balance, 100) });
+  const lowLabel = t('forecast.chartLabel', { month: formatMonth(sel.lowest.key), amount: formatMoney(sel.lowest.balance, 100) });
 
   return (
     <div className="rail-ui">
@@ -125,29 +126,9 @@ export function RailApp(p: ShellProps) {
                 <section className="card acct field s6">
                   <p className="lbl">{t('deck.balance')}</p>
                   <p className="n28">
-                    {formatLei(plan.startBalance)} {t('common.lei')}
+                    {formatMoney(plan.startBalance)} {t('common.currency')}
                   </p>
                   <ForecastChart series={series} active="mid" labels={labels} label={lowLabel} />
-                </section>
-                <section className="card acct s3">
-                  <p className="lbl">{t('deck.riskCard')}</p>
-                  <p className="n20">
-                    {formatLei(plan.envelopes.risk_fund)} {t('common.lei')}
-                  </p>
-                  <div className="meter">
-                    <i style={{ transform: `scaleX(${fundPct.toFixed(4)})` }} />
-                  </div>
-                  <div className="spacer" />
-                  <div className="kv">
-                    <span>{t('deck.goal')}</span>
-                    <b>
-                      {formatLei(plan.riskTarget)} {t('common.lei')}
-                    </b>
-                  </div>
-                  <div className="kv">
-                    <span>{t('stats.tightest')}</span>
-                    <b>{formatMonthCap(tl.lowest.key)}</b>
-                  </div>
                 </section>
                 <section className="card acct s3">
                   <SubsidySummary plan={plan} onOpen={p.openSubsidy} />
@@ -166,6 +147,7 @@ export function RailApp(p: ShellProps) {
                 <Tile icon="sprout" k="fields" onClick={() => go('fields')} />
               </div>
               <div className="bento gap">
+                <OpportunitiesCard onOpen={p.openOpportunities} className="s12" />
                 <section className="card s7" id="coming">
                   <div className="card-h">
                     <h2>{t('home.comingUp')}</h2>
@@ -184,7 +166,7 @@ export function RailApp(p: ShellProps) {
                 )}
                 <SpringCard plan={plan} className="s7" />
                 {DEMO ? (
-                  <DemoCard farm={farm} plan={plan} onChanged={p.onChanged} onIncome={() => go('reserve')} className="s12" />
+                  <DemoCard farm={farm} plan={scenarioPlan} onChanged={p.onChanged} onIncome={() => go('reserve')} className="s12" />
                 ) : (
                   !farm.stripe_account_id && <SetupCard onChanged={p.onChanged} className="s12" />
                 )}
@@ -201,7 +183,7 @@ export function RailApp(p: ShellProps) {
                       {t('forecast.endEyebrow', { month: formatMonth(sel.months.at(-1)!.key) })}
                     </p>
                     <p className="n28">
-                      {formatLei(sel.months.at(-1)!.balanceEnd, 100)} {t('common.lei')}
+                      {formatMoney(sel.months.at(-1)!.balanceEnd, 100)} {t('common.currency')}
                     </p>
                   </div>
                   <div className="seg" role="group">
@@ -233,23 +215,23 @@ export function RailApp(p: ShellProps) {
                   <p className="lbl">{t('forecast.kpiTightest')}</p>
                   <p className="n20">{formatMonthCap(sel.lowest.key)}</p>
                   <p className="sub2">
-                    {formatLei(sel.lowest.balance, 100)} {t('common.lei')}
+                    {formatMoney(sel.lowest.balance, 100)} {t('common.currency')}
                   </p>
                 </section>
                 <section className="card kpi">
                   <p className="lbl">{t('forecast.ifBad')}</p>
                   <p className="n20">
-                    {formatLei(plan.timelines.bad.months.at(-1)!.balanceEnd, 100)} {t('common.lei')}
+                    {formatMoney(plan.timelines.bad.months.at(-1)!.balanceEnd, 100)} {t('common.currency')}
                   </p>
                 </section>
                 <section className="card kpi">
                   <p className="lbl">{t('forecast.ifGood')}</p>
                   <p className="n20">
-                    {formatLei(plan.timelines.good.months.at(-1)!.balanceEnd, 100)} {t('common.lei')}
+                    {formatMoney(plan.timelines.good.months.at(-1)!.balanceEnd, 100)} {t('common.currency')}
                   </p>
                 </section>
               </div>
-              <ScenarioSalaryCard plan={plan} scenario={scenario} className="s12" />
+              <ScenarioSalaryCard plan={scenarioPlan} scenario={scenario} className="s12" />
               {plan.costs.length > 0 && (
                 <section className="card s12">
                   <div className="card-h">
@@ -271,13 +253,14 @@ export function RailApp(p: ShellProps) {
                 <div className="card-h">
                   <h2>{t('projection.title')}</h2>
                 </div>
-                <QuarterTable plan={plan} scenario={scenario} />
+                <QuarterTable plan={scenarioPlan} scenario={scenario} />
               </section>
             </div>
           )}
 
           {view === 'fields' && (
             <>
+              <WeatherCard countyCode={farm.county} style={{ marginBottom: 16 }} />
               <section className="card" style={{ marginBottom: 16 }}>
                 <div className="card-h">
                   <h2>{t('fields.marginTitle')}</h2>
@@ -295,18 +278,15 @@ export function RailApp(p: ShellProps) {
               <p className="note" style={{ marginTop: 16 }}>
                 {t('fields.note')}
               </p>
-              <SaleCard plan={plan} />
+              <SaleCard plan={scenarioPlan} />
             </>
           )}
 
           {view === 'reserve' && (
             <div className="bento">
-              <section className="cta field s5">
-                <RiskFundBody plan={plan} />
-              </section>
               <EnvelopesCard plan={plan} onChanged={p.onChanged} className="s7 span2" />
               <SpringCard plan={plan} className="s5" />
-              <PensionCard farm={farm} plan={plan} onChanged={p.onChanged} className="s5" />
+              <PensionCard farm={farm} plan={scenarioPlan} onChanged={p.onChanged} className="s5" />
             </div>
           )}
         </div>

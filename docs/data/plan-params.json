@@ -12,11 +12,6 @@
     "status": "presupunere",
     "note": "Creditul sugerat se rotunjește în sus la 100 lei (P8)."
   },
-  "risk_fund_pct_of_inflow": {
-    "value": 10,
-    "status": "presupunere",
-    "note": "10% din fiecare încasare merge în fondul pentru ani proști, până la țintă (P5)."
-  },
   "pension_suggest_max_pct_of_salary": {
     "value": 5,
     "status": "presupunere",
@@ -61,17 +56,126 @@
       "note": "Pasul slider-ului."
     }
   },
-  "bad_year": {
-    "threshold_pct_of_mean": {
-      "value": 80,
-      "status": "presupunere",
-      "note": "An prost = producția județului sub 80% din media pe ultimii ani (docs/07 §5)."
-    },
-    "window_years": {
+  "opportunities_closing_soon_days": {
+    "value": 14,
+    "status": "presupunere",
+    "note": "De când arătăm că o finanțare se închide curând. Alegere de ecran."
+  },
+  "documents": {
+    "max_mb": {
       "value": 10,
       "status": "presupunere",
-      "note": "Câți ani de istoric INS numărăm (docs/07 §5)."
+      "note": "Cât poate avea o hârtie încărcată, cu toate paginile. Alegere a noastră."
+    },
+    "max_pages": {
+      "value": 6,
+      "status": "presupunere",
+      "note": "Câte poze pot fi pentru o singură hârtie. Alegere a noastră."
+    },
+    "photo_long_side_px": {
+      "value": 1600,
+      "status": "presupunere",
+      "note": "Pozele se micșorează pe telefon la atât, ca să meargă și cu semnal slab."
+    },
+    "reads_per_day": {
+      "value": 20,
+      "status": "presupunere",
+      "note": "Câte hârtii poate citi un fermier într-o zi. Protecție împotriva costului."
     }
+  },
+  "sources": {
+    "page_size": {
+      "value": 25,
+      "status": "presupunere",
+      "note": "Câte rânduri arată surse.html pe o pagină. Cerut de echipă."
+    },
+    "farmer_max": {
+      "value": 25,
+      "status": "presupunere",
+      "note": "Câte surse poate adăuga un fermier. Alegere a noastră."
+    },
+    "adds_per_day": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Câte surse poate adăuga un telefon într-o zi. Protecție împotriva abuzului."
+    },
+    "ip_adds_per_day": {
+      "value": 30,
+      "status": "presupunere",
+      "note": "Câte surse se pot adăuga de la o adresă IP într-o zi. Fără cont, e principala protecție."
+    },
+    "pages_max": {
+      "value": 2000,
+      "status": "presupunere",
+      "note": "Câte pagini adăugate de fermieri urmărim în total."
+    },
+    "reads_at_once": {
+      "value": 3,
+      "status": "presupunere",
+      "note": "Câte citiri rulează deodată pe server."
+    },
+    "max_mb": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Cea mai mare pagină sau cel mai mare PDF pe care îl citim."
+    },
+    "read_timeout_s": {
+      "value": 15,
+      "status": "presupunere",
+      "note": "Cât așteptăm răspunsul unui site."
+    },
+    "add_deadline_s": {
+      "value": 25,
+      "status": "presupunere",
+      "note": "Cât așteaptă fermierul citirea, când adaugă o sursă."
+    },
+    "monitor_deadline_s": {
+      "value": 120,
+      "status": "presupunere",
+      "note": "Cât poate dura citirea unei pagini în verificarea zilnică, cu așteptarea între cereri."
+    },
+    "preview_chars": {
+      "value": 400,
+      "status": "presupunere",
+      "note": "Câte caractere arătăm din ce am citit."
+    },
+    "text_chars": {
+      "value": 200000,
+      "status": "presupunere",
+      "note": "Câte caractere păstrăm ca să arătăm ce s-a schimbat."
+    }
+  },
+  "opportunities_changes_days": {
+    "value": 30,
+    "status": "presupunere",
+    "note": "Cât de departe privim la „Ce s-a schimbat”. Alegere de ecran."
+  },
+  "pension_suggest_min_lei": {
+    "value": 50,
+    "status": "presupunere",
+    "note": "Cea mai mică sumă sugerată când fermierul n-a ales un fond (P7). E o alegere a noastră, nu un minim al statului."
+  },
+  "pension_round_lei": {
+    "value": 50,
+    "status": "presupunere",
+    "note": "Contribuția sugerată se rotunjește în jos la 50 lei (P7)."
+  },
+  "pension_demo_lei": {
+    "value": 200,
+    "status": "presupunere",
+    "note": "Pensia lunară din exemplul lui Ion (docs/07-architecture.md), folosită de paginile statice din farm-app/subsidies (P24)."
+  },
+  "pension_target_age": {
+    "value": 65,
+    "status": "presupunere",
+    "note": "Vârsta țintă din simularea pensiei (docs/05 §4)."
+  },
+  "pension_return_pct": {
+    "low": 2,
+    "probable": 4,
+    "high": 6,
+    "status": "presupunere",
+    "note": "Randamente ilustrative pe an, nu promisiuni (P6)."
   },
   "credit": {
     "max_pct_of_subsidy": {
@@ -94,6 +198,48 @@
       "value": null,
       "status": "DE-VERIFICAT",
       "note": "Lipsește valoarea curentă; dobânda nu intră încă în calcul."
+    }
+  },
+  "long_forecast": {
+    "max_years": {
+      "value": 10,
+      "note": "Cât de departe merge cursorul din Prognoză. Presupunere de produs (P21)."
+    },
+    "subsidy_rules_until_year": {
+      "value": 2027,
+      "note": "PS PAC 2023–2027. După acest an subvențiile nu sunt stabilite, așa că prognoza le ține la fel (P25)."
+    }
+  },
+  "weather": {
+    "forecast_days": {
+      "value": 7,
+      "status": "presupunere",
+      "note": "Câte zile arată cardul de vreme."
+    },
+    "cache_hours": {
+      "value": 3,
+      "status": "presupunere",
+      "note": "Cât păstrează API-ul prognoza unui județ. Ține apelurile la cel mult 42 × 8 = 336 pe zi."
+    },
+    "retry_minutes": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Cât așteaptă API-ul după o eroare Open-Meteo până reîncearcă."
+    },
+    "timeout_seconds": {
+      "value": 8,
+      "status": "presupunere",
+      "note": "Cât așteaptă API-ul un răspuns de la Open-Meteo."
+    },
+    "frost_min_c": {
+      "value": 0,
+      "status": "presupunere",
+      "note": "Avertizăm de îngheț când minima la 2 m ajunge la această valoare sau sub ea. Pragul pe cultură nu e stabilit."
+    },
+    "spray_wind_max_kmh": {
+      "value": null,
+      "status": "DE-VERIFICAT",
+      "note": "Viteza maximă a vântului pentru stropit. Lipsește o sursă, deci avertizarea de vânt e oprită (docs/11-open-questions.md)."
     }
   }
 }

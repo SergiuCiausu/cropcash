@@ -1,5 +1,6 @@
 import type { AppData, Crop } from '../data';
 import type { Bani } from '../money';
+import type { MonthKey } from './dates';
 import { maxSafeSalary, type SalaryResult, type SmoothingOptions } from './smoothing';
 import type { AmountScenario, Timeline } from './timeline';
 
@@ -88,7 +89,7 @@ export function yearlyTotals(quarters: QuarterPlan[]): YearPlan[] {
 
 /* ── Î4: selling the harvest ─────────────────────────────────────────────── */
 
-export interface SaleInput {
+export interface SaleForecastInput {
   /** Price in bani per kg (e.g. 105 = 1,05 lei/kg). */
   priceBaniPerKg: number;
   /** Yield in kg per hectare (e.g. 5000 = 5 t/ha). */
@@ -116,7 +117,7 @@ export function saleRanges(crop: Crop) {
   };
 }
 
-export function saleForecast(crop: Crop, areaAri: number, input: SaleInput): SaleForecast {
+export function saleForecast(crop: Crop, areaAri: number, input: SaleForecastInput): SaleForecast {
   for (const [k, v] of Object.entries(input)) {
     if (!Number.isSafeInteger(v) || v < 0) throw new Error(`${k} must be a non-negative integer, got ${v}`);
   }
@@ -130,4 +131,32 @@ export function saleForecast(crop: Crop, areaAri: number, input: SaleInput): Sal
     margin: income - cost,
     breakEvenPerKg: productionKg > 0 ? Math.ceil(cost / productionKg) : 0,
   };
+}
+
+/** One 12-month block from the plan's first month, so no block is a partial calendar year. */
+export interface RollingYear {
+  from: MonthKey;
+  to: MonthKey;
+  in: Bani;
+  out: Bani;
+  /** What comes in minus what goes out, before salary and pension. */
+  left: Bani;
+}
+
+export function rollingYears(timeline: Timeline): RollingYear[] {
+  const years: RollingYear[] = [];
+  for (let i = 0; i + 12 <= timeline.months.length; i += 12) {
+    const block = timeline.months.slice(i, i + 12);
+    const total = block.reduce((sum, m) => ({ in: sum.in + m.in, out: sum.out + m.out }), { in: 0, out: 0 });
+    years.push({ from: block[0]!.key, to: block[11]!.key, ...total, left: total.in - total.out });
+  }
+  return years;
+}
+
+/** The first `count` years added up. */
+export function firstYearsTotal(years: RollingYear[], count: number) {
+  return years.slice(0, count).reduce(
+    (sum, y) => ({ in: sum.in + y.in, out: sum.out + y.out, left: sum.left + y.left }),
+    { in: 0, out: 0, left: 0 },
+  );
 }

@@ -16,6 +16,7 @@ export function entryTitle(e: TimelineEntry): string {
     case 'loan_repayment':
       return t('calendar.entry.loan_repayment');
     default:
-      return eventTitle(e.eventId);
+      // A followed funding call has no calendar event: its title comes with the entry.
+      return eventTitle(e.eventId) || (e.what ?? '');
   }
 }

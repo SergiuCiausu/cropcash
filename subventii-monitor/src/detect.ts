@@ -1,6 +1,7 @@
 // The change-detection cascade. Each source stops at the first step that gives
 // an answer, so most checks never download or store anything.
 import { createPatch } from 'diff';
+import { shortDiff } from './documents.ts';
 import { MIN_TEXT_CHARS, decodeHtml, extractHtml, isChallengePage } from './extract/html.ts';
 import { extractPdf, isPdf } from './extract/pdf.ts';
 import { validatorsMatch, type FetchResult, type Fetcher, type Validators } from './fetcher.ts';
@@ -72,7 +73,7 @@ async function extract(body: Uint8Array, res: FetchResult, source: Source): Prom
   return { text: '', hasText: false, thinIsBad: false, links: [], drafts: [], parserFailed: false }; // DOC, XLS and other files.
 }
 
-function makeDiff(title: string, before: string | null, after: string): string | null {
+export function makeDiff(title: string, before: string | null, after: string): string | null {
   if (!before) return null;
   try {
     return createPatch(title, before, after, undefined, undefined, { context: 2, timeout: DIFF_TIMEOUT_MS }) ?? null;
@@ -85,6 +86,14 @@ export async function checkSource(source: Source, ctx: CheckContext): Promise<St
   const { store, fetcher, runId, now } = ctx;
   const emit = (kind: EventKind, detail?: string, snapshotId?: number) =>
     store.addEvent({ sourceId: source.id, runId, kind, detail, snapshotId });
+  /** The app's copy is a convenience: failing to write it must not fail the check. */
+  const forApp = async (write: () => Promise<void>): Promise<void> => {
+    try {
+      await write();
+    } catch (err) {
+      console.warn(`[app copy] ${source.url}: ${err instanceof Error ? err.message : err}`);
+    }
+  };
 
   const seen: SourcePatch = {
     last_checked: now.toISOString(),
@@ -96,6 +105,7 @@ export async function checkSource(source: Source, ctx: CheckContext): Promise<St
   const recovered = async (): Promise<SourceState> => {
     if (['gone', 'blocked', 'error', 'suspicious'].includes(source.state)) {
       await emit('returned', `was ${source.state}`);
+      await forApp(() => store.addSourceChange({ source, kind: 'returned', shortDiff: null }));
     }
     return 'active';
   };
@@ -105,7 +115,10 @@ export async function checkSource(source: Source, ctx: CheckContext): Promise<St
     const lastChecked = { last_checked: now.toISOString() };
     if (res.outcome === 'not_found' || res.outcome === 'blocked_robots') {
       const state = res.outcome === 'not_found' ? 'gone' : 'blocked';
-      if (source.state !== state) await emit(state, detail);
+      if (source.state !== state) {
+        await emit(state, detail);
+        if (state === 'gone') await forApp(() => store.addSourceChange({ source, kind: 'gone', shortDiff: null }));
+      }
       await store.updateSource(source.id, { ...lastChecked, state, next_due: nextDue(source.frequency, now) });
       return state;
     }
@@ -196,6 +209,7 @@ export async function checkSource(source: Source, ctx: CheckContext): Promise<St
     const id = await snapshot(null);
     await emit('baseline', hasText ? undefined : 'no extractable text; compared by file hash', id);
     if (thin) await emit('needs_manual', `only ${text.length} characters of text`);
+    if (hasText) await forApp(() => store.saveDocument(source, text));
     await syncContent();
     await store.updateSource(source.id, { ...current, state: thin ? 'needs_manual' : 'active' });
     return 'baseline';
@@ -223,6 +237,8 @@ export async function checkSource(source: Source, ctx: CheckContext): Promise<St
   const diff = hasText ? makeDiff(source.title, previousText, text) : null;
   const id = await snapshot(diff);
   await emit('changed', diff ? undefined : 'no text diff available', id);
+  await forApp(() => store.addSourceChange({ source, kind: 'changed', shortDiff: diff ? shortDiff(diff) : null }));
+  if (hasText) await forApp(() => store.saveDocument(source, text));
   await syncContent();
   await store.updateSource(source.id, { ...current, state: 'active' });
   return 'changed';

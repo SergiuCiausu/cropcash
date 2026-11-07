@@ -1,7 +1,8 @@
 import type { AppData } from '../data';
-import { computeSubsidies, normalizeParcels } from '../subsidies';
+import { normalizeParcels } from '../subsidies';
 import { extrasFromStored, farmInputFromStored } from '../farm';
 import { buildTimeline } from './timeline';
+import { farmData, farmSubsidies } from './farm-plan';
 import { computeFarmPlan, planToday, type PlanFarm } from './plan';
 
 /**
@@ -49,11 +50,11 @@ export function paydaysBetween(fromIso: string, toIso: string): string[] {
 export function incomesBetween(farm: PlanFarm, data: AppData, fromIso: string, toIso: string) {
   const plan = computeFarmPlan(farm, data);
   const input = farmInputFromStored(farm, data.subsidies.meta.campaign_year);
-  const subsidies = computeSubsidies(input, data);
+  const subsidies = farmSubsidies(farm, data);
   const months = 13;
   const tl = buildTimeline(
     { parcels: normalizeParcels(input.parcels), subsidies, startBalance: 0, received: plan.received },
-    data,
+    farmData(farm, data),
     { start: fromIso.slice(0, 7), months, amounts: 'medium', timing: 'mid' },
   );
   const from = fromIso.slice(0, 10);

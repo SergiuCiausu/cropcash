@@ -3,6 +3,9 @@ import { useState } from 'react';
 import {
   addMonths,
   CreditInputSchema,
+  addCredit,
+  removeCredit,
+  saveEnvelopes,
   ENVELOPE_KINDS,
   loadData,
   type CropEconomics,
@@ -11,7 +14,8 @@ import {
   type TimelineEntry,
 } from '@cropcash/shared';
 import { t } from '../../i18n';
-import { api, ApiError } from '../../api/client';
+import { ApiError } from '../../api/client';
+import { callWrite } from '../../functions/call';
 import { Icon, cropColor, type IconName } from '../../components/Icon';
 import { Donut } from '../../components/Donut';
 import { Sheet, VerifyBadge } from '../../components/ui';
@@ -19,17 +23,15 @@ import {
   currentMonthKey,
   formatDayMonth,
   formatHa,
-  formatLei,
+  formatMoney, formatMoneyExact,
   formatMonth,
   formatMonthCap,
   formatMonthYear,
-  formatMonthYearLower,
-} from '../../lib/format';
+  formatMonthYearLower, formatLei } from '../../lib/format';
 import { countyName, cropName, type FarmPlan } from '../../lib/plan';
 import { entryTitle } from '../../lib/entryText';
 
 const data = loadData();
-const leiKg = (bani: number) => (bani / 100).toLocaleString('ro-RO', { minimumFractionDigits: 2 });
 
 /* ── Coming up ─────────────────────────────────────────────────────────── */
 
@@ -79,7 +81,7 @@ export function ComingList({ entries }: { entries: TimelineEntry[] }) {
               {e.direction !== 'none' && (
                 <b className={e.direction === 'in' ? 'pos' : ''}>
                   {e.direction === 'in' ? '+' : '−'}
-                  {formatLei(e.value)} {t('common.lei')}
+                  {formatMoney(e.value)} {t('common.currency')}
                 </b>
               )}
               <small>
@@ -111,7 +113,7 @@ export function CostRows({ plan, className = '' }: { plan: FarmPlan; className?:
               <b>{cropName(c.cropId)}</b>
               <span className="pct">{Math.round((c.amount / total) * 100)}%</span>
               <span className="amt">
-                {formatLei(c.amount)} {t('common.lei')}
+                {formatMoney(c.amount)} {t('common.currency')}
               </span>
             </div>
             <div className="bar">
@@ -128,7 +130,7 @@ export function CostDonut({ plan }: { plan: FarmPlan }) {
   const total = plan.costs.reduce((s, c) => s + c.amount, 0);
   return (
     <Donut
-      center={formatLei(total)}
+      center={formatMoney(total)}
       centerLabel={t('home.leiTotal')}
       slices={plan.costs.map((c) => ({
         key: c.cropId,
@@ -159,10 +161,10 @@ export function MonthTable({ timeline }: { timeline: Timeline }) {
               {formatMonthYear(m.key)}
               {low && t('forecast.tightTag')}
             </span>
-            <span data-l={t('forecast.colIn')}>{formatLei(m.in)}</span>
-            <span data-l={t('forecast.colOut')}>{formatLei(m.out)}</span>
+            <span data-l={t('forecast.colIn')}>{formatMoney(m.in)}</span>
+            <span data-l={t('forecast.colOut')}>{formatMoney(m.out)}</span>
             <span className={`v${m.balanceEnd < 0 ? ' neg' : ''}`}>
-              {formatLei(m.balanceEnd)} {t('common.lei')}
+              {formatMoney(m.balanceEnd)} {t('common.currency')}
             </span>
           </div>
         );
@@ -181,7 +183,7 @@ export function CropCardBody({ e }: { e: CropEconomics }) {
         <span className="st-pill">{formatHa(e.areaAri / 100)} ha</span>
       </h2>
       <p className="n20 margin">
-        {formatLei(e.marginPerHa)} {t('common.lei')}
+        {formatMoney(e.marginPerHa)} {t('common.currency')}
       </p>
       <p className="lab">{t('fields.marginPerHa')}</p>
       <div className="crop-l">
@@ -190,23 +192,23 @@ export function CropCardBody({ e }: { e: CropEconomics }) {
       </div>
       <div className="crop-l">
         <span>{t('fields.price')}</span>
-        <span>{t('fields.perT', { amount: formatLei(e.pricePerT) })}</span>
+        <span>{t('fields.perT', { amount: formatMoney(e.pricePerT) })}</span>
       </div>
       <div className="crop-l">
         <span>{t('fields.income')}</span>
         <span>
-          {formatLei(e.income)} {t('common.lei')}
+          {formatMoney(e.income)} {t('common.currency')}
         </span>
       </div>
       <div className="crop-l">
         <span>{t('fields.cost')}</span>
         <span>
-          {formatLei(e.cost)} {t('common.lei')}
+          {formatMoney(e.cost)} {t('common.currency')}
         </span>
       </div>
       <div className="crop-l">
         <span>{t('fields.breakEven')}</span>
-        <span>{t('fields.perKg', { amount: leiKg(e.breakEvenPerKg) })}</span>
+        <span>{t('fields.perKg', { amount: formatMoneyExact(e.breakEvenPerKg) })}</span>
       </div>
     </>
   );
@@ -223,7 +225,7 @@ export function MarginBars({ plan }: { plan: FarmPlan }) {
               {cropName(e.cropId)}, {formatHa(e.areaAri / 100)} ha
             </span>
             <span>
-              {formatLei(e.marginPerHa)} {t('common.lei')} / ha
+              {formatMoney(e.marginPerHa)} {t('common.currency')} / ha
             </span>
           </div>
           <div className="bar">
@@ -268,7 +270,7 @@ export function CreditSheet({
     setBusy(true);
     setError(null);
     try {
-      await api('/api/credits', { method: 'POST', body: JSON.stringify(body) });
+      await callWrite(addCredit, body);
       await onSaved();
       onClose();
     } catch {
@@ -335,7 +337,7 @@ export function SalaryCta({
     if (!navigator.onLine) return;
     setRemoving(groupId);
     try {
-      await api(`/api/credits/${groupId}`, { method: 'DELETE' });
+      await callWrite(removeCredit, { groupId });
       await onChanged();
     } finally {
       setRemoving(null);
@@ -346,7 +348,7 @@ export function SalaryCta({
     <section className={`cta field ${className}`}>
       <div>
         <p className="eyebrow">{t('salary.eyebrow')}</p>
-        <h2>{t('salary.headline', { amount: formatLei(plan.monthlySalary) })}</h2>
+        <h2>{t('salary.headline', { amount: formatMoney(plan.monthlySalary) })}</h2>
         <p>
           {salary.deficit
             ? t('salary.deficit', { month: formatMonth(salary.bindingMonth) })
@@ -358,9 +360,9 @@ export function SalaryCta({
         <div className="suggest">
           <b>{t('salary.suggestTitle')}. </b>
           {t('salary.suggest', {
-            credit: formatLei(s.credit.amount),
+            credit: formatMoney(s.credit.amount),
             month: formatMonth(s.credit.takeMonth ?? ''),
-            salary: formatLei(s.salary),
+            salary: formatMoney(s.salary),
           })}
           <small>{t('salary.suggestNote')}</small>
         </div>
@@ -371,7 +373,7 @@ export function SalaryCta({
             <li key={c.groupId}>
               <small style={{ color: 'var(--on-hero)' }}>
                 {t('salary.declared', {
-                  amount: formatLei(c.amount),
+                  amount: formatMoney(c.amount),
                   take: formatMonthYearLower(c.takeDate.slice(0, 7)),
                   repay: c.repayDate ? formatMonthYearLower(c.repayDate.slice(0, 7)) : '—',
                 })}
@@ -381,7 +383,7 @@ export function SalaryCta({
                 className="linkbtn"
                 style={{ color: 'var(--on-hero)' }}
                 disabled={removing === c.groupId}
-                aria-label={t('salary.removeLabel', { amount: formatLei(c.amount) })}
+                aria-label={t('salary.removeLabel', { amount: formatMoney(c.amount) })}
                 onClick={() => void remove(c.groupId)}
               >
                 {t('salary.remove')}
@@ -401,49 +403,6 @@ export function SalaryCta({
 
 /* ── Reserves ──────────────────────────────────────────────────────────── */
 
-/** Screen Î2: the bad-years fund. Works offline (computed on the device). */
-export function RiskFundBody({ plan }: { plan: FarmPlan }) {
-  const { saved, missing, done } = plan.riskFund;
-  const pct = plan.riskFund.pct / 100;
-  const bad = plan.badYears;
-  return (
-    <div>
-      <p className="res-label">{t('reserve.badYearTitle')}</p>
-      <p className="res-amt">
-        {formatLei(saved)} {t('common.lei')}
-      </p>
-      <div className="meter" style={{ marginTop: 14 }}>
-        <i style={{ transform: `scaleX(${pct.toFixed(4)})` }} />
-      </div>
-      <div className="res-note">
-        <span>{t('reserve.badYearHave')}</span>
-        <span>{t('reserve.badYearOf', { amount: formatLei(plan.riskTarget) })}</span>
-      </div>
-      <p className="res-note" style={{ display: 'block', fontWeight: 600 }}>
-        {done ? t('reserve.badYearDone') : t('reserve.badYearMissing', { amount: formatLei(missing) })}
-      </p>
-      {bad && (
-        <p className="res-note" style={{ display: 'block' }}>
-          {t('reserve.badYearFreq', {
-            county: countyName(bad.county),
-            crop: cropName(bad.cropId).toLocaleLowerCase('ro-RO'),
-            bad: bad.bad,
-            total: bad.total,
-          })}
-        </p>
-      )}
-      <p className="res-note" style={{ display: 'block' }}>
-        {t('reserve.badYearWhy', { amount: formatLei(plan.riskTarget) })}
-      </p>
-      {!done && (
-        <p className="res-note" style={{ display: 'block' }}>
-          {t('reserve.badYearHow', { pct: plan.riskPct })}
-        </p>
-      )}
-    </div>
-  );
-}
-
 export function SpringCard({ plan, className = '' }: { plan: FarmPlan; className?: string }) {
   const { spring } = plan;
   const shortBy = spring.need - spring.available;
@@ -455,11 +414,11 @@ export function SpringCard({ plan, className = '' }: { plan: FarmPlan; className
             <h2>{t('reserve.springTitle', { from: formatMonth(spring.firstMonth), to: formatMonth(spring.lastMonth) })}</h2>
           </div>
           <p className="n28">
-            {formatLei(spring.need)} {t('common.lei')}
+            {formatMoney(spring.need)} {t('common.currency')}
           </p>
-          <p className="muted">{t('reserve.springHave', { amount: formatLei(spring.available, 100) })}</p>
+          <p className="muted">{t('reserve.springHave', { amount: formatMoney(spring.available, 100) })}</p>
           <p style={{ marginTop: 8, fontWeight: 600 }}>
-            {shortBy > 0 ? t('reserve.springShort', { amount: formatLei(shortBy, 100) }) : t('reserve.springOk')}
+            {shortBy > 0 ? t('reserve.springShort', { amount: formatMoney(shortBy, 100) }) : t('reserve.springOk')}
           </p>
         </>
       ) : (
@@ -479,7 +438,7 @@ function EnvelopeBars({ env }: { env: Envelopes }) {
             <div className="cl">
               <b>{t(`envelopes.kinds.${k}`)}</b>
               <span className="amt">
-                {formatLei(env[k])} {t('common.lei')}
+                {formatMoney(env[k])} {t('common.currency')}
               </span>
             </div>
             <div className="bar">
@@ -511,7 +470,7 @@ export function EnvelopesCard({
     setBusy(true);
     setError(null);
     try {
-      await api('/api/envelopes', { method: 'PUT', body: JSON.stringify(plan.proposal) });
+      await callWrite(saveEnvelopes, plan.proposal);
       await onChanged();
       setOpen(false);
     } catch (err) {
@@ -527,9 +486,6 @@ export function EnvelopesCard({
         <h2>{t('envelopes.title')}</h2>
       </div>
       {total > 0 ? <EnvelopeBars env={plan.envelopes} /> : <p className="muted">{t('envelopes.empty')}</p>}
-      <p className="note" style={{ marginTop: 8 }}>
-        {t('envelopes.riskLater', { pct: plan.riskPct })}
-      </p>
       {plan.startBalance > 0 ? (
         <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 12 }} onClick={() => setOpen(true)}>
           {t('envelopes.split')}
@@ -537,7 +493,7 @@ export function EnvelopesCard({
       ) : (
         <p className="note">{t('envelopes.noMoney')}</p>
       )}
-      <Sheet open={open} onClose={() => setOpen(false)} title={t('envelopes.splitTitle', { amount: formatLei(plan.startBalance) })}>
+      <Sheet open={open} onClose={() => setOpen(false)} title={t('envelopes.splitTitle', { amount: formatMoney(plan.startBalance) })}>
         <p className="muted">{t('envelopes.splitLead')}</p>
         <EnvelopeBars env={plan.proposal} />
         <p className="note" style={{ marginTop: 8 }}>
@@ -564,19 +520,19 @@ export function SubsidySummary({ plan, onOpen }: { plan: FarmPlan; onOpen: () =>
     <>
       <p className="lbl">{t('deck.subsidyCard')}</p>
       <p className="n20">
-        {formatLei(totals.lei.probable, 100)} {t('common.lei')}
+        {formatMoney(totals.lei.probable, 100)} {t('common.currency')}
       </p>
       <div className="spacer" />
       <div className="kv s">
         <span>{t('deck.advance')}</span>
         <b>
-          {formatLei(totals.advanceLei)} {t('common.lei')}
+          {formatMoney(totals.advanceLei)} {t('common.currency')}
         </b>
       </div>
       <div className="kv s">
         <span>{t('deck.rest')}</span>
         <b>
-          {formatLei(totals.balanceLei.probable)} {t('common.lei')}
+          {formatMoney(totals.balanceLei.probable)} {t('common.currency')}
         </b>
       </div>
       <button type="button" className="linkbtn" style={{ alignSelf: 'flex-start' }} onClick={onOpen}>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Datele planului · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Datele planului</h1><p class="lead">Din aceste cifre calculăm salariul. Schimbă ce nu se potrivește cu ferma ta.</p></div></header>
+    <p class="offline" data-offline hidden>Nu ai internet. Poți încerca cifre aici, dar le salvezi când revii online.</p>
+
+    <section class="chart-card field hero-card plan-preview" aria-live="polite">
+      <p class="eyebrow">Salariul cu aceste cifre</p>
+      <p class="amount" id="p-amount"></p>
+      <p class="why" id="p-why"></p>
+    </section>
+
+    <form id="plan-form" novalidate>
+      <div class="bento">
+        <section class="card s6">
+          <h2>Bani la început</h2>
+          <p class="note">Cât aveai în cont când a început recolta <span id="m-year"></span>.</p>
+          <label class="ob-field">Suma, în lei<input id="opening" inputmode="numeric" autocomplete="off"></label>
+          <p class="ob-err" id="opening-err" role="alert" hidden></p>
+        </section>
+
+        <section class="card s6">
+          <h2>Bătrânețe</h2>
+          <p class="note" id="pension-note"></p>
+          <label class="ob-field" id="pension-field">Suma pe lună, în lei<input id="pension" inputmode="numeric" autocomplete="off"></label>
+          <p class="ob-err" id="pension-err" role="alert" hidden></p>
+        </section>
+
+        <section class="card s12">
+          <h2>Recolta, într-un an normal</h2>
+          <p class="note">Anul slab și anul bun se schimbă odată cu aceste cifre. Costurile rămân cele medii.</p>
+          <div class="crop-figs" id="crops"></div>
+        </section>
+      </div>
+
+      <p class="plan-again" id="p-again"></p>
+      <p class="ob-err" id="save-err" role="alert" hidden></p>
+      <div class="ob-actions plan-actions">
+        <button type="submit" class="btn btn-dark" id="save">Salvează</button>
+        <a class="btn btn-line" href="salariu.html">Renunță</a>
+      </div>
+    </form>
+  </div>
+</main>
+<script src="../mobile/shared.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="date-plan.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

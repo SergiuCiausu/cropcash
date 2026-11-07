@@ -4,9 +4,10 @@ import { upcoming } from '@cropcash/shared';
 import { t } from '../../i18n';
 import { Icon, type IconName } from '../../components/Icon';
 import { ForecastChart } from '../../components/ForecastChart';
+import { WeatherCard } from '../../components/WeatherCard';
 import { PaletteMenu } from '../../components/ui';
-import { formatDayMonth, formatHa, formatLei, formatMonth, formatMonthCap } from '../../lib/format';
-import { countyName } from '../../lib/plan';
+import { formatDayMonth, formatHa, formatMoney, formatMonth, formatMonthCap, todayIso } from '../../lib/format';
+import { countyName, useScenarioPlan } from '../../lib/plan';
 import { forecastSeries, monthLabels, nextBill, scenarioKey } from '../../lib/view';
 import {
   ComingList,
@@ -15,11 +16,11 @@ import {
   CropCardBody,
   EnvelopesCard,
   MonthTable,
-  RiskFundBody,
   SalaryCta,
   SpringCard,
   SubsidySummary,
 } from './blocks';
+import { OpportunitiesCard } from './Opportunities';
 import type { ShellProps, View } from './AppShell';
 import { DEMO, DemoCard, PensionCard, SetupCard } from './MoneyCards';
 import { QuarterTable, SaleCard, ScenarioSalaryCard } from './ScenarioCards';
@@ -51,6 +52,7 @@ function Tile({ icon, k, onClick, vars }: { icon: IconName; k: string; onClick: 
 
 export function DeckApp(p: ShellProps) {
   const { plan, farm, view, go, scenario, setScenario } = p;
+  const scenarioPlan = useScenarioPlan(farm);
   const [first, setFirst] = useState(true);
   const deck = useRef<HTMLDivElement>(null);
   const [card, setCard] = useState(0);
@@ -61,7 +63,6 @@ export function DeckApp(p: ShellProps) {
   const sel = plan.timelines[scenario];
   const series = forecastSeries(plan);
   const labels = monthLabels(tl);
-  const fundPct = plan.riskTarget ? Math.round((plan.envelopes.risk_fund / plan.riskTarget) * 100) : 0;
   const firstName = farm.name.split(/\s+/)[0] ?? farm.name;
   const heads: Record<View, string> = {
     home: t('pages.home.title', { name: firstName }),
@@ -92,7 +93,7 @@ export function DeckApp(p: ShellProps) {
     if (el && deck.current) deck.current.scrollTo({ left: el.offsetLeft - 16, behavior: 'smooth' });
   };
 
-  const lowLabel = t('forecast.chartLabel', { month: formatMonth(sel.lowest.key), amount: formatLei(sel.lowest.balance, 100) });
+  const lowLabel = t('forecast.chartLabel', { month: formatMonth(sel.lowest.key), amount: formatMoney(sel.lowest.balance, 100) });
 
   return (
     <div className={`deck-ui${first ? ' first' : ''}`}>
@@ -114,25 +115,9 @@ export function DeckApp(p: ShellProps) {
               <article className="pcard glass">
                 <p className="l">{t('deck.balance')}</p>
                 <p className="big">
-                  {formatLei(plan.startBalance)} {t('common.lei')}
+                  {formatMoney(plan.startBalance)} {t('common.currency')}
                 </p>
                 <ForecastChart className="mini" series={series} active="mid" labels={labels} label={lowLabel} />
-              </article>
-              <article className="pcard glass">
-                <p className="l">{t('deck.riskCard')}</p>
-                <p className="big">
-                  {formatLei(plan.envelopes.risk_fund)} {t('common.lei')}
-                </p>
-                <div className="meter">
-                  <i style={{ transform: `scaleX(${Math.min(1, fundPct / 100)})` }} />
-                </div>
-                <div className="spacer" />
-                <div className="s">
-                  <span>{t('deck.goal')}</span>
-                  <b>
-                    {formatLei(plan.riskTarget)} {t('common.lei')}
-                  </b>
-                </div>
               </article>
               <article className="pcard glass">
                 <SubsidySummary plan={plan} onOpen={p.openSubsidy} />
@@ -150,18 +135,13 @@ export function DeckApp(p: ShellProps) {
                 <dt>{t('stats.tightest')}</dt>
                 <dd>{formatMonthCap(tl.lowest.key)}</dd>
                 <dd>
-                  {formatLei(tl.lowest.balance, 100)} {t('common.lei')}
+                  {formatMoney(tl.lowest.balance, 100)} {t('common.currency')}
                 </dd>
               </div>
               <div className="glass">
                 <dt>{t('stats.nextBill')}</dt>
                 <dd>{bill ? formatDayMonth(bill.date) : t('stats.none')}</dd>
-                <dd>{bill ? `${formatLei(bill.value)} ${t('common.lei')}` : ''}</dd>
-              </div>
-              <div className="glass">
-                <dt>{t('stats.fund')}</dt>
-                <dd>{fundPct}%</dd>
-                <dd>{t('stats.ofGoal')}</dd>
+                <dd>{bill ? `${formatMoney(bill.value)} ${t('common.currency')}` : ''}</dd>
               </div>
             </dl>
           </>
@@ -173,7 +153,7 @@ export function DeckApp(p: ShellProps) {
               <div>
                 <p className="eyebrow">{t('forecast.endEyebrow', { month: formatMonth(sel.months.at(-1)!.key) })}</p>
                 <p className="big">
-                  {formatLei(sel.months.at(-1)!.balanceEnd, 100)} {t('common.lei')}
+                  {formatMoney(sel.months.at(-1)!.balanceEnd, 100)} {t('common.currency')}
                 </p>
               </div>
             </div>
@@ -194,19 +174,19 @@ export function DeckApp(p: ShellProps) {
                 <dt>{t('stats.tightest')}</dt>
                 <dd>{formatMonthCap(sel.lowest.key)}</dd>
                 <dd>
-                  {formatLei(sel.lowest.balance, 100)} {t('common.lei')}
+                  {formatMoney(sel.lowest.balance, 100)} {t('common.currency')}
                 </dd>
               </div>
               <div className="glass">
                 <dt>{t('forecast.ifBad')}</dt>
                 <dd>
-                  {formatLei(plan.timelines.bad.months.at(-1)!.balanceEnd, 100)} {t('common.lei')}
+                  {formatMoney(plan.timelines.bad.months.at(-1)!.balanceEnd, 100)} {t('common.currency')}
                 </dd>
               </div>
               <div className="glass">
                 <dt>{t('forecast.ifGood')}</dt>
                 <dd>
-                  {formatLei(plan.timelines.good.months.at(-1)!.balanceEnd, 100)} {t('common.lei')}
+                  {formatMoney(plan.timelines.good.months.at(-1)!.balanceEnd, 100)} {t('common.currency')}
                 </dd>
               </div>
             </dl>
@@ -233,18 +213,13 @@ export function DeckApp(p: ShellProps) {
               <div className="glass">
                 <dt>{t('fields.subsidyTitle')}</dt>
                 <dd>
-                  {formatLei(plan.subsidies.totals.lei.probable, 100)} {t('common.lei')}
+                  {formatMoney(plan.subsidies.totals.lei.probable, 100)} {t('common.currency')}
                 </dd>
               </div>
             </dl>
           </>
         )}
 
-        {view === 'reserve' && (
-          <div className="hpanel glass">
-            <RiskFundBody plan={plan} />
-          </div>
-        )}
       </div>
 
       {view === 'home' && (
@@ -262,7 +237,7 @@ export function DeckApp(p: ShellProps) {
           </div>
           <SalaryCta plan={plan} onCredit={p.openCredit} onChanged={p.onChanged} className="rise" />
           {DEMO ? (
-            <DemoCard farm={farm} plan={plan} onChanged={p.onChanged} onIncome={() => go('reserve')} />
+            <DemoCard farm={farm} plan={scenarioPlan} onChanged={p.onChanged} onIncome={() => go('reserve')} />
           ) : (
             !farm.stripe_account_id && <SetupCard onChanged={p.onChanged} />
           )}
@@ -274,6 +249,7 @@ export function DeckApp(p: ShellProps) {
               <CostDonut plan={plan} />
             </section>
           )}
+          <OpportunitiesCard onOpen={p.openOpportunities} />
           <section className="card" id="coming">
             <div className="card-h">
               <h2>{t('home.comingUp')}</h2>
@@ -286,7 +262,7 @@ export function DeckApp(p: ShellProps) {
 
       {view === 'forecast' && (
         <div className="pad">
-          <ScenarioSalaryCard plan={plan} scenario={scenario} />
+          <ScenarioSalaryCard plan={scenarioPlan} scenario={scenario} />
           {plan.costs.length > 0 && (
             <section className="card">
               <h2>{t('forecast.whereTitle')}</h2>
@@ -302,13 +278,16 @@ export function DeckApp(p: ShellProps) {
           </section>
           <section className="card">
             <h2>{t('projection.title')}</h2>
-            <QuarterTable plan={plan} scenario={scenario} />
+            <QuarterTable plan={scenarioPlan} scenario={scenario} />
           </section>
         </div>
       )}
 
       {view === 'fields' && (
         <>
+          <div className="pad">
+            <WeatherCard countyCode={farm.county} />
+          </div>
           <div className="crops" tabIndex={0}>
             {plan.economics.map((e) => (
               <article key={e.cropId}>
@@ -320,7 +299,7 @@ export function DeckApp(p: ShellProps) {
             <p className="note" style={{ marginTop: 12 }}>
               {t('fields.note')}
             </p>
-            <SaleCard plan={plan} />
+            <SaleCard plan={scenarioPlan} />
           </div>
         </>
       )}
@@ -329,7 +308,7 @@ export function DeckApp(p: ShellProps) {
         <div className="pad">
           <SpringCard plan={plan} />
           <EnvelopesCard plan={plan} onChanged={p.onChanged} />
-          <PensionCard farm={farm} plan={plan} onChanged={p.onChanged} />
+          <PensionCard farm={farm} plan={scenarioPlan} onChanged={p.onChanged} />
         </div>
       )}
 

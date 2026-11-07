@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Bătrânețe · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Bătrânețe</h1><p class="lead">Bani puși deoparte în fiecare lună, pentru după 65 de ani. Totul e simulat: nu se mișcă bani reali.</p></div></header>
+    <p class="offline" data-offline hidden>Nu ai internet. Socotelile merg din datele salvate pe telefon, dar pensia nu se poate porni, schimba sau opri acum.</p>
+
+    <div class="bento">
+      <section class="chart-card field hero-card s12" aria-live="polite">
+        <div>
+          <p class="eyebrow" id="h-label"></p>
+          <p class="amount" id="h-amount"></p>
+          <p class="why" id="h-why"></p>
+        </div>
+      </section>
+
+      <section class="card s7">
+        <div class="card-h"><h2 id="m-title">Cât pui pe lună?</h2></div>
+        <div id="m-body"></div>
+      </section>
+
+      <section class="card s5" id="side"></section>
+
+      <section class="card s12" id="grow">
+        <div class="card-h"><h2>Dacă banii cresc mai încet sau mai repede</h2></div>
+        <div class="chips" role="group" aria-label="Cât cresc banii pe an" id="g-pick"></div>
+        <div class="chart pn-chart" id="g-chart"></div>
+        <div id="range"></div>
+      </section>
+
+      <section class="card s12">
+        <details class="fold pn-fold">
+          <summary>De ce nu Casa de Pensii?<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <div id="why-not"></div>
+        </details>
+      </section>
+    </div>
+  </div>
+</main>
+<dialog class="h-sheet" id="ask" aria-labelledby="a-title">
+  <h2 id="a-title"></h2>
+  <p class="note" id="a-text"></p>
+  <p class="ob-err" id="a-err" role="alert" hidden></p>
+  <div class="ob-actions"><button type="button" class="btn btn-dark" id="a-yes">Bine așa</button><button type="button" class="btn btn-line" id="a-no">Renunță</button></div>
+</dialog>
+<script src="../vendor/react.production.min.js"></script>
+<script src="../vendor/react-dom.production.min.js"></script>
+<script src="../vendor/react-is.production.min.js"></script>
+<script src="../vendor/Recharts.js"></script>
+<script src="../config.js"></script>
+<script src="../mobile/shared.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="pension-chart.js"></script>
+<script src="pensie.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

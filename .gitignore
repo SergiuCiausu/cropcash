@@ -9,3 +9,8 @@ coverage/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+.gstack/
+# Built from farm-app/live by farm-app/build.mjs
+farm-app/live.js
+farm-app/config.js
+farm-app/sw.js

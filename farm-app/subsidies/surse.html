@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Ce s-a schimbat · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Ce s-a schimbat</h1><p class="lead">Urmărim paginile oficiale, ca să nu fie nevoie s-o faci tu.</p></div></header>
+    <nav class="subnav" aria-label="Subvenții"></nav>
+    <p class="offline" data-offline hidden>Nu ai internet. Vezi ultima listă salvată, cu data ei sus.</p>
+
+    <section class="cta field verdict" id="summary"></section>
+    <div class="vtabs" role="group" aria-label="Ce arăt" id="vtabs"></div>
+    <div id="panel"></div>
+  </div>
+</main>
+<dialog class="h-sheet" id="add" aria-labelledby="add-title">
+  <form id="add-form" novalidate>
+    <h2 id="add-title">Adaugă o sursă</h2>
+    <div id="add-fields">
+      <label class="ob-field">Linkul paginii sau al PDF-ului<input id="add-url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="afir.ro/pagina"></label>
+      <label class="ob-field">Cum vrei s-o numești? (nu e obligatoriu)<input id="add-name" autocomplete="off" maxlength="120"></label>
+      <p class="note gap">Lista ta ține de acest telefon sau calculator. Pe alt aparat n-o vei vedea. Alți fermieri nu o văd.</p>
+      <p class="ob-err" id="add-err" role="alert" hidden></p>
+      <div class="ob-actions"><button type="submit" class="btn btn-dark" id="add-save">Citește pagina</button><button type="button" class="btn btn-line" data-close>Renunță</button></div>
+    </div>
+    <div id="add-result" aria-live="polite" hidden></div>
+  </form>
+</dialog>
+<script src="../mobile/shared.js"></script>
+<script src="../config.js"></script>
+<script src="data-sources.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="surse.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

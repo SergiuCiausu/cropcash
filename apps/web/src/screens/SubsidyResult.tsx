@@ -1,6 +1,6 @@
 import { loadData, type SchemeResult, type SubsidyResult } from '@cropcash/shared';
 import { t } from '../i18n';
-import { formatDayMonth, formatLei } from '../lib/format';
+import { formatDayMonth, formatMoney } from '../lib/format';
 import { failedConditionText } from '../lib/subsidyText';
 import { Logo, VerifyBadge } from '../components/ui';
 import { Icon } from '../components/Icon';
@@ -46,12 +46,12 @@ export function SubsidyResultContent({ name, result }: { name?: string; result: 
           {name && <p className="eyebrow">{t('subsidy.hello', { name })}</p>}
           <p className="eyebrow">{t('subsidy.headline')}</p>
           <p className="n36">
-            {formatLei(totals.lei.probable, ROUND_LEI)} {t('common.lei')}
+            {formatMoney(totals.lei.probable, ROUND_LEI)} {t('common.currency')}
           </p>
           <p>
             {t('subsidy.range', {
-              min: formatLei(totals.lei.min, ROUND_LEI),
-              max: formatLei(totals.lei.max, ROUND_LEI),
+              min: formatMoney(totals.lei.min, ROUND_LEI),
+              max: formatMoney(totals.lei.max, ROUND_LEI),
             })}
           </p>
         </div>
@@ -64,7 +64,7 @@ export function SubsidyResultContent({ name, result }: { name?: string; result: 
           <div className="tm">
             <b>{t('subsidy.advanceTitle')}</b>
             <b className="tab" style={{ fontSize: 20, color: 'var(--ink-a)' }}>
-              {formatLei(totals.advanceLei)} {t('common.lei')}
+              {formatMoney(totals.advanceLei)} {t('common.currency')}
             </b>
             <small style={{ whiteSpace: 'normal' }}>
               {advance?.start && advance.end
@@ -81,12 +81,12 @@ export function SubsidyResultContent({ name, result }: { name?: string; result: 
             <b>{t('subsidy.balanceTitle')}</b>
             {/* Exact to the leu so that advance + balance visibly adds up. */}
             <b className="tab" style={{ fontSize: 20, color: 'var(--ink-b)' }}>
-              {formatLei(totals.balanceLei.probable)} {t('common.lei')}
+              {formatMoney(totals.balanceLei.probable)} {t('common.currency')}
             </b>
             <small style={{ whiteSpace: 'normal' }}>
               {t('subsidy.balanceRange', {
-                min: formatLei(totals.balanceLei.min, ROUND_LEI),
-                max: formatLei(totals.balanceLei.max, ROUND_LEI),
+                min: formatMoney(totals.balanceLei.min, ROUND_LEI),
+                max: formatMoney(totals.balanceLei.max, ROUND_LEI),
               })}
               ,{' '}
               {balance?.start && balance.end
@@ -110,7 +110,7 @@ export function SubsidyResultContent({ name, result }: { name?: string; result: 
                 {needsVerify(s) && <VerifyBadge />}
               </b>
               <b className="tab">
-                {formatLei(s.leiIndicative.probable, ROUND_LEI)} {t('common.lei')}
+                {formatMoney(s.leiIndicative.probable, ROUND_LEI)} {t('common.currency')}
               </b>
             </li>
           ))}

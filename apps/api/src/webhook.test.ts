@@ -22,7 +22,10 @@ function memoryAdmin() {
     }),
     recordPayout: async () => {},
     setPayoutStatus: vi.fn(async () => 1),
+    removePayoutTransaction: vi.fn(async (id: string) => void txs.delete(id)),
     upsertPension: async () => {},
+    updatePension: vi.fn(async () => {}),
+    setSalary: vi.fn(async () => {}),
   };
   return { admin, txs };
 }
@@ -96,6 +99,18 @@ describe('POST /api/webhooks/stripe', () => {
     const payload = event('payout.paid', { id: 'po_1', object: 'payout' });
     await request(makeApp(admin)).post('/api/webhooks/stripe').set('Content-Type', 'application/json').set('Stripe-Signature', signed(payload)).send(payload);
     expect(admin.setPayoutStatus).toHaveBeenCalledWith('po_1', 'paid');
+    expect(admin.removePayoutTransaction).not.toHaveBeenCalled();
+  });
+
+  it('gives the money back when a salary payout fails', async () => {
+    const { admin, txs } = memoryAdmin();
+    txs.set('po_1', { farmer_id: 'f', amount_bani: -85_000, kind: 'salary', occurred_at: '2026-12-01T08:00:00Z', source: 'payout', stripe_object_id: 'po_1' });
+    const payload = event('payout.failed', { id: 'po_1', object: 'payout' });
+    const header = signed(payload);
+    const res = await request(makeApp(admin)).post('/api/webhooks/stripe').set('Content-Type', 'application/json').set('Stripe-Signature', header).send(payload);
+    expect(res.status).toBe(200);
+    expect(admin.setPayoutStatus).toHaveBeenCalledWith('po_1', 'failed');
+    expect(txs.has('po_1')).toBe(false);
   });
 
   it('demo routes are off unless DEMO_MODE=true', async () => {
@@ -105,10 +120,28 @@ describe('POST /api/webhooks/stripe', () => {
   });
 });
 
+/** A farm the plan can be built for, with or without a running pension. */
+const pensionFarm = (status: 'active' | 'stopped' | null, salary_bani: number | null = null) =>
+  ({
+    id: 'farm-1',
+    county: 'TR',
+    birth_year: data.subsidies.meta.campaign_year - 55,
+    start_balance_bani: 3_500_000,
+    demo_now: '2026-11-15T00:00:00Z',
+    salary_bani,
+    stripe_customer_id: 'cus_1',
+    parcels: [
+      { crop_id: 'grau', area_ari: 800, is_arable: true },
+      { crop_id: 'porumb', area_ari: 700, is_arable: true },
+    ],
+    transactions: [],
+    pension_plans: status ? [{ monthly_bani: 20_000, status, stripe_subscription_id: 'sub_1' }] : null,
+  }) as never;
+
 describe('POST /api/pension (step 7)', () => {
   it('accepts only the slider range from plan-params.json and starts the subscription', async () => {
     const { admin } = memoryAdmin();
-    admin.farmByUser = async () => ({ id: 'farm-1', stripe_customer_id: 'cus_1', pension_plans: null }) as never;
+    admin.farmByUser = async () => pensionFarm(null);
     const app = makeApp(admin);
     const start = vi.spyOn(MoneyService.prototype, 'startPension').mockResolvedValue();
     const post = (monthlyLei: unknown) =>
@@ -131,5 +164,99 @@ describe('POST /api/pension (step 7)', () => {
       ({ id: 'farm-1', stripe_customer_id: 'cus_1', pension_plans: [{ monthly_bani: 20_000, status: 'active' }] }) as never;
     const res = await request(makeApp(admin)).post('/api/pension').set('Authorization', 'Bearer good').send({ monthlyLei: 200 });
     expect(res.status).toBe(409);
+  });
+});
+
+describe('changing and stopping the pension', () => {
+  const auth = { Authorization: 'Bearer good' };
+  const withFarm = (farm: unknown) => {
+    const { admin } = memoryAdmin();
+    admin.farmByUser = async () => farm as never;
+    return { admin, app: makeApp(admin) };
+  };
+
+  it('changes the amount inside the slider range, then fixes the salary again', async () => {
+    const change = vi.spyOn(MoneyService.prototype, 'changePension').mockResolvedValue();
+    const { admin, app } = withFarm(pensionFarm('active', 85_000));
+    const { slider_min_lei, slider_max_lei } = data.params.pension;
+    for (const bad of [slider_min_lei.value - 10, slider_max_lei.value + 10, 150.5]) {
+      expect((await request(app).put('/api/pension').set(auth).send({ monthlyLei: bad })).status).toBe(400);
+    }
+    expect(change).not.toHaveBeenCalled();
+    expect((await request(app).put('/api/pension').set(auth).send({ monthlyLei: 300 })).status).toBe(204);
+    expect(change).toHaveBeenCalledWith(expect.objectContaining({ id: 'farm-1' }), 30_000);
+    expect(admin.setSalary).toHaveBeenCalledWith('farm-1', expect.any(Number));
+    change.mockRestore();
+  });
+
+  it('stops it, and the salary is fixed at what is safe without it', async () => {
+    const stop = vi.spyOn(MoneyService.prototype, 'stopPension').mockResolvedValue();
+    // The repo is read again after the stop, so it already shows the plan stopped.
+    const farms = [pensionFarm('active', 65_000), pensionFarm('stopped', 65_000)];
+    const { admin } = memoryAdmin();
+    admin.farmByUser = async () => farms.shift() ?? pensionFarm('stopped', 65_000);
+    expect((await request(makeApp(admin)).delete('/api/pension').set(auth)).status).toBe(204);
+    expect(stop).toHaveBeenCalledOnce();
+    expect(admin.setSalary).toHaveBeenCalledWith('farm-1', 105_000);
+    stop.mockRestore();
+  });
+
+  it('refuses both when no pension is running', async () => {
+    for (const farm of [pensionFarm(null), pensionFarm('stopped')]) {
+      const { admin, app } = withFarm(farm);
+      expect((await request(app).put('/api/pension').set(auth).send({ monthlyLei: 300 })).body.error).toBe('no_pension');
+      expect((await request(app).delete('/api/pension').set(auth)).status).toBe(409);
+      expect(admin.setSalary).not.toHaveBeenCalled();
+    }
+  });
+
+  it('lets a stopped pension start again', async () => {
+    const start = vi.spyOn(MoneyService.prototype, 'startPension').mockResolvedValue();
+    const { app } = withFarm(pensionFarm('stopped'));
+    expect((await request(app).post('/api/pension').set(auth).send({ monthlyLei: 200 })).status).toBe(201);
+    start.mockRestore();
+  });
+
+  it('needs a farm', async () => {
+    const { app } = withFarm(null);
+    expect((await request(app).put('/api/pension').set(auth).send({ monthlyLei: 300 })).status).toBe(404);
+    expect((await request(app).delete('/api/pension').set(auth)).status).toBe(404);
+  });
+});
+
+describe('MoneyService pension changes', () => {
+  const service = (calls: string[]) => {
+    const { admin } = memoryAdmin();
+    const fake = {
+      subscriptions: {
+        retrieve: async () => ({ items: { data: [{ id: 'si_1' }] } }),
+        update: async (id: string, body: object) => void calls.push(`update ${id} ${JSON.stringify(body)}`),
+        cancel: async (id: string, body: object) => void calls.push(`cancel ${id} ${JSON.stringify(body)}`),
+      },
+      prices: { create: async (p: { unit_amount: number }) => ({ id: `price_${p.unit_amount}` }) },
+    } as unknown as Stripe;
+    return { admin, money: new MoneyService(fake, admin, data, async () => {}) };
+  };
+
+  it('swaps the price from the next invoice, without charging or giving back for this month', async () => {
+    const calls: string[] = [];
+    const { admin, money } = service(calls);
+    await money.changePension(pensionFarm('active') as never, 30_000);
+    expect(calls).toEqual(['update sub_1 {"items":[{"id":"si_1","price":"price_30000"}],"proration_behavior":"none"}']);
+    expect(admin.updatePension).toHaveBeenCalledWith('farm-1', { monthly_bani: 30_000 });
+  });
+
+  it('cancels now, keeps what was paid, and marks the plan stopped', async () => {
+    const calls: string[] = [];
+    const { admin, money } = service(calls);
+    await money.stopPension(pensionFarm('active') as never);
+    expect(calls).toEqual(['cancel sub_1 {"prorate":false}']);
+    expect(admin.updatePension).toHaveBeenCalledWith('farm-1', { status: 'stopped' });
+  });
+
+  it('refuses to touch Stripe with no running pension', async () => {
+    const calls: string[] = [];
+    await expect(service(calls).money.stopPension(pensionFarm('stopped') as never)).rejects.toThrow();
+    expect(calls).toEqual([]);
   });
 });

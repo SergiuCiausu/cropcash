@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { t } from '../../i18n';
 import { api } from '../../api/client';
 import { Icon } from '../../components/Icon';
-import { leiToBani, simulatePension } from '@cropcash/shared';
-import { cropName, type Farm, type FarmPlan } from '../../lib/plan';
+import { leiToBani, simulatePensionScenarios } from '@cropcash/shared';
+import { cropName, type Farm, type ScenarioPlan } from '../../lib/plan';
 import { formatDayMonth, formatDayMonthYear, formatLei } from '../../lib/format';
 
 export const DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
@@ -77,7 +77,7 @@ export function DemoCard({
   className = '',
 }: {
   farm: Farm;
-  plan: FarmPlan;
+  plan: ScenarioPlan;
   onChanged: () => Promise<void>;
   onIncome: () => void;
   className?: string;
@@ -160,7 +160,7 @@ export function DemoCard({
  * Screen Î3: old-age savings. The slider and the 65-year simulation work offline
  * (packages/shared/src/pension); "Pornesc" creates the Stripe subscription and needs the net.
  */
-export function PensionCard({ farm, plan, onChanged, className = '' }: { farm: Farm; plan: FarmPlan; onChanged: () => Promise<void>; className?: string }) {
+export function PensionCard({ farm, plan, onChanged, className = '' }: { farm: Farm; plan: ScenarioPlan; onChanged: () => Promise<void>; className?: string }) {
   const p = plan.pension;
   const [lei, setLei] = useState(plan.pensionSuggested / 100);
   const [busy, setBusy] = useState(false);
@@ -168,7 +168,7 @@ export function PensionCard({ farm, plan, onChanged, className = '' }: { farm: F
   const saved = -plan.transactions.filter((tx) => tx.kind === 'pension').reduce((s, tx) => s + tx.amount_bani, 0);
   const active = plan.pensionMonthly > 0;
   const monthly = active ? plan.pensionMonthly : leiToBani(lei);
-  const sim = simulatePension(plan.age, monthly, p);
+  const sim = simulatePensionScenarios(plan.age, monthly, p);
 
   const start = async () => {
     if (!Number.isInteger(lei) || lei < p.sliderMinLei || lei > p.sliderMaxLei) {

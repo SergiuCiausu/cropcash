@@ -11,7 +11,7 @@ subvenție_lei = Σ_schemă ( unități_eligibile(schemă) × cuantum_eur(schem�
 - `unități_eligibile` înseamnă hectare eligibile (sau capete, la schemele cuplate), după regulile de eligibilitate și `max_ha`.
 - `curs` depinde de fondul schemei (`FEGA` / `FEADR`).
 - **Precizia:** calculăm în **eurocenți și bani, ca numere întregi**, ca să evităm erorile de virgulă mobilă. Hectarele se țin în sutimi de hectar (ari). Rotunjirea se face la cent pentru fiecare schemă, apoi se adună.
-- **Conversia în lei se face pe totalul în euro al fiecărui fond, nu pe fiecare schemă.** Dacă am converti schemă cu schemă, rotunjirile s-ar aduna: pentru Ion ar ieși 16.869,61 lei, nu 16.869,60. Suma în lei pe fiecare schemă e doar orientativă (`leiIndicative`). Soldul în lei = totalul în lei − avansul în lei, ca avansul și soldul să dea mereu exact totalul.
+- **Conversia în lei se face pe totalul în euro al fiecărui fond, nu pe fiecare schemă.** Dacă am converti schemă cu schemă, rotunjirile s-ar aduna: de exemplu, la cursul de 5,28 pentru Ion ar ieși 16.869,61 lei, nu 16.869,60. Suma în lei pe fiecare schemă e doar orientativă (`leiIndicative`). Soldul în lei = totalul în lei − avansul în lei, ca avansul și soldul să dea mereu exact totalul.
 
 ## 2. Mecanismul cuantumului (de ce suma e incertă)
 
@@ -105,8 +105,8 @@ Rezultă `min_factor ≈ 0,900` și `max_factor ≈ 1,011`.
 
 - Plățile se fac în lei, la cursul BCE stabilit înainte de 1 octombrie, **diferit pe fond**.
 - Campania 2025: **FEGA 5,0806**, **FEADR 4,9743** lei/€ (`din-2025`).
-- Campania 2026: cursul BCE din 30 septembrie 2026 e **DE-VERIFICAT**. Până atunci folosim parametrul configurabil `default_param = 5,28`.
-- În UI, cursul apare doar la detalii: „calculat la 5,28 lei/€”.
+- Campania 2026: cursul BCE din 30 septembrie 2026 e **5,2788** lei/€ ([BCE](https://data-api.ecb.europa.eu/service/data/EXR/D.RON.EUR.SP00.A?startPeriod=2026-09-30&endPeriod=2026-09-30&format=csvdata)). Îl folosim pentru FEGA. Pentru FEADR rămâne `default_param = 5,2788` și **DE-VERIFICAT**, până la anunțul APIA.
+- În UI, cursul apare doar la detalii: „calculat la 5,2788 lei/€”.
 
 ## 7. Tranșele
 
@@ -128,14 +128,14 @@ Fermier cu 15 ha de cereale, în 2 culturi, fără tânăr fermier, fără anima
 | PD-04 Eco arabil | 15 × 56,28 | 844,20 |
 | **Total (probabil)** | | **3.195,00 €** |
 
-- În lei, la cursul de 5,28: **16.869,60 lei**.
-- Avans: 15 × (75,7725 + 41,7675 + 42,21) = **2.396,25 €**, adică **12.652,20 lei**. (Avansul la PD-01 și PD-02 se calculează ca 75% din cuantum, nu cu valoarea rotunjită 75,77.)
+- În lei, la cursul de 5,2788: **16.865,77 lei**.
+- Avans: 15 × (75,7725 + 41,7675 + 42,21) = **2.396,25 €**, adică **12.649,32 lei**. (Avansul la PD-01 și PD-02 se calculează ca 75% din cuantum, nu cu valoarea rotunjită 75,77.)
 - Interval orientativ: min ≈ 2.875 € (≈ 15.180 lei), max ≈ 3.231 € (≈ 17.060 lei).
 
 **Aserțiunile din test:**
 1. Totalul în euro iese exact 3.195,00 (adică 319.500 de eurocenți).
 2. Schemele eligibile sunt exact PD-01, PD-02 și PD-04. PD-03 nu se aplică (55 de ani), iar PD-05 nu se aplică (15 ha > 10).
-3. Totalul în lei = totalul în euro × parametrul de curs (cu 5,28 iese 16.869,60).
+3. Totalul în lei = totalul în euro × parametrul de curs (cu 5,2788 iese 16.865,77).
 4. `min ≤ probabil ≤ max`.
 
 **Teste suplimentare de limită:** 10,00 ha (fără PD-04) și 10,01 ha (cu PD-04); 15 ha cu o singură cultură (fără PD-04); 50 ha (cu CRISS) și 51 ha (fără CRISS); vârsta de 39 de ani (cu PD-03) și de 40 de ani (fără); o parcelă de 0,29 ha, care nu intră în suprafața PD-04.
@@ -144,4 +144,4 @@ Fermier cu 15 ha de cereale, în 2 culturi, fără tânăr fermier, fără anima
 
 **Confirmat:** cuantumurile PD-01–PD-04, avansul de 75%, ferestrele de plată și regulile PD-04 până la 30 ha.
 
-**Neconfirmat:** cursul 2026; PD-05 (cuantumul și plafonul); PD-28 (cuantumul); schemele cuplate (cuantumurile și condițiile); pragul CRISS în textul PS PAC; condițiile complete PD-03; minimul de 1 ha la BISS; istoricul pentru PD-02–PD-05.
+**Neconfirmat:** cursul FEADR 2026 și anunțul APIA pentru curs; PD-05 (cuantumul și plafonul); PD-28 (cuantumul); schemele cuplate (cuantumurile și condițiile); pragul CRISS în textul PS PAC; condițiile complete PD-03; minimul de 1 ha la BISS; istoricul pentru PD-02–PD-05.

@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "description": "Conditions read from AFIR applicant guides, each with its page. Short plain summaries: the guides stay on AFIR's site. The matching uses only natural_persons_can_apply; the facts are shown to the farmer as they are.",
+    "checked_on": "2026-11-07"
+  },
+  "guides": [
+    {
+      "code": "DR-14",
+      "title": "Ghidul solicitantului DR-14, sesiunea 2026",
+      "url": "https://www.afir.ro/domenii-de-interventie/detalii-si-anexe-dr-14/",
+      "natural_persons_can_apply": false,
+      "facts": [
+        { "text": "Pot depune fermierii, cu excepția persoanelor fizice. Intră PFA-urile, întreprinderile individuale și familiale și societățile.", "page": 7 },
+        { "text": "Ferma trebuie să aibă o dimensiune economică între 4.000 și 11.999 SO. Pentru legume, flori, plante aromatice și unele rase autohtone, pragul de jos e mai mic.", "page": 5 },
+        { "text": "Sprijinul ajunge la cel mult 50.000 € pe proiect și la cel mult 85% din costurile eligibile.", "page": 44 },
+        { "text": "Trebuie să dovedești partea ta de bani, cu extras de cont sau contract de credit.", "page": 8 }
+      ]
+    },
+    {
+      "code": "DR-12",
+      "title": "Ghidul solicitantului DR-12",
+      "url": "https://www.afir.ro/domenii-de-interventie/detalii-si-anexe-dr-12/",
+      "natural_persons_can_apply": false,
+      "facts": [
+        { "text": "Vârsta maximă e 45 de ani la depunerea cererii de finanțare.", "page": 6 },
+        { "text": "Nu pot depune persoanele fizice.", "page": 8 }
+      ]
+    }
+  ]
+}

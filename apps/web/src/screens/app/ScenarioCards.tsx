@@ -5,14 +5,14 @@
 import { useState } from 'react';
 import { loadData, saleForecast, saleRanges, type AmountScenario } from '@cropcash/shared';
 import { t } from '../../i18n';
-import { cropName, type FarmPlan } from '../../lib/plan';
+import { cropName, type ScenarioPlan } from '../../lib/plan';
 import { formatHa, formatLei, formatMonth } from '../../lib/format';
 
 const data = loadData();
 const leiKg = (bani: number) => (bani / 100).toLocaleString('ro-RO', { minimumFractionDigits: 2 });
 
 /** Î1: the safe salary in the chosen kind of year; in a drought, why the fund exists. */
-export function ScenarioSalaryCard({ plan, scenario, className = '' }: { plan: FarmPlan; scenario: AmountScenario; className?: string }) {
+export function ScenarioSalaryCard({ plan, scenario, className = '' }: { plan: ScenarioPlan; scenario: AmountScenario; className?: string }) {
   const kind = t(`scenario.kinds.${scenario}`);
   const salary = plan.salaries[scenario].salary;
   const diff = salary - plan.salaries.medium.salary;
@@ -34,13 +34,6 @@ export function ScenarioSalaryCard({ plan, scenario, className = '' }: { plan: F
             : t('scenario.moreThanNormal', { amount: formatLei(diff) })}
         </p>
       )}
-      {scenario === 'bad' && (
-        <p style={{ marginTop: 6 }}>
-          {plan.riskFund.done
-            ? t('scenario.fundDone', { target: formatLei(plan.riskTarget) })
-            : t('scenario.fund', { saved: formatLei(plan.riskFund.saved), target: formatLei(plan.riskTarget) })}
-        </p>
-      )}
       <p className="note" style={{ marginTop: 8 }}>
         {t('scenario.paidNote')}
       </p>
@@ -49,7 +42,7 @@ export function ScenarioSalaryCard({ plan, scenario, className = '' }: { plan: F
 }
 
 /** Quarter by quarter, this year + 2, for the chosen kind of year. */
-export function QuarterTable({ plan, scenario }: { plan: FarmPlan; scenario: AmountScenario }) {
+export function QuarterTable({ plan, scenario }: { plan: ScenarioPlan; scenario: AmountScenario }) {
   const { quarters, years } = plan.projection[scenario];
   const first = plan.month;
   return (
@@ -93,7 +86,7 @@ export function QuarterTable({ plan, scenario }: { plan: FarmPlan; scenario: Amo
 }
 
 /** Î4: price and yield sliders for one crop, with the break-even price. */
-export function SaleCard({ plan, className = '' }: { plan: FarmPlan; className?: string }) {
+export function SaleCard({ plan, className = '' }: { plan: ScenarioPlan; className?: string }) {
   const crops = plan.economics;
   const [cropId, setCropId] = useState(crops[0]?.cropId ?? '');
   const crop = data.crops.crops.find((c) => c.id === cropId);

@@ -1,5 +1,12 @@
 import { Router } from 'express';
-import { computeFarmPlan, CreditInputSchema, EnvelopesInputSchema, leiToBani, type AppData } from '@cropcash/shared';
+import {
+  computeFarmPlan,
+  CreditInputSchema,
+  EnvelopesInputSchema,
+  leiToBani,
+  SetPensionFundInputSchema,
+  type AppData,
+} from '@cropcash/shared';
 import { RepoError, type Repo } from '../db/repo';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,6 +80,23 @@ export function planRouter(repo: Repo, data: AppData): Router {
       }
       throw err;
     }
+  });
+
+  /** Saves the chosen fund. No money moves, and the list is checked by the schema. */
+  r.put('/pension/fund', async (req, res) => {
+    const parsed = SetPensionFundInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid_input' });
+      return;
+    }
+    const { token } = res.locals.auth;
+    const farm = await repo.getMyFarm(token);
+    if (!farm) {
+      res.status(404).json({ error: 'no_farm' });
+      return;
+    }
+    await repo.setPensionFund(token, farm.id, parsed.data.fundId);
+    res.status(204).end();
   });
 
   return r;

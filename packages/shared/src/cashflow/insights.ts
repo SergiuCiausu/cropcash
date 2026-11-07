@@ -40,14 +40,6 @@ export function cropEconomics(crop: Crop, areaAri: number): CropEconomics {
 
 const sumNet = (t: Timeline) => t.months.reduce((s, m) => s + m.net, 0);
 
-/**
- * How much a bad year would cost compared with a normal one over the same horizon:
- * the size of the "ani proști" fund (docs/07 §5). Rounded up to 100 lei.
- */
-export function riskFundTarget(normal: Timeline, bad: Timeline): Bani {
-  return ceilTo(Math.max(0, sumNet(normal) - sumNet(bad)), 10_000);
-}
-
 export interface SpringNeed {
   /** Money going out during the hard months. */
   need: Bani;

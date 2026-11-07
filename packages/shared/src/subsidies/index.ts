@@ -1,3 +1,4 @@
+import type { ApiaDecision } from './decision';
 import type { AppData, Fund, Scheme } from '../data';
 import {
   addRanges,
@@ -60,6 +61,8 @@ export interface Excluded {
 }
 
 export interface SubsidyResult {
+  /** Set when the farmer's payment decision replaced the estimated totals. */
+  decision?: ApiaDecision;
   schemes: SchemeResult[];
   notEligible: NotEligible[];
   /** Eligible but not counted (e.g. PD-28 without a 2026 amount). */
@@ -140,6 +143,12 @@ function computeScheme(
  * Computes the farm's expected APIA subsidies as a min/probable/max range,
  * split into advance and balance. Pure: all figures come from `data`.
  */
+/** The farm as one scheme sees it: some schemes ignore parcels under a minimum size. */
+export function profileForScheme(farm: FarmInput, scheme: Scheme): FarmProfile {
+  const minParcel = scheme.eligibility.parcel_min_ha;
+  return buildProfile(farm, minParcel ? haToAri(minParcel.value) : 0);
+}
+
 export function computeSubsidies(farm: FarmInput, data: AppData, params: SubsidyParams = {}): SubsidyResult {
   const rates = resolveRates(data, params);
   const schemes: SchemeResult[] = [];
@@ -148,8 +157,7 @@ export function computeSubsidies(farm: FarmInput, data: AppData, params: Subsidy
 
   for (const scheme of data.subsidies.schemes) {
     if (!scheme.enabled) continue;
-    const minParcelAri = scheme.eligibility.parcel_min_ha ? haToAri(scheme.eligibility.parcel_min_ha.value) : 0;
-    const profile = buildProfile(farm, minParcelAri);
+    const profile = profileForScheme(farm, scheme);
     const check = checkEligibility(scheme, profile);
 
     if (!check.eligible) {
@@ -210,3 +218,5 @@ export function computeSubsidies(farm: FarmInput, data: AppData, params: Subsidy
     totals: { eur, lei, advanceEur, advanceLei, balanceEur, balanceLei },
   };
 }
+
+export { ApiaDecisionSchema, withApiaDecision, type ApiaDecision } from './decision';

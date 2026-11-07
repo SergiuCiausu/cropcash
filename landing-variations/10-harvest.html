@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en" data-variant="Harvest" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F8F8F3">
+<title>Farm Futures: Harvest</title>
+<!-- Layout of 8-contour, content and live charts of 9-tractor, photo hero, Field, Violet & Gold.
+     Nav > Hero > How it works > Features (7/5, 5/7) > Forecast deep-dive > Trust > Final CTA > Footer -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="img/harvest-2400.jpg" imagesrcset="img/harvest-1200.jpg 1200w, img/harvest-2400.jpg 2400w" imagesizes="(max-width: 959px) 200vw, 120vw">
+<link rel="stylesheet" href="../farm-app/mobile/shared.css">
+<link rel="stylesheet" href="../farm-app/desktop/desktop.css">
+<style>
+:root { --gutter: 24px; --section: 96px; --lime: #B4E85C; --photo-dim: .72; --photo-text: #F7F6EF; --photo-text-2: #E9E7DD; --surface-2: #F1F1EA; --float: 0 8px 30px rgba(20, 32, 26, .08); }
+@media (max-width: 640px) { :root { --gutter: 16px; --section: 64px; } }
+html, body { height: auto; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { place-items: normal; overscroll-behavior: auto; }
+main { overflow-x: clip; }
+a { color: inherit; text-decoration: none; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 var(--gutter); }
+.section { position: relative; padding: var(--section) 0 0; }
+.section-header { display: grid; gap: 16px; margin-bottom: 48px; justify-items: start; }
+.lead { max-width: 46ch; }
+.text-sm { font-size: 14px; line-height: 1.55; color: var(--text-2); }
+.below { position: relative; isolation: isolate; }
+.contours { position: absolute; left: 0; width: 100%; height: 900px; object-fit: cover; object-position: top; z-index: -1; pointer-events: none; opacity: .75; }
+.contours.top { top: 0; }
+.contours.end { bottom: 0; height: 620px; transform: scaleY(-1); }
+
+/* Nav */
+.nav { position: sticky; top: 0; z-index: 50; height: 60px; margin-bottom: -60px; display: flex; align-items: center; border-bottom: 1px solid transparent; color: var(--photo-text); transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+.nav .logo .mark { background: var(--lime); color: #18201C; transition: background-color 150ms ease, color 150ms ease; }
+.nav .btn { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+.nav .btn-line { background: transparent; border-color: rgba(247, 246, 239, .55); color: var(--photo-text); }
+.nav .btn-dark { background: var(--lime); color: #18201C; }
+.nav :focus-visible { outline-color: var(--lime); }
+.nav.is-scrolled { background: #FFFFFF; border-bottom-color: var(--hair); color: var(--text-1); }
+.nav.is-scrolled .logo .mark { background: #1A1A1A; color: #FAF9F7; }
+.nav.is-scrolled .links { color: var(--text-2); }
+.nav.is-scrolled .btn-line { background: var(--surface); border-color: var(--hair-2); color: var(--text-1); }
+.nav.is-scrolled .btn-dark { background: #1A1A1A; color: #FAF9F7; }
+.nav.is-scrolled :focus-visible { outline-color: var(--ink-b); }
+.nav .container { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.links { display: flex; gap: 28px; font-size: 13.5px; color: var(--photo-text); }
+.links a { padding: 8px 0; }
+.nav-cta { display: flex; gap: 8px; }
+
+/* Hero: the photo carries the tractor on the right, so the copy stays on its dark left side */
+.hero { position: relative; display: flex; align-items: center; height: calc(clamp(560px, 50vw, 860px) + 60px); padding-top: 60px; overflow: hidden; isolation: isolate; background: #1E1B20; }
+.hero-img { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; object-position: 100% 58%; filter: brightness(var(--photo-dim)); }
+.hero .container { width: 100%; }
+.hero-copy { width: min(420px, 100%); color: var(--photo-text); text-shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 0 18px rgba(0, 0, 0, .4); }
+.hero .btn { text-shadow: none; }
+.hero .eyebrow { color: var(--photo-text); }
+.hero h1 { margin-top: 16px; color: inherit; }
+.hero h1 span { display: block; }
+.hero h1 .b { color: var(--lime); }
+.hero .lead { margin-top: 16px; color: var(--photo-text-2); }
+.hero .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.hero .btn-a { background: var(--lime); color: #18201C; }
+.hero .btn-b { border-color: rgba(247, 246, 239, .55); color: var(--photo-text); }
+.hero :focus-visible { outline-color: var(--lime); }
+.demo-note { margin-top: 16px; font-size: 13px; line-height: 1.45; color: var(--photo-text-2); }
+
+/* Cards: a visual on top, title and text below */
+.card { display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 20px; }
+.card-visual { position: relative; flex: 1; display: grid; place-items: center; min-height: 280px; padding: 0 24px; --wash: var(--hero-tint); background: color-mix(in srgb, var(--wash) 25%, #FFFFFF); }
+.card-visual.t-b { --wash: var(--tint-b); }
+.card-visual.t-c { --wash: var(--tint-c); }
+.lp-margin { width: 100%; max-width: 480px; display: grid; gap: 24px; padding-block: 24px; font-size: 15px; }
+.lp-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) 76px; gap: 12px; align-items: center; }
+.lp-row b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.lp-bar { height: 16px; border-radius: 5px; background: rgba(20, 32, 26, .08); overflow: hidden; }
+.lp-bar i { display: block; height: 100%; border-radius: 5px; background: var(--a); transform-origin: left; }
+.lp-bills { width: 100%; max-width: 440px; margin: 0; padding: 8px 0 16px; list-style: none; }
+.lp-bills .tm b, .lp-bills .tm small { overflow: visible; white-space: normal; text-overflow: clip; }
+.lp-res { width: 100%; max-width: 440px; padding-block: 24px; }
+.lp-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 56px; padding: 0; list-style: none; }
+.lp-chips li { position: relative; padding: 8px 4px; border: 1px solid color-mix(in srgb, var(--ink-b) 30%, transparent); border-radius: 999px; background: var(--tint-b); color: var(--ink-b); font-size: 13px; font-weight: 500; text-align: center; white-space: nowrap; }
+.lp-chips i { position: absolute; top: 100%; left: calc(50% - 7px); width: 14px; height: 14px; margin-top: 6px; border-radius: 50%; background: var(--ch5); opacity: 0; }
+.lp-res .lp-bar { height: 20px; border-radius: 10px; }
+.lp-res .lp-bar i { border-radius: 10px; background: var(--ink-b); }
+.lp-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; }
+.lp-foot b { font-size: 22px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.lp-foot span { font-size: 14px; color: var(--text-2); }
+.lp-costs { width: 100%; max-width: 440px; display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 24px; align-items: center; padding-block: 24px; }
+.lp-ring { position: relative; aspect-ratio: 1; }
+.lp-ring svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
+.lp-total { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.2; }
+.lp-total b { font-size: 20px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.lp-total span { font-size: 12.5px; color: var(--text-2); }
+.lp-leg { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.lp-leg li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.lp-leg i { width: 10px; height: 10px; border-radius: 50%; }
+.lp-leg b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.with-act { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.with-act .lead { margin-top: 16px; }
+.card-body { display: grid; gap: 8px; padding: 24px; }
+.card-body h3 { font-size: 16px; font-weight: 600; line-height: 1.4; letter-spacing: -.01em; }
+.span-5 { grid-column: span 5; } .span-6 { grid-column: span 6; } .span-7 { grid-column: span 7; }
+
+/* How it works */
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.steps li, .trust li { padding: 24px; background: var(--surface); border: 1px solid var(--hair); border-radius: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+.tile { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; font-size: 19px; background: var(--hero-tint); color: var(--text-1); }
+.tile.b { background: var(--tint-b); color: var(--ink-b); }
+.tile.c { background: var(--tint-c); color: var(--ink-c); }
+.steps b, .trust b { display: block; margin-top: 16px; font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.4; }
+.steps p, .trust p { margin-top: 4px; }
+
+/* Forecast: Contour's wide card with its toolbar */
+.toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 24px 24px 0; }
+.toolbar .lbl { font-size: 13px; font-weight: 500; color: var(--text-2); }
+.seg { background: var(--surface-2); border-color: var(--hair); }
+.seg button { color: var(--text-2); }
+.seg button[aria-pressed="true"] { color: var(--text-1); }
+.plot { padding: 12px 24px 24px; }
+.chart.big { height: 320px; }
+.figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--hair); }
+.figs > div { min-width: 0; padding: 16px 24px; }
+.figs > div + div { border-left: 1px solid var(--hair); }
+.figs dt { font-size: 13px; color: var(--text-2); }
+.figs dd { margin: 2px 0 0; }
+.trust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+/* Close and footer */
+.final { padding-bottom: var(--section); text-align: center; }
+.final .lead { margin: 16px auto 28px; }
+footer { border-top: 1px solid var(--hair); padding: 48px 0 40px; font-size: 13px; color: var(--text-2); }
+.fcols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
+.fcols h2 { margin-bottom: 12px; font-size: 12px; font-weight: 500; letter-spacing: 0; line-height: 1.4; color: var(--text-2); }
+.fcols a:not(.logo) { display: block; padding: 2px 0; margin-bottom: 6px; }
+.fcols p { max-width: 40ch; }
+.fcols .logo { margin-bottom: 12px; color: var(--text-1); }
+.copy { margin-top: 32px; font-size: 12.5px; }
+@media (hover: hover) and (pointer: fine) { .nav.is-scrolled .links a:hover, .fcols a:not(.logo):hover { color: var(--text-1); } .hero .btn-b:hover { background: rgba(247, 246, 239, .14); } }
+
+/* Under 960 the photo becomes a band, and the copy moves onto the light page */
+@media (max-width: 959px) {
+  :root { --photo-dim: .8; }
+  .hero { display: block; height: auto; padding-top: 0; overflow: visible; background: none; }
+  .hero-img { position: static; display: block; height: clamp(320px, 88vw, 460px); object-position: 80% 60%; }
+  .hero .container { padding-top: 32px; }
+  .hero-copy { width: auto; color: var(--text-1); text-shadow: none; }
+  .hero .eyebrow { color: var(--ink-a); }
+  .hero h1 .b { color: var(--ink-a); }
+  .hero .lead { color: var(--text-2); }
+  .hero .btn-a { background: #1A1A1A; color: #FAF9F7; }
+  .hero .btn-b { background: var(--surface); border-color: var(--hair-2); color: var(--text-1); }
+  .hero :focus-visible { outline-color: var(--ink-b); }
+  .demo-note { color: var(--text-2); }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .links { display: none; }
+  .bento > *, .bento > .span-5, .bento > .span-7 { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  h1 { font-size: 30px; }
+  h2 { font-size: 24px; }
+  .section-header { margin-bottom: 32px; }
+  .bento { gap: 12px; }
+  .card-visual { min-height: 0; padding: 0 12px; }
+  .lp-margin { padding-block: 20px; gap: 18px; font-size: 14px; }
+  .card-body { padding: 16px; }
+  .steps { gap: 12px; }
+  .steps li, .trust li { padding: 16px; }
+  .trust { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .toolbar { padding: 16px 16px 0; }
+  .toolbar .seg { display: grid; width: 100%; }
+  .seg button { min-width: 0; min-height: 48px; padding: 0 4px; }
+  .plot { padding: 12px 16px 16px; }
+  .chart.big { height: 220px; }
+  .figs { grid-template-columns: minmax(0, 1fr); }
+  .figs > div { padding: 12px 16px; }
+  .figs > div + div { border-left: 0; border-top: 1px solid var(--hair); }
+  .with-act { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .lp-costs { grid-template-columns: 132px minmax(0, 1fr); gap: 16px; padding-block: 16px; }
+  .lp-leg { font-size: 13px; }
+  .fcols { grid-template-columns: 1fr 1fr; }
+  .fcols > :first-child { grid-column: 1 / -1; }
+  .contours.top { height: 620px; }
+}
+@media (max-width: 479px) { .nav-cta .btn-line { display: none; } }
+@media (max-width: 359px) {
+  .nav-cta .btn { padding: 0 12px; }
+  .nav-cta .ic { display: none; }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <div class="container">
+    <a class="logo" href="#top"><span class="mark" data-ic="sprout"></span><span>Farm Futures</span></a>
+    <nav class="links" aria-label="Main">
+      <a href="#how">How it works</a><a href="#features">Features</a><a href="#forecast">Forecast</a><a href="#trust">Trust</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-line" href="#forecast">See the forecast</a>
+      <a class="btn btn-dark" href="../farm-app/desktop/2-rail.html">Open sample farm <span data-ic="arrow"></span></a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-label="Introduction">
+    <img class="hero-img" src="img/harvest-2400.jpg" srcset="img/harvest-1200.jpg 1200w, img/harvest-2400.jpg 2400w" sizes="(max-width: 959px) 200vw, 120vw" width="2400" height="1018" fetchpriority="high" alt="A tractor working a ploughed field at sunset, with green fields and hills behind it.">
+    <div class="container">
+      <div class="hero-copy">
+        <p class="eyebrow">Field-by-field money</p>
+        <h1><span>Know your land.</span><span class="b">Grow your margin.</span></h1>
+        <p class="lead">A money app for Romanian farms that shows what each crop earns, when cash gets tight and what to set aside for spring.</p>
+        <div class="actions">
+          <a class="btn btn-a" href="../farm-app/desktop/2-rail.html">Open the sample farm <span data-ic="arrow"></span></a>
+          <a class="btn btn-b" href="#how">See how it works</a>
+        </div>
+        <p class="demo-note">Sample data. Dealu Verde is a fictional 42 ha farm. Nothing here moves real money.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="below">
+    <img class="contours top" src="img/contours.svg" alt="" aria-hidden="true">
+    <img class="contours end" src="img/contours.svg" alt="" aria-hidden="true">
+
+    <section class="section" id="how">
+      <div class="container">
+        <div class="section-header"><h2>From a shoebox of receipts to a clear season</h2><p class="lead">Four steps, each small enough to finish between jobs on the farm.</p></div>
+        <ol class="steps">
+          <li><span class="tile" data-ic="sack"></span><b>Record what moves</b><p class="text-sm">Add a sale or an expense in a few taps, and undo it if you slip.</p></li>
+          <li><span class="tile c" data-ic="cal"></span><b>See what is coming</b><p class="text-sm">Loan payments, land rent and input bills, listed before they land.</p></li>
+          <li><span class="tile b" data-ic="shield"></span><b>Set money aside</b><p class="text-sm">Find costs worth a second look and move them toward spring inputs.</p></li>
+          <li><span class="tile" data-ic="chart"></span><b>Read the year ahead</b><p class="text-sm">Twelve months of cash, with a poor, expected and good harvest.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-header with-act"><div><h2>The whole farm on one page</h2><p class="lead">A quick look at what the app keeps track of, using the Dealu Verde sample farm.</p></div><button type="button" class="btn btn-line" id="motion" aria-pressed="false"></button></div>
+        <div class="bento">
+          <article class="card span-7">
+            <div class="card-visual"><div class="lp-margin" id="margin-loop" role="img"></div></div>
+            <div class="card-body"><h3>Margin per hectare, crop by crop</h3><p class="text-sm">See what each crop left you after costs, not just what it sold for.</p></div>
+          </article>
+          <article class="card span-5">
+            <div class="card-visual t-c"><ul class="lp-bills" id="bills-loop" role="img"></ul></div>
+            <div class="card-body"><h3>Bills before they land</h3><p class="text-sm">Loans, rent and input bills in one list, with subsidies marked as estimates.</p></div>
+          </article>
+          <article class="card span-5">
+            <div class="card-visual t-b"><div class="lp-costs" id="costs-loop" role="img"></div></div>
+            <div class="card-body"><h3>Where the season's money went</h3><p class="text-sm">Six cost groups and their share of 162.500 lei, at a glance.</p></div>
+          </article>
+          <article class="card span-7">
+            <div class="card-visual t-h"><div class="lp-res" id="reserve-loop" role="img"></div></div>
+            <div class="card-body"><h3>A reserve for spring</h3><p class="text-sm">Three small costs could free up money this month. In this demo the reserve is simulated.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="forecast">
+      <div class="container">
+        <div class="section-header"><h2>Will the money last to harvest?</h2><p class="lead">Switch the harvest and watch the year change. A range, not a promise.</p></div>
+        <article class="card" style="overflow:visible">
+          <div class="toolbar">
+            <div><p class="lbl">End of October 2027</p><p class="n28" data-f="end"></p></div>
+            <div class="seg" role="group" aria-label="Harvest outcome"><button type="button" data-path="poor" aria-pressed="false">Poor</button><button type="button" data-path="expected" aria-pressed="true">Expected</button><button type="button" data-path="good" aria-pressed="false">Good</button></div>
+          </div>
+          <div class="plot"><div class="chart big"></div></div>
+          <dl class="figs">
+            <div><dt>Tightest month, <span data-f="low-m"></span></dt><dd class="n20" data-f="low-v"></dd></div>
+            <div><dt>If the harvest is poor</dt><dd class="n20" data-f="poor"></dd></div>
+            <div><dt>If the harvest is good</dt><dd class="n20" data-f="good"></dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="trust">
+      <div class="container">
+        <div class="section-header"><h2>Honest about what it knows</h2></div>
+        <ul class="trust">
+          <li><span class="tile b" data-ic="chart"></span><b>Ranges, not promises</b><p class="text-sm">Every forecast shows a poor, expected and good harvest side by side.</p></li>
+          <li><span class="tile b" data-ic="seed"></span><b>Estimates say so</b><p class="text-sm">Subsidies, stored crops and pending payments carry a clear label.</p></li>
+          <li><span class="tile b" data-ic="shield"></span><b>Reserves are simulated</b><p class="text-sm">This demo connects to no bank, and nothing here moves real money.</p></li>
+          <li><span class="tile b" data-ic="check"></span><b>Mistakes are easy to undo</b><p class="text-sm">Every sale, expense and transfer comes with an Undo.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section final">
+      <div class="container">
+        <h2>Start with a sample farm</h2>
+        <p class="lead">Explore Dealu Verde first. No sign-up and no bank connection needed.</p>
+        <a class="btn btn-dark" href="../farm-app/desktop/2-rail.html">Open the sample farm <span data-ic="arrow"></span></a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fcols">
+      <div><a class="logo" href="#top"><span class="mark" data-ic="sprout"></span><span>Farm Futures</span></a><p>A money planning demo for working farms. Sample data only, and nothing here moves real money.</p></div>
+      <div><h2>Sample app</h2><a href="../farm-app/desktop/2-rail.html">Home</a><a href="../farm-app/desktop/2-rail.html?view=stats">Forecast</a><a href="../farm-app/desktop/2-rail.html?view=fields">Fields</a><a href="../farm-app/desktop/2-rail.html?view=reserve">Reserves</a></div>
+      <div><h2>This page</h2><a href="#top">Top</a><a href="#how">How it works</a><a href="#features">Features</a><a href="#forecast">Forecast</a></div>
+    </div>
+    <p class="copy">Farm Futures is a working name. Forecasts are estimates, not financial advice.</p>
+  </div>
+</footer>
+
+<script src="../farm-app/mobile/shared.js"></script>
+<script>
+document.querySelectorAll("[data-ic]").forEach((e) => e.insertAdjacentHTML("afterbegin", FF.icon(e.dataset.ic)));
+const nav = document.getElementById("nav");
+const paintNav = () => nav.classList.toggle("is-scrolled", scrollY > 150);
+addEventListener("scroll", paintNav, { passive: true });
+paintNav();
+
+/* The app's sample farm */
+(function farm() {
+  const { S, lei } = FF;
+  const each = (k, fn) => document.querySelectorAll(`[data-f="${k}"]`).forEach(fn);
+  const set = (k, v) => each(k, (e) => (e.textContent = v));
+
+  FF.on(() => {
+    const s = FF.series(S.path), low = FF.lowOf(s);
+    set("end", lei(s[11])); set("low-m", low.month); set("low-v", lei(low.v));
+    set("poor", lei(FF.series("poor")[11])); set("good", lei(FF.series("good")[11]));
+  });
+
+  /* Recharts loads only as the charts come near. If it cannot load, the plain bars and hand-drawn forecast stay. */
+  const LIBS = ["react@18.3.1/umd/react.production.min.js", "react-dom@18.3.1/umd/react-dom.production.min.js", "react-is@18.3.1/umd/react-is.production.min.js", "recharts@3.10.1/umd/Recharts.js"].map((p) => `https://unpkg.com/${p}`);
+  const load = (src) => new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.append(s); });
+  async function charts() {
+    try { for (const src of [...LIBS, "../farm-app/desktop/charts.js"]) await load(src); } catch (e) { /* plain versions stay */ }
+    const C = window.Charts, big = document.querySelector(".chart.big");
+    if (!C) return FF.mountChart(big);
+    C.forecast(big);
+  }
+  const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); charts(); } }, { rootMargin: "100px 0px" });
+  io.observe(document.getElementById("forecast"));
+})();
+
+/* The four feature cards are live HTML on a shared 6-second loop, so the figures come from FF.
+   Motion runs through the Web Animations API; only the count-ups touch the main thread, and they sleep through the hold. */
+const LOOP = 6000, OUT = "cubic-bezier(.23, 1, .32, 1)", IN_OUT = "cubic-bezier(.77, 0, .175, 1)";
+const at = (ms) => ms / LOOP;
+const whole = (lei) => FF.lei(Math.round(lei) * 100, false);
+const put = (el, text) => { if (el.textContent !== text) el.textContent = text; };
+const scaleOf = (el) => new DOMMatrix(getComputedStyle(el).transform).a;
+/* el goes from -> to over [inAt, inAt + inFor], holds, then returns over [outAt, outAt + outFor] */
+const cycle = (el, from, to, inAt, inFor, outAt, outFor = 530) => el.animate([
+  { ...from, offset: 0 }, { ...from, offset: at(inAt), easing: OUT }, { ...to, offset: at(inAt + inFor) },
+  { ...to, offset: at(outAt), easing: IN_OUT }, { ...from, offset: at(outAt + outFor) }, { ...from, offset: 1 },
+], { duration: LOOP, iterations: Infinity });
+
+/* animate() builds the animations; update() redraws numbers, and rests between sleep[0] and sleep[1] */
+function loopCard(animate, update, sleep = [0, 0]) {
+  let anims = null, ticking = false, timer = 0, frame = 0;
+  const tick = () => {
+    if (!ticking) return;
+    update();
+    const t = anims[0].currentTime % LOOP;
+    if (t > sleep[0] && t < sleep[1]) timer = setTimeout(tick, sleep[1] - t);
+    else frame = requestAnimationFrame(tick);
+  };
+  return {
+    play() {
+      if (ticking) return;
+      if (anims) anims.forEach((a) => a.play());
+      else {
+        anims = animate();
+        /* start at the clear-out, so the finished card fades away instead of jumping to empty */
+        anims.forEach((a) => (a.currentTime = 5000));
+      }
+      if (update) { ticking = true; tick(); }
+    },
+    pause() {
+      ticking = false; clearTimeout(timer); cancelAnimationFrame(frame);
+      if (anims) anims.forEach((a) => a.pause());
+    },
+  };
+}
+
+function costsLoop(root) {
+  const R = 84, C = 2 * Math.PI * R, ROWS = FF.COSTS.map(([, name, amount]) => ({ name, amount }));
+  const total = ROWS.reduce((t, r) => t + r.amount, 0);
+  const pct = (r) => Math.round((r.amount / total) * 100);
+  const money = (v) => whole(v).replace(/\s*lei$/, "");
+  let from = 0;
+  const arcs = ROWS.map((r, i) => {
+    const len = (r.amount / total) * C, start = from; from += len;
+    return `<circle cx="104" cy="104" r="${R}" stroke="var(--ch${i + 1})" stroke-dasharray="${len - 4} ${C}" stroke-dashoffset="${-start}"/>`;
+  }).join("");
+  root.setAttribute("aria-label", `Season costs total ${money(total)} lei: ${ROWS.map((r) => `${r.name} ${pct(r)}%`).join(", ")}.`);
+  root.innerHTML = `<div class="lp-ring"><svg viewBox="0 0 208 208" aria-hidden="true">
+    <mask id="costs-sweep" maskUnits="userSpaceOnUse" x="0" y="0" width="208" height="208"><circle cx="104" cy="104" r="${R}" fill="none" stroke="#fff" stroke-width="31" stroke-dasharray="${C} ${C}"/></mask>
+    <g mask="url(#costs-sweep)" fill="none" stroke-width="27">${arcs}</g></svg>
+    <div class="lp-total"><b>${money(total)}</b><span>lei total</span></div></div>
+    <ul class="lp-leg">${ROWS.map((r, i) => `<li><i style="background:var(--ch${i + 1})"></i><span>${r.name}</span><b>${pct(r)}%</b></li>`).join("")}</ul>`;
+  const sweep = root.querySelector("mask circle"), number = root.querySelector(".lp-total b");
+  return loopCard(() => [
+    cycle(sweep, { strokeDashoffset: C }, { strokeDashoffset: 0 }, 70, 1460, 5400),
+    ...[...root.querySelectorAll(".lp-leg li")].map((li, i) => cycle(li, { opacity: 0, transform: "translateX(10px)" }, { opacity: 1, transform: "none" }, 200 + i * 200, 670, 5400 - (5 - i) * 33)),
+  ], () => put(number, money((1 - parseFloat(getComputedStyle(sweep).strokeDashoffset) / C) * total)), [1600, 5380]);
+}
+
+function marginLoop(root) {
+  const max = Math.max(...FF.CROPS.map((c) => c.mv));
+  root.setAttribute("aria-label", `Margin per hectare: ${FF.CROPS.map((c) => `${c.n} ${c.m}`).join(", ")}.`);
+  root.innerHTML = FF.CROPS.map((c) => `<div class="lp-row"><span>${c.n}</span><div class="lp-bar"><i style="transform:scaleX(${c.mv / max})"></i></div><b>${c.m}</b></div>`).join("");
+  const bars = [...root.querySelectorAll(".lp-bar i")], values = [...root.querySelectorAll(".lp-row b")];
+  return loopCard(() => bars.map((bar, i) => cycle(bar, { transform: "scaleX(0)" }, { transform: `scaleX(${FF.CROPS[i].mv / max})` }, 130 + i * 230, 1000, 5200 + i * 100)),
+    () => bars.forEach((bar, i) => put(values[i], whole(scaleOf(bar) * max))), [1700, 5180]);
+}
+
+function billsLoop(root) {
+  const rows = FF.COMING.slice(0, 4);
+  root.setAttribute("aria-label", `Coming up: ${rows.map((t) => `${t.name} ${FF.signed(t.bani)}, ${t.date}`).join("; ")}`);
+  root.innerHTML = rows.map(FF.txRow).join("");
+  return loopCard(() => [...root.children].map((li, i) => cycle(li, { opacity: 0, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }, 70 + i * 300, 800, 5200 + i * 67)));
+}
+
+function reserveLoop(root) {
+  const GOAL = FF.GOAL / 100, NOW = FF.S.reserve / 100, CHIPS = ["Insurance", "Field map", "Fuel card"];
+  root.setAttribute("aria-label", `Spring reserve: ${whole(NOW)} of ${whole(GOAL)} set aside, simulated, helped by three small costs: insurance, a field-map subscription and a fuel card fee.`);
+  root.innerHTML = `<ul class="lp-chips">${CHIPS.map((c) => `<li>${c}<i></i></li>`).join("")}</ul>
+    <div class="lp-bar"><i style="width:${(NOW / GOAL) * 100}%"></i></div>
+    <div class="lp-foot"><b>${whole(NOW)}</b><span>of ${whole(GOAL)}</span></div>`;
+  const fill = root.querySelector(".lp-bar i"), value = root.querySelector(".lp-foot b");
+  const step = (n) => ({ transform: `scaleX(${n / 3})` });
+  return loopCard(() => [
+    fill.animate([
+      { ...step(0), offset: 0 }, { ...step(0), offset: at(730), easing: OUT }, { ...step(1), offset: at(1130), easing: OUT },
+      { ...step(2), offset: at(1530), easing: OUT }, { ...step(3), offset: at(1930) }, { ...step(3), offset: at(5400), easing: IN_OUT },
+      { ...step(0), offset: at(5930) }, { ...step(0), offset: 1 },
+    ], { duration: LOOP, iterations: Infinity }),
+    ...[...root.querySelectorAll(".lp-chips li")].map((li, i) => cycle(li, { opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }, i * 400, 330, 5270 + i * 67)),
+    ...[...root.querySelectorAll(".lp-chips i")].map((coin, i) => {
+      const t = 330 + i * 400;
+      return coin.animate([
+        { opacity: 0, transform: "translateY(0)", offset: 0 }, { opacity: 0, transform: "translateY(0)", offset: at(t) },
+        { opacity: 1, transform: "translateY(5px)", offset: at(t + 120) }, { opacity: 1, transform: "translateY(30px)", offset: at(t + 380) },
+        { opacity: 0, transform: "translateY(44px)", offset: at(t + 470) }, { opacity: 0, transform: "translateY(44px)", offset: 1 },
+      ], { duration: LOOP, iterations: Infinity });
+    }),
+  ], () => put(value, whole(Math.round((scaleOf(fill) * NOW) / 50) * 50)), [2000, 5380]);
+}
+
+/* Each card starts once it is properly on screen, and stays still with reduced motion, data saver, or after Pause. */
+(function loops() {
+  const btn = document.getElementById("motion");
+  const saver = !!(navigator.connection && navigator.connection.saveData);
+  let paused = matchMedia("(prefers-reduced-motion: reduce)").matches || saver;
+  const cards = [["margin", marginLoop], ["bills", billsLoop], ["costs", costsLoop], ["reserve", reserveLoop]].map(([id, build]) => {
+    const el = document.getElementById(`${id}-loop`);
+    return { box: el.parentElement, ctl: build(el), visible: false };
+  });
+  const sync = (c) => (c.visible && !paused ? c.ctl.play() : c.ctl.pause());
+  const label = () => { btn.textContent = paused ? "Play animations" : "Pause animations"; btn.setAttribute("aria-pressed", paused); };
+  const io = new IntersectionObserver((list) => list.forEach((e) => {
+    const c = cards.find((k) => k.box === e.target); c.visible = e.isIntersecting; sync(c);
+  }), { threshold: .3 });
+  cards.forEach((c) => io.observe(c.box));
+  btn.addEventListener("click", () => { paused = !paused; label(); cards.forEach(sync); });
+  label();
+})();
+</script>
+</body>
+</html>

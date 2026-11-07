@@ -36,20 +36,19 @@
     {
       "campaign": 2026,
       "fund": "FEGA",
-      "value": null,
-      "default_param": 5.28,
+      "value": 5.2788,
       "unit": "lei/EUR",
-      "note": "Curs BCE din 30 septembrie 2026. Până la confirmare se folosește parametrul configurabil default_param.",
-      "source_url": null,
-      "status": "DE-VERIFICAT"
+      "note": "Curs oficial BCE din 30 septembrie 2026. Anunțul APIA pentru campania 2026 încă nu a fost verificat.",
+      "source_url": "https://data-api.ecb.europa.eu/service/data/EXR/D.RON.EUR.SP00.A?startPeriod=2026-09-30&endPeriod=2026-09-30&format=csvdata",
+      "status": "confirmat-2026"
     },
     {
       "campaign": 2026,
       "fund": "FEADR",
       "value": null,
-      "default_param": 5.28,
+      "default_param": 5.2788,
       "unit": "lei/EUR",
-      "note": "Curs BCE din 30 septembrie 2026. Până la confirmare se folosește parametrul configurabil default_param.",
+      "note": "Folosim cursul BCE din 30 septembrie 2026 până la anunțul APIA. FEADR poate avea alt curs decât FEGA, cum s-a întâmplat în 2025.",
       "source_url": null,
       "status": "DE-VERIFICAT"
     }
@@ -372,9 +371,9 @@
         "PD-02": 835.35,
         "PD-04": 844.2
       },
-      "exchange_rate_param": 5.28,
-      "expected_total_lei": 16869.6,
-      "expected_advance_lei": 12652.2
+      "exchange_rate_param": 5.2788,
+      "expected_total_lei": 16865.77,
+      "expected_advance_lei": 12649.32
     }
   ]
 }

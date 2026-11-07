@@ -22,14 +22,14 @@
 
 | Timp | Ce se vede | Ce spunem |
 |---|---|---|
-| 0:00–0:40 | Poza lui Ion, apoi graficul anului cu valuri și golul primăvara | „Ion are 15 hectare în Teleorman. Primește banii de 3 ori pe an, dar îi cheltuie în fiecare lună. În februarie–mai rămâne fără bani și ia credit. N-are nimic deoparte pentru secetă și n-are pensie. Ca el sunt sute de mii.” |
+| 0:00–0:40 | Poza lui Ion, apoi graficul anului cu valuri și golul primăvara | „Ion are 15 hectare în Teleorman. Primește banii de 3 ori pe an, dar îi cheltuie în fiecare lună. În martie–mai rămâne fără bani și ia credit. N-are nimic deoparte pentru secetă și n-are pensie. Ca el sunt sute de mii.” |
 | 0:40–1:10 | **Onboarding** pe telefon: Teleorman, 8 ha grâu, 7 ha porumb, 55 de ani | „Fiica lui completează în două minute. Fără formulare APIA, fără termeni financiari.” |
 | 1:10–1:40 | **Subvenția ca interval**: „cam 16.900 lei, între 15.200 și 17.100” | „Alte aplicații îți dau o cifră. Noi îți spunem adevărul: cuantumul depinde de câți fermieri declară. Anul trecut, BISS a ieșit cu 10% sub plan. Avansul de 75% e sigur, restul nu.” |
 | 1:40–2:10 | **Calendarul**, cu golul februarie–mai colorat | „Totul pe o singură axă: când vin banii, când pleacă, ce termene are. Și aici e problema.” |
-| 2:10–2:35 | „**Au intrat 12.652 lei!**”, cu împărțirea pe plicuri („Bine așa”), apoi „Iau un credit” | „Avansul a intrat în contul lui Ion, prin Stripe Connect. Aplicația propune împărțirea: primăvară, ani proști, bătrânețe, salariu. Fără credit, poate scoate sigur 1.000 lei pe lună. Cu un credit pe adeverință de 14.800 lei în aprilie, 2.850 lei. CropCash i-l anunță din noiembrie, nu în panică.” |
+| 2:10–2:35 | „**Au intrat 12.649 lei!**”, cu împărțirea pe plicuri („Bine așa”), apoi „Iau un credit” | „Avansul a intrat în contul lui Ion, prin Stripe Connect. Aplicația propune împărțirea: primăvară, bătrânețe, salariu. Fără credit, poate scoate sigur 1.000 lei pe lună. Cu un credit pe adeverință de 14.800 lei în aprilie, 2.850 lei. CropCash i-l anunță din noiembrie, nu în panică.” |
 | 2:35–2:50 | **Pensia**: slider la 200 lei, „la 65 de ani ai cam 29.000 lei”, apoi „Pornesc” | „CAS-ul opțional costă 12.150 lei pe an. Pilonul III pornește de la orice sumă. Din 2027 vine și CEI.” |
 | 2:50–3:20 | **„Dăm timpul înainte 6 luni”** (Test Clock, ~1 min): 5 salarii de 2.850 lei, pensia lună de lună, restul de la APIA în martie, creditul în aprilie; în mai salariul scade la 1.550 lei | „Asta nu e o animație. Sunt payouts și subscriptions reale în Stripe test mode. Și uitați-vă la mai: aplicația vede că în noiembrie Ion dă creditul înapoi, așa că îi scade salariul acum, ca să nu rămână fără bani.” |
-| 3:20–3:40 | **Toggle „An slab”** în Prognoză: venitul pe 2027 scade la ~80.000 lei (față de ~98.000), salariul sigur ajunge la 0 | „Într-un an de secetă, lui Ion îi lipsesc ~30.000 lei. Fondul pentru ani proști e exact pentru asta: se umple cu 10% din fiecare încasare.” |
+| 3:20–3:40 | **Toggle „An slab”** în Prognoză: venitul pe 2027 scade la ~80.000 lei (față de ~98.000), salariul sigur ajunge la 0 | „Într-un an de secetă, lui Ion îi lipsesc ~33.000 lei. CropCash i-o arată de acum, nu în mai, iar salariul sigur e cât poate scoate și într-un an ca ăsta.” |
 | 3:40–4:10 | Slide cu concurența | (secțiunea 4) |
 | 4:10–4:40 | Slide cu limitările | (secțiunea 5) „Ion nu are nevoie de mai mulți bani. Are nevoie să-i vadă pe un an întreg.” |
 
@@ -56,6 +56,7 @@
 3. **Unele cifre sunt de verificat** în textul Planului Strategic PAC: pragul CRISS, PD-05, PD-28, schemele cuplate, cursul 2026. În aplicație apar marcate „(de verificat)”.
 4. **Nu există integrare cu APIA sau AGI Online**, pentru că nu există un API public. Datele vin de la fermier sau din PDF-ul deciziei.
 5. **Nu e consultanță financiară:** simulările de pensie folosesc randamente presupuse (2/4/6%).
+6. **Vocea cere internet** și depinde de telefon. Tot ce spune Ion se poate face și cu tastatura.
 
 ## 6. Surse (slide final)
 

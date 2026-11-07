@@ -2,6 +2,7 @@ import path from 'node:path';
 
 export const ROOT = path.resolve(import.meta.dirname, '..');
 export const SPEC_PATH = path.resolve(ROOT, '..', 'subventii-surse.md');
+export const PARAMS_PATH = path.resolve(ROOT, '..', 'docs', 'data', 'plan-params.json');
 export const REPORTS_DIR = path.join(ROOT, 'reports');
 
 function loadEnv(): void {

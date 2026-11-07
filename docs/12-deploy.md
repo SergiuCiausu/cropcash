@@ -34,7 +34,10 @@ curl https://api.cropcash.ro/api/health   # {"ok":true}
 **`.env` pe VPS:** aceleași chei ca local (`STRIPE_SECRET_KEY` doar `sk_test_`, `SUPABASE_*`), plus:
 - `CORS_ORIGINS=https://<site>.netlify.app` (adresa reală a site-ului Netlify);
 - `STRIPE_WEBHOOK_SECRET` = secretul endpoint-ului public de la pasul 3, **nu** cel de la `stripe listen`;
-- `DEMO_MODE=true` pentru butoanele de demo.
+- `DEMO_MODE=true` pentru butoanele de demo;
+- `CONTACT_EMAIL` (opțional), pus în User-Agent când API-ul citește o sursă adăugată de fermier.
+
+API-ul încarcă bibliotecile monitorului din `node_modules` la rulare, deci pe VPS rămâne `npm ci` complet, nu doar `dist/`.
 
 **Actualizare:** `git pull && npm ci && npm run build -w @cropcash/api && pm2 reload cropcash-api`.
 

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Contul tău · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Contul tău</h1><p class="lead">Banii care vin prin CropCash. Totul e simulat: nu se mișcă bani reali.</p></div></header>
+    <p class="offline" data-offline hidden>Nu ai internet. Vezi ce e salvat pe telefon, dar banii nu se pot muta acum.</p>
+    <div class="bento" id="cards"></div>
+  </div>
+</main>
+<dialog class="h-sheet" id="split" aria-labelledby="s-title">
+  <h2 id="s-title"></h2>
+  <p class="note" id="s-lead"></p>
+  <ol class="ac-envs" id="s-bars"></ol>
+  <p class="note" id="s-why"></p>
+  <p class="ob-err" id="s-err" role="alert" hidden></p>
+  <div class="ob-actions"><button type="button" class="btn btn-dark" data-act="accept" data-needs-net="Pornește internetul ca să muți banii.">Bine așa</button><button type="button" class="btn btn-line" data-act="later">Mai târziu</button></div>
+</dialog>
+<script src="../config.js"></script>
+<script src="../mobile/shared.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="bani.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

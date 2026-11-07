@@ -23,17 +23,32 @@ describe('computeFarmPlan', () => {
 
   it('a received APIA advance adds to the money and is not counted twice', () => {
     const before = computeFarmPlan(ion, data);
+    const advance = before.subsidies.totals.advanceLei;
     const after = computeFarmPlan(
       {
         ...ion,
-        transactions: [{ amount_bani: 1_265_220, kind: 'apia_advance', occurred_at: '2026-11-07T10:00:00Z' }],
+        transactions: [{ amount_bani: advance, kind: 'apia_advance', occurred_at: '2026-11-07T10:00:00Z' }],
       },
       data,
     );
-    expect(after.startBalance).toBe(3_500_000 + 1_265_220);
+    expect(after.startBalance).toBe(3_500_000 + advance);
     expect(after.timelines.medium.months[0]!.entries.some((e) => e.kind === 'apia_advance')).toBe(false);
     // Same money, just earlier: the end of the year doesn't change.
     expect(after.timelines.medium.months.at(-1)!.balanceEnd).toBe(before.timelines.medium.months.at(-1)!.balanceEnd);
+  });
+
+  it('money arriving early leaves the salary as it was', () => {
+    const before = computeFarmPlan(ion, data);
+    const advance = before.subsidies.totals.advanceLei;
+    const paid = { amount_bani: advance, kind: 'apia_advance' as const, occurred_at: '2026-11-07T10:00:00Z' };
+    const after = computeFarmPlan({ ...ion, transactions: [paid] }, data);
+    expect(after.salary.salary).toBe(before.salary.salary);
+  });
+
+  it('ignores an envelope left from the removed bad-year fund', () => {
+    const old = computeFarmPlan({ ...ion, envelopes: [{ kind: 'risk_fund', balance_bani: 2_000_000 }] }, data);
+    expect(old.salary.salary).toBe(computeFarmPlan(ion, data).salary.salary);
+    expect(old.envelopes).not.toHaveProperty('risk_fund');
   });
 
   it('salary and pension reduce the money; the pension is a fixed monthly set-aside', () => {

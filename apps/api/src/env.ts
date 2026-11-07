@@ -11,9 +11,16 @@ export interface Env {
   supabaseAnonKey: string;
   supabaseServiceKey: string;
   /** Optional lei/EUR override; otherwise the default from docs/data is used. */
-  exchangeRate?: number;
+  /** Public Open-Meteo by default; a paid plan or a self-hosted instance otherwise. */
+  openMeteoBaseUrl?: string;
+  openMeteoApiKey?: string;
+  /** Both unset turns the money flow off. A live key is refused at startup. */
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
+  /** Unset turns off reading uploaded papers. */
+  anthropicApiKey?: string;
+  /** Goes in the User-Agent when reading a farmer's source, so a site can reach us. */
+  contactEmail?: string;
   /** Enables /api/demo/* (simulated APIA payment, advancing the demo clock). */
   demoMode: boolean;
 }
@@ -28,9 +35,12 @@ export function loadEnv(): Env {
     supabaseUrl: required('SUPABASE_URL'),
     supabaseAnonKey: required('SUPABASE_ANON_KEY'),
     supabaseServiceKey: required('SUPABASE_SERVICE_ROLE_KEY'),
-    exchangeRate: process.env.EXCHANGE_RATE_EUR_RON ? Number(process.env.EXCHANGE_RATE_EUR_RON) : undefined,
+    openMeteoBaseUrl: process.env.OPEN_METEO_BASE_URL || undefined,
+    openMeteoApiKey: process.env.OPEN_METEO_API_KEY || undefined,
     stripeSecretKey: process.env.STRIPE_SECRET_KEY || undefined,
     stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || undefined,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || undefined,
+    contactEmail: process.env.CONTACT_EMAIL?.trim() || undefined,
     demoMode: process.env.DEMO_MODE === 'true',
   };
 }

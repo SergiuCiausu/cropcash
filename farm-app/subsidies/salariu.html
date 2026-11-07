@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ro" data-default-palette="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4E85C">
+<title>Salariu · CropCash</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<link rel="stylesheet" href="../desktop/desktop.css">
+<link rel="stylesheet" href="../desktop/rail.css">
+<link rel="stylesheet" href="subsidies.css">
+</head>
+<body>
+<main class="main">
+  <div>
+    <header class="page-h"><div><h1>Salariul tău</h1><p class="lead" id="lead"></p></div></header>
+    <p class="offline" data-offline hidden>Nu ai internet. Salariul se calculează pe telefon, din datele salvate.</p>
+
+    <div class="bento">
+      <section class="chart-card field hero-card pay-hero s12">
+        <div>
+          <p class="eyebrow" id="h-label"></p>
+          <p class="amount" id="h-amount"></p>
+          <p class="why" id="h-why" aria-live="polite"></p>
+        </div>
+        <div class="year-pick" role="group" aria-label="Ce fel de an" id="years"></div>
+      </section>
+
+      <section class="card s5"><div class="pay-sum">
+        <h2 id="r-title"></h2>
+        <ul class="sums" id="r-lines"></ul>
+        <p class="sum-end" id="r-end"></p></div>
+      </section>
+
+      <section class="card s7">
+        <h2>Lună cu lună</h2>
+        <p class="note" id="m-intro"></p>
+        <p class="m-head"><span>Luna</span><span>Îți rămân</span></p>
+        <ol class="months" id="m-list"></ol>
+        <p class="note gap" id="m-note"></p>
+        <button type="button" class="btn btn-line m-more" id="m-more" hidden></button>
+      </section>
+
+      <section class="card s12">
+        <div class="card-h"><h2>Ce am presupus</h2><span><a href="date-plan.html">Schimbă</a></span></div>
+        <ul class="assumed" id="assumed"></ul>
+      </section>
+    </div>
+  </div>
+</main>
+<script src="../mobile/shared.js"></script>
+<script src="engine.js"></script>
+<script src="data-calls.js"></script>
+<script src="app.js"></script>
+<script src="salariu.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

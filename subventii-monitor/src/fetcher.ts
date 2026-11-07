@@ -59,6 +59,8 @@ export interface FetcherOptions {
   backoffMs?: number;
   maxRedirects?: number;
   robotsCache?: RobotsCache;
+  /** Replaces the global fetch, for links that need a guard. */
+  fetchFn?: typeof fetch;
 }
 
 // The package's types declare no default call, but its CommonJS export is the function.
@@ -140,6 +142,8 @@ function outcomeForStatus(status: number): Outcome {
   return 'client_error';
 }
 
+const ROBOTS_MAX_BYTES = 512 * 1024;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 interface WalkOptions {
@@ -152,7 +156,8 @@ export class Fetcher {
   requests = 0;
   bytes = 0;
 
-  private opts: Required<Omit<FetcherOptions, 'robotsCache'>> & { robotsCache?: RobotsCache };
+  private opts: Required<Omit<FetcherOptions, 'robotsCache' | 'fetchFn'>> & { robotsCache?: RobotsCache };
+  private fetchFn: typeof fetch;
   private hosts = new Map<string, { queue: PQueue; delayMs: number; last: number }>();
   private robots = new Map<string, Promise<RobotsVerdict>>();
 
@@ -167,6 +172,7 @@ export class Fetcher {
       maxRedirects: 5,
       ...options,
     };
+    this.fetchFn = options.fetchFn ?? ((input, init) => fetch(input, init));
   }
 
   private host(hostname: string) {
@@ -209,11 +215,13 @@ export class Fetcher {
 
     return this.paced(new URL(origin).hostname, async (): Promise<RobotsVerdict> => {
       try {
-        const res = await fetch(`${origin}/robots.txt`, {
+        const res = await this.fetchFn(`${origin}/robots.txt`, {
           headers: { 'user-agent': this.opts.userAgent },
           signal: AbortSignal.timeout(this.opts.timeoutMs),
         });
-        const body = await res.text();
+        const bytes = await this.readBody(res, ROBOTS_MAX_BYTES, false);
+        if (!bytes) return { kind: 'unavailable', reason: 'robots.txt is too large' };
+        const body = Buffer.from(bytes).toString('utf8');
         if (res.status >= 500) return { kind: 'unavailable', reason: `robots.txt returned ${res.status}` };
         const entry = { fetchedAt: Date.now(), httpStatus: res.status, body };
         await this.opts.robotsCache?.set(origin, entry);
@@ -244,7 +252,7 @@ export class Fetcher {
     for (let attempt = 0; attempt <= this.opts.retries; attempt++) {
       if (attempt > 0) await sleep(this.opts.backoffMs * 3 ** (attempt - 1));
       try {
-        const res = await this.paced(hostname, () => fetch(url, {
+        const res = await this.paced(hostname, () => this.fetchFn(url, {
           method: options.method,
           redirect: 'manual',
           headers,
@@ -266,14 +274,14 @@ export class Fetcher {
   }
 
   /** Reads a body up to the size limit. Returns null if it is too large. */
-  private async readBody(res: Response): Promise<Uint8Array | null> {
+  private async readBody(res: Response, maxBytes = this.opts.maxBytes, counted = true): Promise<Uint8Array | null> {
     if (!res.body) return new Uint8Array();
     const chunks: Uint8Array[] = [];
     let size = 0;
     for await (const chunk of res.body) {
       size += chunk.length;
-      this.bytes += chunk.length;
-      if (size > this.opts.maxBytes) return null; // Leaving the loop cancels the stream.
+      if (counted) this.bytes += chunk.length;
+      if (size > maxBytes) return null; // Leaving the loop cancels the stream.
       chunks.push(chunk);
     }
     return Buffer.concat(chunks);

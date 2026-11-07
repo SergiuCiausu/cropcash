@@ -17,6 +17,7 @@
     ['data-jump="coming"', "cal", "Bills", "4 coming up", "t-c"],
     ['data-go="stats"', "chart", "Forecast", "The next 12 months"],
     ['data-go="fields"', "sprout", "Fields", "Margin per crop"],
+    ['data-href="../subsidies/subventii.html"', "bank", "Subsidies", "What APIA pays you", "t-b"],
   ];
   const tiles = (only) => only.map((i) => TILES[i]).map(([a, ic, t, s, tone = ""]) => `<button type="button" class="${tone}" ${a}><span class="i">${icon(ic)}</span><span class="go">${icon("arrow")}</span><span class="t"><b>${t}</b><small>${s}</small></span></button>`).join("");
 
@@ -56,7 +57,8 @@
       FF.start();
       const C = window.Charts, each = (sel, fn) => document.querySelectorAll(sel).forEach(fn);
       each(".chart", C ? C.forecast : FF.mountChart);
-      html("tiles", tiles([2, 4, 3, 5]));
+      html("tiles", tiles([2, 4, 3, 6]));
+      document.addEventListener("click", (e) => { const t = e.target.closest("[data-href]"); if (t) location.href = t.dataset.href; });
       html("tiles-2", tiles([2, 3]));
       html("donut", C ? C.donutHTML() : donut());
       if (C) { each(".pie-chart", C.donut); each('[data-chart="costs"]', C.costs); each('[data-chart="crops"]', C.crops); }

@@ -19,13 +19,13 @@ const input = { parcels: normalizeParcels(farm.parcels), subsidies, startBalance
 const opts: TimelineOptions = { start: '2026-11', months: 12, amounts: 'medium', timing: 'late' };
 const build = (amounts: AmountScenario, months = 12) => buildTimeline(input, data, { ...opts, amounts, months });
 const timelines = { good: build('good'), medium: build('medium'), bad: build('bad') };
-const smoothing = { pensionMonthly: 20_000, riskPct: 10, riskRemaining: 3_310_000 };
+const smoothing = { pensionMonthly: 20_000 };
 
 describe('salaryByScenario', () => {
   const s = salaryByScenario(timelines, smoothing, data);
 
-  it('Ion, normal year without credit: 650 lei (docs/07 §4)', () => {
-    expect(s.medium.salary).toBe(65_000);
+  it('Ion, normal year without credit: 850 lei (docs/07 §4)', () => {
+    expect(s.medium.salary).toBe(85_000);
   });
 
   it('drought pays less, a good year more (or the same)', () => {

@@ -57,6 +57,24 @@ describe('Row Level Security', () => {
     farmA = data!.id;
   });
 
+  it('a user cannot write money facts, even on their own farm', async () => {
+    const stripeId = await a.client.from('farmers').update({ stripe_account_id: 'acct_fake' }).eq('id', farmA);
+    expect(stripeId.error).not.toBeNull();
+    const clock = await a.client.from('farmers').update({ demo_now: '2030-01-01T00:00:00Z' }).eq('id', farmA);
+    expect(clock.error).not.toBeNull();
+    const salary = await a.client.from('payouts').insert({ farmer_id: farmA, amount_bani: 100, scheduled_for: '2027-01-01' });
+    expect(salary.error).not.toBeNull();
+    const income = await a.client.from('transactions').insert({
+      farmer_id: farmA,
+      amount_bani: 100,
+      occurred_at: new Date().toISOString(),
+      source: 'stripe_transfer',
+    });
+    expect(income.error).not.toBeNull();
+    const rpc = await a.client.rpc('apply_payout_paid', { p_stripe_payout: 'po_fake' });
+    expect(rpc.error).not.toBeNull();
+  });
+
   it("a user cannot create a farm on someone else's account", async () => {
     const { error } = await a.client
       .from('farmers')
@@ -134,7 +152,7 @@ describe('API with real Supabase tokens', () => {
     expect(again.status).toBe(409);
 
     const subs = await request(app).get('/api/subsidies').set('Authorization', `Bearer ${b.token}`);
-    expect(subs.body.totals.advanceLei).toBe(1265220);
+    expect(subs.body.totals.advanceLei).toBe(1264932);
 
     const me = await request(app).get('/api/me').set('Authorization', `Bearer ${b.token}`);
     expect(me.body.farmer.start_balance_bani).toBe(3_500_000);
@@ -172,6 +190,124 @@ describe('API with real Supabase tokens', () => {
     const res = await request(app).put('/api/envelopes').set(auth).send(tooMuch);
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('too_much');
+  });
+
+  it('sale: raises the money the envelopes may use; undo takes it back', async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const full = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
+    const sale = await request(app).post('/api/sales').set(auth).send({ cropId: 'grau', date: '2026-10-01', totalLei: 1000 });
+    expect(sale.status).toBe(201);
+    const more = { ...full, risk_fund: 100_000 };
+    expect((await request(app).put('/api/envelopes').set(auth).send(more)).status).toBe(204);
+    await request(app).put('/api/envelopes').set(auth).send(full);
+    expect((await request(app).delete(`/api/transactions/${sale.body.id}`).set(auth)).status).toBe(204);
+    expect((await request(app).put('/api/envelopes').set(auth).send(more)).status).toBe(400);
+  });
+
+  it('expense: takes what the envelope has, and undo puts back exactly that', async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const salary = async () => {
+      const me = await request(app).get('/api/me').set(auth);
+      return me.body.farmer.envelopes.find((e: { kind: string }) => e.kind === 'salary').balance_bani;
+    };
+    const res = await request(app)
+      .post('/api/expenses')
+      .set(auth)
+      .send({ category: 'repairs', amountLei: 1000, date: '2026-10-01', envelope: 'salary' });
+    expect(res.status).toBe(201);
+    expect(await salary()).toBe(0);
+    expect((await request(app).delete(`/api/transactions/${res.body.id}`).set(auth)).status).toBe(204);
+    expect(await salary()).toBe(65_000);
+  });
+
+  it("another user cannot see or undo someone else's records", async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const other = { Authorization: `Bearer ${a.token}` };
+    const sale = await request(app).post('/api/sales').set(owner).send({ cropId: 'grau', date: '2026-10-01', totalLei: 500 });
+    const { data } = await a.client.from('transactions').select('id').eq('id', sale.body.id);
+    expect(data).toEqual([]);
+    expect((await request(app).delete(`/api/transactions/${sale.body.id}`).set(other)).status).toBe(404);
+    expect((await request(app).delete(`/api/transactions/${sale.body.id}`).set(owner)).status).toBe(204);
+  });
+
+  it("tasks: saved for the owner only, and another user can't write or reopen them", async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const other = { Authorization: `Bearer ${a.token}` };
+    const path = `/api/tasks/${encodeURIComponent('apia-cerere:2027')}`;
+    expect((await request(app).put(path).set(owner)).status).toBe(204);
+    expect((await request(app).put(path).set(owner)).status).toBe(204);
+    const me = await request(app).get('/api/me').set(owner);
+    expect(me.body.farmer.task_completions).toEqual([{ task_id: 'apia-cerere:2027' }]);
+    expect((await a.client.from('task_completions').select('task_id')).data).toEqual([]);
+    expect((await request(app).delete(path).set(other)).status).toBe(404);
+    const { data: farm } = await b.client.from('farmers').select('id').single();
+    const { error } = await a.client.from('task_completions').insert({ farmer_id: farm!.id, task_id: 'apia-sold:2027' });
+    expect(error).not.toBeNull();
+    expect((await request(app).delete(path).set(owner)).status).toBe(204);
+  });
+
+  it('update_farm: replaces the parcels, and refuses money below the envelopes', async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const edit = { name: 'Ion', county: 'TR', age: 56, parcels: [{ cropId: 'porumb', areaHa: 15 }] };
+    const ok = await request(app).put('/api/farmers/me').set(auth).send({ ...edit, startBalanceLei: 35_000 });
+    expect(ok.status).toBe(200);
+    const me = await request(app).get('/api/me').set(auth);
+    expect(me.body.farmer.parcels).toEqual([{ crop_id: 'porumb', area_ari: 1500, is_arable: true }]);
+    const low = await request(app).put('/api/farmers/me').set(auth).send({ ...edit, startBalanceLei: 1 });
+    expect(low.body.error).toBe('too_much');
+    const after = await request(app).get('/api/me').set(auth);
+    expect(after.body.farmer.start_balance_bani).toBe(3_500_000);
+  });
+
+  it('pension fund: saved for the owner only', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    expect((await request(app).put('/api/pension/fund').set(owner).send({ fundId: 'stabil' })).status).toBe(204);
+    const me = await request(app).get('/api/me').set(owner);
+    expect(me.body.farmer.pension_fund_id).toBe('stabil');
+    const { data: farm } = await b.client.from('farmers').select('id').single();
+    await a.client.from('farmers').update({ pension_fund_id: 'nn-optim' }).eq('id', farm!.id);
+    const after = await request(app).get('/api/me').set(owner);
+    expect(after.body.farmer.pension_fund_id).toBe('stabil');
+  });
+
+  it('harvests: saved for the owner only', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const harvests = {
+      years: [{ year: 2027, status: 'open', openingBani: 100, parcels: [{ cropId: 'grau', areaHa: 8, plantedMonth: '2026-10' }] }],
+      gathered: [],
+    };
+    expect((await request(app).put('/api/farmers/me/harvests').set(owner).send(harvests)).status).toBe(200);
+    const { data: farm } = await b.client.from('farmers').select('id').single();
+    await a.client.from('farmers').update({ harvests: { years: [] } }).eq('id', farm!.id);
+    const me = await request(app).get('/api/me').set(owner);
+    expect(me.body.farmer.harvests).toEqual(harvests);
+    const seen = await a.client.from('farmers').select('harvests').eq('id', farm!.id);
+    expect(seen.data).toEqual([]);
+  });
+
+  it('planting month: kept when an edit does not send one', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const edit = { name: 'Ion', county: 'TR', age: 55, startBalanceLei: 35_000 };
+    const dated = await request(app).put('/api/farmers/me').set(owner)
+      .send({ ...edit, parcels: [{ cropId: 'grau', areaHa: 8, plantedMonth: '2026-10' }] });
+    expect(dated.status).toBe(200);
+    await request(app).put('/api/farmers/me').set(owner).send({ ...edit, parcels: [{ cropId: 'grau', areaHa: 9 }] });
+    const me = await request(app).get('/api/me').set(owner);
+    expect(me.body.farmer.parcels).toEqual([expect.objectContaining({ area_ari: 900, planted_month: '2026-10' })]);
+  });
+
+  it('harvest year: kept on sales and expenses', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const date = new Date().toISOString().slice(0, 10);
+    const sale = await request(app).post('/api/sales').set(owner).send({ cropId: 'grau', date, totalLei: 10, harvestYear: 2026 });
+    const expense = await request(app).post('/api/expenses').set(owner)
+      .send({ category: 'diesel', amountLei: 1, date, harvestYear: 2026 });
+    expect([sale.status, expense.status]).toEqual([201, 201]);
+    const me = await request(app).get('/api/me').set(owner);
+    const year = (id: string) => me.body.farmer.transactions.find((t: { id: string }) => t.id === id)?.harvest_year;
+    expect([year(sale.body.id), year(expense.body.id)]).toEqual([2026, 2026]);
+    await request(app).delete(`/api/transactions/${sale.body.id}`).set(owner);
+    await request(app).delete(`/api/transactions/${expense.body.id}`).set(owner);
   });
 
   it("onboarding data stays invisible to other users", async () => {

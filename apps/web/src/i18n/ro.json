@@ -14,7 +14,8 @@
     "toVerifyHint": "Încă n-am putut confirma asta în actele oficiale.",
     "error": "Ceva n-a mers. Mai încearcă o dată.",
     "estimated": "Estimat",
-    "sample": "Cifre estimate, nu se mișcă bani reali"
+    "sample": "Cifre estimate, nu se mișcă bani reali",
+    "currency": "{cur}"
   },
   "theme": {
     "toNight": "Treci pe tema de noapte",
@@ -130,7 +131,7 @@
     "nextWeeks": "Următoarele săptămâni",
     "loadError": "Nu am putut încărca datele fermei.",
     "noBalance": "Nu ne-ai spus câți bani ai acum, așa că am pornit de la 0.",
-    "leiTotal": "lei total"
+    "leiTotal": "{cur} total"
   },
   "forecast": {
     "scenarios": {
@@ -144,10 +145,10 @@
     "whereTitle": "Unde se duc banii",
     "monthsTitle": "Lună cu lună",
     "hard": "lună grea",
-    "left": "rămân {amount} lei",
-    "missing": "lipsesc {amount} lei",
-    "hardSummary": "Cele mai grele luni: {from} – {to}. În {low} îți rămân cam {amount} lei.",
-    "hardSummaryMissing": "Cele mai grele luni: {from} – {to}. În {low} îți lipsesc cam {amount} lei.",
+    "left": "rămân {amount} {cur}",
+    "missing": "lipsesc {amount} {cur}",
+    "hardSummary": "Cele mai grele luni: {from} – {to}. În {low} îți rămân cam {amount} {cur}.",
+    "hardSummaryMissing": "Cele mai grele luni: {from} – {to}. În {low} îți lipsesc cam {amount} {cur}.",
     "noHard": "Nu vedem nicio lună în care să rămâi fără bani.",
     "assumption": "Cheltuielile pe luni sunt estimate pentru o fermă obișnuită.",
     "endEyebrow": "Sfârșitul lui {month}",
@@ -168,7 +169,7 @@
     "colOut": "Iese",
     "colLeft": "Rămân",
     "tightTag": ", cea mai grea",
-    "chartLabel": "Banii tăi pe 12 luni. Cel mai puțin în {month}: {amount} lei."
+    "chartLabel": "Banii tăi pe 12 luni. Cel mai puțin în {month}: {amount} {cur}."
   },
   "calendar": {
     "estimated": "dată estimată după anul trecut",
@@ -197,8 +198,8 @@
     "cost": "Cheltuieli",
     "incomePerHa": "Venit / ha",
     "breakEven": "Prețul la care nu pierzi",
-    "perT": "{amount} lei/t",
-    "perKg": "{amount} lei/kg",
+    "perT": "{amount} {cur}/t",
+    "perKg": "{amount} {cur}/kg",
     "tonnes": "{t} t",
     "howTitle": "Cum am calculat",
     "how": "Am folosit producția, prețul și costurile medii pentru 2025–2026. Câștigul nu include subvenția APIA, care vine separat.",
@@ -212,13 +213,13 @@
   "reserve": {
     "badYearTitle": "Fond pentru ani proști",
     "badYearHave": "Ai pus deoparte",
-    "badYearOf": "din {amount} lei",
-    "badYearWhy": "Într-un an slab, în următoarele 12 luni ai avea cam {amount} lei mai puțin decât într-un an normal.",
+    "badYearOf": "din {amount} {cur}",
+    "badYearWhy": "Într-un an slab, în următoarele 12 luni ai avea cam {amount} {cur} mai puțin decât într-un an normal.",
     "springTitle": "Bani pentru {from} – {to}",
     "springNeed": "Îți trebuie",
-    "springHave": "Vei avea la început cam {amount} lei",
+    "springHave": "Vei avea la început cam {amount} {cur}",
     "springOk": "Îți ajung, dacă nu-i cheltui pe altceva până atunci.",
-    "springShort": "Îți lipsesc cam {amount} lei. Gândește-te de acum de unde îi iei.",
+    "springShort": "Îți lipsesc cam {amount} {cur}. Gândește-te de acum de unde îi iei.",
     "springNone": "Nu vedem luni grele în următorul an.",
     "note": "Mai bine puși deoparte din toamnă",
     "badYearFreq": "În {county}, la {crop}, {bad} din {total} ani au fost proști.",
@@ -229,7 +230,7 @@
   "subsidy": {
     "hello": "Bună, {name}!",
     "headline": "De la APIA primești cam",
-    "range": "între {min} și {max} lei",
+    "range": "între {min} și {max} {cur}",
     "rangeWhy": "Suma exactă depinde de câți fermieri cer bani anul ăsta. În ultimii ani, sprijinul de bază a ieșit și cu {pct}% mai mic decât era plănuit.",
     "lei": "lei",
     "advanceTitle": "Avansul (75%)",
@@ -237,7 +238,7 @@
     "advanceSure": "Suma asta e anunțată deja.",
     "balanceTitle": "Restul",
     "balanceWhen": "între {start} și {end}. Nu știm exact luna.",
-    "balanceRange": "între {min} și {max} lei",
+    "balanceRange": "între {min} și {max} {cur}",
     "schemesTitle": "Ce primești",
     "notEligibleTitle": "De ce nu primești și altele",
     "excludedNote": "Suma pentru anul ăsta nu e anunțată încă.",
@@ -263,7 +264,8 @@
         "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)."
       },
       "generic": "Nu se potrivește cu ferma ta."
-    }
+    },
+    "currency": "{cur}"
   },
   "offline": {
     "needed": {
@@ -274,19 +276,19 @@
   },
   "salary": {
     "title": "Salariul tău",
-    "perMonth": "lei pe lună",
+    "perMonth": "{cur} pe lună",
     "why": "Atât poți lua în fiecare lună fără să rămâi fără bani. Cea mai strânsă lună e {month}.",
     "deficit": "În {month} rămâi fără bani chiar și fără salariu.",
     "suggestTitle": "Cu un credit, poți mai mult",
-    "suggest": "Dacă iei un credit pe adeverința APIA de cam {credit} lei în {month}, poți avea {salary} lei pe lună.",
+    "suggest": "Dacă iei un credit pe adeverința APIA de cam {credit} {cur} în {month}, poți avea {salary} {cur} pe lună.",
     "suggestNote": "Fermierii îl iau de obicei de la bancă. Noi nu recomandăm o bancă anume; tu hotărăști.",
     "takeCredit": "Iau un credit",
     "declaredTitle": "Creditele tale",
-    "declared": "{amount} lei, luat în {take}, dat înapoi în {repay}",
+    "declared": "{amount} {cur}, luat în {take}, dat înapoi în {repay}",
     "remove": "Șterge",
-    "removeLabel": "Șterge creditul de {amount} lei",
+    "removeLabel": "Șterge creditul de {amount} {cur}",
     "eyebrow": "Salariul tău",
-    "headline": "{amount} lei pe lună",
+    "headline": "{amount} {cur} pe lună",
     "fixedNote": "Salariul rămâne la fel lună de lună. Scade doar dacă banii n-ar ajunge."
   },
   "credit": {
@@ -302,7 +304,7 @@
     "title": "Plicurile tale",
     "empty": "Încă n-ai împărțit banii pe plicuri.",
     "split": "Împarte banii pe plicuri",
-    "splitTitle": "Împarte {amount} lei",
+    "splitTitle": "Împarte {amount} {cur}",
     "splitLead": "Îți propunem așa. Banii rămân la tine; plicurile te ajută doar să știi pentru ce sunt.",
     "splitWhy": "Salariul și pensia acoperă {months} luni, până la următoarele încasări.",
     "confirm": "Bine așa",
@@ -375,10 +377,10 @@
     "today": "Azi, în demo: {date}",
     "advanceIncome": "Simulează avansul APIA",
     "advanceReceived": "Avansul APIA a intrat.",
-    "forward": "Dăm timpul înainte",
+    "forward": "Dăm timpul înainte {months} luni",
     "months": "{n} luni",
     "oneMonth": "o lună",
-    "running": "Mutăm timpul… durează până la un minut.",
+    "running": "Așteaptă puțin…",
     "resultTitle": "Ce s-a întâmplat",
     "incomeIn": "Au intrat {amount} lei",
     "needSetup": "Activează întâi contul CropCash.",
@@ -396,7 +398,23 @@
       "crop_sale": "vânzarea recoltei",
       "credit": "creditul pe adeverința APIA"
     },
-    "split": "Împarte banii pe plicuri"
+    "split": "Împarte banii pe plicuri",
+    "label": "Demonstrație",
+    "advance": "Simulează avansul APIA",
+    "pension": "Pornesc pensia, {amount} {cur} pe lună",
+    "failed": "Nu a mers. Încearcă din nou.",
+    "offline": "Pornește internetul ca să muți banii.",
+    "arrivedTitle": "Au intrat bani!",
+    "arrived": "Au intrat {amount} {cur} de la APIA. Îți propunem așa:",
+    "later": "Mai târziu",
+    "pensionPaid": "Pensie",
+    "pensionCount": "{count} plăți făcute",
+    "salary": {
+      "scheduled": "Salariu de {amount} {cur}, programat",
+      "pending": "Salariu de {amount} {cur}, pe drum",
+      "paid": "Salariu de {amount} {cur}, plătit",
+      "failed": "Salariu de {amount} {cur}, neplătit"
+    }
   },
   "pension": {
     "title": "Bătrânețe",
@@ -456,5 +474,111 @@
     "breakEven": "La recolta asta, nu pierzi dacă vinzi cu cel puțin {amount} lei/kg.",
     "noHarvest": "Fără recoltă, pierzi toate cheltuielile.",
     "note": "Prețul și recolta merg de la cel mai slab la cel mai bun an din datele noastre. Subvenția APIA nu e inclusă."
+  },
+  "weather": {
+    "title": "Vremea în {county}",
+    "next": "Următoarele {days} zile",
+    "today": "Azi",
+    "tomorrow": "Mâine",
+    "colDay": "Ziua",
+    "colTemp": "Noapte / zi",
+    "colRain": "Ploaie",
+    "colWind": "Vânt",
+    "temp": "{min}° / {max}°",
+    "rain": "{chance}%, {mm} mm",
+    "wind": "{speed} km/h",
+    "none": "–",
+    "frost": "Risc de îngheț: {days}.",
+    "windAlert": "Vânt prea tare pentru stropit: {days}.",
+    "place": "Prognoză pentru {seat}. La câmp poate fi altfel.",
+    "old": "Date din {date}. Pornește internetul ca să vezi ce e nou.",
+    "loading": "Se încarcă vremea…",
+    "offline": "Pornește internetul ca să vezi vremea.",
+    "unavailable": "Nu am putut aduce vremea acum. Încearcă mai târziu.",
+    "creditText": "Date meteo: Open-Meteo.com",
+    "creditUrl": "https://open-meteo.com/",
+    "licenceText": "CC BY 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changed": "Cifre rotunjite."
+  },
+  "currency": {
+    "label": "Moneda",
+    "note": "Sume orientative în {cur}.",
+    "noRates": "Pornește internetul o dată ca să poți schimba moneda.",
+    "names": {
+      "RON": "lei",
+      "EUR": "euro",
+      "USD": "dolari",
+      "GBP": "lire"
+    }
+  },
+  "opportunities": {
+    "title": "Finanțări pentru fermă",
+    "seeAll": "Vezi toate",
+    "tabs": {
+      "forYou": "Pentru tine",
+      "all": "Toate",
+      "changes": "Noutăți",
+      "sources": "Surse"
+    },
+    "offline": "Pornește internetul ca să vezi finanțările.",
+    "failed": "Nu am putut aduce finanțările acum. Încearcă mai târziu.",
+    "savedAt": "Lista salvată pe {date}. Poate s-a schimbat între timp.",
+    "noneForYou": "Acum nu e nicio finanțare deschisă care să se potrivească fermei tale.",
+    "noResults": "N-am găsit nimic.",
+    "noChanges": "Nimic nou în ultimele zile.",
+    "toCheck": "De verificat întâi",
+    "search": "Caută o finanțare",
+    "searchDocs": "Caută în documentele oficiale",
+    "closes": "Se închide pe {date}",
+    "opens": "Se deschide pe {date}",
+    "noDate": "Fără dată anunțată",
+    "status": "Stare",
+    "deadline": "Ultima zi",
+    "allocated": "Bani alocați",
+    "euro": "{amount} euro",
+    "statuses": {
+      "announced": "Anunțată",
+      "open": "Deschisă",
+      "closed": "Închisă",
+      "unknown": "Neclară"
+    },
+    "reasons": {
+      "for_farmers": "Fermierii pot depune direct.",
+      "small_farms": "E pentru ferme mici.",
+      "closes_soon": "Mai sunt {days} zile.",
+      "age_limit": "Titlul cere vârsta de cel mult {limit} de ani.",
+      "young_farmers": "E pentru tinerii fermieri.",
+      "other_sector": "Pare făcută pentru alt fel de fermă.",
+      "check_who": "Verifică dacă poți depune și tu.",
+      "low_confidence": "Am citit greu pagina oficială. Verifică datele acolo.",
+      "needs_company": "Ghidul cere PFA sau firmă.",
+      "firms_only": "E pentru firme. Depinde de forma juridică și de activitate.",
+      "institutions_only": "E pentru instituții și autorități.",
+      "partnership": "Cere de obicei parteneri din mai multe țări.",
+      "other_region": "E pentru altă regiune.",
+      "not_for_farms": "Nu pare să fie pentru o fermă ca a ta."
+    },
+    "disclaimer": "E doar o primă potrivire. Cine poate depune scrie în ghidul oficial.",
+    "follow": "Pune în calendar",
+    "unfollow": "Scoate din calendar",
+    "followFailed": "Nu a mers. Încearcă din nou.",
+    "followOffline": "Pornește internetul ca să schimbi calendarul.",
+    "source": "Vezi pagina oficială",
+    "fieldChanged": {
+      "new": "Nouă, din {date}",
+      "deadline": "Altă dată limită, din {date}",
+      "other": "Schimbată pe {date}"
+    },
+    "pageChanged": {
+      "changed": "{who} a schimbat pagina pe {date}",
+      "gone": "{who} a scos pagina pe {date}",
+      "returned": "{who} a pus pagina înapoi pe {date}"
+    },
+    "sourcesCount": "Urmărim {count} pagini oficiale.",
+    "sourceState": {
+      "active": "verificată",
+      "problem": "de verificat de noi"
+    }
   }
 }

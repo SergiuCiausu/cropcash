@@ -53,6 +53,13 @@ export interface NewEvent {
   detail?: string;
 }
 
+/** What the app shows about a page that changed. */
+export interface NewSourceChange {
+  source: Pick<Source, 'id' | 'institution' | 'title' | 'url'>;
+  kind: 'changed' | 'gone' | 'returned';
+  shortDiff: string | null;
+}
+
 export interface KnownLink {
   url: string;
   versionKey: string | null;
@@ -115,6 +122,11 @@ export interface Store {
   saveSnapshot(snapshot: NewSnapshot): Promise<number>;
   latestText(sourceId: number): Promise<string | null>;
   addEvent(event: NewEvent): Promise<void>;
+  addSourceChange(change: NewSourceChange): Promise<void>;
+  /** Replaces the passages the app searches for this source. */
+  saveDocument(source: Pick<Source, 'id' | 'institution' | 'title' | 'url'>, text: string): Promise<void>;
+  /** Sources that have stored text, for filling the search in one go. */
+  sourcesWithText(): Promise<Source[]>;
   knownLinks(indexSourceId: number): Promise<KnownLink[]>;
   addLinks(indexSourceId: number, links: PageLink[], isBaseline: boolean): Promise<void>;
   pendingLinks(limit: number): Promise<PendingLink[]>;

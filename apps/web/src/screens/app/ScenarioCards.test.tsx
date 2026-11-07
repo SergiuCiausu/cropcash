@@ -20,14 +20,13 @@ const plan = computeFarmPlan(
 const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 
 describe('ScenarioSalaryCard (Î1)', () => {
-  it('the toggle changes the salary; drought talks about the fund', () => {
+  it('the toggle changes the salary; no bad-year fund anywhere', () => {
     const good = text(renderToStaticMarkup(<ScenarioSalaryCard plan={plan} scenario="good" />));
     const bad = text(renderToStaticMarkup(<ScenarioSalaryCard plan={plan} scenario="bad" />));
     expect(good).toContain(`${(plan.salaries.good.salary / 100).toLocaleString('ro-RO')}`);
     expect(good).toContain('mai mult decât într-un an normal');
     expect(bad).toContain('an de secetă');
-    expect(bad).toContain('fondul pentru ani proști');
-    expect(text(renderToStaticMarkup(<ScenarioSalaryCard plan={plan} scenario="medium" />))).not.toContain('fondul');
+    expect(bad).not.toContain('fondul');
   });
 });
 

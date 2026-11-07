@@ -4,9 +4,9 @@
 
 > Ion are 15 hectare de grâu și porumb în Teleorman. Câștigă bani de 2–3 ori pe an: din recoltă vara și toamna și din subvenția APIA, care vine în bucăți, din octombrie până în iunie anul următor. Cheltuie însă în fiecare lună, și cel mai mult primăvara. Așa că trăiește în ciclul „bani mulți, apoi credit”, nu pune nimic deoparte pentru un an de secetă și nu are pensie.
 >
-> **CropCash îi transformă banii neregulați într-un salariu lunar, un fond pentru ani proști și o pensie.** Îi arată cât primește de la APIA (ca interval realist, nu ca promisiune), când vin banii, ce termene are și dacă îi ajung banii până la următoarea încasare.
+> **CropCash îi transformă banii neregulați într-un salariu lunar și o pensie.** Îi arată cât primește de la APIA (ca interval realist, nu ca promisiune), când vin banii, ce termene are și dacă îi ajung banii până la următoarea încasare.
 
-**Într-o frază:** CropCash transformă subvențiile și recolta, care vin în 2–3 valuri imprevizibile pe parcursul a până la 15 luni, într-un salariu lunar, un fond pentru ani proști și o pensie, și îi spune fermierului la timp ce termene are și ce bani noi i se cuvin.
+**Într-o frază:** CropCash transformă subvențiile și recolta, care vin în 2–3 valuri imprevizibile pe parcursul a până la 15 luni, într-un salariu lunar și o pensie, și îi spune fermierului la timp ce termene are și ce bani noi i se cuvin.
 
 ## Publicul
 
@@ -31,10 +31,10 @@
 | Ce primește fermierul | Cum | Ecranul |
 |---|---|---|
 | **Salariu lunar** | Algoritmul de netezire calculează suma maximă pe lună pentru care banii nu se termină până la următoarea încasare. | „Câți bani am?” |
-| **Fond pentru ani proști** | O parte din fiecare încasare merge într-un plic separat, dimensionat după istoricul județului. | „Îmi ajung?” |
 | **Pensie** | Contribuții mici, automate, la Pilonul III sau CEI, cu simulare la 65 de ani. | „Îmi ajung?” |
 | **Asistent pentru termene și acte** | Un calendar unic cu bani, termene APIA și lucrări, plus rapoarte generate (de exemplu, motorina). | „Ce am de făcut?” |
 | **Subvenția, cinstit** | Un interval minim / probabil / maxim, defalcat pe avans și sold. | „Când vin banii?” |
+| **Întrebi cu vocea** | Un asistent răspunde din cifrele fermei, cu voce și text. Arată efectul, iar decizia rămâne a fermierului. | Pe fiecare tab |
 
 ## Principiile de UX (obligatorii)
 
@@ -45,3 +45,4 @@
 5. **Sumele se afișează în lei.** Euro apare doar ca detaliu la subvenții.
 6. **Incertitudinea se arată simplu:** „între 15.200 și 17.000 lei, cel mai probabil 16.900 lei”, nu procente sau deviații.
 7. Textele de UI stau toate în `ro.json`, nu în componente.
+8. **Poți vorbi cu aplicația, dar nimic nu se salvează din vorbă.** Orice salvare cere o apăsare pe un card cu valorile exacte.

@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { clearSavedReads } from '../lib/savedRead';
+import { clearWeatherCache } from '../lib/weatherCache';
 import { supabase } from './supabase';
 
 interface AuthState {
@@ -20,7 +22,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setLoading(false);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === 'SIGNED_OUT') {
+        clearWeatherCache();
+        clearSavedReads();
+      }
+      setSession(next);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
