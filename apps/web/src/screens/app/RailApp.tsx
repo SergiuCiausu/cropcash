@@ -22,6 +22,7 @@ import {
 } from './blocks';
 import type { ShellProps, View } from './AppShell';
 import { DEMO, DemoCard, PensionCard, SetupCard } from './MoneyCards';
+import { QuarterTable, SaleCard, ScenarioSalaryCard } from './ScenarioCards';
 
 const NAV: { id: View; icon: IconName }[] = [
   { id: 'home', icon: 'home' },
@@ -248,6 +249,7 @@ export function RailApp(p: ShellProps) {
                   </p>
                 </section>
               </div>
+              <ScenarioSalaryCard plan={plan} scenario={scenario} className="s12" />
               {plan.costs.length > 0 && (
                 <section className="card s12">
                   <div className="card-h">
@@ -264,6 +266,12 @@ export function RailApp(p: ShellProps) {
                 <p className="note" style={{ marginTop: 12 }}>
                   {t('forecast.fine')}
                 </p>
+              </section>
+              <section className="card s12">
+                <div className="card-h">
+                  <h2>{t('projection.title')}</h2>
+                </div>
+                <QuarterTable plan={plan} scenario={scenario} />
               </section>
             </div>
           )}
@@ -287,6 +295,7 @@ export function RailApp(p: ShellProps) {
               <p className="note" style={{ marginTop: 16 }}>
                 {t('fields.note')}
               </p>
+              <SaleCard plan={plan} />
             </>
           )}
 

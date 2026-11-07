@@ -22,6 +22,7 @@ import {
 } from './blocks';
 import type { ShellProps, View } from './AppShell';
 import { DEMO, DemoCard, PensionCard, SetupCard } from './MoneyCards';
+import { QuarterTable, SaleCard, ScenarioSalaryCard } from './ScenarioCards';
 
 const TABS: { id: View; icon: IconName }[] = [
   { id: 'home', icon: 'home' },
@@ -285,8 +286,9 @@ export function DeckApp(p: ShellProps) {
 
       {view === 'forecast' && (
         <div className="pad">
+          <ScenarioSalaryCard plan={plan} scenario={scenario} />
           {plan.costs.length > 0 && (
-            <section className="card" style={{ marginTop: 0 }}>
+            <section className="card">
               <h2>{t('forecast.whereTitle')}</h2>
               <CostRows plan={plan} />
             </section>
@@ -297,6 +299,10 @@ export function DeckApp(p: ShellProps) {
             <p className="note" style={{ marginTop: 8 }}>
               {t('forecast.fine')}
             </p>
+          </section>
+          <section className="card">
+            <h2>{t('projection.title')}</h2>
+            <QuarterTable plan={plan} scenario={scenario} />
           </section>
         </div>
       )}
@@ -314,6 +320,7 @@ export function DeckApp(p: ShellProps) {
             <p className="note" style={{ marginTop: 12 }}>
               {t('fields.note')}
             </p>
+            <SaleCard plan={plan} />
           </div>
         </>
       )}

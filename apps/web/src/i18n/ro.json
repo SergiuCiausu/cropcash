@@ -412,5 +412,46 @@
     "active": "Pui {amount} lei pe lună.",
     "saved": "Până acum: {amount} lei",
     "invalid": "Alege o sumă între {min} și {max} lei."
+  },
+  "scenario": {
+    "salaryTitle": "Salariul sigur",
+    "salaryLine": "Într-un {kind}, poți scoate sigur {amount} lei pe lună.",
+    "salaryZero": "Într-un {kind}, fără credit nu poți scoate nimic sigur pe lună.",
+    "kinds": {
+      "good": "an bun",
+      "medium": "an normal",
+      "bad": "an de secetă"
+    },
+    "lessThanNormal": "Cu {amount} lei pe lună mai puțin decât într-un an normal.",
+    "moreThanNormal": "Cu {amount} lei pe lună mai mult decât într-un an normal.",
+    "fund": "De asta strângem fondul pentru ani proști: ai {saved} lei din {target} lei.",
+    "fundDone": "Fondul pentru ani proști e plin ({target} lei). El acoperă diferența.",
+    "paidNote": "Salariul pe care ți-l plătim e socotit pe anul normal."
+  },
+  "projection": {
+    "title": "Pe 3 ani, pe trimestre",
+    "sub": "Ca și cum fiecare an ar fi un {kind}.",
+    "colQuarter": "Trimestrul",
+    "quarter": "Trim. {q} {year}",
+    "partial": " (din {month})",
+    "yearLeft": "În {year} rămân {amount} lei după cheltuieli, înainte de salariu.",
+    "yearShort": "În {year} lipsesc {amount} lei față de cheltuieli.",
+    "note": "Pentru anii următori am folosit aceleași prețuri, costuri și subvenții ca acum, iar datele APIA sunt estimate. Salariul și plicurile nu sunt scăzute aici."
+  },
+  "sale": {
+    "title": "Vânzarea recoltei",
+    "lead": "Mută prețul și recolta ca să vezi cât câștigi.",
+    "crop": "Cultura",
+    "price": "Prețul",
+    "priceValue": "{amount} lei/kg",
+    "yield": "Recolta",
+    "yieldValue": "{t} t/ha",
+    "income": "Iei pe recoltă",
+    "cost": "Cheltuieli",
+    "gain": "Câștig",
+    "loss": "Pierdere",
+    "breakEven": "La recolta asta, nu pierzi dacă vinzi cu cel puțin {amount} lei/kg.",
+    "noHarvest": "Fără recoltă, pierzi toate cheltuielile.",
+    "note": "Prețul și recolta merg de la cel mai slab la cel mai bun an din datele noastre. Subvenția APIA nu e inclusă."
   }
 }

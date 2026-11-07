@@ -51,6 +51,7 @@
 | P16 | Cota pentru fondul de risc se ia doar din venituri, nu din banii de la început | Banii de acum au deja altă destinație: cheltuielile până la încasare. |
 | P19 | Pensia: vârsta țintă 65 de ani; suma de la 65 de ani se arată împărțită pe 10 ani („vreo 245 lei pe lună”); slider 50–500 lei, pas 10 lei | Ilustrare simplă, nu o anuitate reală (05 §4). Toate în `plan-params.json` → `pension`. |
 | P20 | „X din 10 ani proști” apare doar când avem 10 ani de istoric INS pe județ și cultură; până atunci propoziția lipsește | `county_history` e DE-VERIFICAT (#19); nu inventăm „3 din 10”. |
+| P21 | Proiecția pe 3 ani (trimestre) repetă prețurile, costurile și subvențiile de acum în fiecare an, iar scenariul ales (bun / normal / secetă) se aplică tuturor anilor | Nu avem prognoze de preț sau cuantumuri pentru 2027–2028. Istoricul INS și Open-Meteo nu sunt încă integrate (#19). |
 
 ## C. Contradicții găsite
 

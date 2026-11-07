@@ -13,6 +13,7 @@ import {
 import { proposeAllocation, monthsUntilNextIncome } from './allocation';
 import { costsByCrop, cropEconomics, riskFundTarget, springNeed } from './insights';
 import { maxSafeSalary, suggestCredit, type SmoothingOptions } from './smoothing';
+import { monthsToYearEnd, quarterlyProjection, salaryByScenario, SCENARIOS, yearlyTotals } from './scenarios';
 import { buildTimeline, costEntryId, type AmountScenario, type ReceivedIncome, type Timeline } from './timeline';
 
 /** A money movement recorded through Stripe (DB `transactions`). */
@@ -33,6 +34,8 @@ export interface PlanFarm extends StoredFarm {
 
 /** Plan 12 months ahead; payments with a window are assumed late (conservative, docs/11 P13). */
 export const HORIZON_MONTHS = 12;
+/** Quarterly projection: this year + 2 (docs/06 Should #6). */
+export const PROJECTION_YEARS = 3;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -98,6 +101,17 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
     riskRemaining: Math.max(0, riskTarget - envelopes.risk_fund),
   };
   const salary = maxSafeSalary(timelines.medium, smoothing, data);
+  const salaries = salaryByScenario(timelines, smoothing, data);
+  // Long view by quarter, for each kind of year (as if every year were like that).
+  const projMonths = monthsToYearEnd(month, PROJECTION_YEARS);
+  const projection = Object.fromEntries(
+    SCENARIOS.map((s) => {
+      const quarters = quarterlyProjection(
+        buildTimeline({ parcels, subsidies, startBalance, received, paidCostIds, extras }, data, { ...opts, months: projMonths, amounts: s }),
+      );
+      return [s, { quarters, years: yearlyTotals(quarters) }];
+    }),
+  ) as Record<AmountScenario, { quarters: ReturnType<typeof quarterlyProjection>; years: ReturnType<typeof yearlyTotals> }>;
   const credits = declaredCredits(farm.expected_payments ?? []);
   const creditSuggestion = suggestCredit(
     timelines.medium,
@@ -150,6 +164,8 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
     costs: costsByCrop(timelines.medium),
     envelopes,
     salary,
+    salaries,
+    projection,
     credits,
     creditSuggestion,
     proposal,

@@ -46,9 +46,10 @@
   - **Gata când:** simularea dă ≈ 29.450 lei pentru 55 de ani / 200 lei / 4%, ținta fondului pentru Ion e ≈ 20.000 lei, iar butonul „Pornesc” creează subscription-ul.
   - **Făcut:** simularea dă 29.450 lei (test). Ținta fondului pentru Ion e **33.100 lei**, nu 20.000: `riskFundTarget()` include acum vânzarea de porumb și costurile maxime (vezi `07-architecture.md` §5). Ecranele stau în UI-ul echipei: `screens/app/blocks.tsx` (`RiskFundBody`, Î2) și `screens/app/MoneyCards.tsx` (`PensionCard`, Î3, cu slider). Parametrii noi sunt în `plan-params.json` (P19, P20). Offline: simularea și fondul merg fără net; „Pornesc” cere net.
 
-- [ ] **8. Prognoza de vânzări și scenariile** · ~4 h · bonus
+- [x] **8. Prognoza de vânzări și scenariile** · ~4 h · bonus
   - **Fișiere:** `cashflow/scenarios.ts` (+ test), `screens/ImiAjung/Scenarii*`, `Vanzare*`, plus Open-Meteo sau CSV INS, dacă le avem.
   - **Gata când:** toggle-ul bun / mediu / secetă schimbă salariul și calendarul. Prețul de rentabilitate apare pe cultură. Proiecțiile pe trimestre merg pe 3 ani.
+  - **Făcut:** `cashflow/scenarios.ts` (salariul pe scenariu, trimestre, vânzarea) + teste. În Prognoză, toggle-ul schimbă graficul, tabelul pe luni, cardul „Salariul sigur” (Ion: 1.900 / 850 / 0 lei fără credit, cu mesajul despre fond la secetă) și proiecția pe trimestre până la finalul lui 2028. În Culturi: prețul la care nu pierzi pe fiecare cultură și cardul „Vânzarea recoltei” cu slider-e (Î4). Componentele sunt în `screens/app/ScenarioCards.tsx`. Open-Meteo și INS nu sunt integrate încă (P21). Offline: totul se calculează pe telefon.
 
 - [ ] **9. Polish UX pentru demo + datele lui Ion** · ~4 h · MINIM
   - **Fișiere:** `scripts/seed-demo.ts`, `ro.json` (revizuire de limbaj), componente.
