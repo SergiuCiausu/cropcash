@@ -1,0 +1,24 @@
+{
+  "data": {
+    "statement_id": "st_01",
+    "account_iban": "RO49DEMO0000000000000001",
+    "period": {
+      "from": "2026-05-01",
+      "to": "2026-07-31"
+    },
+    "opening_balance": 3912.1,
+    "closing_balance": 4105.3,
+    "balance_check": "passed",
+    "transactions_found": 198,
+    "transactions_imported": 171,
+    "duplicates_skipped": 27,
+    "needs_review": [
+      {
+        "row": 44,
+        "description": "POS 0001 RO BUC",
+        "amount": -38.5,
+        "reason": "unclear merchant"
+      }
+    ]
+  }
+}

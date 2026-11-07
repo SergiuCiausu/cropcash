@@ -1,0 +1,22 @@
+{
+  "data": {
+    "salary": {
+      "payer": "Nova Retail SRL",
+      "average_amount": 6800.0,
+      "currency": "RON",
+      "payday_day_of_month": 10,
+      "months_seen": 3,
+      "confidence": 0.98,
+      "confirmed_by_user": false,
+      "next_expected": "2026-11-10"
+    },
+    "other_income": [
+      {
+        "description": "Refund eMAG",
+        "amount": 89.99,
+        "made_on": "2026-09-14",
+        "type": "refund"
+      }
+    ]
+  }
+}

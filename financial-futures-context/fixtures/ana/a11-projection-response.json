@@ -1,0 +1,23 @@
+{
+  "data": {
+    "net_worth_now": 29253.85,
+    "retirement_pot_at_65": {
+      "cautious": 575300,
+      "expected": 881300,
+      "optimistic": 1392400
+    },
+    "money_lasts_until_age": {
+      "cautious": 90,
+      "expected": "100+",
+      "optimistic": "100+"
+    },
+    "goals": [
+      {
+        "goal_id": "goal_greece",
+        "on_track": true,
+        "projected_finish": "2027-06-11"
+      }
+    ],
+    "assumptions_date": "2026-11-07"
+  }
+}

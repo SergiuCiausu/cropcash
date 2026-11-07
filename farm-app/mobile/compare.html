@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Futures: Compare</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body { display: block; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 20px 16px 32px; }
+.bar-top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+h1 { font-size: 20px; font-weight: 600; letter-spacing: -.015em; }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; }
+.ctl button { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--surface); font-size: 14px; font-weight: 500; }
+.ctl button[aria-pressed="true"] { border-color: var(--text-1); background: var(--tint-a); }
+.ctl i { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--c1) 50%, var(--c2) 50%); }
+.phones { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px; margin-top: 20px; }
+figure { margin: 0; width: 332px; }
+figcaption { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+figcaption a { font-weight: 500; color: var(--ink-b); }
+.screen { width: 332px; height: 718px; border-radius: 34px; overflow: hidden; outline: 1px solid var(--hair-2); background: var(--surface); }
+iframe { width: 390px; height: 844px; border: 0; transform: scale(.8513); transform-origin: top left; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar-top">
+    <h1>Three layouts, four palettes</h1>
+    <div class="ctl" id="pals" role="group" aria-label="Palette for all three"></div>
+    <div class="ctl" id="views" role="group" aria-label="Screen for all three"></div>
+  </div>
+  <div class="phones">
+    <figure><figcaption>A: Sheet <a href="a-sheet.html">Open</a></figcaption><div class="screen"><iframe src="a-sheet.html?palette=water" title="Variation A, Sheet"></iframe></div></figure>
+    <figure><figcaption>B: Ledger <a href="b-ledger.html">Open</a></figcaption><div class="screen"><iframe src="b-ledger.html?palette=water" title="Variation B, Ledger"></iframe></div></figure>
+    <figure><figcaption>C: Deck <a href="c-deck.html">Open</a></figcaption><div class="screen"><iframe src="c-deck.html?palette=water" title="Variation C, Deck"></iframe></div></figure>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+FF.palette("water", false);
+const send = (m) => document.querySelectorAll("iframe").forEach((f) => f.contentWindow.postMessage({ type: "farm", ...m }, "*"));
+const pals = document.getElementById("pals"), views = document.getElementById("views");
+pals.innerHTML = FF.PALETTES.map((p, i) => `<button type="button" data-p="${p.id}" aria-pressed="${!i}" style="--c1:${p.v.a};--c2:${p.v.b}"><i></i>${p.name}</button>`).join("");
+views.innerHTML = [["home", "Home"], ["stats", "Forecast"], ["fields", "Fields"], ["reserve", "Reserves"]].map(([v, n], i) => `<button type="button" data-v="${v}" aria-pressed="${!i}">${n}</button>`).join("");
+const press = (box, b) => box.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+pals.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; press(pals, b); send({ palette: b.dataset.p }); FF.palette(b.dataset.p, false); });
+views.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; press(views, b); send({ view: b.dataset.v }); });
+</script>
+</body>
+</html>

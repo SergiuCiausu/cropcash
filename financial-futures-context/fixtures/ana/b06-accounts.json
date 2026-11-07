@@ -1,0 +1,74 @@
+{
+  "data": [
+    {
+      "id": "400000000000000001",
+      "connection_id": "200000000000000001",
+      "name": "Cont curent",
+      "nature": "account",
+      "balance": 4280.55,
+      "currency_code": "RON",
+      "extra": {
+        "iban": "RO49DEMO0000000000000001",
+        "holder_name": "Ana Popescu",
+        "available_amount": 4216.35,
+        "transactions_count": {
+          "posted": 96,
+          "pending": 1
+        }
+      }
+    },
+    {
+      "id": "400000000000000002",
+      "connection_id": "200000000000000001",
+      "name": "Cont economii",
+      "nature": "savings",
+      "balance": 3150.0,
+      "currency_code": "RON",
+      "extra": {
+        "iban": "RO27DEMO0000000000000002",
+        "holder_name": "Ana Popescu",
+        "transactions_count": {
+          "posted": 1,
+          "pending": 0
+        }
+      }
+    },
+    {
+      "id": "400000000000000003",
+      "connection_id": "200000000000000001",
+      "name": "Cont EUR",
+      "nature": "account",
+      "balance": 210.0,
+      "currency_code": "EUR",
+      "extra": {
+        "iban": "RO86DEMO0000000000000003",
+        "holder_name": "Ana Popescu",
+        "transactions_count": {
+          "posted": 0,
+          "pending": 0
+        }
+      }
+    },
+    {
+      "id": "400000000000000004",
+      "connection_id": "200000000000000001",
+      "name": "Card de credit",
+      "nature": "credit_card",
+      "balance": -620.4,
+      "currency_code": "RON",
+      "extra": {
+        "credit_limit": 5000.0,
+        "next_payment_date": "2026-11-25",
+        "holder_name": "Ana Popescu",
+        "transactions_count": {
+          "posted": 2,
+          "pending": 0
+        }
+      }
+    }
+  ],
+  "meta": {
+    "next_id": null,
+    "next_page": null
+  }
+}

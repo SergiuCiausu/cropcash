@@ -1,0 +1,27 @@
+{
+  "data": {
+    "month": "2026-10",
+    "income": 6800.0,
+    "spending": 7124.95,
+    "net": -324.95,
+    "by_category": {
+      "rent": 2300.0,
+      "car_and_transport": 1450.0,
+      "groceries": 1350.0,
+      "shopping": 600.0,
+      "eating_out": 520.0,
+      "utilities": 420.0,
+      "entertainment": 170.95,
+      "public_transport": 140.0,
+      "health_and_fitness": 129.0,
+      "mobile_phone": 45.0
+    },
+    "one_off_items": [
+      {
+        "description": "Service Auto Popa SRL",
+        "amount": 1450.0,
+        "made_on": "2026-10-18"
+      }
+    ]
+  }
+}

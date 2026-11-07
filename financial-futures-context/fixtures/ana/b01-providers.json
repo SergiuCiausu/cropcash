@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "id": "900001",
+      "code": "mock_demobank_ro",
+      "name": "Demo Bank Romania (simulated)",
+      "country_code": "RO",
+      "bic_codes": [],
+      "group_code": "demo",
+      "group_name": "Demo",
+      "status": "active",
+      "mode": "oauth",
+      "regulated": true,
+      "logo_url": "/mock-bank/logo.svg",
+      "home_url": "https://app.local/mock-bank",
+      "login_url": "https://app.local/mock-bank",
+      "timezone": "Europe/Bucharest",
+      "max_consent_days": 180,
+      "max_fetch_interval": 90,
+      "supported_account_types": [
+        "personal"
+      ],
+      "supported_fetch_scopes": [
+        "accounts",
+        "balance",
+        "transactions"
+      ]
+    }
+  ],
+  "meta": {
+    "next_id": null,
+    "next_page": null
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "data": {
+    "item_id": "manual_01",
+    "type": "pension_pillar_2",
+    "name": "Pilon II",
+    "balance": 21400.0,
+    "currency": "RON",
+    "as_of": "2026-09-30",
+    "monthly_contribution": 552.14,
+    "included_in_net_worth": true,
+    "net_worth": 29253.85
+  }
+}

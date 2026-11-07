@@ -1,0 +1,11 @@
+{
+  "data": {
+    "contribution_id": "contrib_01",
+    "goal_id": "goal_greece",
+    "status": "completed",
+    "simulated": true,
+    "amount": 198.98,
+    "goal_balance": 1398.98,
+    "progress_pct": 28.0
+  }
+}

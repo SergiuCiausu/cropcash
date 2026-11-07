@@ -1,0 +1,53 @@
+{
+  "data": [
+    {
+      "goal_id": "goal_greece",
+      "name": "Greece trip",
+      "template": "travel",
+      "target_amount": 5000.0,
+      "currency": "RON",
+      "saved": 1200.0,
+      "deadline": "2027-07-01",
+      "required_monthly": 475.0,
+      "contributions_needed": 8,
+      "projected_finish": "2027-06-11",
+      "on_track": true,
+      "status": "active",
+      "funding": {
+        "day_of_month": 11,
+        "sources": [
+          {
+            "type": "found_savings",
+            "amount": 198.98
+          },
+          {
+            "type": "leftover",
+            "amount": 276.02
+          }
+        ]
+      }
+    },
+    {
+      "goal_id": "goal_emergency",
+      "name": "Emergency fund",
+      "template": "emergency",
+      "target_amount": 12800.0,
+      "currency": "RON",
+      "saved": 3150.0,
+      "deadline": null,
+      "status": "waiting",
+      "note": "Starts after Greece; 3 months of essential costs (4,255 RON)"
+    },
+    {
+      "goal_id": "goal_retirement",
+      "name": "Retirement",
+      "template": "retirement",
+      "target_monthly_income": 2500.0,
+      "currency": "RON",
+      "retirement_age": 65,
+      "own_monthly_saving": 300.0,
+      "pillar_2_balance": 21400.0,
+      "status": "active"
+    }
+  ]
+}

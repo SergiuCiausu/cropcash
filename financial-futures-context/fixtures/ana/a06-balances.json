@@ -1,0 +1,18 @@
+{
+  "data": {
+    "account_id": "400000000000000001",
+    "bank_balance": 4280.55,
+    "pending_total": -64.2,
+    "estimated_balance": 4216.35,
+    "is_estimate": true,
+    "last_updated": "2026-11-07T07:48:12Z",
+    "days_until_payday": 3,
+    "bills_before_payday": [
+      {
+        "name": "Internet and TV",
+        "amount": 80.0,
+        "day": 8
+      }
+    ]
+  }
+}

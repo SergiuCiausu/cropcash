@@ -1,0 +1,85 @@
+{
+  "data": {
+    "subscriptions": [
+      {
+        "merchant": "FitZone",
+        "amount": 129.0,
+        "day": 1,
+        "last_used": "2026-06",
+        "verdict": "forgotten"
+      },
+      {
+        "merchant": "StreamPlus",
+        "amount": 39.99,
+        "day": 15,
+        "last_used": null,
+        "verdict": "forgotten"
+      },
+      {
+        "merchant": "PhotoEdit Pro",
+        "amount": 29.99,
+        "day": 22,
+        "last_used": "2026-03",
+        "verdict": "forgotten"
+      },
+      {
+        "merchant": "Netflix",
+        "amount": 59.99,
+        "day": 5,
+        "verdict": "keep"
+      },
+      {
+        "merchant": "Spotify",
+        "amount": 25.99,
+        "day": 12,
+        "verdict": "keep"
+      },
+      {
+        "merchant": "iCloud",
+        "amount": 14.99,
+        "day": 20,
+        "verdict": "keep"
+      }
+    ],
+    "bills": [
+      {
+        "name": "Rent",
+        "amount": 2300.0,
+        "day": 3,
+        "type": "fixed"
+      },
+      {
+        "name": "Internet and TV",
+        "amount": 80.0,
+        "day": 8,
+        "type": "fixed"
+      },
+      {
+        "name": "Electricity",
+        "amount_estimate": 180.0,
+        "day": 14,
+        "type": "variable"
+      },
+      {
+        "name": "Gas",
+        "amount_estimate": 160.0,
+        "day": 18,
+        "type": "variable"
+      },
+      {
+        "name": "Mobile plan",
+        "amount": 45.0,
+        "day": 25,
+        "type": "fixed"
+      },
+      {
+        "name": "Public transport pass",
+        "amount": 140.0,
+        "day": 1,
+        "type": "fixed"
+      }
+    ],
+    "forgotten_monthly_total": 198.98,
+    "forgotten_monthly_total_eur": 40.04
+  }
+}

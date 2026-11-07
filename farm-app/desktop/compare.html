@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Futures: Laptop compare</title>
+<link rel="stylesheet" href="../mobile/shared.css">
+<style>
+body { display: block !important; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg) !important; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 16px; }
+.top { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+h1 { font-size: 18px; font-weight: 600; letter-spacing: -.015em; }
+.ctl { display: flex; flex-wrap: wrap; gap: 6px; }
+.ctl button { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--surface); font-size: 13.5px; font-weight: 500; }
+.ctl button[aria-pressed="true"] { border-color: var(--text-1); background: var(--hero); color: var(--on-hero); }
+.ctl i { position: relative; overflow: hidden; width: 16px; height: 16px; border-radius: 50%; background: var(--c1); }
+.ctl i::after { content: ""; position: absolute; inset: 0; background: var(--c2); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.screen { position: relative; margin-top: 12px; overflow: hidden; border-radius: 16px; outline: 1px solid var(--hair-2); background: var(--surface); }
+iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; border: 0; transform-origin: top left; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Three laptop layouts</h1>
+    <div class="ctl" id="pages" role="group" aria-label="Layout"></div>
+    <div class="ctl" id="pals" role="group" aria-label="Palette"></div>
+    <div class="ctl" id="views" role="group" aria-label="Screen"></div>
+  </div>
+  <div class="screen" id="screen"><iframe id="f" title="Selected layout"></iframe></div>
+</div>
+<script src="../mobile/shared.js"></script>
+<script>
+const f = document.getElementById("f"), screenEl = document.getElementById("screen");
+const state = { page: "1-horizon", palette: "water", view: "home" };
+FF.palette("water", false);
+const group = (id, items, key) => {
+  const el = document.getElementById(id);
+  el.innerHTML = items.map(([v, n, c], i) => `<button type="button" data-v="${v}" aria-pressed="${!i}"${c ? ` style="--c1:${c[0]};--c2:${c[1]}"` : ""}>${c ? "<i></i>" : ""}${n}</button>`).join("");
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    el.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    state[key] = b.dataset.v;
+    if (key === "page") load();
+    else { f.contentWindow.postMessage({ type: "farm", [key]: b.dataset.v }, "*"); if (key === "palette") FF.palette(b.dataset.v, false); }
+  });
+};
+const load = () => { f.src = `${state.page}.html?palette=${state.palette}&view=${state.view}`; };
+group("pages", [["1-horizon", "1: Horizon"], ["2-rail", "2: Rail"], ["3-split", "3: Split"]], "page");
+group("pals", FF.PALETTES.map((p) => [p.id, p.name, [p.v.a, p.v.b]]), "palette");
+group("views", [["home", "Home"], ["stats", "Forecast"], ["fields", "Fields"], ["reserve", "Reserves"]], "view");
+const fit = () => { const w = screenEl.clientWidth, s = Math.min(1, w / 1440); f.style.transform = `scale(${s})`; screenEl.style.height = `${900 * s}px`; };
+addEventListener("resize", fit); fit(); load();
+</script>
+</body>
+</html>
