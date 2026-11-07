@@ -63,7 +63,7 @@ cropcash/
 | `Payout` | id, farmer_id, amount_bani, scheduled_for (date), stripe_payout_id?, status (scheduled/pending/paid/failed) | N–1 Farmer |
 | `PensionPlan` | id, farmer_id, monthly_bani, vehicle (pilon3/cei_s/cei_d), stripe_subscription_id, started_at, status | 1–1 Farmer |
 | `FuelLog` | id, farmer_id, date, liters, invoice_no, supplier, parcel_id?, quarter | N–1 Farmer |
-| `FundingOpportunity` | id, source (afir/apia/madr), url, title, deadline, eligibility_json, extracted_at, match_score, farmer_id? | N–1 Farmer (potrivirea) |
+| `opportunities` (monitorul) | stable_key, kind (afir/mipe/ec), programme, title, status, open_date, deadline, budget_eur, applicants, relevance, confidence, url | scrise doar de `subventii-monitor` cu cheia secretă. Tabelul vechi `funding_opportunities` a fost scos (migrarea 008). |
 
 Banii se țin în **bani, ca numere întregi** (`bigint`), niciodată ca float.
 

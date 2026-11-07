@@ -36,6 +36,9 @@ stripe listen --forward-to localhost:3001/api/webhooks/stripe --forward-connect-
 - **Offline-first:** orice feature nou spune ce face fără net. Ce cere net se înfășoară în `<NeedsInternet>` (vezi `docs/07-architecture.md` §8). Operațiile cu bani nu se pun niciodată în coada offline.
 - Secretele stau doar în `.env` (vezi `.env.example`), niciodată în cod.
 
+## Monitorul de subvenții (`subventii-monitor/`)
+Script separat, adus din repo-ul echipei. Urmărește ~179 de surse oficiale (lista e în `subventii-surse.md`, în rădăcină) și extrage oportunitățile de finanțare în tabelele `sources`, `runs`, `snapshots`, `change_events`, `links_seen`, `opportunities` (migrațiile 004–007). Are propriul `.env` (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `CONTACT_EMAIL`). Comenzi: `npm test -w subventii-monitor`, `npm run seed -w subventii-monitor`, `npm run monitor -w subventii-monitor`. Planul și starea lui sunt în `docs/monitor/`.
+
 ## Ce citești și când
 | Fișier | Citește-l înainte să... |
 |---|---|

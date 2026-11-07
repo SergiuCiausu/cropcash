@@ -1,0 +1,34 @@
+{
+  "name": "subventii-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "seed": "tsx src/cli.ts seed",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "noise-check": "tsx scripts/noise-check.ts",
+    "update-certs": "tsx scripts/update-certs.ts",
+    "monitor": "tsx src/cli.ts run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "cheerio": "^1.2.0",
+    "defuddle": "^0.19.6",
+    "diff": "^9.0.0",
+    "linkedom": "^0.18.15",
+    "p-queue": "^10.0.0",
+    "robots-parser": "^3.0.1",
+    "undici": "^7.30.2",
+    "unpdf": "^2.1.0"
+  }
+}
