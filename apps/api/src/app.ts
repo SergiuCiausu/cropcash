@@ -33,7 +33,7 @@ export function createApp({ corsOrigins, verifyToken, repo, data, subsidyParams 
   // Everything below requires a valid Supabase session.
   app.use('/api', requireAuth(verifyToken));
   app.use('/api', farmersRouter(repo, data, subsidyParams));
-  app.use('/api', planRouter(repo));
+  app.use('/api', planRouter(repo, data));
   if (money) app.use('/api', moneyRouter(money));
 
   // Express 5 forwards rejected promises here. Never leak internals to the client.

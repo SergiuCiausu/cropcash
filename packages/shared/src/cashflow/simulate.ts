@@ -1,6 +1,6 @@
 import type { AppData } from '../data';
 import { computeSubsidies, normalizeParcels } from '../subsidies';
-import { farmInputFromStored } from '../farm';
+import { extrasFromStored, farmInputFromStored } from '../farm';
 import { buildTimeline } from './timeline';
 import { computeFarmPlan, planToday, type PlanFarm } from './plan';
 
@@ -10,7 +10,17 @@ import { computeFarmPlan, planToday, type PlanFarm } from './plan';
  */
 
 export type SimStep =
-  | { type: 'income'; date: string; kind: 'apia_advance' | 'apia_balance' | 'crop_sale'; amount: number; cropId?: string }
+  | {
+      type: 'income';
+      date: string;
+      kind: 'apia_advance' | 'apia_balance' | 'crop_sale' | 'credit';
+      amount: number;
+      cropId?: string;
+      /** For a declared credit: the expected_payments row it settles. */
+      paymentId?: string;
+    }
+  /** A declared credit repaid (from the farmer's bank: recorded, no Stripe). */
+  | { type: 'repayment'; date: string; amount: number; paymentId: string }
   | { type: 'salary'; date: string; month: string }
   /** A planned farm cost that is now paid (from the farmer's bank: recorded, no Stripe). */
   | { type: 'expense'; date: string; amount: number; cropId: string; id: string };
@@ -77,6 +87,24 @@ export function costsBetween(farm: PlanFarm, data: AppData, fromIso: string, toI
     .map((e): SimStep => ({ type: 'expense', date: e.date, amount: e.value, cropId: e.cropId!, id: e.id }));
 }
 
+/**
+ * Declared credits and repayments dated in (from, to] and not yet settled. In the demo the
+ * credit arrives in the CropCash account like an APIA payment (docs/11 P18).
+ */
+export function creditsBetween(farm: PlanFarm, fromIso: string, toIso: string): SimStep[] {
+  const settled = new Set((farm.transactions ?? []).map((t) => t.expected_payment_id).filter(Boolean));
+  const from = fromIso.slice(0, 10);
+  const to = toIso.slice(0, 10);
+  return extrasFromStored(farm.expected_payments ?? [])
+    .filter((x) => !settled.has(x.id) && x.date > from && x.date <= to)
+    .map(
+      (x): SimStep =>
+        x.kind === 'credit'
+          ? { type: 'income', date: x.date, kind: 'credit', amount: x.amount, paymentId: x.id }
+          : { type: 'repayment', date: x.date, amount: x.amount, paymentId: x.id },
+    );
+}
+
 /** All steps between the demo clock now and `toIso`, in date order (salary first on a tie). */
 export function simulationSteps(farm: PlanFarm, data: AppData, toIso: string): SimStep[] {
   const from = farm.demo_now ?? planToday(farm).today;
@@ -84,6 +112,7 @@ export function simulationSteps(farm: PlanFarm, data: AppData, toIso: string): S
     ...paydaysBetween(from, toIso).map((d): SimStep => ({ type: 'salary', date: d, month: d.slice(0, 7) })),
     ...incomesBetween(farm, data, from, toIso),
     ...costsBetween(farm, data, from, toIso),
+    ...creditsBetween(farm, from, toIso),
   ];
   return steps.sort((a, b) => (a.date === b.date ? (a.type === 'salary' ? -1 : 1) : a.date < b.date ? -1 : 1));
 }

@@ -37,14 +37,16 @@ export interface Repo {
   addCredit(token: string, farmerId: string, credit: NewCredit): Promise<string>;
   deleteCredit(token: string, groupId: string): Promise<boolean>;
   setEnvelopes(token: string, balances: Envelopes): Promise<void>;
+  /** Fixes the monthly salary (bani) the farmer accepted. */
+  setSalary(token: string, farmerId: string, salaryBani: number): Promise<void>;
 }
 
 const FARM_SELECT = [
-  'id, name, county, birth_year, start_balance_bani, demo_now, stripe_account_id',
+  'id, name, county, birth_year, start_balance_bani, demo_now, stripe_account_id, salary_bani',
   'parcels (crop_id, area_ari, is_arable)',
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
-  'transactions (amount_bani, kind, occurred_at, crop_id)',
+  'transactions (amount_bani, kind, occurred_at, crop_id, expected_payment_id)',
   'pension_plans (monthly_bani, status)',
   'payouts (amount_bani, scheduled_for, status)',
 ].join(', ');
@@ -103,6 +105,11 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
         .select('id');
       if (error) throw new RepoError('db_error', error.message);
       return (data?.length ?? 0) > 0;
+    },
+
+    async setSalary(token, farmerId, salaryBani) {
+      const { error } = await db.forUser(token).from('farmers').update({ salary_bani: salaryBani }).eq('id', farmerId);
+      if (error) throw new RepoError('db_error', error.message);
     },
 
     async setEnvelopes(token, balances) {

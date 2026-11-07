@@ -19,14 +19,27 @@ import { buildTimeline, costEntryId, type AmountScenario, type ReceivedIncome, t
 /** A money movement recorded through Stripe (DB `transactions`). */
 export interface StoredTransaction {
   amount_bani: number;
-  kind: 'apia_advance' | 'apia_balance' | 'crop_sale' | 'salary' | 'pension' | 'expense' | null;
+  kind:
+    | 'apia_advance'
+    | 'apia_balance'
+    | 'crop_sale'
+    | 'salary'
+    | 'pension'
+    | 'expense'
+    | 'credit'
+    | 'loan_repayment'
+    | null;
   occurred_at: string;
   crop_id?: string | null;
+  /** The declared payment this movement settles (a credit or its repayment). */
+  expected_payment_id?: string | null;
 }
 
 export interface PlanFarm extends StoredFarm {
   /** County code (e.g. 'TR'), for the county yield history. */
   county?: string | null;
+  /** Salary fixed when the farmer accepted the plan (bani); null = not fixed yet. */
+  salary_bani?: number | null;
   demo_now?: string | null;
   transactions?: StoredTransaction[];
   pension_plans?: { monthly_bani: number; status: string } | { monthly_bani: number; status: string }[] | null;
@@ -78,7 +91,9 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
       .filter((t) => t.kind === 'expense' && t.crop_id)
       .map((t) => costEntryId(t.crop_id!, t.occurred_at.slice(0, 10))),
   );
-  const extras = extrasFromStored(farm.expected_payments ?? []);
+  // Declared payments already settled (credit received, repayment made) are not planned again.
+  const settled = new Set(transactions.map((t) => t.expected_payment_id).filter(Boolean));
+  const extras = extrasFromStored(farm.expected_payments ?? []).filter((x) => !settled.has(x.id));
   const opts = { start: month, months: HORIZON_MONTHS, timing: 'late' as const };
   const build = (amounts: AmountScenario, withExtras = true) =>
     buildTimeline({ parcels, subsidies, startBalance, received, paidCostIds, extras: withExtras ? extras : [] }, data, {
@@ -102,6 +117,9 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
   };
   const salary = maxSafeSalary(timelines.medium, smoothing, data);
   const salaries = salaryByScenario(timelines, smoothing, data);
+  // What we pay each month: the fixed salary, lowered only if the money would run out.
+  const salaryFixed = farm.salary_bani ?? null;
+  const monthlySalary = salaryFixed === null ? salary.salary : Math.min(salaryFixed, salary.salary);
   // Long view by quarter, for each kind of year (as if every year were like that).
   const projMonths = monthsToYearEnd(month, PROJECTION_YEARS);
   const projection = Object.fromEntries(
@@ -136,7 +154,7 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
     amount: startBalance,
     isIncome: false,
     incomeForRisk: incomeReceived,
-    salary: salary.salary,
+    salary: monthlySalary,
     pensionMonthly: smoothing.pensionMonthly ?? 0,
     riskPct: smoothing.riskPct ?? 0,
     riskRemaining: smoothing.riskRemaining ?? 0,
@@ -159,11 +177,13 @@ export function computeFarmPlan(farm: PlanFarm, data: AppData, realNow = new Dat
     riskFund: riskFundProgress(envelopes.risk_fund, riskTarget),
     badYears: worstBadYears(data, farm.county, parcels.map((p) => p.cropId)),
     pension,
-    pensionSuggested: suggestPension(salary.salary, pension),
+    pensionSuggested: suggestPension(monthlySalary, pension),
     spring: springNeed(timelines.medium),
     costs: costsByCrop(timelines.medium),
     envelopes,
     salary,
+    monthlySalary,
+    salaryFixed,
     salaries,
     projection,
     credits,

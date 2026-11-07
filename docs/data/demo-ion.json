@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "description": "Persona lui Ion pentru demo (npm run seed:demo). Presupuneri de demo, nu date reale: P9 în docs/11-open-questions.md, scriptul în docs/09-demo-pitch.md §3.",
+    "status": "presupunere"
+  },
+  "name": "Ion",
+  "county": "TR",
+  "age": 55,
+  "start_balance_lei": 35000,
+  "parcels": [
+    { "crop_id": "grau", "area_ha": 8 },
+    { "crop_id": "porumb", "area_ha": 7 }
+  ],
+  "demo_start": {
+    "value": "2026-11-15",
+    "note": "Ziua la care pornește ceasul de test Stripe: după fereastra de deschidere a avansului APIA, înainte de primul salariu (1 decembrie). Avansul încă nu e simulat (09 §3)."
+  }
+}

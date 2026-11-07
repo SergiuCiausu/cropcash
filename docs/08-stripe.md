@@ -40,8 +40,9 @@ Codul e în `apps/api/src/stripe/money.ts` (`MoneyService`) și `apps/api/src/ro
 
 **Ce e simplificat (de spus la demo):**
 - Pensia se plătește cu un card de test, nu din soldul fermierului.
-- Salariul se plătește din banii ajunși prin Stripe (încasările APIA). Banii pe care fermierul îi avea deja în bancă (soldul de pornire) nu sunt în Stripe. Dacă soldul Stripe nu ajunge, salariul e marcat „nu s-a putut plăti”.
-- Salariul se recalculează în fiecare lună, deci poate varia puțin. Pentru Ion: 900–1.400 lei, pentru că banii APIA vin mai devreme decât planul prudent.
+- Salariul se plătește din banii ajunși prin Stripe: încasările APIA și, în demo, **creditul declarat** (intră în contul CropCash în luna lui, ca o plată APIA; rata se înregistrează din banca fermierului când trece data). Soldul de pornire nu e în Stripe. Dacă soldul Stripe nu ajunge, salariul e marcat „nu s-a putut plăti”.
+- **Salariul e fix** (pasul 9, migrarea 012): se fixează la salariul sigur din acel moment când fermierul apasă „Bine așa” la împărțire sau declară/șterge un credit (`farmers.salary_bani`). În fiecare lună se plătește `min(fix, salariul sigur recalculat)`: nu crește singur, dar scade dacă banii n-ar ajunge. Pentru Ion cu credit: 2.850 lei din decembrie până în aprilie, 1.550 lei în mai (planul vede rambursarea din noiembrie).
+- O încasare simulată așteaptă (până la 30 s) să apară banii în soldul fermierului, ca salariul plătit imediat după să-i găsească.
 
 **Testat cap-coadă:** `npm run test:stripe` (sandbox + Supabase): configurare, avans, pensie, 6 luni înainte → 6 salarii plătite, 5–6 contribuții, restul APIA în martie.
 

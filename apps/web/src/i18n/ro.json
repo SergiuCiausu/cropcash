@@ -286,7 +286,8 @@
     "remove": "Șterge",
     "removeLabel": "Șterge creditul de {amount} lei",
     "eyebrow": "Salariul tău",
-    "headline": "{amount} lei pe lună"
+    "headline": "{amount} lei pe lună",
+    "fixedNote": "Salariul rămâne la fel lună de lună. Scade doar dacă banii n-ar ajunge."
   },
   "credit": {
     "title": "Iau un credit",
@@ -386,12 +387,14 @@
       "salaryFailed": "Salariul de {amount} lei n-a putut fi plătit: nu sunt destui bani în contul CropCash.",
       "income": "Au intrat {amount} lei: {what}",
       "expense": "Cheltuială fermă: {amount} lei ({what})",
-      "pension": "Pus deoparte pentru bătrânețe: {amount} lei"
+      "pension": "Pus deoparte pentru bătrânețe: {amount} lei",
+      "repayment": "Rată la credit plătită din bancă: {amount} lei"
     },
     "kinds": {
       "apia_advance": "avansul APIA",
       "apia_balance": "restul de la APIA",
-      "crop_sale": "vânzarea recoltei"
+      "crop_sale": "vânzarea recoltei",
+      "credit": "creditul pe adeverința APIA"
     },
     "split": "Împarte banii pe plicuri"
   },

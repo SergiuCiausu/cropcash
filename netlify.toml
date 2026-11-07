@@ -1,0 +1,17 @@
+# Frontend (PWA) on Netlify (docs/07 §10, docs/12-deploy.md).
+# Netlify installs the whole npm workspace from the repo root, then builds only the web app.
+# Set in the Netlify UI (Site settings → Environment variables), never here:
+#   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL (https://api.<domain>), VITE_DEMO_MODE
+[build]
+  base = "."
+  command = "npm run build -w @cropcash/web"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Single-page app: every route is served by index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

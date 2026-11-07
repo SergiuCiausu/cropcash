@@ -10,7 +10,7 @@ import { formatDayMonth, formatDayMonthYear, formatLei } from '../../lib/format'
 export const DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
 
 interface AdvanceEvent {
-  type: 'salary' | 'income' | 'expense' | 'pension';
+  type: 'salary' | 'income' | 'expense' | 'pension' | 'repayment';
   date: string;
   amount: number;
   kind?: string;
@@ -28,6 +28,8 @@ function eventText(e: AdvanceEvent): string {
       return t('demo.ev.expense', { amount, what: cropName(e.kind) });
     case 'pension':
       return t('demo.ev.pension', { amount });
+    case 'repayment':
+      return t('demo.ev.repayment', { amount });
   }
 }
 

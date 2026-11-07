@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
-import { loadData } from '@cropcash/shared';
+import { computeFarmPlan, loadData } from '@cropcash/shared';
 import { createApp } from './app';
 import { RepoError, type FarmRow, type NewCredit, type NewFarm, type Repo } from './db/repo';
 
@@ -37,6 +37,9 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
       const total = Object.values(balances).reduce((a, b) => a + b, 0);
       if (total > (farms[token]?.start_balance_bani ?? 0)) throw new RepoError('invalid', 'too much');
       envelopes = balances;
+    }),
+    setSalary: vi.fn(async (token: string, _farmerId: string, salaryBani: number) => {
+      farms[token] = { ...farms[token]!, salary_bani: salaryBani };
     }),
   };
   return { repo, created, credits, getEnvelopes: () => envelopes };
@@ -146,6 +149,7 @@ describe('GET /api/subsidies and /api/me', () => {
       addCredit: async () => '',
       deleteCredit: async () => false,
       setEnvelopes: async () => {},
+      setSalary: async () => {},
     };
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const res = await request(makeApp(repo)).get('/api/subsidies').set('Authorization', 'Bearer good');
@@ -194,6 +198,40 @@ describe('credits and envelopes (step 5)', () => {
     const split = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
     expect((await request(app).put('/api/envelopes').set(auth).send(split)).status).toBe(204);
     expect(getEnvelopes()).toEqual(split);
+  });
+
+  it('a credit already received cannot be deleted (409)', async () => {
+    const farm = {
+      id: 'farm-1',
+      name: 'Ion',
+      county: 'TR',
+      birth_year: 1971,
+      parcels: [{ crop_id: 'grau', area_ari: 800, is_arable: true }],
+      expected_payments: [
+        { id: 'c-in', group_id: '33333333-3333-4333-8333-333333333333', kind: 'credit', direction: 'in' as const, amount_probable_bani: 1_480_000, window_start: '2027-04-01', status: 'planned' },
+      ],
+      transactions: [{ amount_bani: 1_480_000, kind: 'credit' as const, occurred_at: '2027-04-01T09:00:00Z', expected_payment_id: 'c-in' }],
+    };
+    const m = memoryRepo({ good: farm });
+    const res = await request(makeApp(m.repo)).delete('/api/credits/33333333-3333-4333-8333-333333333333').set(auth);
+    expect(res.status).toBe(409);
+    expect(m.repo.deleteCredit).not.toHaveBeenCalled();
+  });
+
+  it('accepting the split fixes the monthly salary at the safe amount (step 9)', async () => {
+    const { app, repo } = await onboarded();
+    const split = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
+    await request(app).put('/api/envelopes').set(auth).send(split);
+    const farm = await repo.getMyFarm('good');
+    const safe = computeFarmPlan({ ...farm!, salary_bani: null }, data).salary.salary;
+    expect(repo.setSalary).toHaveBeenCalledWith('good', 'farm-1', safe);
+    expect(farm!.salary_bani).toBe(safe);
+  });
+
+  it('a declared credit also re-fixes the salary', async () => {
+    const { app, repo } = await onboarded();
+    await request(app).post('/api/credits').set(auth).send({ amountLei: 14800, takeMonth: '2027-04', repayMonth: '2027-11' });
+    expect(repo.setSalary).toHaveBeenCalledTimes(1);
   });
 
   it('refuses a split larger than the money available, or negative', async () => {

@@ -13,20 +13,21 @@ export interface MoneyFarm extends FarmRow {
 export interface NewTransaction {
   farmer_id: string;
   amount_bani: number;
-  kind: 'apia_advance' | 'apia_balance' | 'crop_sale' | 'salary' | 'pension' | 'expense';
+  kind: 'apia_advance' | 'apia_balance' | 'crop_sale' | 'salary' | 'pension' | 'expense' | 'credit' | 'loan_repayment';
   occurred_at: string;
   source: 'stripe_transfer' | 'payout' | 'subscription' | 'manual';
   stripe_object_id: string;
   crop_id?: string | null;
+  expected_payment_id?: string | null;
 }
 
 export const MONEY_FARM_SELECT = [
-  'id, user_id, name, county, birth_year, start_balance_bani, demo_now',
+  'id, user_id, name, county, birth_year, start_balance_bani, demo_now, salary_bani',
   'stripe_account_id, stripe_customer_id, test_clock_id',
   'parcels (crop_id, area_ari, is_arable)',
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
-  'transactions (amount_bani, kind, occurred_at, crop_id)',
+  'transactions (amount_bani, kind, occurred_at, crop_id, expected_payment_id)',
   'pension_plans (monthly_bani, status, stripe_subscription_id)',
 ].join(', ');
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadData } from '../data';
 import { computeFarmPlan, type PlanFarm } from './plan';
-import { costsBetween, incomesBetween, paydaysBetween, simulationSteps } from './simulate';
+import { costsBetween, creditsBetween, incomesBetween, paydaysBetween, simulationSteps } from './simulate';
 
 const data = loadData();
 const ion: PlanFarm = {
@@ -98,5 +98,62 @@ describe('simulation', () => {
     expect(steps.filter((s) => s.type === 'salary')).toHaveLength(6);
     const dates = steps.map((s) => s.date);
     expect([...dates].sort()).toEqual(dates);
+  });
+});
+
+// A declared credit pair (as stored by POST /api/credits): 14.800 lei in April, back in November.
+const credit = (status = 'planned') => [
+  { id: 'c-in', group_id: 'g1', kind: 'credit', direction: 'in' as const, amount_probable_bani: 1_480_000, window_start: '2027-04-01', status },
+  { id: 'c-out', group_id: 'g1', kind: 'loan_repayment', direction: 'out' as const, amount_probable_bani: 1_480_000, window_start: '2027-11-01', status },
+];
+
+describe('fixed salary (step 9)', () => {
+  it('not fixed yet: pays the safe salary', () => {
+    const p = computeFarmPlan(ion, data);
+    expect(p.salaryFixed).toBeNull();
+    expect(p.monthlySalary).toBe(p.salary.salary);
+  });
+
+  it('never more than the fixed amount, even when more would be safe', () => {
+    const p = computeFarmPlan({ ...ion, salary_bani: 50_000 }, data);
+    expect(p.salary.salary).toBeGreaterThan(50_000);
+    expect(p.monthlySalary).toBe(50_000);
+    expect(p.proposal.salary % 50_000).toBe(0);
+  });
+
+  it('goes down when the fixed amount is no longer safe', () => {
+    const p = computeFarmPlan({ ...ion, salary_bani: 10_000_000 }, data);
+    expect(p.monthlySalary).toBe(p.salary.salary);
+  });
+});
+
+describe('declared credit in the demo (step 9)', () => {
+  const farm: PlanFarm = { ...ion, expected_payments: credit() };
+
+  it('arrives as an income on its date and is repaid later', () => {
+    expect(creditsBetween(farm, '2027-03-15', '2027-05-15')).toEqual([
+      { type: 'income', date: '2027-04-01', kind: 'credit', amount: 1_480_000, paymentId: 'c-in' },
+    ]);
+    expect(creditsBetween(farm, '2027-10-15', '2027-11-15')).toEqual([
+      { type: 'repayment', date: '2027-11-01', amount: 1_480_000, paymentId: 'c-out' },
+    ]);
+  });
+
+  it('once received, it is money on hand and no longer planned', () => {
+    const received: PlanFarm = {
+      ...farm,
+      demo_now: '2027-04-01T09:00:00Z',
+      transactions: [{ amount_bani: 1_480_000, kind: 'credit', occurred_at: '2027-04-01T09:00:00Z', expected_payment_id: 'c-in' }],
+    };
+    const p = computeFarmPlan(received, data);
+    const entries = p.timelines.medium.months.flatMap((m) => m.entries);
+    expect(entries.some((e) => e.kind === 'credit')).toBe(false);
+    expect(entries.some((e) => e.kind === 'loan_repayment')).toBe(true);
+    expect(creditsBetween(received, '2027-03-15', '2027-05-15')).toEqual([]);
+  });
+
+  it('is part of the demo steps', () => {
+    const steps = simulationSteps({ ...farm, demo_now: '2027-03-15T09:00:00Z' }, data, '2027-04-15T09:00:00Z');
+    expect(steps.some((s) => s.type === 'income' && s.kind === 'credit')).toBe(true);
   });
 });

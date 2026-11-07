@@ -54,6 +54,7 @@
 - [ ] **9. Polish UX pentru demo + datele lui Ion** · ~4 h · MINIM
   - **Fișiere:** `scripts/seed-demo.ts`, `ro.json` (revizuire de limbaj), componente.
   - **Gata când:** `npm run seed:demo` reface starea de start în mai puțin de 30 de secunde. Niciun cuvânt interzis în UI (avem un test care caută în `ro.json`). Scriptul din `09-demo-pitch.md` merge de 3 ori la rând. Deploy-ul funcționează: front pe Netlify, API pe VPS-ul RareCloud cu HTTPS (Caddy), webhooks Stripe pe URL-ul public.
+  - **Stare (7 nov 2026):** ✅ `seed:demo` (~20 s, date în `docs/data/demo-ion.json`). ✅ Testul de limbaj (`apps/web/src/i18n/ro.test.ts`: cuvinte interzise + chei `t()` lipsă). ✅ `npm run demo:rehearse` rulează scriptul de 3 ori la rând; pentru asta, salariul e acum fix (scade doar la nevoie) și creditul declarat intră în contul CropCash în demo (P18, P22, migrarea 012); scriptul din 09 §3 are cifrele reale și pensia înainte de salt. ⏳ **Deploy:** fișierele sunt gata (`netlify.toml`, `deploy/`, `docs/12-deploy.md`), lipsesc domeniul API-ului, accesul pe VPS și contul Netlify.
 
 - [ ] **9b. Offline + instalare pe telefon** · ~4 h · MINIM
   - **Obiectiv:** PWA instalabil, cache pentru aplicație și date, outbox și mesajele „Pornește internetul…” (`07-architecture.md` §8).

@@ -47,7 +47,8 @@
 | P14 | Creditul pe adeverință e disponibil din luna în care se deschide următoarea cerere APIA (martie) | Adeverința se eliberează după depunerea cererii. DE-VERIFICAT cu băncile. |
 | P15 | Dobânda creditului nu intră încă în calcul; rambursarea = suma luată | ROBOR 6M lipsește (#18). |
 | P17 | La „dăm timpul înainte”, realitatea e simulată cu anul normal și plăți la mijlocul ferestrei (mai devreme decât planul prudent) | Arată că planul ține și când banii vin altfel decât socotit. |
-| P18 | Pensia din demo se plătește cu card de test, nu din soldul fermierului; salariul doar din banii ajunși prin Stripe | Simplificări de demo, vezi 08-stripe.md §1c. |
+| P18 | Pensia din demo se plătește cu card de test, nu din soldul fermierului; salariul doar din banii ajunși prin Stripe (APIA și, din pasul 9, creditul declarat, simulat ca plată în contul CropCash) | Simplificări de demo, vezi 08-stripe.md §1c. În realitate creditul intră în banca fermierului. |
+| P22 | Salariul se fixează când fermierul acceptă planul („Bine așa” sau un credit) și se plătește `min(fix, salariul sigur)` | Un salariu care urcă singur lună de lună (fereastra de 12 luni prinde avansul de anul viitor) ar fi derutant; scăderea rămâne, ca să nu rămână fără bani. |
 | P16 | Cota pentru fondul de risc se ia doar din venituri, nu din banii de la început | Banii de acum au deja altă destinație: cheltuielile până la încasare. |
 | P19 | Pensia: vârsta țintă 65 de ani; suma de la 65 de ani se arată împărțită pe 10 ani („vreo 245 lei pe lună”); slider 50–500 lei, pas 10 lei | Ilustrare simplă, nu o anuitate reală (05 §4). Toate în `plan-params.json` → `pension`. |
 | P20 | „X din 10 ani proști” apare doar când avem 10 ani de istoric INS pe județ și cultură; până atunci propoziția lipsește | `county_history` e DE-VERIFICAT (#19); nu inventăm „3 din 10”. |

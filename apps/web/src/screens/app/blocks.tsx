@@ -346,12 +346,13 @@ export function SalaryCta({
     <section className={`cta field ${className}`}>
       <div>
         <p className="eyebrow">{t('salary.eyebrow')}</p>
-        <h2>{t('salary.headline', { amount: formatLei(salary.salary) })}</h2>
+        <h2>{t('salary.headline', { amount: formatLei(plan.monthlySalary) })}</h2>
         <p>
           {salary.deficit
             ? t('salary.deficit', { month: formatMonth(salary.bindingMonth) })
             : t('salary.why', { month: formatMonth(salary.bindingMonth) })}
         </p>
+        {plan.salaryFixed !== null && <p style={{ marginTop: 4 }}>{t('salary.fixedNote')}</p>}
       </div>
       {s && (
         <div className="suggest">

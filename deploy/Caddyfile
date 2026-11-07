@@ -1,0 +1,8 @@
+# API on the RareCloud VPS behind Caddy (automatic HTTPS with Let's Encrypt).
+# API_DOMAIN must point (DNS A record) to the VPS IP, e.g. api.cropcash.ro.
+# Install: sudo cp deploy/Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy
+# (set API_DOMAIN in /etc/default/caddy or replace {$API_DOMAIN} with the real name)
+{$API_DOMAIN} {
+	encode gzip
+	reverse_proxy 127.0.0.1:3001
+}

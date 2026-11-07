@@ -56,8 +56,11 @@ export class MoneyService {
     private log: (msg: string) => void = () => {},
   ) {}
 
-  /** Creates (once) the farmer's Stripe account, demo clock and customer. Idempotent. */
-  async setup(farm: MoneyFarm, email: string | undefined, ip: string): Promise<MoneyFarm> {
+  /**
+   * Creates (once) the farmer's Stripe account, demo clock and customer. Idempotent.
+   * `startAt` (unix seconds) fixes the demo clock's start; the seed uses it, the app uses now.
+   */
+  async setup(farm: MoneyFarm, email: string | undefined, ip: string, startAt?: number): Promise<MoneyFarm> {
     let { stripe_account_id: acct, test_clock_id: clock, stripe_customer_id: customer } = farm;
     const [given, ...rest] = farm.name.trim().split(/\s+/);
 
@@ -95,7 +98,7 @@ export class MoneyService {
     }
 
     if (!clock) {
-      const now = Math.floor(Date.now() / 1000);
+      const now = startAt ?? Math.floor(Date.now() / 1000);
       const tc = await this.stripe.testHelpers.testClocks.create({ frozen_time: now, name: `CropCash ${farm.id.slice(0, 8)}` });
       clock = tc.id;
       await this.repo.setStripeIds(farm.id, { test_clock_id: clock, demo_now: iso(now) });
@@ -115,6 +118,7 @@ export class MoneyService {
   /** A simulated income (APIA, harvest) paid to the farmer's account. */
   async income(farm: MoneyFarm, step: Extract<SimStep, { type: 'income' }>): Promise<AdvanceEvent> {
     if (!farm.stripe_account_id) throw new Error('no stripe account');
+    const before = await this.available(farm.stripe_account_id);
     const pi = await this.stripe.paymentIntents.create({
       amount: step.amount,
       currency: 'ron',
@@ -133,8 +137,33 @@ export class MoneyService {
       source: 'stripe_transfer',
       stripe_object_id: pi.id,
       crop_id: step.cropId ?? null,
+      expected_payment_id: step.paymentId ?? null,
     });
+    // The transfer shows up in the farmer's balance a few seconds later: wait, so a salary
+    // paid right after (same "Dăm timpul înainte") finds the money.
+    for (let i = 0; i < 30 && (await this.available(farm.stripe_account_id)) < before + step.amount; i++) {
+      await this.sleep(1000);
+    }
     return { type: 'income', kind: step.kind, date: step.date, amount: step.amount, ok: pi.status === 'succeeded' };
+  }
+
+  private async available(account: string): Promise<number> {
+    const balance = await this.stripe.balance.retrieve({}, { stripeAccount: account });
+    return balance.available.find((b) => b.currency === 'ron')?.amount ?? 0;
+  }
+
+  /** A declared credit repaid from the farmer's bank: recorded once, no Stripe. */
+  async repayment(farm: MoneyFarm, step: Extract<SimStep, { type: 'repayment' }>): Promise<AdvanceEvent> {
+    await this.repo.recordTransaction({
+      farmer_id: farm.id,
+      amount_bani: -step.amount,
+      kind: 'loan_repayment',
+      occurred_at: `${step.date}T09:00:00Z`,
+      source: 'manual',
+      stripe_object_id: `sim:${farm.id}:repay:${step.paymentId}`,
+      expected_payment_id: step.paymentId,
+    });
+    return { type: 'repayment', kind: 'loan_repayment', date: step.date, amount: step.amount, ok: true };
   }
 
   /** A planned farm cost that is now paid. The farmer pays it from their bank: no Stripe call. */
@@ -156,7 +185,8 @@ export class MoneyService {
   async salary(farm: MoneyFarm, payday: string): Promise<AdvanceEvent> {
     if (!farm.stripe_account_id) throw new Error('no stripe account');
     const plan = computeFarmPlan({ ...farm, demo_now: `${payday}T00:00:00Z` }, this.data);
-    const amount = plan.salary.salary;
+    // The fixed salary, lowered only if the money would run out (step 9).
+    const amount = plan.monthlySalary;
     if (amount <= 0) return { type: 'salary', date: payday, amount: 0, ok: false, note: 'no_salary' };
 
     // A transfer just made can take a few seconds to become available: wait while it is pending.
@@ -254,7 +284,9 @@ export class MoneyService {
             ? await this.income(farm, step)
             : step.type === 'expense'
               ? await this.expense(farm, step)
-              : await this.salary(farm, step.date),
+              : step.type === 'repayment'
+                ? await this.repayment(farm, step)
+                : await this.salary(farm, step.date),
         );
         this.log(`${step.type} ${step.date}: ${JSON.stringify(events.at(-1))} (${Date.now() - t0} ms)`);
         farm = (await this.repo.farmBy('id', farmerId))!;

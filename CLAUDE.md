@@ -20,7 +20,8 @@ npm test             # Vitest (unit, offline)
 npm run test:integration  # pe Supabase-ul real din .env (RLS, auth)
 npm run db:migrate   # aplică supabase/migrations/*.sql (SUPABASE_DB_URL, pooler eu-west-2)
 npm run typecheck
-npm run seed:demo    # datele lui Ion
+npm run seed:demo    # datele lui Ion (docs/data/demo-ion.json), ceasul la 15 nov 2026, ~20 s
+npm run demo:rehearse  # scriptul din 09 §3 de 3 ori, pe Supabase + Stripe reale (~6 min); apoi iar seed:demo
 stripe listen --events payment_intent.succeeded,invoice.paid,payout.paid,payout.failed --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
 npm run test:stripe  # flux cap-coadă pe sandbox-ul Stripe (lent, ~1-2 min)
 ```
@@ -53,6 +54,7 @@ Script separat, adus din repo-ul echipei. Urmărește ~179 de surse oficiale (li
 | `docs/08-stripe.md` | atingi orice cod Stripe sau webhooks |
 | `docs/09-demo-pitch.md` | faci polish pentru demo sau date de seed |
 | `docs/10-plan.md` | începi un pas nou (și bifezi la final) |
+| `docs/12-deploy.md` | faci deploy (Netlify, VPS cu pm2 + Caddy, webhooks Stripe) |
 | `docs/11-open-questions.md` | folosești o cifră marcată DE-VERIFICAT |
 | `data/calendar-2026.json` | lucrezi la calendar sau termene |
 | `data/crops-reference.json` | lucrezi la scenarii, cheltuieli pe luni sau prognoză |
