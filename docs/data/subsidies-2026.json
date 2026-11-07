@@ -58,6 +58,7 @@
     {
       "code": "PD-01",
       "name_ro": "Sprijin de bază (BISS)",
+      "enabled": true,
       "unit": "ha",
       "units_field": "total_ha",
       "amount_eur": 101.03,
@@ -94,6 +95,7 @@
     {
       "code": "PD-02",
       "name_ro": "Sprijin redistributiv (CRISS)",
+      "enabled": true,
       "unit": "ha",
       "units_field": "total_ha",
       "amount_eur": 55.69,
@@ -133,6 +135,7 @@
     {
       "code": "PD-03",
       "name_ro": "Sprijin pentru tineri fermieri",
+      "enabled": true,
       "unit": "ha",
       "units_field": "total_ha",
       "amount_eur": 55.36,
@@ -167,6 +170,7 @@
     {
       "code": "PD-04",
       "name_ro": "Eco-schemă pentru teren arabil",
+      "enabled": true,
       "unit": "ha",
       "units_field": "arable_ha",
       "amount_eur": 56.28,
@@ -226,6 +230,7 @@
     {
       "code": "PD-05",
       "name_ro": "Eco-schemă pentru ferme mici",
+      "enabled": true,
       "unit": "ha",
       "units_field": "total_ha",
       "amount_eur": 100,
@@ -257,6 +262,7 @@
     {
       "code": "PD-28",
       "name_ro": "Eco-schemă pentru zone neproductive",
+      "enabled": true,
       "unit": "ha",
       "units_field": "unproductive_ha",
       "amount_eur": null,
@@ -289,6 +295,8 @@
     {
       "code": "CPL-VACI-LAPTE",
       "name_ro": "Sprijin cuplat pentru vaci de lapte",
+      "enabled": false,
+      "disabled_reason": "Animalele sunt în planul de viitor, nu în MVP.",
       "unit": "cap",
       "units_field": "dairy_cows",
       "amount_eur": 347.81,
@@ -315,6 +323,8 @@
     {
       "code": "CPL-VITA-CARNE",
       "name_ro": "Sprijin cuplat pentru vită de carne",
+      "enabled": false,
+      "disabled_reason": "Animalele sunt în planul de viitor, nu în MVP.",
       "unit": "cap",
       "units_field": "beef_cattle",
       "amount_eur": 244.72,

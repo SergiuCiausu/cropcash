@@ -1,21 +1,25 @@
-import express from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import cors from 'cors';
-import type { SupabaseFactory } from './db/supabase';
+import type { AppData, SubsidyParams } from '@cropcash/shared';
+import type { Repo } from './db/repo';
 import { requireAuth, type TokenVerifier } from './middleware/auth';
+import { farmersRouter } from './routes/farmers';
 
 export interface AppDeps {
   corsOrigins: string[];
   verifyToken: TokenVerifier;
-  db: SupabaseFactory;
+  repo: Repo;
+  data: AppData;
+  subsidyParams?: SubsidyParams;
 }
 
-export function createApp({ corsOrigins, verifyToken, db }: AppDeps) {
+export function createApp({ corsOrigins, verifyToken, repo, data, subsidyParams = {} }: AppDeps) {
   const app = express();
 
   app.use(cors({ origin: corsOrigins }));
   // Note: the Stripe webhook route (step 6) must be mounted BEFORE express.json(),
   // because signature verification needs the raw body.
-  app.use(express.json());
+  app.use(express.json({ limit: '100kb' }));
 
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true });
@@ -23,15 +27,12 @@ export function createApp({ corsOrigins, verifyToken, db }: AppDeps) {
 
   // Everything below requires a valid Supabase session.
   app.use('/api', requireAuth(verifyToken));
+  app.use('/api', farmersRouter(repo, data, subsidyParams));
 
-  app.get('/api/me', async (_req, res) => {
-    const { userId, token } = res.locals.auth;
-    const { data, error } = await db.forUser(token).from('farmers').select('*').maybeSingle();
-    if (error) {
-      res.status(500).json({ error: 'db_error' });
-      return;
-    }
-    res.json({ userId, farmer: data });
+  // Express 5 forwards rejected promises here. Never leak internals to the client.
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('[api]', err);
+    res.status(500).json({ error: 'server_error' });
   });
 
   return app;

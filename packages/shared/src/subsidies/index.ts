@@ -64,7 +64,8 @@ export interface SubsidyResult {
   notEligible: NotEligible[];
   /** Eligible but not counted (e.g. PD-28 without a 2026 amount). */
   excluded: Excluded[];
-  rates: Record<Fund, { value: number; isDefault: boolean }>;
+  /** confirmed = an official rate from docs/data; overrides and defaults are not confirmed. */
+  rates: Record<Fund, { value: number; confirmed: boolean }>;
   totals: {
     eur: Range;
     lei: Range;
@@ -78,11 +79,11 @@ export interface SubsidyResult {
 export function resolveRates(data: AppData, params: SubsidyParams = {}) {
   const campaign = data.subsidies.meta.campaign_year;
   const resolve = (fund: Fund) => {
-    const override = params.exchangeRates?.[fund];
-    if (override !== undefined) return { value: override, isDefault: false };
     const row = data.subsidies.exchange_rates.find((r) => r.campaign === campaign && r.fund === fund);
-    if (row?.value) return { value: row.value, isDefault: false };
-    if (row?.default_param) return { value: row.default_param, isDefault: true };
+    const override = params.exchangeRates?.[fund];
+    if (override !== undefined) return { value: override, confirmed: override === row?.value };
+    if (row?.value) return { value: row.value, confirmed: true };
+    if (row?.default_param) return { value: row.default_param, confirmed: false };
     throw new Error(`No exchange rate for ${fund} in campaign ${campaign}`);
   };
   return { FEGA: resolve('FEGA'), FEADR: resolve('FEADR') };
@@ -146,6 +147,7 @@ export function computeSubsidies(farm: FarmInput, data: AppData, params: Subsidy
   const excluded: Excluded[] = [];
 
   for (const scheme of data.subsidies.schemes) {
+    if (!scheme.enabled) continue;
     const minParcelAri = scheme.eligibility.parcel_min_ha ? haToAri(scheme.eligibility.parcel_min_ha.value) : 0;
     const profile = buildProfile(farm, minParcelAri);
     const check = checkEligibility(scheme, profile);

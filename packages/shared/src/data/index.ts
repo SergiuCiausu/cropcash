@@ -2,12 +2,15 @@ import subsidiesJson from '../../../../docs/data/subsidies-2026.json';
 import historyJson from '../../../../docs/data/subsidies-history.json';
 import calendarJson from '../../../../docs/data/calendar-2026.json';
 import cropsJson from '../../../../docs/data/crops-reference.json';
+import countiesJson from '../../../../docs/data/counties.json';
 import {
   CalendarFileSchema,
+  CountiesFileSchema,
   CropsFileSchema,
   HistoryFileSchema,
   SubsidiesFileSchema,
   type CalendarFile,
+  type CountiesFile,
   type CropsFile,
   type HistoryFile,
   type SubsidiesFile,
@@ -21,6 +24,7 @@ export interface AppData {
   history: HistoryFile;
   calendar: CalendarFile;
   crops: CropsFile;
+  counties: CountiesFile;
 }
 
 let cached: AppData | null = null;
@@ -33,6 +37,7 @@ export function loadData(): AppData {
       history: HistoryFileSchema.parse(historyJson),
       calendar: CalendarFileSchema.parse(calendarJson),
       crops: CropsFileSchema.parse(cropsJson),
+      counties: CountiesFileSchema.parse(countiesJson),
     };
   }
   return cached;

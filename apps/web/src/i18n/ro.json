@@ -4,7 +4,13 @@
     "tagline": "Banii fermei, pe înțelesul tău"
   },
   "common": {
-    "wait": "Așteaptă puțin…"
+    "wait": "Așteaptă puțin…",
+    "back": "Înapoi",
+    "next": "Gata",
+    "retry": "Mai încearcă",
+    "toVerify": "de verificat",
+    "toVerifyHint": "N-am putut confirma încă regula asta în actele oficiale.",
+    "error": "Ceva n-a mers. Mai încearcă o dată."
   },
   "auth": {
     "loginTitle": "Intră în cont",
@@ -28,13 +34,83 @@
       "generic": "Nu a mers. Mai încearcă o dată."
     }
   },
+  "onboarding": {
+    "step": "Pasul {n} din {total}",
+    "welcome": {
+      "title": "Bun venit!",
+      "body": "Îți arătăm cât primești de la APIA, când vin banii și cât poți cheltui pe lună.",
+      "time": "Durează cam 2 minute.",
+      "start": "Începe"
+    },
+    "county": {
+      "title": "În ce județ e ferma?",
+      "search": "Caută județul",
+      "none": "N-am găsit niciun județ."
+    },
+    "crops": {
+      "title": "Ce cultivi anul ăsta?",
+      "hint": "Scrie câte hectare ai din fiecare. Lasă gol ce nu cultivi.",
+      "hectares": "hectare",
+      "less": "Mai puțin",
+      "more": "Mai mult",
+      "total": "În total: {ha} ha",
+      "invalid": "Scrie hectarele ca număr, de exemplu 8 sau 8,5.",
+      "empty": "Pune cel puțin o cultură."
+    },
+    "about": {
+      "title": "Despre tine",
+      "name": "Cum te cheamă?",
+      "age": "Câți ani ai?",
+      "ageHint": "Dacă ai sub 40 de ani, primești și sprijinul pentru tineri fermieri.",
+      "invalidAge": "Scrie vârsta ca număr, între 16 și 100."
+    },
+    "submit": "Arată-mi banii",
+    "errors": {
+      "farm_exists": "Ai deja ferma salvată.",
+      "invalid_input": "Verifică ce ai scris și mai încearcă."
+    }
+  },
+  "subsidy": {
+    "hello": "Bună, {name}!",
+    "headline": "De la APIA primești cam",
+    "range": "între {min} și {max} lei",
+    "rangeWhy": "Suma exactă depinde de câți fermieri cer bani anul ăsta. În ultimii ani, sprijinul de bază a ieșit și cu {pct}% mai mic decât era plănuit.",
+    "lei": "lei",
+    "advanceTitle": "Avansul (75%)",
+    "advanceWhen": "între {start} și {end}",
+    "advanceSure": "Suma asta e anunțată deja.",
+    "balanceTitle": "Restul",
+    "balanceWhen": "între {start} și {end}. Nu știm exact luna.",
+    "balanceRange": "între {min} și {max} lei",
+    "schemesTitle": "Ce primești",
+    "notEligibleTitle": "De ce nu primești și altele",
+    "excludedNote": "Suma pentru anul ăsta nu e anunțată încă.",
+    "rateNote": "Calculat la {rate} lei pentru un euro.",
+    "rateDefault": "Cursul oficial pentru anul ăsta nu e anunțat încă.",
+    "next": "Vezi când vin banii",
+    "reasons": {
+      "age": { "lt": "Doar pentru fermierii sub {expected} de ani. Tu ai {actual}." },
+      "total_ha": {
+        "lte": "Doar pentru fermele de cel mult {expected} ha. Tu ai {actual} ha.",
+        "gte": "Trebuie cel puțin {expected} ha. Tu ai {actual} ha."
+      },
+      "arable_ha": {
+        "gte": "Trebuie cel puțin {expected} ha de teren arabil. Tu ai {actual} ha.",
+        "gt": "Nu ai teren arabil declarat."
+      },
+      "distinct_crops": { "gte": "Trebuie cel puțin {expected} culturi diferite. Tu ai {actual}." },
+      "unproductive_ha": { "gt": "Doar dacă lași zone necultivate (fâșii, margini de câmp)." },
+      "generic": "Nu se potrivește cu ferma ta."
+    }
+  },
   "home": {
     "loggedInAs": "Ești în cont ca {email}",
-    "noFarmYet": "Încă nu ne-ai spus nimic despre fermă."
+    "loadError": "Nu am putut încărca datele fermei."
   },
   "offline": {
     "needed": {
-      "login": "Pornește internetul ca să intri în cont."
+      "login": "Pornește internetul ca să intri în cont.",
+      "save": "Pornește internetul ca să salvăm ferma."
     }
   }
 }

@@ -3,7 +3,7 @@
 ## Prioritizarea (MoSCoW)
 
 ### Must have (MVP-ul pentru demo)
-1. **Onboarding în 2 minute:** hectare pe cultură, județ, vârstă (sub 40 de ani înseamnă tânăr fermier), animale opțional. Opțional: upload de adeverință sau decizie APIA (PDF), din care AI-ul extrage datele (extragerea e la pasul 10).
+1. **Onboarding în 2 minute:** hectare pe cultură, județ, nume, vârstă (sub 40 de ani înseamnă tânăr fermier). **Animalele nu sunt în MVP**: schemele cuplate stau în JSON cu `enabled: false` și se decide la final dacă intră. Opțional: upload de adeverință sau decizie APIA (PDF), din care AI-ul extrage datele (extragerea e la pasul 10).
 2. **Calculatorul de subvenții:** un motor de reguli pe scheme. Rezultatul e un interval minim / probabil / maxim, defalcat pe avans și sold. Vezi `03-subsidies.md`.
 3. **Calendarul banilor și al sarcinilor:** o singură axă de timp cu încasări, plăți, termene și lucrări. Golul februarie–mai e evidențiat.
 4. **Plicurile și „salariul” lunar:** la fiecare încasare, aplicația propune împărțirea pe plicuri, iar algoritmul de netezire calculează salariul maxim sigur.
@@ -34,9 +34,8 @@ Navigația are 4 taburi jos, unul pentru fiecare întrebare: **Bani** · **Calen
 | O1 | Bun venit | „Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună.” | **Începe** | O2 |
 | O2 | Județul | listă cu căutare | alege „Teleorman” | O3 |
 | O3 | Culturile | carduri mari: Grâu, Porumb, Floarea-soarelui, cu „câte hectare?” și butoane +/− | 8 ha grâu, 7 ha porumb → **Gata** | O4 |
-| O4 | Vârsta | „Câți ani ai?” (număr mare) | 55 → **Gata** | O5 |
-| O5 | Animale (opțional) | „Ai vaci?” Da / Nu | Nu | O6 |
-| O6 | Hârtiile APIA (opțional) | „Ai decizia de plată? Fă-i o poză sau încarcă PDF-ul.” | **Sari peste** | O7 |
+| O4 | Numele și vârsta | „Cum te cheamă?” și „Câți ani ai?” (număr mare) | Ion, 55 → **Gata** | O7 |
+| O6 | Hârtiile APIA (pasul 10b, opțional) | „Ai decizia de plată? Fă-i o poză sau încarcă PDF-ul.” | **Sari peste** | O7 |
 | O7 | Rezultatul | „De la APIA primești cam **16.900 lei**” (între 15.200 și 17.100) | **Vezi când vin banii** | C1 |
 
 Pe O7 apare și lista schemelor („Sprijin de bază ✓, Redistributiv ✓, Eco-schemă ✓”), iar la detalii schemele care nu se aplică și motivul („Tineri fermieri: doar sub 40 de ani”).

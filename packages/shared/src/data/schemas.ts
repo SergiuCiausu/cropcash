@@ -51,6 +51,9 @@ export type Fund = z.infer<typeof FundSchema>;
 export const SchemeSchema = z.object({
   code: z.string(),
   name_ro: z.string(),
+  /** Disabled schemes are kept in data but ignored by the engine (e.g. animals: future plan). */
+  enabled: z.boolean().default(true),
+  disabled_reason: z.string().optional(),
   unit: z.enum(['ha', 'cap']),
   units_field: ProfileFieldSchema,
   amount_eur: z.number().positive().nullable(),
@@ -153,6 +156,11 @@ export const CalendarFileSchema = z.object({
   events: z.array(CalendarEventSchema),
 });
 export type CalendarFile = z.infer<typeof CalendarFileSchema>;
+
+export const CountiesFileSchema = z.object({
+  counties: z.array(z.object({ code: z.string(), name_ro: z.string() })).min(42),
+});
+export type CountiesFile = z.infer<typeof CountiesFileSchema>;
 
 const MinMeanMax = z.object({ min: z.number(), mean: z.number(), max: z.number() });
 

@@ -21,7 +21,7 @@
   - **Fișiere:** `packages/shared/src/data/*` (loader și scheme Zod pentru `docs/data/*.json`), `money/`, `subsidies/`, `subsidies.test.ts`.
   - **Gata când:** test case-ul de 3.195,00 € / 16.869,60 lei / avans 12.652,20 lei trece, plus testele de limită din `03-subsidies.md` §8. Niciun număr hardcodat în afara JSON-urilor.
 
-- [ ] **3. Onboarding** · ~4 h · MINIM
+- [x] **3. Onboarding** · ~4 h · MINIM
   - **Obiectiv:** ecranele O1–O7 și `POST /api/farmers`.
   - **Fișiere:** `apps/web/src/screens/Onboarding/*`, `i18n/ro.json`, `apps/api/src/routes/farmers.ts`, `supabase/migrations/001_init.sql`.
   - **Gata când:** profilul lui Ion se salvează în Supabase și O7 arată intervalul corect. Merge la 360 px lățime.

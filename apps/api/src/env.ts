@@ -10,6 +10,8 @@ export interface Env {
   supabaseUrl: string;
   supabaseAnonKey: string;
   supabaseServiceKey: string;
+  /** Optional lei/EUR override; otherwise the default from docs/data is used. */
+  exchangeRate?: number;
 }
 
 export function loadEnv(): Env {
@@ -22,5 +24,6 @@ export function loadEnv(): Env {
     supabaseUrl: required('SUPABASE_URL'),
     supabaseAnonKey: required('SUPABASE_ANON_KEY'),
     supabaseServiceKey: required('SUPABASE_SERVICE_ROLE_KEY'),
+    exchangeRate: process.env.EXCHANGE_RATE_EUR_RON ? Number(process.env.EXCHANGE_RATE_EUR_RON) : undefined,
   };
 }

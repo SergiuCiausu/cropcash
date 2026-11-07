@@ -94,7 +94,11 @@ describe('computeSubsidies — reference test case', () => {
 describe('computeSubsidies — default exchange rate', () => {
   it('uses the configurable default (5.28) while the 2026 rate is unconfirmed', () => {
     const r = computeSubsidies(ion, data);
-    expect(r.rates.FEGA).toEqual({ value: 5.28, isDefault: true });
+    expect(r.rates.FEGA).toEqual({ value: 5.28, confirmed: false });
+  });
+
+  it('an override is not an official rate', () => {
+    expect(computeSubsidies(ion, data, RATE).rates.FEGA).toEqual({ value: 5.28, confirmed: false });
   });
 });
 
@@ -191,11 +195,12 @@ describe('eligibility boundaries', () => {
     expect(pd04.unverified.some((u) => u.field === 'arable_ha' && u.op === '>' && u.value === 30)).toBe(true);
   });
 
-  it('coupled support pays per head', () => {
-    const r = computeSubsidies({ ...ion, dairyCows: 3 }, data, RATE);
-    const cows = r.schemes.find((s) => s.code === 'CPL-VACI-LAPTE')!;
-    expect(cows.units).toBe(3);
-    expect(cows.eur.probable).toBe(3 * 34781);
+  it('disabled schemes (animals, future plan) are ignored entirely', () => {
+    const r = computeSubsidies({ ...ion, dairyCows: 3, beefCattle: 2 }, data, RATE);
+    const codes = [...r.schemes, ...r.notEligible, ...r.excluded].map((s) => s.code);
+    expect(codes).not.toContain('CPL-VACI-LAPTE');
+    expect(codes).not.toContain('CPL-VITA-CARNE');
+    expect(r.totals.eur.probable).toBe(319500);
   });
 
   it('PD-28 is eligible with unproductive land but excluded (no 2026 amount)', () => {

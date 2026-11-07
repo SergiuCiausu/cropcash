@@ -3,6 +3,8 @@ import request from 'supertest';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createApp } from '../../apps/api/src/app';
 import { supabaseFactory } from '../../apps/api/src/db/supabase';
+import { supabaseRepo } from '../../apps/api/src/db/repo';
+import { loadData } from '../../packages/shared/src';
 import { supabaseTokenVerifier } from '../../apps/api/src/middleware/auth';
 
 const url = process.env.SUPABASE_URL!;
@@ -92,7 +94,8 @@ describe('API with real Supabase tokens', () => {
   const app = createApp({
     corsOrigins: ['http://localhost:5173'],
     verifyToken: supabaseTokenVerifier(url),
-    db: supabaseFactory(url, anonKey, serviceKey),
+    repo: supabaseRepo(supabaseFactory(url, anonKey, serviceKey)),
+    data: loadData(),
   });
 
   it('GET /api/me returns only the caller’s farm', async () => {
@@ -103,6 +106,39 @@ describe('API with real Supabase tokens', () => {
     const resB = await request(app).get('/api/me').set('Authorization', `Bearer ${b.token}`);
     expect(resB.status).toBe(200);
     expect(resB.body).toEqual({ userId: b.id, farmer: null });
+  });
+
+  it('onboarding via POST /api/farmers creates farm, parcels and 5 envelopes', async () => {
+    const ion = {
+      name: 'Ion',
+      county: 'TR',
+      age: 55,
+      parcels: [
+        { cropId: 'grau', areaHa: 8 },
+        { cropId: 'porumb', areaHa: 7 },
+      ],
+    };
+    const res = await request(app).post('/api/farmers').set('Authorization', `Bearer ${b.token}`).send(ion);
+    expect(res.status).toBe(201);
+    expect(res.body.subsidies.totals.eur.probable).toBe(319500);
+
+    const envelopes = await b.client.from('envelopes').select('kind, balance_bani');
+    expect(envelopes.data?.map((e) => e.kind).sort()).toEqual(
+      ['pension', 'risk_fund', 'salary', 'spring_inputs', 'debts'].sort(),
+    );
+    const parcels = await b.client.from('parcels').select('crop_id, area_ari');
+    expect(parcels.data).toHaveLength(2);
+
+    const again = await request(app).post('/api/farmers').set('Authorization', `Bearer ${b.token}`).send(ion);
+    expect(again.status).toBe(409);
+
+    const subs = await request(app).get('/api/subsidies').set('Authorization', `Bearer ${b.token}`);
+    expect(subs.body.totals.advanceLei).toBe(1265220);
+  });
+
+  it("onboarding data stays invisible to other users", async () => {
+    const env = await a.client.from('envelopes').select('farmer_id');
+    expect(env.data?.every((e) => e.farmer_id === farmA)).toBe(true);
   });
 
   it('rejects a tampered token', async () => {

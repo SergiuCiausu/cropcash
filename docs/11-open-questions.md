@@ -62,6 +62,7 @@
 - **Durata și echipa:** nu influențează documentația.
 
 - **Test Clocks (C4):** confirmat. Salariile le trimite scheduler-ul nostru, care citește data de pe Test Clock.
+- **Animalele:** scoase din MVP (onboarding și calcul). Schemele cuplate rămân în JSON cu `enabled: false`, ca plan de viitor. Coloanele `dairy_cows` / `beef_cattle` rămân în DB, cu valoarea implicită 0.
 - **Creditul de punte:** varianta A + C. Aplicația spune informativ cât credit îi trebuie și când, fără să numească vreo bancă (A). Fermierul poate introduce și singur un credit pe care îl ia oricum, iar aplicația îl include în plan (C). Riscul legal de intermediere de credit, dacă am numi bănci, e DE-VERIFICAT; de aceea nu numim.
 
 ### Deschise
