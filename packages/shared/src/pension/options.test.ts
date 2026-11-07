@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadData, type AppData } from '../data';
-import { pensionOptions } from './options';
+import { comparisonPaidPath, pensionOptions } from './options';
 
 const data = loadData();
 
@@ -45,5 +45,29 @@ describe('pensionOptions', () => {
     expect(pensionOptions(data, 55)).toMatchObject({ yearsLeft: 10, enoughYearsForMinimum: false });
     expect(pensionOptions(data, 45)).toMatchObject({ yearsLeft: 20, enoughYearsForMinimum: true });
     expect(pensionOptions(data, 70).yearsLeft).toBe(0);
+  });
+});
+
+describe('comparisonPaidPath', () => {
+  const data = loadData();
+  const o = pensionOptions(data, 55);
+
+  it('adds up the Casa de Pensii contract, one point a year to the target age', () => {
+    const path = comparisonPaidPath('contract', 55, 65, o)!;
+    expect(path).toHaveLength(11);
+    expect(path[0]).toEqual({ age: 55, paid: 0 });
+    expect(path.at(-1)).toEqual({ age: 65, paid: o.state.contractMonthly * 12 * 10 });
+    expect(path.every((p) => Number.isSafeInteger(p.paid))).toBe(true);
+  });
+
+  it('adds up the Declarația Unică a year at a time', () => {
+    const path = comparisonPaidPath('declaration', 60, 65, o)!;
+    expect(path.map((p) => p.paid)).toEqual([0, 1, 2, 3, 4, 5].map((y) => o.state.declarationYearly * y));
+  });
+
+  it('draws nothing for Pilonul III, the CEI, or at the target age', () => {
+    expect(comparisonPaidPath('pilon3', 55, 65, o)).toBeNull();
+    expect(comparisonPaidPath('cei', 55, 65, o)).toBeNull();
+    expect(comparisonPaidPath('contract', 65, 65, o)).toBeNull();
   });
 });

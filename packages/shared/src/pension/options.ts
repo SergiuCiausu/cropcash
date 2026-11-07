@@ -80,3 +80,26 @@ export function pensionOptions(data: AppData, age: number): PensionOptions {
     enoughYearsForMinimum: yearsLeft >= minimumYears,
   };
 }
+
+/** What the pension chart can be compared with (pensie.html, "Compară cu"). */
+export type PensionComparison = 'pilon3' | 'contract' | 'declaration' | 'cei';
+export const PENSION_COMPARISONS: readonly PensionComparison[] = ['pilon3', 'contract', 'declaration', 'cei'];
+
+export interface PaidPoint {
+  age: number;
+  /** What the farmer has to pay by this age, in total. */
+  paid: Bani;
+}
+
+/**
+ * How much a Casa de Pensii option costs, added up year by year until the target age, one point a
+ * year like pensionPath. Only the cost: the Casa de Pensii gives pension points, not a sum that
+ * grows, so there is nothing else to draw. Null when there is no line to draw: Pilonul III is the
+ * chart itself, and the CEI has no known yearly amount (open question 20).
+ */
+export function comparisonPaidPath(kind: PensionComparison, age: number, targetAge: number, options: PensionOptions): PaidPoint[] | null {
+  const yearly = kind === 'contract' ? options.state.contractMonthly * 12 : kind === 'declaration' ? options.state.declarationYearly : null;
+  const years = targetAge - age;
+  if (yearly === null || years <= 0) return null;
+  return Array.from({ length: years + 1 }, (_, year) => ({ age: age + year, paid: yearly * year }));
+}

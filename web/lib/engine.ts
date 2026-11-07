@@ -15,7 +15,7 @@ export { activePensionMonthly, farmToday, harvestYear } from '../../packages/sha
 export { todayInRomania } from '../../packages/shared/src/cashflow/dates';
 export { farmChange, farmEdit, farmForPages, harvestsDocument, harvestsFromServer, onboardingHarvests } from './live/farm';
 export { CURRENCIES, ExchangeRatesSchema } from '../../packages/shared/src/currency/index';
-export { pensionOptions, pensionParams, pensionPath, simulatePensionScenarios, suggestSliderPension } from '../../packages/shared/src/pension/index';
+export { comparisonPaidPath, PENSION_COMPARISONS, pensionOptions, pensionParams, pensionPath, simulatePensionScenarios, suggestSliderPension } from '../../packages/shared/src/pension/index';
 export { isFrost, upcomingWeather, weatherAlerts, WeatherForecastSchema } from '../../packages/shared/src/weather/index';
 export { convertText } from './live/money-text';
 export { callsFromServer, eventsFromServer, pageFits, problemsOf, sourcesFromServer } from './live/monitor';

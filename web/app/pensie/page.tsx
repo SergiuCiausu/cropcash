@@ -41,6 +41,18 @@ export default function PensiePage() {
                 <h2>Dacă banii cresc mai încet sau mai repede</h2>
               </div>
               <div className="chips" role="group" aria-label="Cât cresc banii pe an" id="g-pick"></div>
+              {" "}
+              <label className="ob-field pn-compare">
+                {"Compară cu"}
+                <select id="g-compare">
+                  <option value="pilon3">Doar Pilonul III</option>
+                  <option value="contract">Casa de Pensii: contract</option>
+                  <option value="declaration">Casa de Pensii: Declarația Unică</option>
+                  <option value="cei">Cont de economii (CEI)</option>
+                </select>
+              </label>
+              {" "}
+              <p className="note" id="g-cmp-note" aria-live="polite" hidden></p>
               <div className="chart pn-chart" id="g-chart"></div>
               <div id="range"></div>
             </section>

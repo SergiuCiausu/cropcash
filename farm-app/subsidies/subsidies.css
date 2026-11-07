@@ -692,6 +692,10 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
 .pn-chart .c-line { fill: none; stroke: var(--on-hero); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .pn-chart .c-alt { fill: none; stroke: var(--text-2); stroke-width: 1.6; stroke-dasharray: 1 5; stroke-linecap: round; }
 .pn-chart .c-paid { fill: none; stroke: var(--text-2); stroke-opacity: .55; stroke-width: 1.2; }
+/* "Compară cu": what the other way costs, in gold, the color for money to pay. */
+.pn-chart .c-cmp { fill: none; stroke: var(--ink-c); stroke-width: 1.8; stroke-dasharray: 6 4; stroke-linecap: round; }
+.pn-chart .c-lab.cmp { fill: var(--ink-c); font-weight: 600; }
+.pn-compare { max-width: 420px; margin-top: 16px; }
 
 /* The Pilonul III funds, under their row in "De ce nu Casa de Pensii?" */
 #why-not .sums li.pn-funds { display: block; padding: 0 0 6px 14px; border-top: 0; }

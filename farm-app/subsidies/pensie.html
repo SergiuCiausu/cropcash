@@ -35,6 +35,13 @@
       <section class="card s12" id="grow">
         <div class="card-h"><h2>Dacă banii cresc mai încet sau mai repede</h2></div>
         <div class="chips" role="group" aria-label="Cât cresc banii pe an" id="g-pick"></div>
+        <label class="ob-field pn-compare">Compară cu<select id="g-compare">
+          <option value="pilon3">Doar Pilonul III</option>
+          <option value="contract">Casa de Pensii: contract</option>
+          <option value="declaration">Casa de Pensii: Declarația Unică</option>
+          <option value="cei">Cont de economii (CEI)</option>
+        </select></label>
+        <p class="note" id="g-cmp-note" aria-live="polite" hidden></p>
         <div class="chart pn-chart" id="g-chart"></div>
         <div id="range"></div>
       </section>

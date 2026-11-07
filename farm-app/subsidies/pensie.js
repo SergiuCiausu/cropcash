@@ -36,6 +36,12 @@
   const growthName = Object.fromEntries(GROWTH.map((k) => [k, `${P.returnsPct[k]}% pe an`]));
   const chart = PensionChart();
   const monthly = () => monthlyLei * 100;
+  const options = E.pensionOptions(data, CC.FARM.age);
+  /* "Compară cu": another way to save, drawn as what it costs. Remembered in this browser only. */
+  const COMPARE_KEY = 'cropcash-pension-compare';
+  let against = (() => {
+    try { const v = localStorage.getItem(COMPARE_KEY); return E.PENSION_COMPARISONS.includes(v) ? v : 'pilon3'; } catch (e) { return 'pilon3'; }
+  })();
 
   /* ---- The amount at 65 ---- */
   function hero() {
@@ -46,6 +52,8 @@
       el('h-why').textContent = `Pui deoparte în fiecare lună. Simularea e pentru cine are sub ${P.targetAge} de ani, așa că nu arătăm o sumă la final.`;
       el('g-pick').hidden = true;
       el('g-chart').hidden = true;
+      el('g-compare').closest('label').hidden = true;
+      el('g-cmp-note').hidden = true;
       el('range').innerHTML = '<p class="note">Fără simulare, nu avem ce arăta aici.</p>';
       return;
     }
@@ -59,10 +67,35 @@
   /* ---- The chart: one line per growth, the chosen one solid (like the main chart) ---- */
   function growthCard(sim) {
     el('g-pick').innerHTML = GROWTH.map((k) => `<button type="button" class="chip" data-growth="${k}" aria-pressed="${k === growth}">${growthName[k]}</button>`).join('');
-    chart.draw(el('g-chart'), E.pensionPath(CC.FARM.age, monthly(), P), growth, growthName);
+    chart.draw(el('g-chart'), E.pensionPath(CC.FARM.age, monthly(), P), growth, growthName, comparison());
+    compareNote();
     const row = (k) => `<li><span>${k === growth ? '<b>' : ''}Dacă banii cresc cu ${growthName[k]}${k === growth ? '</b>' : ''}</span><b>${about(sim.atTarget[k])} lei</b></li>`;
     el('range').innerHTML = `<ul class="sums">${GROWTH.map(row).join('')}</ul>
       <p class="note">Sus am socotit cu ${growthName.probable}. Nimeni nu știe dinainte cât cresc banii, așa că asta nu e o promisiune. Linia subțire arată cât pui tu.</p>`;
+  }
+
+  /* ---- "Compară cu": the Casa de Pensii costs on the same chart (docs/05 §3) ----
+     Only what the farmer would have to pay is drawn. The Casa de Pensii gives pension points, not a
+     sum that grows, and the CEI has no known yearly amount yet, so neither gets a growth line. */
+  const COMPARE_NAME = { contract: 'Casa de Pensii: contract', declaration: 'Casa de Pensii: Declarația Unică' };
+  function comparison() {
+    const path = E.comparisonPaidPath(against, CC.FARM.age, P.targetAge, options);
+    return path ? { name: COMPARE_NAME[against], short: 'Ai de plătit', path } : null;
+  }
+  function compareNote() {
+    el('g-compare').value = against;
+    const note = el('g-cmp-note');
+    const st = options.state;
+    const years = `Pensia minimă de stat e ${lei(st.minimumPension)} pe lună și cere cel puțin ${st.minimumYears} ani de plăți.${options.enoughYearsForMinimum ? '' : ` Până la ${P.targetAge} de ani mai ai ${options.yearsLeft}.`}`;
+    const points = 'Nu desenăm cât cresc acești bani: Casa de Pensii nu strânge o sumă pe numele tău, îți dă puncte de pensie.';
+    const text = {
+      pilon3: '',
+      contract: `Linia aurie arată cât ai de plătit cu un contract la Casa de Pensii: cel puțin ${lei(st.contractMonthly)} pe lună, din ${date(st.contractFrom, true)}. ${points} ${years}`,
+      declaration: `Linia aurie arată cât ai de plătit prin Declarația Unică: ${lei(st.declarationYearly)} pe an.${st.declarationVerified ? '' : ` ${verify}`} ${points} ${years}`,
+      cei: `Contul de economii pornește din ${date(options.cei.availableFrom, true)}. ${options.cei.ceilingYearly ? `Poți pune până la ${lei(options.cei.ceilingYearly)} pe an.` : `Nu știm încă cât poți pune pe an, așa că nu desenăm nimic. ${verify}`}`,
+    }[against];
+    note.innerHTML = text;
+    note.hidden = !text;
   }
 
   /* ---- The slider, what it does to the salary, and the buttons ---- */
@@ -186,6 +219,12 @@
     onSlide();
   });
   document.addEventListener('change', async (e) => {
+    if (e.target.id === 'g-compare') {
+      against = E.PENSION_COMPARISONS.includes(e.target.value) ? e.target.value : 'pilon3';
+      try { localStorage.setItem(COMPARE_KEY, against); } catch (err) { /* stays for this visit */ }
+      hero();
+      return;
+    }
     if (e.target.id !== 'p-fund') return;
     const before = fundId;
     fundId = e.target.value || null;
