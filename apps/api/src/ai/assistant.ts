@@ -94,7 +94,9 @@ Keep spoken-style answers short: the main figure first, then at most two or thre
 
 function toolSchema(fn: ReadFunction | WriteFunction): Anthropic.Beta.BetaTool.InputSchema {
   const { $schema: _schema, ...schema } = z.toJSONSchema(fn.input, { io: 'input', unrepresentable: 'any' }) as Record<string, unknown>;
-  return { ...schema, type: 'object' } as Anthropic.Beta.BetaTool.InputSchema;
+  // The phone sets clientId on the card, so the model never sees it.
+  const { clientId: _clientId, ...properties } = (schema.properties ?? {}) as Record<string, unknown>;
+  return { ...schema, ...(schema.properties ? { properties } : {}), type: 'object' } as Anthropic.Beta.BetaTool.InputSchema;
 }
 
 /** The tools in registry order, so the request prefix stays the same and caches. */
@@ -127,8 +129,28 @@ const textOf = (content: Anthropic.Beta.BetaContentBlock[]) =>
 const REFUSED = 'Nu pot răspunde la asta. Te pot ajuta cu banii fermei, subvenții, termene și calendar.';
 const TOO_LONG = 'Mi-a luat prea mult să caut. Întreabă-mă ceva mai scurt, de exemplu doar despre o lună sau o cultură.';
 
-export function createAssistant({ client, model }: { client: MessagesClient; model: string }): Assistant {
+export interface Crop {
+  id: string;
+  name_ro: string;
+}
+
+/** Lowercase, without diacritics: "Grâu" and "grau" match. */
+const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
+
+/** A crop the model named instead of giving its id ("grâu" for "grau") gets its id, so the tap isn't refused. */
+function withCropId(input: unknown, crops: Crop[]): unknown {
+  if (!input || typeof input !== 'object' || !('cropId' in input) || typeof input.cropId !== 'string') return input;
+  const named = input.cropId;
+  const crop = crops.find((c) => c.id === named) ?? crops.find((c) => fold(c.name_ro) === fold(named));
+  return crop ? { ...input, cropId: crop.id } : input;
+}
+
+export function createAssistant({ client, model, crops = [] }: { client: MessagesClient; model: string; crops?: Crop[] }): Assistant {
   const { tools, byName } = assistantTools();
+  // The same for a given data file, so the system prompt still caches.
+  const system = crops.length
+    ? `${SYSTEM}\n\nCrop ids for cropId (id = name): ${crops.map((c) => `${c.id} = ${c.name_ro}`).join(', ')}. A farmer's own crop may have another id; list_transactions and get_plan show it.`
+    : SYSTEM;
 
   return async ({ turns, today, runRead }) => {
     const messages: Anthropic.Beta.BetaMessageParam[] = turns.map((t, i) =>
@@ -147,7 +169,7 @@ export function createAssistant({ client, model }: { client: MessagesClient; mod
         // A refused answer is retried on another model by the API. Haiku has no such fallback.
         ...(HAS_FALLBACK.test(model) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
         output_config: { effort: 'medium' },
-        system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
+        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
         tools,
         messages,
       });
@@ -170,13 +192,15 @@ export function createAssistant({ client, model }: { client: MessagesClient; mod
           results.push({ type: 'tool_result', tool_use_id: call.id, content: 'Unknown tool.', is_error: true });
           continue;
         }
-        const parsed = fn.input.safeParse(call.input);
+        const callInput = fn.access === 'read' ? call.input : withCropId(call.input, crops);
+        const parsed = fn.input.safeParse(callInput);
         if (!parsed.success) {
           results.push({ type: 'tool_result', tool_use_id: call.id, content: `Invalid input: ${zodIssues(parsed.error)}`, is_error: true });
           continue;
         }
         if (fn.access !== 'read') {
-          actions.push({ function: fn.name, input: call.input });
+          const { clientId: _clientId, ...input } = callInput as Record<string, unknown>;
+          actions.push({ function: fn.name, input });
           results.push({
             type: 'tool_result',
             tool_use_id: call.id,
@@ -199,6 +223,6 @@ export function createAssistant({ client, model }: { client: MessagesClient; mod
   };
 }
 
-export function createAnthropicAssistant(apiKey: string, model: string): Assistant {
-  return createAssistant({ client: new Anthropic({ apiKey }), model });
+export function createAnthropicAssistant(apiKey: string, model: string, crops: Crop[] = []): Assistant {
+  return createAssistant({ client: new Anthropic({ apiKey }), model, crops });
 }

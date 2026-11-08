@@ -18,6 +18,8 @@ export type CreditInput = z.infer<typeof CreditInputSchema>;
 
 const MAX_RECORD_LEI = 10_000_000;
 const Note = z.string().trim().min(1).max(200).optional();
+/** Set by the phone before the first send, so a sale or expense sent twice is saved once (migration 017). */
+const ClientId = z.uuid().optional();
 
 /** "Înregistrează o vânzare": either the total, or the tonnes and the price. */
 export const SaleInputSchema = z
@@ -29,6 +31,7 @@ export const SaleInputSchema = z
     pricePerKgLei: z.number().positive().max(1_000).optional(),
     harvestYear: HarvestYearSchema.optional(),
     note: Note,
+    clientId: ClientId,
   })
   .refine((s) => (s.totalLei !== undefined) !== (s.tonnes !== undefined && s.pricePerKgLei !== undefined), {
     message: 'a total, or tonnes with a price',
@@ -55,6 +58,7 @@ export const ExpenseInputSchema = z.strictObject({
   /** The envelope it comes out of, when the farmer picks one. */
   envelope: z.enum(ENVELOPE_KINDS as [EnvelopeKind, ...EnvelopeKind[]]).optional(),
   note: Note,
+  clientId: ClientId,
 });
 export type ExpenseInput = z.infer<typeof ExpenseInputSchema>;
 

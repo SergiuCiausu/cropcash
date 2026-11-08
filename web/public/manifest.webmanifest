@@ -1,0 +1,17 @@
+{
+  "name": "CropCash: salariu din recoltă",
+  "short_name": "CropCash",
+  "description": "Salariul lunar și pensia din subvenția și recolta fermei.",
+  "lang": "ro",
+  "start_url": "/acasa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F8F8F3",
+  "theme_color": "#B4E85C",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

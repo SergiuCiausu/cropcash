@@ -310,6 +310,25 @@ describe('API with real Supabase tokens', () => {
     await request(app).delete(`/api/transactions/${expense.body.id}`).set(owner);
   });
 
+  it('a sale or expense sent twice with the same clientId is saved once (migration 017)', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const date = new Date().toISOString().slice(0, 10);
+    const saleId = crypto.randomUUID();
+    const expenseId = crypto.randomUUID();
+    const sale = { cropId: 'grau', date, totalLei: 12, clientId: saleId };
+    const expense = { category: 'diesel', amountLei: 3, date, clientId: expenseId };
+    const [s1, s2] = [await request(app).post('/api/sales').set(owner).send(sale), await request(app).post('/api/sales').set(owner).send(sale)];
+    const [e1, e2] = [await request(app).post('/api/expenses').set(owner).send(expense), await request(app).post('/api/expenses').set(owner).send(expense)];
+    expect([s1.status, s2.status, e1.status, e2.status]).toEqual([201, 201, 201, 201]);
+    expect(s2.body.id).toBe(s1.body.id);
+    expect(e2.body.id).toBe(e1.body.id);
+    const me = await request(app).get('/api/me').set(owner);
+    const ids = me.body.farmer.transactions.map((t: { id: string }) => t.id);
+    expect(ids.filter((id: string) => id === s1.body.id || id === e1.body.id)).toHaveLength(2);
+    await request(app).delete(`/api/transactions/${s1.body.id}`).set(owner);
+    await request(app).delete(`/api/transactions/${e1.body.id}`).set(owner);
+  });
+
   it("onboarding data stays invisible to other users", async () => {
     const env = await a.client.from('envelopes').select('farmer_id');
     expect(env.data?.every((e) => e.farmer_id === farmA)).toBe(true);

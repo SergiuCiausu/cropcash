@@ -123,6 +123,8 @@ export default function install() {
     const Live = isOnline() ? await loadLive().catch(() => null) : null;
     let wrote = false;
     const write = async (name, input = {}) => {
+      /* One id per sale or expense, set before the first try: if the answer is lost and the queue sends it again, the server saves it once. */
+      if ((name === 'record_sale' || name === 'add_expense') && !input.clientId && crypto.randomUUID) input = { ...input, clientId: crypto.randomUUID() };
       /* A record still in the queue is taken back on the phone, with or without internet. */
       if (name === 'undo_transaction' && E.isOutboxId(input.id)) { writeOutbox(outbox().filter((i) => i.id !== input.id)); return {}; }
       if (!Live) { if (E.isQueueable(name)) return queue(name, input); throw offlineError(); }

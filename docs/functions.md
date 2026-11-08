@@ -120,7 +120,7 @@ A `confirm` tool never executes during the AI's turn. It returns a pending actio
 | `get_tight_months` | Tight-months card, Rezerve | scenario | months, lowest point, amount missing | `read` | `phone` | Built |
 | `list_upcoming` | "Ce urmează", calendar tile | days | payments, deadlines and work | `read` | `phone` | Built |
 | `set_salary_target` | Target field | target in lei | new salary and credit need | `confirm` | `outbox` | New |
-| `check_purchase` | "Pot să-mi iau...?", assistant | amount, month, optional | salary after it, tightest month after it | `read` | `phone` | New, step 9c |
+| `check_purchase` | "Pot să-mi iau...?", assistant | amount, month, optional | salary after it, tightest month after it | `read` | `phone` | Built (step 9c) |
 
 **First step:** move the combining code from `useFarmPlan` into `buildFarmPlan` in `packages/shared`. Without it, the AI can't use any function in this section.
 

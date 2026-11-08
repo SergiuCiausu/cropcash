@@ -398,6 +398,21 @@ describe('records, tasks and the farm', () => {
   };
   const auth = { Authorization: 'Bearer good' };
 
+  it("passes the phone's clientId to the database, so a resent record is saved once", async () => {
+    const { app, sales, expenses } = setup();
+    const clientId = '33333333-3333-4333-8333-333333333333';
+    await request(app).post('/api/sales').set(auth).send({ cropId: 'grau', date: '2026-11-02', totalLei: 500, clientId });
+    await request(app).post('/api/expenses').set(auth).send({ category: 'diesel', amountLei: 300, date: '2026-11-02', clientId });
+    expect(sales[0]!.clientId).toBe(clientId);
+    expect(expenses[0]!.clientId).toBe(clientId);
+  });
+
+  it('refuses a clientId that is not a uuid', async () => {
+    const { app } = setup();
+    const res = await request(app).post('/api/sales').set(auth).send({ cropId: 'grau', date: '2026-11-02', totalLei: 500, clientId: 'abc' });
+    expect(res.status).toBe(400);
+  });
+
   it('records a sale from tonnes and price, in whole bani, and proposes a split', async () => {
     const { app, sales } = setup();
     const res = await request(app).post('/api/sales').set(auth).send({ cropId: 'grau', date: '2026-11-02', tonnes: 10, pricePerKgLei: 1.05 });

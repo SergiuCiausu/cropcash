@@ -89,6 +89,16 @@ describe('the assistant loop', () => {
     expect(JSON.stringify(sent[0]!.messages[0])).toContain('Azi este 2026-11-07.');
   });
 
+  it('turns a crop name into its id on a card, and drops a clientId the model made up', async () => {
+    const { client } = scripted(
+      { stop_reason: 'tool_use', content: [toolUse('t1', 'record_sale', { cropId: 'Grâu', date: '2026-11-07', totalLei: 500, clientId: '33333333-3333-4333-8333-333333333333' })] },
+      { content: [text('Verifică cardul.')] },
+    );
+    const crops = [{ id: 'grau', name_ro: 'Grâu' }];
+    const out = await createAssistant({ client, model: 'm', crops })({ turns: [{ role: 'user', text: 'Am vândut grâu de 500 lei' }], today: '2026-11-07', runRead: vi.fn() });
+    expect(out.actions).toEqual([{ function: 'record_sale', input: { cropId: 'grau', date: '2026-11-07', totalLei: 500 } }]);
+  });
+
   it('sends a bad write back as an error instead of a card', async () => {
     const { client, sent } = scripted(
       { stop_reason: 'tool_use', content: [toolUse('t1', 'record_sale', { cropId: 'grau', date: '2026-11-07' })] },

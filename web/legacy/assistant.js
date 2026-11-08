@@ -132,6 +132,8 @@ export default function install() {
   }
 
   function showCard(action) {
+    /* The card's own id: a second tap after an error can't save the sale or expense twice. */
+    if ((action.function === 'record_sale' || action.function === 'add_expense') && crypto.randomUUID) action = { ...action, input: { ...action.input, clientId: crypto.randomUUID() } };
     const c = card(action);
     const el = bubble('card', `<p class="eyebrow">${esc(c.title)}</p><dl>${c.rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
       <div class="ask-acts"><button type="button" class="btn btn-dark" data-ask-yes data-needs-net="Pornește internetul ca să salvezi.">Da, salvează</button><button type="button" class="btn btn-line" data-ask-no>Nu</button></div>`);

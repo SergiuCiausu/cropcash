@@ -2,7 +2,7 @@
 
 What has been built in CropCash, what has been proven, and what is left. Last updated 2026-11-07.
 
-Two parts: **the subsidy monitor** (`subventii-monitor/`, plans in `subventii-plan.md`, terms in `glossary.md`) and **the app** (`farm-app` with `apps/api` and `packages/shared`, see [The app](#the-app)).
+Two parts: **the subsidy monitor** (`subventii-monitor/`, plans in `subventii-plan.md`, terms in `glossary.md`) and **the app** (`web/`, Next.js, with `apps/api` and `packages/shared`, see [The app](#the-app)).
 
 # The subsidy monitor
 
@@ -124,9 +124,9 @@ The first real `npm run monitor` crashed on `assert(!this.paused)` in undici. It
 
 ## Overview
 
-The app is `farm-app`: plain HTML and JS pages, offline-first, on the real API (`apps/api`) and the shared logic (`packages/shared`). `apps/web` (React) was the first interface. It isn't used any more, but stays in place because `netlify.toml` still builds it.
+The app is `web/`: a Next.js static export that wraps the former `farm-app` pages (their scripts are in `web/legacy`), offline-first, on the real API (`apps/api`) and the shared logic (`packages/shared`). `farm-app` and `apps/web` (the first, React interface) were removed on 2026-11-08.
 
-Run it with `npm run dev` (farm-app on :5173, API on :3001). Build it with `npm run build`.
+Run it with `npm run dev` (web on :5173, API on :3001). Build it with `npm run build`.
 
 ## Plan steps (`docs/10-plan.md`)
 
@@ -141,7 +141,7 @@ Run it with `npm run dev` (farm-app on :5173, API on :3001). Build it with `npm 
 | 7 Risk fund and pension | Done. The risk fund is being removed (see below) |
 | 8, 8b, 8c, 8d Forecast, weather, seasons, farmers' own sources | Done |
 | 9 Demo polish | Almost: `seed:demo` works. Still needs `demo:rehearse` to pass 3 times, and a deploy |
-| 9b Offline and install | Offline done (W9). Not installable yet: `farm-app` has no web manifest |
+| 9b Offline and install | Done (2026-11-08): offline from W9, plus a web manifest and icons in `web/public`. Not tried on a real phone yet |
 | 9c, 9d Assistant and its confirm cards | Done (2026-11-08). Conversation kept in the browser, no new tables. Tried with 3 real questions; the 20-question test isn't written |
 | 9e Voice | Dropped (2026-11-08) |
 | 9f Notifications | Messages inside the app only. Nothing pushes to the phone |
@@ -192,10 +192,10 @@ These write to the real Supabase or Stripe:
 
 ## Known limits
 
-- **A sale could be counted twice:** if a queued sale reaches the server but its answer is lost, it's sent again. The API has no idempotency key.
+- **A sale counted twice: fixed in code (2026-11-08), needs migration 017 applied.** The phone gives each sale and expense a `clientId` before the first send, and the server returns the saved row when the same one comes again. Until `npm run db:migrate` applies 017, sales and expenses fail on the real database.
 - **Unit tests don't open the pages,** so page checks are manual until there's an automated smoke test.
-- **The language test** checks only `apps/web`'s `ro.json`, not the farm-app pages.
-- **Hosting isn't planned yet.** A deployed site still shows `apps/web`. Moving farm-app needs a Netlify publish folder, `config.js` from the hosting settings, the live address in `CORS_ORIGINS` and in Supabase's redirect URLs. It also needs the API's domain (open decision 1 in `docs/11-open-questions.md`).
+- **The language test** (`web/lib/language.test.ts`) checks the banned words in `web/` line by line. It doesn't check the assistant's replies, which come from the model.
+- **Hosting isn't done yet.** `netlify.toml` builds `web/` and publishes `web/out`. Still needed: the Netlify site with the `VITE_*` variables, the live address in `CORS_ORIGINS` and in Supabase's redirect URLs, and the API's domain on the VPS (open decision 1 in `docs/11-open-questions.md`).
 
 Tests: 720 passing across the app (48 files), plus 199 in the monitor. Typecheck clean in every workspace.
 

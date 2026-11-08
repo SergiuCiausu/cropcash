@@ -25,6 +25,7 @@ npm run seed:demo    # datele lui Ion (docs/data/demo-ion.json), ceasul la 15 no
 npm run demo:rehearse  # scriptul din 09 §3 de 3 ori, pe Supabase + Stripe reale (~6 min); apoi iar seed:demo
 stripe listen --events payment_intent.succeeded,invoice.paid,payout.paid,payout.failed --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
 npm run test:stripe  # flux cap-coadă pe sandbox-ul Stripe (lent, ~1-2 min)
+npm run test:assistant  # cele 20 de întrebări de test pe Claude-ul real (~20 s, costă bani)
 ```
 
 ## Reguli

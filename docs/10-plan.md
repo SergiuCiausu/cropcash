@@ -64,15 +64,16 @@
 - [ ] **9. Polish UX pentru demo + datele lui Ion** · ~4 h · MINIM
   - **Fișiere:** `scripts/seed-demo.ts`, `ro.json` (revizuire de limbaj), componente.
   - **Gata când:** `npm run seed:demo` reface starea de start în mai puțin de 30 de secunde. Niciun cuvânt interzis în UI (avem un test care caută în `ro.json`). Scriptul din `09-demo-pitch.md` merge de 3 ori la rând. Deploy-ul funcționează: front pe Netlify, API pe VPS-ul RareCloud cu HTTPS (Caddy), webhooks Stripe pe URL-ul public.
-  - **Stare (7 nov 2026):** ✅ `seed:demo` (~20 s, date în `docs/data/demo-ion.json`). ✅ Testul de limbaj (`apps/web/src/i18n/ro.test.ts`: cuvinte interzise + chei `t()` lipsă). ✅ `npm run demo:rehearse` rulează scriptul de 3 ori la rând; pentru asta, salariul e acum fix (scade doar la nevoie) și creditul declarat intră în contul CropCash în demo (P18, P22, migrarea 012); scriptul din 09 §3 are cifrele reale și pensia înainte de salt. ⏳ **Deploy:** fișierele sunt gata (`netlify.toml`, `deploy/`, `docs/12-deploy.md`), lipsesc domeniul API-ului, accesul pe VPS și contul Netlify.
+  - **Stare (7 nov 2026):** ✅ `seed:demo` (~20 s, date în `docs/data/demo-ion.json`). ✅ Testul de limbaj: din 8 nov 2026 e `web/lib/language.test.ts` (cuvintele interzise în `web/app`, `web/legacy`, `web/components`), după ce `apps/web` și `ro.json` au fost scoase. ✅ `npm run demo:rehearse` rulează scriptul de 3 ori la rând; pentru asta, salariul e acum fix (scade doar la nevoie) și creditul declarat intră în contul CropCash în demo (P18, P22, migrarea 012); scriptul din 09 §3 are cifrele reale și pensia înainte de salt. ⏳ **Deploy:** fișierele sunt gata (`netlify.toml`, `deploy/`, `docs/12-deploy.md`), lipsesc domeniul API-ului, accesul pe VPS și contul Netlify.
 
-- [ ] **9b. Offline + instalare pe telefon** · ~4 h · MINIM
+- [x] **9b. Offline + instalare pe telefon** · ~4 h · MINIM
+  - **Făcut (8 nov 2026):** offline-ul era gata din W9 (service worker, outbox, `data-needs-net`). Acum are și `web/public/manifest.webmanifest` (pornește pe `/acasa`, ecran întreg) și iconițele din `web/public/icons/` (192, 512, maskable, Apple), legate în `web/app/layout.tsx` și păstrate offline. **Neverificat pe un telefon real:** instalarea și modul avion trebuie încercate după deploy (pe HTTPS).
   - **Obiectiv:** PWA instalabil, cache pentru aplicație și date, outbox și mesajele „Pornește internetul…” (`07-architecture.md` §8).
   - **Fișiere:** `vite.config.ts` (vite-plugin-pwa), `apps/web/src/offline/*`, `components/NeedsInternet.tsx`, `ro.json`.
   - **Gata când:** cu telefonul în modul avion, aplicația instalată se deschide, arată ultimele date, scenariile se calculează, iar butoanele care cer net arată mesajul. O sarcină bifată offline ajunge pe server când revine netul.
 
 - [x] **9c. Asistentul: răspunsuri din cifrele fermei** · ~6 h · MINIM
-  - **Făcut (2026-11-08):** `apps/api/src/ai/assistant.ts` (bucla cu unelte din registru), `routes/assistant.ts` (`POST /api/assistant`, limită pe zi), `check_purchase` în `packages/shared`, foaia „Întreabă” în `web/legacy/assistant.js` + `web/public/assistant.css`. **Diferență față de plan, aprobată:** conversația stă în browser (sessionStorage), fără tabelele `assistant_threads` și `assistant_messages`, deci fără migrație. Testul cu 20 de întrebări nu e scris încă: au fost verificate 3 întrebări reale (salariu, drujbă, motorină).
+  - **Făcut (2026-11-08):** `apps/api/src/ai/assistant.ts` (bucla cu unelte din registru), `routes/assistant.ts` (`POST /api/assistant`, limită pe zi), `check_purchase` în `packages/shared`, foaia „Întreabă” în `web/legacy/assistant.js` + `web/public/assistant.css`. **Diferență față de plan, aprobată:** conversația stă în browser (sessionStorage), fără tabelele `assistant_threads` și `assistant_messages`, deci fără migrație. Testul cu 20 de întrebări: `npm run test:assistant` (`tests/assistant/`, pe Claude-ul real, ~20 s, costă bani la fiecare rulare). Trece 20/20 pe `claude-sonnet-5-5` (8 nov 2026). A prins două goluri, reparate: numele culturii în loc de id pe card și lipsa unei funcții cu parcelele fermei (`get_farm`).
   - **Obiectiv:** fermierul întreabă în română și primește răspunsuri din funcțiile din registru. AI-ul nu face calcule singur (`docs/functions.md`, secțiunile 14 și „Assistant rules”).
   - **Fișiere:** `apps/api/src/ai/assistant.ts`, `ai/tools.ts`, `routes/assistant.ts`, foaia „Întreabă” în `apps/web`, `check_purchase` în `packages/shared`, `ro.json`, migrația pentru `assistant_threads` și `assistant_messages`.
   - **Gata când:** 20 de întrebări de test trec: cifre corecte, niciun cuvânt interzis, nicio bancă numită, niciun da sau nu la „Pot să-mi iau…?” și „Să vând…?”. Fără net apare mesajul din `<NeedsInternet>`, iar restul aplicației merge fără `ANTHROPIC_API_KEY`.
@@ -111,6 +112,6 @@
 
 **Total MINIM:** ~49 h · **Total cu bonus:** ~83 h
 
-## Interfața nouă: farm-app
+## Interfața: din `apps/web` în `farm-app`, apoi în `web/` (Next.js)
 
-După pașii de mai sus, interfața s-a mutat din `apps/web` în `farm-app`, pas cu pas (W1–W11 în `docs/farm-app-wiring.md`). Din W10, `npm run dev` și `npm run build` pornesc și construiesc `farm-app` cu API-ul. `apps/web` rămâne pe loc, pentru că `netlify.toml` încă îl construiește, dar nu se mai folosește. Deploy-ul pentru `farm-app` vine mai târziu.
+După pașii de mai sus, interfața s-a mutat din `apps/web` în `farm-app`, pas cu pas (W1–W11 în `docs/farm-app-wiring.md`). Pe 8 nov 2026, echipa a mutat paginile `farm-app` într-o aplicație Next.js în `web/` (`docs/web-nextjs-plan.md`), iar `farm-app` și `apps/web` au fost scoase din repo. `npm run dev` și `npm run build` pornesc acum `web/` cu API-ul, iar `netlify.toml` publică `web/out`.

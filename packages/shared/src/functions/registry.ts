@@ -248,6 +248,23 @@ export const whatIfCreditFn = defineRead({
   run: (credit, { plan, farm, data }) => whatIfCredit(plan, farm, data, credit),
 });
 
+/** The farm as the farmer entered it, so the AI can build a what-if from the real parcels. */
+export const getFarm = defineRead({
+  name: 'get_farm',
+  description:
+    "The farm: the farmer's age, each crop with its hectares (areaHa), and the money in the account at the start (bani). Use it before what_if_subsidy, which needs every parcel.",
+  input: NoInput,
+  run: (_input, { farm, data }) => {
+    const { age, parcels } = farmInputFromStored(farm, data.subsidies.meta.campaign_year);
+    const name = (id: string) => data.crops.crops.find((c) => c.id === id)?.name_ro ?? id;
+    return {
+      age,
+      parcels: parcels.map((p) => ({ cropId: p.cropId, crop: name(p.cropId), areaHa: p.areaHa })),
+      startBalance: farm.start_balance_bani,
+    };
+  },
+});
+
 export const CheckPurchaseInputSchema = z.strictObject({
   amount: Amount,
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
@@ -798,6 +815,7 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   listUpcoming,
   suggestCreditFn,
   whatIfCreditFn,
+  getFarm,
   checkPurchaseFn,
   whatIfPensionFn,
   listCredits,

@@ -4,38 +4,35 @@
 
 | Strat | Tehnologie | De ce |
 |---|---|---|
-| Frontend | `farm-app`: pagini HTML + JS simplu, ca PWA. Logica vine din `packages/shared`, împachetată de esbuild în `engine.js` | Fiecare pagină se deschide repede pe un telefon ieftin și merge offline. `apps/web` (React + Vite + Tailwind) a fost prima interfață; nu se mai folosește (`docs/farm-app-wiring.md`). |
+| Frontend | `web/`: Next.js cu export static, ca PWA. Paginile vechi din `farm-app` sunt învelite în rute Next: HTML-ul lor e JSX, iar scripturile lor (`web/legacy/*.js`) pornesc prin `web/lib/boot.ts`. Logica vine din `packages/shared`, importată ca modul | Un singur front-end, servit ca fișiere statice, care merge offline. `farm-app` și `apps/web` (prima interfață, React + Vite) au fost scoase pe 8 nov 2026. |
 | Backend | Node.js + Express + TypeScript | Aceeași limbă ca frontend-ul, așa că logica (subvenții, netezire) e partajată. |
 | DB și auth | Supabase (Postgres) | Auth și Postgres gata făcute, fără ops, cu un tier gratuit suficient pentru demo. |
 | Plăți | Stripe, **doar în test mode** | Connect, payouts, subscriptions și Test Clocks acoperă tot flow-ul banilor (challenge-ul e Stripe). |
 | AI | Claude API + Zod | Asistentul din aplicație și extragere structurată din PDF-uri APIA și din paginile AFIR/MADR, validată strict. |
-| Voce | Recunoașterea și vorbirea din browser, în română | Fără cheie și fără server în plus. De testat pe un telefon ieftin (§11). |
 | Notificări | Web Push din API, prin service worker-ul PWA | Aplicația vorbește prima, fără magazin de aplicații. |
 | Date externe | Open-Meteo, CSV-uri INS în `docs/data/` | Open-Meteo e gratuit și fără cheie doar pentru uz necomercial; aplicațiile cu abonamente intră la uz comercial, deci la lansare trecem pe plan plătit sau pe instanță proprie (`open-meteo-vps-setup.md`). INS nu are un API comod, așa că pregătim datele offline. |
 | Deploy | Netlify (front), **VPS pe RareCloud** (API), Supabase (DB + auth, cloud) | Netlify servește PWA-ul static. Pe VPS rulează un proces Node permanent (webhooks, scheduler, job-uri), sub control complet. |
-| Offline | Service worker-ul din `farm-app/sw.js` + copii în localStorage (fermă, oportunități, outbox) | Aplicația se deschide și arată ultimele date fără net. Detalii în §8. |
+| Offline | Service worker-ul `web/out/sw.js` + copii în localStorage (fermă, oportunități, outbox) | Aplicația se deschide și arată ultimele date fără net. Detalii în §8. |
 | Teste | Vitest | Nativ cu Vite și rapid. Obligatoriu pentru motorul de subvenții și netezire. |
 
 ## 2. Structura de foldere (monorepo cu npm workspaces)
 
 ```
 cropcash/
+├── web/                      Next.js PWA (export static în web/out)
+│   ├── app/                  o rută pe pagină: acasa, subventii, calendar, recolte, prognoza, salariu, pensie, bani, …
+│   ├── legacy/               scripturile paginilor (app.js = cadrul, net, outbox; assistant.js = „Întreabă”)
+│   ├── lib/                  boot.ts, engine.ts, live/ (auth, client API, funcții, outbox, service worker)
+│   ├── styles/, public/      CSS-ul global, manifest, iconițe, imagini
+│   └── scripts/              write-sw.mjs (service worker după build), make-icons.mjs
 ├── apps/
-│   ├── web/                  React PWA
-│   │   └── src/
-│   │       ├── i18n/ro.json  TOATE textele de UI
-│   │       ├── screens/      Onboarding, Bani, Calendar, ImiAjung, DeFacut
-│   │       ├── components/   BigNumber, EnvelopeBar, Timeline, ScenarioToggle, NeedsInternet
-│   │       ├── offline/      starea online/offline, cache persistat, outbox
-│   │       ├── auth/         login Supabase, sesiune
-│   │       └── api/          client fetch către apps/api
 │   └── api/                  Express
 │       └── src/
-│           ├── routes/       farmers, subsidies, plan, envelopes, stripe, webhooks
-│           ├── stripe/       connect, payouts, subscriptions, testClock
-│           ├── jobs/         payoutScheduler, weeklySummary, springGapWarning, deadlineReminders, fundingRadar (Could)
-│           ├── ai/           assistant, tools, pendingActions, pdfExtract, fundingExtract (Claude + Zod)
+│           ├── routes/       farmers, plan, records, functions, assistant, documents, money, sources, weather
+│           ├── stripe/       Connect, payouts, subscriptions, Test Clocks
+│           ├── ai/           assistant (bucla cu unelte), documents (citirea hârtiilor) — Claude + Zod
 │           └── db/           client Supabase, queries
+│   (jobs/ pentru notificări și radarul de fonduri: pasul 9f și 10c, nefăcute)
 ├── packages/
 │   └── shared/               LOGICĂ PURĂ, fără I/O, testată
 │       └── src/
@@ -323,10 +320,9 @@ Fondul pentru ani proști a fost scos pe 7 nov 2026, la cererea echipei. Anul sl
 | POST | `/api/demo/simulate-apia-advance` | plată de test și transfer către contul conectat |
 | POST | `/api/demo/advance` | avansează Test Clock-ul (vezi `08-stripe.md`) |
 | GET | `/api/weather` | prognoza pe 7 zile pentru județul fermei, din Open-Meteo, păstrată 3 ore pe județ |
-| POST | `/api/assistant/messages` | un mesaj către asistent; întoarce răspunsul, sursele și acțiunile de confirmat |
-| POST | `/api/assistant/actions/:id/confirm` | execută o acțiune propusă, după apăsarea fermierului |
-| POST | `/api/assistant/actions/:id/reject` | respinge o acțiune propusă |
-| POST | `/api/notifications/subscriptions` | salvează abonamentul Web Push al telefonului |
+| POST | `/api/assistant` | conversația (doar text) către asistent; întoarce răspunsul, sursele, cifrele neconfirmate și acțiunile de confirmat. Confirmarea e apăsarea fermierului, care trimite ruta obișnuită a funcției (§11) |
+| POST | `/api/functions/:name` | rulează o funcție `read` din registru pe ferma fermierului |
+| POST | `/api/notifications/subscriptions` | (pasul 9f, nefăcut) salvează abonamentul Web Push al telefonului |
 | POST | `/api/webhooks/stripe` | webhooks (platformă și Connect) |
 
 Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Supabase>`. API-ul verifică token-ul și scoate `user_id` din el.
@@ -342,7 +338,7 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 - Dacă se pierde copia de pe telefon, nu se pierde nimic: la următoarea conectare se descarcă din nou din Supabase.
 
 ### Cum funcționează
-1. **Aplicația:** service worker-ul (`farm-app/sw.js`, scris de `npm run build:farm`) pune în cache HTML, JS, CSS, fonturile și **JSON-urile din `docs/data/`**, care sunt incluse în `engine.js`. În `farm-app`, copia fermei, a oportunităților și outbox-ul stau în localStorage, nu în IndexedDB, iar butoanele care cer net au `data-needs-net` în loc de `<NeedsInternet>` (`docs/farm-app-wiring.md`, W9). Punctele 2–4 de mai jos descriu `apps/web`.
+1. **Aplicația:** service worker-ul (`web/out/sw.js`, scris de `npm run build` prin `web/scripts/write-sw.mjs`) pune în cache paginile, JS, CSS, fonturile, manifestul, iconițele și **JSON-urile din `docs/data/`**, incluse în bundle. Copia fermei, a oportunităților și outbox-ul stau în localStorage, nu în IndexedDB, iar butoanele care cer net au `data-needs-net`, oprite de `web/legacy/app.js` (în loc de `<NeedsInternet>`). Punctele 2–4 de mai jos descriu planul inițial cu IndexedDB și TanStack Query; principiile (copie pe telefon, calcule locale, outbox, banii nu intră în coadă) sunt aceleași.
 2. **Datele fermierului:** fiecare răspuns de la API (profil, plăți așteptate, plicuri, tranzacții, plan) e salvat în IndexedDB, cu TanStack Query persistat și `networkMode: 'offlineFirst'`. La deschidere se afișează imediat ultima versiune, apoi se actualizează dacă e net.
 3. **Calculele rulează pe telefon:** motorul de subvenții, netezirea, scenariile și pensia sunt în `packages/shared`, adică funcții pure importate și în frontend. Offline poți schimba scenariul sau slider-ul de pensie și vezi rezultatul imediat.
 4. **Scrierile mărunte** (sarcină „Am făcut”, o intrare la motorină) intră într-o **outbox** în IndexedDB și se trimit automat când revine netul. Există un singur utilizator pe cont, deci nu apar conflicte reale. Regula: câștigă ultima scriere.
@@ -381,14 +377,14 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 - **Verificarea în API:** token-urile Supabase sunt semnate ES256. API-ul le verifică local, cu cheile publice ale proiectului (JWKS, puse în cache de `jose`), fără un apel la Supabase pentru fiecare cerere. Apoi interoghează baza **ca utilizatorul respectiv** (cheia publică + token-ul lui), ca să se aplice RLS. Cheia secretă (`admin()`) e doar pentru webhooks, job-uri și seed.
 - **RLS** e testat pe proiectul real cu `npm run test:integration`: doi utilizatori, izolare la citire și scriere, plus un token falsificat.
 - **Auth:** Supabase Auth cu **email + parolă**. Magic link-ul e incomod în PWA, pentru că linkul se deschide în browser, nu în aplicația instalată. Login-ul cu telefon (SMS OTP) e mai potrivit pentru fermieri, dar cere un furnizor de SMS plătit. E în roadmap.
-- **Pe telefon:** PWA instalabil („Adaugă pe ecranul principal”), cu manifest, iconițe și ecran de pornire. Merge pe Android și iOS fără magazin de aplicații. Dacă vrem în Play Store sau App Store, același cod se împachetează cu Capacitor (vezi open questions).
-- **Contul demo:** `ion@cropcash.demo`, creat de `npm run seed:demo`.
+- **Pe telefon:** PWA instalabil („Adaugă pe ecranul principal”), cu manifest (`web/public/manifest.webmanifest`, pornește pe `/acasa`) și iconițe (`web/public/icons/`, făcute de `web/scripts/make-icons.mjs`). Merge pe Android și iOS fără magazin de aplicații. Dacă vrem în Play Store sau App Store, același cod se împachetează cu Capacitor (vezi open questions).
+- **Contul demo:** `DEMO_EMAIL` din `.env` (`ion@cropcash.test` în `.env.example`), creat de `npm run seed:demo`.
 
 ## 10. Deploy
 
 | Componentă | Unde | Detalii |
 |---|---|---|
-| Frontend (PWA) | Netlify | build din `apps/web`, SPA fallback (`/* /index.html 200`), variabile `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL` |
+| Frontend (PWA) | Netlify | build din `web/` (Next.js, export static în `web/out`, câte un `.html` pe pagină, fără SPA fallback), variabile `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL`, `VITE_DEMO_MODE` |
 | API | VPS RareCloud | Node 20+ sub `pm2` (sau Docker), **Caddy** ca reverse proxy cu HTTPS automat (Let's Encrypt), pe un (sub)domeniu, de exemplu `api.cropcash.ro` |
 | DB + Auth | Supabase cloud | migrațiile din `supabase/migrations/` |
 
@@ -398,19 +394,15 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 
 ## 11. Asistentul, vocea și notificările
 
-Intră în demo din decizia din 7 noiembrie 2026, ca pașii 9c–9e din `10-plan.md`. Notificările sunt pasul 9f. Detaliile sunt în `docs/functions.md`, secțiunile 14, 16 și 17.
+Asistentul (pașii 9c–9d) e făcut. Vocea (9e) a fost scoasă pe 8 noiembrie 2026. Notificările sunt pasul 9f. Detaliile sunt în `docs/functions.md`, secțiunile 14 și 17.
 
-**Asistentul**
-- Rulează pe API, cu modelul din `ANTHROPIC_MODEL`. Fără `ANTHROPIC_API_KEY`, doar asistentul e oprit.
+**Asistentul** (`apps/api/src/ai/assistant.ts`, `routes/assistant.ts`, foaia `web/legacy/assistant.js`)
+- Rulează pe API, cu modelul din `ANTHROPIC_MODEL` (implicit `claude-sonnet-5-5`). Fără `ANTHROPIC_API_KEY`, doar asistentul și citirea hârtiilor sunt oprite (503).
 - Uneltele vin din registrul de funcții, așa că butoanele și AI-ul dau aceleași cifre. AI-ul nu face calcule singur.
-- O funcție `read` rulează direct. O funcție `confirm` devine o acțiune în așteptare, păstrată pe server, și se execută doar după apăsarea fermierului. O funcție `user` nu e unealtă.
+- O funcție `read` rulează direct, pe planul fermierului. O funcție `confirm` din lista permisă (`ASSISTANT_WRITES`) nu rulează: asistentul întoarce funcția și valorile, validate cu schema Zod, iar foaia arată un card. Apăsarea „Da, salvează” trimite aceeași cerere ca butonul din aplicație (`Live.write`), cu token-ul fermierului. O funcție `user` nu e unealtă. Pensia (Stripe) nu e în listă.
+- **Decizie (8 nov 2026):** conversația stă în browser (sessionStorage) și ajunge la API doar ca text, la fiecare mesaj. Nu există tabelele `assistant_threads`, `assistant_messages` și `pending_actions`: nimic nu se execută pe server fără cererea normală a fermierului.
 - Textul din pagini, PDF-uri și mesaje e date, nu instrucțiuni.
-- Uneltele rulează cu token-ul fermierului, deci RLS se aplică și aici.
-
-**Vocea**
-- E doar altă cale spre asistent, cu aceleași reguli. Audio nu se păstrează, iar la API ajunge doar textul.
-- Fermierul vede ce a înțeles aplicația înainte de trimitere. Vorbirea nu confirmă niciodată o scriere.
-- Riscul principal e recunoașterea românei pe un telefon ieftin, cu semnal slab. De aceea, pasul 9e începe cu un test. Dacă pică, un serviciu pe server e o schimbare de arhitectură și întrebăm înainte.
+- Uneltele rulează cu token-ul fermierului, deci RLS se aplică și aici. Limită pe zi pentru fiecare fermier (`ASSISTANT_DAILY_LIMIT`, în memorie).
 
 **Notificările**
 - Job-urile rulează pe VPS, lângă `payoutScheduler`.

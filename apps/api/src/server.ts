@@ -67,7 +67,7 @@ const app = createApp({
   sources,
   readDocument: env.anthropicApiKey ? createDocumentReader(env.anthropicApiKey, data) : undefined,
   money,
-  assistant: env.anthropicApiKey ? createAnthropicAssistant(env.anthropicApiKey, env.anthropicModel) : undefined,
+  assistant: env.anthropicApiKey ? createAnthropicAssistant(env.anthropicApiKey, env.anthropicModel, data.crops.crops) : undefined,
   assistantDailyLimit: env.assistantDailyLimit,
 });
 

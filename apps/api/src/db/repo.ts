@@ -27,6 +27,8 @@ export interface NewSale {
   cropId: string;
   harvestYear?: number;
   note?: string;
+  /** The phone's id for this record: the same one sent again returns the saved row. */
+  clientId?: string;
 }
 
 export interface NewExpense {
@@ -37,6 +39,7 @@ export interface NewExpense {
   harvestYear?: number;
   note?: string;
   envelope?: EnvelopeKind;
+  clientId?: string;
 }
 
 export class RepoError extends Error {
@@ -179,9 +182,16 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
           crop_id: s.cropId,
           harvest_year: s.harvestYear ?? null,
           note: s.note ?? null,
+          client_id: s.clientId ?? null,
         })
         .select('id')
         .single();
+      // Sent before (the answer was lost): return the row already saved.
+      if (error?.code === '23505' && s.clientId) {
+        const again = await db.forUser(token).from('transactions').select('id').eq('client_id', s.clientId).single();
+        if (again.error) throw new RepoError('db_error', again.error.message);
+        return again.data.id as string;
+      }
       if (error) throw new RepoError('db_error', error.message);
       return data.id as string;
     },
@@ -195,6 +205,7 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
         p_note: e.note ?? null,
         p_envelope: e.envelope ?? null,
         p_harvest_year: e.harvestYear ?? null,
+        p_client_id: e.clientId ?? null,
       });
       if (error) throw new RepoError(error.code === 'P0002' ? 'not_found' : 'db_error', error.message);
       return data as string;

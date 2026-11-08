@@ -51,7 +51,7 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
       return;
     }
     const amountBani = saleAmountBani(sale);
-    const id = await repo.addSale(token, farm.id, { amountBani, date: sale.date, cropId: sale.cropId, harvestYear: sale.harvestYear, note: sale.note });
+    const id = await repo.addSale(token, farm.id, { amountBani, date: sale.date, cropId: sale.cropId, harvestYear: sale.harvestYear, note: sale.note, clientId: sale.clientId });
     const plan = await planFor(token);
     res.status(201).json({ id, split: plan && proposeSplit(plan, amountBani, true).split });
   });
@@ -86,6 +86,7 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
         cropId: expense.cropId,
         note: expense.note,
         envelope: expense.envelope,
+        clientId: expense.clientId,
       });
       const plan = await planFor(token);
       res.status(201).json({ id, salary: plan?.salary.salary ?? null });
