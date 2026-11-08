@@ -31,6 +31,8 @@ const MODULES: Record<string, Install> = {
   surse: () => import('../legacy/surse.js'),
   landing: () => import('../legacy/landing.js'),
 };
+/* "Întreabă" sits on every page with the app frame, except onboarding, which has no farm yet. */
+const assistant = () => import('../legacy/assistant.js');
 /* Files the old pages loaded that are now modules set up here. */
 const PROVIDED = new Set(['config', 'live', 'engine', 'react', 'recharts', 'inline']);
 
@@ -91,4 +93,5 @@ export async function boot(scripts: string[], { palette, variant, globals }: { p
     if (!load) throw new Error(`No ported module for ${key}`);
     (await load()).default();
   }
+  if (scripts.includes('app') && !scripts.includes('onboarding')) (await assistant()).default();
 }

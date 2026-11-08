@@ -71,18 +71,20 @@
   - **Fișiere:** `vite.config.ts` (vite-plugin-pwa), `apps/web/src/offline/*`, `components/NeedsInternet.tsx`, `ro.json`.
   - **Gata când:** cu telefonul în modul avion, aplicația instalată se deschide, arată ultimele date, scenariile se calculează, iar butoanele care cer net arată mesajul. O sarcină bifată offline ajunge pe server când revine netul.
 
-- [ ] **9c. Asistentul: răspunsuri din cifrele fermei** · ~6 h · MINIM
+- [x] **9c. Asistentul: răspunsuri din cifrele fermei** · ~6 h · MINIM
+  - **Făcut (2026-11-08):** `apps/api/src/ai/assistant.ts` (bucla cu unelte din registru), `routes/assistant.ts` (`POST /api/assistant`, limită pe zi), `check_purchase` în `packages/shared`, foaia „Întreabă” în `web/legacy/assistant.js` + `web/public/assistant.css`. **Diferență față de plan, aprobată:** conversația stă în browser (sessionStorage), fără tabelele `assistant_threads` și `assistant_messages`, deci fără migrație. Testul cu 20 de întrebări nu e scris încă: au fost verificate 3 întrebări reale (salariu, drujbă, motorină).
   - **Obiectiv:** fermierul întreabă în română și primește răspunsuri din funcțiile din registru. AI-ul nu face calcule singur (`docs/functions.md`, secțiunile 14 și „Assistant rules”).
   - **Fișiere:** `apps/api/src/ai/assistant.ts`, `ai/tools.ts`, `routes/assistant.ts`, foaia „Întreabă” în `apps/web`, `check_purchase` în `packages/shared`, `ro.json`, migrația pentru `assistant_threads` și `assistant_messages`.
   - **Gata când:** 20 de întrebări de test trec: cifre corecte, niciun cuvânt interzis, nicio bancă numită, niciun da sau nu la „Pot să-mi iau…?” și „Să vând…?”. Fără net apare mesajul din `<NeedsInternet>`, iar restul aplicației merge fără `ANTHROPIC_API_KEY`.
 
-- [ ] **9d. Asistentul: carduri de confirmare** · ~3 h · MINIM
+- [x] **9d. Asistentul: carduri de confirmare** · ~3 h · MINIM
+  - **Făcut (2026-11-08), fără `pending_actions`:** asistentul întoarce funcția și valorile, validate cu aceeași schemă Zod. Cardul arată valorile exacte, iar „Da, salvează” trimite aceeași cerere ca butonul din aplicație (`Live.write`), cu tokenul fermierului. Poate propune doar: `record_sale`, `add_expense`, `complete_task`, `reopen_task`, `add_credit`, `follow_opportunity`. Pensia (Stripe) rămâne doar pe ecranul ei.
   - **Obiectiv:** o vânzare sau o cheltuială spusă asistentului devine un card cu valorile exacte, iar fermierul apasă ca să salveze.
   - **Fișiere:** `apps/api/src/ai/pendingActions.ts`, cardul din foaia „Întreabă”, migrația pentru `pending_actions`.
   - **Depinde de:** ecranele F4 (`docs/f4-screens.md`), pentru „Anulează” și Activitate, și de migrațiile aplicate pe Supabase.
   - **Gata când:** o pagină cu instrucțiuni false nu poate provoca o scriere. Orice scriere cere o apăsare. Acțiunea se execută o singură dată.
 
-- [ ] **9e. Vocea** · ~5 h · MINIM
+- [ ] ~~**9e. Vocea**~~ · **ANULAT (2026-11-08), la cererea echipei.** Rămâne doar asistentul scris. Detaliile de mai jos sunt păstrate pentru istoric.
   - **Obiectiv:** Ion vorbește cu aplicația și o aude (`docs/functions.md` §16). Butonul de microfon e pe fiecare tab și deschide foaia „Întreabă”.
   - **Fișiere:** `components/VoiceButton.tsx`, `lib/speech.ts`, `parse_onboarding_answer` pentru O2–O5, `ro.json`.
   - **Se începe cu testul:** 20 de fraze reale pe un Android ieftin, cu semnal slab și zgomot, inclusiv sume spuse pe litere. Dacă recunoașterea din browser nu trece, ne oprim și întrebăm înainte să alegem un serviciu pe server.

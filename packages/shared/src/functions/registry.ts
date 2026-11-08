@@ -32,7 +32,7 @@ import { defineRead, defineWrite, type ReadContext, type ReadFunction, type Writ
 import { explainSalary, explainSubsidy } from './explain';
 import { planView, proposeSplit } from './plan';
 import { tasksForFarm } from './tasks';
-import { whatIfCredit, whatIfPension, whatIfSubsidy } from './whatIf';
+import { checkPurchase, whatIfCredit, whatIfPension, whatIfSubsidy } from './whatIf';
 import {
   closingSoonRows,
   filterOpportunities,
@@ -246,6 +246,19 @@ export const whatIfCreditFn = defineRead({
   description: 'What the salary would be with a credit, and whether it fits the APIA certificate limit and date. Saves nothing.',
   input: CreditInputSchema,
   run: (credit, { plan, farm, data }) => whatIfCredit(plan, farm, data, credit),
+});
+
+export const CheckPurchaseInputSchema = z.strictObject({
+  amount: Amount,
+  month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
+});
+
+export const checkPurchaseFn = defineRead({
+  name: 'check_purchase',
+  description:
+    'Information only, for "Pot să-mi iau…?": the monthly salary and the lowest month before and after one purchase (amount in bani) paid in a month (YYYY-MM, default this month). Null for a month outside the next 12. Never a yes or no.',
+  input: CheckPurchaseInputSchema,
+  run: ({ amount, month }, { plan, farm, data }) => checkPurchase(plan, farm, data, amount, month),
 });
 
 export const listCredits = defineRead({
@@ -785,6 +798,7 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   listUpcoming,
   suggestCreditFn,
   whatIfCreditFn,
+  checkPurchaseFn,
   whatIfPensionFn,
   listCredits,
   addCredit,

@@ -361,7 +361,9 @@ BNR isn't the source because its old feed address, `bnr.ro/nbrfxrates.xml`, now 
 
 ## 16. Voice
 
-Part of the demo minimum (decision from 2026-11-07). 36 of the 50 use cases are spoken. There are no new functions, because voice is only another way to reach `ask_assistant` and `parse_onboarding_answer`.
+**Dropped on 2026-11-08 at the team's request.** The assistant is text only. The plan below is kept for reference.
+
+Was part of the demo minimum (decision from 2026-11-07). 36 of the 50 use cases are spoken. There are no new functions, because voice is only another way to reach `ask_assistant` and `parse_onboarding_answer`.
 
 | Part | Plan | Fallback |
 |---|---|---|

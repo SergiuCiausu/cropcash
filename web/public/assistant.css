@@ -1,0 +1,52 @@
+/* "Întreabă": the assistant button and sheet (web/legacy/assistant.js). Its own file, like notifications.css. */
+.ask-fab { position: fixed; z-index: 45; right: max(16px, env(safe-area-inset-right)); bottom: var(--ask-bottom, 20px); display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 20px 0 16px; border: 0; border-radius: 999px; background: #1A1A1A; color: #FAF9F7; font: inherit; font-size: 16px; font-weight: 500; box-shadow: 0 8px 24px rgba(20, 32, 26, .22); cursor: pointer; transition: transform 140ms var(--ease-out, ease); }
+.ask-fab:active { transform: scale(.97); }
+.ask-fab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.ask-fab:focus-visible { outline: 3px solid var(--a, #5BA52A); outline-offset: 3px; }
+
+dialog.ask-sheet { width: min(560px, calc(100vw - 16px)); height: min(720px, calc(100dvh - 32px)); max-height: none; padding: 0; border: 0; border-radius: 20px; background: var(--surface, #fff); color: var(--text-1, #18201C); box-shadow: 0 16px 48px rgba(20, 32, 26, .24); }
+dialog.ask-sheet[open] { display: flex; flex-direction: column; }
+dialog.ask-sheet::backdrop { background: rgba(20, 32, 26, .4); }
+@media (max-width: 760px) {
+  dialog.ask-sheet { width: 100vw; max-width: 100vw; height: calc(100dvh - 24px); margin: auto 0 0; border-radius: 20px 20px 0 0; }
+}
+
+.ask-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 12px 20px; border-bottom: 1px solid var(--hair, rgba(20, 32, 26, .1)); }
+.ask-head h2 { margin: 0; font-size: 20px; }
+.ask-close { width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
+.ask-close:hover { background: var(--hair, rgba(20, 32, 26, .1)); }
+
+.ask-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; overscroll-behavior: contain; }
+.ask-msg { max-width: 88%; padding: 10px 14px; border-radius: 16px; font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+.ask-msg p { margin: 0; }
+.ask-msg p + p, .ask-msg ul + p, .ask-msg p + ul { margin-top: 6px; }
+.ask-msg ul { margin: 6px 0 0; padding-left: 20px; }
+.ask-msg.me { align-self: flex-end; background: #1A1A1A; color: #FAF9F7; border-bottom-right-radius: 4px; }
+.ask-msg.ai { align-self: flex-start; background: var(--tint-a, #E9F7D3); border-bottom-left-radius: 4px; }
+.ask-msg.wait { opacity: .7; }
+.ask-msg.err { align-self: flex-start; background: #FDECEA; color: #8A1C12; }
+.ask-msg.card { align-self: stretch; max-width: none; padding: 14px 16px; border: 2px solid var(--hair-2, rgba(20, 32, 26, .18)); background: var(--surface, #fff); }
+.ask-msg.card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 8px 0 0; }
+.ask-msg.card dt { color: var(--text-2, #36423B); }
+.ask-msg.card dd { margin: 0; font-weight: 600; }
+.ask-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ask-acts .btn { min-height: 48px; padding: 0 20px; font-size: 16px; }
+.ask-done { margin-top: 10px !important; font-weight: 600; }
+.ask-done.muted { font-weight: 400; color: var(--text-2, #36423B); }
+.ask-note { margin-top: 8px !important; font-size: 13.5px; color: var(--text-2, #36423B); }
+.ask-note a { color: inherit; }
+
+.ask-empty { margin: auto 0; display: grid; gap: 14px; justify-items: start; font-size: 16px; line-height: 1.45; }
+.ask-empty p { margin: 0; }
+.ask-chips { display: grid; gap: 8px; width: 100%; }
+.ask-chip { min-height: 48px; padding: 10px 14px; border: 1px solid var(--hair-2, rgba(20, 32, 26, .18)); border-radius: 14px; background: var(--surface, #fff); color: inherit; font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.ask-chip:hover { background: var(--tint-a, #E9F7D3); }
+
+.ask-form { display: flex; align-items: flex-end; gap: 8px; padding: 12px 16px 8px; border-top: 1px solid var(--hair, rgba(20, 32, 26, .1)); }
+.ask-form[hidden] { display: none; }
+.ask-form textarea { flex: 1; min-height: 52px; max-height: 140px; padding: 12px 14px; border: 1px solid var(--hair-2, rgba(20, 32, 26, .18)); border-radius: 14px; font: inherit; font-size: 16px; resize: vertical; background: var(--surface, #fff); color: inherit; }
+.ask-form .btn { min-height: 52px; padding: 0 18px; font-size: 16px; }
+.ask-form .net-why { flex-basis: 100%; }
+.ask-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.ask-foot { margin: 0; padding: 0 16px calc(12px + var(--safe-b, 0px)); font-size: 12.5px; color: var(--text-2, #36423B); }
+.ask-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }

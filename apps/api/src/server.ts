@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { loadData } from '@cropcash/shared';
 import { cleanSourceUrl, pageFields, pageReader } from 'subventii-monitor/pages';
 import { createDocumentReader } from './ai/documents';
+import { createAnthropicAssistant } from './ai/assistant';
 import { createApp } from './app';
 import { supabaseRepo } from './db/repo';
 import { supabaseAdminRepo } from './db/admin';
@@ -66,6 +67,8 @@ const app = createApp({
   sources,
   readDocument: env.anthropicApiKey ? createDocumentReader(env.anthropicApiKey, data) : undefined,
   money,
+  assistant: env.anthropicApiKey ? createAnthropicAssistant(env.anthropicApiKey, env.anthropicModel) : undefined,
+  assistantDailyLimit: env.assistantDailyLimit,
 });
 
 app.listen(env.port, () => {

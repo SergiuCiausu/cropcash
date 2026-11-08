@@ -73,6 +73,49 @@ export function whatIfCredit(plan: FarmPlan, farm: StoredFarm, data: AppData, cr
 }
 
 /**
+ * "Pot să-mi iau…?": the salary and the lowest month with one purchase paid in `month`.
+ * Shows the effect only, never a yes or no. Null for a month outside the plan's 12 months.
+ * The purchase goes in as a planned outflow with no group, so it can't look like a declared credit.
+ */
+export function checkPurchase(plan: FarmPlan, farm: StoredFarm, data: AppData, amount: Bani, month?: MonthKey) {
+  const t = plan.timelines.medium;
+  const first = t.months[0]!.key;
+  const key = month ?? first;
+  if (!t.months.some((m) => m.key === key)) return null;
+  const withPurchase = buildFarmPlan(
+    {
+      ...farm,
+      expected_payments: [
+        ...(farm.expected_payments ?? []),
+        {
+          id: 'what-if-purchase',
+          group_id: null,
+          kind: 'loan_repayment',
+          direction: 'out',
+          amount_probable_bani: amount,
+          window_start: `${key}-01`,
+          status: 'planned',
+        },
+      ],
+    },
+    data,
+    { month: first, params: plan.subsidyParams },
+  );
+  const after = withPurchase.timelines.medium;
+  return {
+    amount,
+    month: key,
+    salaryBefore: plan.salary.salary,
+    salaryAfter: withPurchase.salary.salary,
+    limitingMonth: withPurchase.salary.bindingMonth,
+    lowestBefore: t.lowest,
+    lowestAfter: after.lowest,
+    /** True when the lowest point drops below zero only because of the purchase. */
+    goesShort: t.lowest.balance >= 0 && after.lowest.balance < 0,
+  };
+}
+
+/**
  * The salary with another monthly pension, built the way a started one would be, so the screen and
  * the payout can't disagree. 0 means no pension. Pension money comes out of the salary.
  */

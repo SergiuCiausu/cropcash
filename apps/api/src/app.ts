@@ -7,6 +7,8 @@ import type { MonitorReader } from './monitor/reader';
 import { opportunitiesRouter } from './routes/opportunities';
 import { exchangeRatesProvider, type RatesProvider } from './fx/rates';
 import type { DocumentReader } from './ai/documents';
+import type { Assistant } from './ai/assistant';
+import { assistantRouter } from './routes/assistant';
 import { documentsRouter } from './routes/documents';
 import { farmersRouter } from './routes/farmers';
 import { functionsRouter } from './routes/functions';
@@ -37,6 +39,10 @@ export interface AppDeps {
   readDocument?: DocumentReader;
   /** The Stripe flow. Without it, the routes that move money don't exist. */
   money?: MoneyDeps;
+  /** The "Întreabă" assistant. Without it, that route answers 503. */
+  assistant?: Assistant;
+  /** Assistant messages per farmer per day. */
+  assistantDailyLimit?: number;
 }
 
 export function createApp({
@@ -52,7 +58,10 @@ export function createApp({
   sources,
   readDocument,
   money,
+  assistant,
+  assistantDailyLimit = 40,
 }: AppDeps) {
+  const reads = { repo, data, params: subsidyParams, now, getRates, monitor };
   const app = express();
   app.set('trust proxy', 'loopback');
 
@@ -75,7 +84,8 @@ export function createApp({
   app.use('/api', farmersRouter(repo, data, subsidyParams));
   app.use('/api', planRouter(repo, data));
   app.use('/api', recordsRouter(repo, data, subsidyParams, now));
-  app.use('/api', functionsRouter(repo, data, subsidyParams, now, getRates, monitor));
+  app.use('/api', functionsRouter(reads));
+  app.use('/api', assistantRouter(reads, assistant, assistantDailyLimit));
   app.use('/api', opportunitiesRouter(repo));
   app.use('/api', weatherRouter(repo, weather));
   if (money) app.use('/api', moneyRouter(money));

@@ -142,8 +142,8 @@ Run it with `npm run dev` (farm-app on :5173, API on :3001). Build it with `npm 
 | 8, 8b, 8c, 8d Forecast, weather, seasons, farmers' own sources | Done |
 | 9 Demo polish | Almost: `seed:demo` works. Still needs `demo:rehearse` to pass 3 times, and a deploy |
 | 9b Offline and install | Offline done (W9). Not installable yet: `farm-app` has no web manifest |
-| 9c, 9d Assistant and its confirm cards | Not started |
-| 9e Voice | Not started |
+| 9c, 9d Assistant and its confirm cards | Done (2026-11-08). Conversation kept in the browser, no new tables. Tried with 3 real questions; the 20-question test isn't written |
+| 9e Voice | Dropped (2026-11-08) |
 | 9f Notifications | Messages inside the app only. Nothing pushes to the phone |
 | 10, 11 Extras and use-case gaps | Not started. W11 covers part of the APIA paper reading |
 

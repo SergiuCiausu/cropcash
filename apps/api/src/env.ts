@@ -17,8 +17,12 @@ export interface Env {
   /** Both unset turns the money flow off. A live key is refused at startup. */
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
-  /** Unset turns off reading uploaded papers. */
+  /** Unset turns off reading uploaded papers and the assistant. The .env.example placeholder counts as unset. */
   anthropicApiKey?: string;
+  /** The assistant's model (ANTHROPIC_MODEL). */
+  anthropicModel: string;
+  /** Assistant messages per farmer per day (ASSISTANT_DAILY_LIMIT). */
+  assistantDailyLimit: number;
   /** Goes in the User-Agent when reading a farmer's source, so a site can reach us. */
   contactEmail?: string;
   /** Enables /api/demo/* (simulated APIA payment, advancing the demo clock). */
@@ -39,7 +43,9 @@ export function loadEnv(): Env {
     openMeteoApiKey: process.env.OPEN_METEO_API_KEY || undefined,
     stripeSecretKey: process.env.STRIPE_SECRET_KEY || undefined,
     stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || undefined,
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || undefined,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'sk-ant-xxx' ? process.env.ANTHROPIC_API_KEY : undefined,
+    anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-5-5',
+    assistantDailyLimit: Number(process.env.ASSISTANT_DAILY_LIMIT) > 0 ? Number(process.env.ASSISTANT_DAILY_LIMIT) : 40,
     contactEmail: process.env.CONTACT_EMAIL?.trim() || undefined,
     demoMode: process.env.DEMO_MODE === 'true',
   };
