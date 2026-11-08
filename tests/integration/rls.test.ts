@@ -180,13 +180,14 @@ describe('API with real Supabase tokens', () => {
 
   it('envelopes: split saved; more than the money on hand is refused by the database', async () => {
     const auth = { Authorization: `Bearer ${b.token}` };
-    const ok = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
+    const ok = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, pension: 0 };
     expect((await request(app).put('/api/envelopes').set(auth).send(ok)).status).toBe(204);
     const me = await request(app).get('/api/me').set(auth);
     const salary = me.body.farmer.envelopes.find((e: { kind: string }) => e.kind === 'salary');
     expect(salary.balance_bani).toBe(65_000);
 
-    const tooMuch = { ...ok, risk_fund: 1 };
+    // risk_fund (the bad-year fund) is gone and is ignored, so the extra leu goes to a real envelope.
+    const tooMuch = { ...ok, debts: 1 };
     const res = await request(app).put('/api/envelopes').set(auth).send(tooMuch);
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('too_much');
@@ -194,10 +195,10 @@ describe('API with real Supabase tokens', () => {
 
   it('sale: raises the money the envelopes may use; undo takes it back', async () => {
     const auth = { Authorization: `Bearer ${b.token}` };
-    const full = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, risk_fund: 0, pension: 0 };
+    const full = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, pension: 0 };
     const sale = await request(app).post('/api/sales').set(auth).send({ cropId: 'grau', date: '2026-10-01', totalLei: 1000 });
     expect(sale.status).toBe(201);
-    const more = { ...full, risk_fund: 100_000 };
+    const more = { ...full, debts: 100_000 };
     expect((await request(app).put('/api/envelopes').set(auth).send(more)).status).toBe(204);
     await request(app).put('/api/envelopes').set(auth).send(full);
     expect((await request(app).delete(`/api/transactions/${sale.body.id}`).set(auth)).status).toBe(204);
@@ -252,7 +253,8 @@ describe('API with real Supabase tokens', () => {
     const ok = await request(app).put('/api/farmers/me').set(auth).send({ ...edit, startBalanceLei: 35_000 });
     expect(ok.status).toBe(200);
     const me = await request(app).get('/api/me').set(auth);
-    expect(me.body.farmer.parcels).toEqual([{ crop_id: 'porumb', area_ari: 1500, is_arable: true }]);
+    // planted_month came with migration 014.
+    expect(me.body.farmer.parcels).toEqual([expect.objectContaining({ crop_id: 'porumb', area_ari: 1500, is_arable: true })]);
     const low = await request(app).put('/api/farmers/me').set(auth).send({ ...edit, startBalanceLei: 1 });
     expect(low.body.error).toBe('too_much');
     const after = await request(app).get('/api/me').set(auth);
