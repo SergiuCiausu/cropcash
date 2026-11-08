@@ -1,4 +1,4 @@
-/* The farm app in Next.js. Pages are ported from farm-app/ and the landing page (web/scripts/port-legacy.mjs). */
+/* The farm app in Next.js. Pages were ported from farm-app/, the landing page from landing-variations/10-harvest.html. */
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 

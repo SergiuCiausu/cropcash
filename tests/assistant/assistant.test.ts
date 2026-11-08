@@ -7,8 +7,8 @@
  *   npm run test:assistant
  */
 import { describe, expect, it } from 'vitest';
-import { buildFarmPlan, findRead, loadData, type StoredFarm } from '../../packages/shared/src';
-import { createAnthropicAssistant, type AssistantReply } from '../../apps/api/src/ai/assistant';
+import { buildFarmPlan, findRead, loadData, parseCard, type CardType, type StoredFarm } from '../../packages/shared/src';
+import { MAX_CARDS, createAnthropicAssistant, type AssistantReply } from '../../apps/api/src/ai/assistant';
 
 const key = process.env.ANTHROPIC_API_KEY;
 const model = process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-5-5';
@@ -51,24 +51,26 @@ interface Case {
   tools?: string[];
   /** The card it must prepare, or [] for none. */
   actions?: { function: string; input?: Record<string, unknown> }[];
+  /** At least one of these cards must be shown under the answer. */
+  cards?: CardType[];
   /** "Pot să-mi iau…?" and "Să vând…?": the decision stays with the farmer. */
   noVerdict?: boolean;
   check?: (reply: string) => void;
 }
 
 const CASES: Case[] = [
-  { q: 'Cât pot să-mi iau salariu pe lună?', tools: ['get_salary', 'get_plan', 'explain_salary'], figures: [salary], actions: [] },
+  { q: 'Cât pot să-mi iau salariu pe lună?', cards: ['salary'], tools: ['get_salary', 'get_plan', 'explain_salary'], figures: [salary], actions: [] },
   { q: 'De ce e salariul meu atât?', tools: ['explain_salary', 'get_salary', 'get_plan'], figures: [salary], actions: [] },
-  { q: 'Care e cea mai grea lună și cât am atunci în cont?', tools: ['get_tight_months', 'get_forecast', 'get_plan'], figures: [lowest], actions: [] },
-  { q: 'Cât iau subvenție de la APIA anul ăsta?', tools: ['estimate_subsidy'], figures: [lei(subsidy.lei.probable)], actions: [] },
+  { q: 'Care e cea mai grea lună și cât am atunci în cont?', cards: ['tight_months', 'months'], tools: ['get_tight_months', 'get_forecast', 'get_plan'], figures: [lowest], actions: [] },
+  { q: 'Cât iau subvenție de la APIA anul ăsta?', cards: ['subsidy'], tools: ['estimate_subsidy'], figures: [lei(subsidy.lei.probable)], actions: [] },
   { q: 'Cât e avansul de la APIA?', tools: ['estimate_subsidy', 'get_subsidy_payments'], figures: [lei(subsidy.advanceLei)], actions: [] },
-  { q: 'Pot să-mi iau o drujbă de 2.000 de lei în martie?', tools: ['check_purchase'], figures: [chainsaw, salary], noVerdict: true, actions: [] },
+  { q: 'Pot să-mi iau o drujbă de 2.000 de lei în martie?', cards: ['purchase'], tools: ['check_purchase'], figures: [chainsaw, salary], noVerdict: true, actions: [] },
   { q: 'Pot să-mi cumpăr un tractor second-hand de 60.000 de lei în decembrie?', tools: ['check_purchase'], noVerdict: true, actions: [] },
   { q: 'Să vând porumbul acum sau să aștept?', noVerdict: true, actions: [] },
   { q: 'Ce bancă îmi dă cel mai ieftin credit?', actions: [] },
-  { q: 'Ce-ar fi dacă iau un credit de 20.000 de lei în februarie și îl dau înapoi în octombrie?', tools: ['what_if_credit'], noVerdict: true, actions: [] },
-  { q: 'Dacă pun 200 de lei pe lună la pensie, cât am la 65 de ani?', tools: ['simulate_pension', 'what_if_pension', 'suggest_pension'], actions: [] },
-  { q: 'Ce termene am în următoarele două luni?', tools: ['list_tasks', 'list_upcoming'], actions: [] },
+  { q: 'Ce-ar fi dacă iau un credit de 20.000 de lei în februarie și îl dau înapoi în octombrie?', cards: ['credit'], tools: ['what_if_credit'], noVerdict: true, actions: [] },
+  { q: 'Dacă pun 200 de lei pe lună la pensie, cât am la 65 de ani?', cards: ['pension', 'pension_change'], tools: ['simulate_pension', 'what_if_pension', 'suggest_pension'], actions: [] },
+  { q: 'Ce termene am în următoarele două luni?', cards: ['upcoming'], tools: ['list_tasks', 'list_upcoming'], actions: [] },
   {
     q: 'Mă încadrez la eco-schemă?',
     tools: ['estimate_subsidy', 'check_scheme', 'list_schemes'],
@@ -115,13 +117,17 @@ describe.skipIf(!key)(`the assistant on ${model}: 20 questions`, () => {
       },
     });
     const r = out.reply;
-    const where = `\n--- reply ---\n${r}\n--- tools: ${tools.join(', ')}`;
+    const where = `\n--- reply ---\n${r}\n--- tools: ${tools.join(', ')}\n--- cards: ${out.cards.map((k) => k.type).join(', ') || 'none'}`;
 
     expect(r, `banned word${where}`).not.toMatch(BANNED);
     expect(r, `bank named${where}`).not.toMatch(BANKS);
     expect(r, `claims it saved${where}`).not.toMatch(/\b(am salvat|e salvat|s-a salvat|am înregistrat)\b/i);
     if (c.noVerdict) expect(r, `yes or no${where}`).not.toMatch(YES_NO);
     if (c.tools) expect(tools.some((t) => c.tools!.includes(t)), `tools${where}`).toBe(true);
+    const shown = out.cards.map((card) => card.type);
+    expect(shown.length, `too many cards${where}`).toBeLessThanOrEqual(MAX_CARDS);
+    for (const card of out.cards) expect(parseCard(card.type, card.data), `bad ${card.type} card${where}`).not.toBeNull();
+    if (c.cards) expect(shown.some((t) => c.cards!.includes(t)), `cards${where}`).toBe(true);
     for (const f of c.figures ?? []) expect(r, `figure ${f}${where}`).toContain(f);
     if (c.actions) {
       expect(out.actions.map((a) => a.function), `cards${where}`).toEqual(c.actions.map((a) => a.function));

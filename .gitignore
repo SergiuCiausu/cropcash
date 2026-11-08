@@ -17,3 +17,6 @@ farm-app/sw.js
 
 # Netlify CLI state (site id), local only
 .netlify/
+
+# demo-deck work files (login state, captures, renders)
+pptx/build/

@@ -299,6 +299,7 @@ export const removeCredit = defineWrite({
   description: 'Removes a declared credit and its repayment from the plan.',
   input: RemoveCreditInputSchema,
   request: ({ groupId }) => ({ method: 'DELETE', path: `/api/credits/${groupId}` }),
+  repeatSafe: 'gone',
 });
 
 // ── Envelopes ───────────────────────────────────────────────────────────────
@@ -324,6 +325,7 @@ export const proposeSplitFn = defineRead({
 
 export const saveEnvelopes = defineWrite({
   name: 'save_envelopes',
+  timeout: 'money',
   description: 'Saves a split of the money into envelopes. The parts cannot exceed the money the farmer has.',
   input: EnvelopesInputSchema,
   request: (body) => ({ method: 'PUT', path: '/api/envelopes', body }),
@@ -376,6 +378,7 @@ export const undoTransaction = defineWrite({
   input: UndoTransactionInputSchema,
   access: 'user',
   request: ({ id }) => ({ method: 'DELETE', path: `/api/transactions/${id}` }),
+  repeatSafe: 'gone',
 });
 
 // ── Tasks ───────────────────────────────────────────────────────────────────
@@ -405,6 +408,7 @@ export const reopenTask = defineWrite({
   description: 'Marks a finished task as not done, after a mistaken tap.',
   input: TaskInput,
   request: ({ id }) => ({ method: 'DELETE', path: taskPath(id) }),
+  repeatSafe: 'gone',
 });
 
 // ── Farm ────────────────────────────────────────────────────────────────────
@@ -427,6 +431,7 @@ export const saveHarvests = defineWrite({
 
 export const readDocument = defineWrite({
   name: 'read_document',
+  timeout: 'upload',
   description: 'Reads an uploaded paper and returns the fields to confirm. It saves nothing, and the file is not kept.',
   input: ReadDocumentInputSchema,
   access: 'user',
@@ -576,6 +581,7 @@ export const SetPensionFundInputSchema = z.strictObject({ fundId: PensionFundId.
 
 export const setPensionFund = defineWrite({
   name: 'set_pension_fund',
+  timeout: 'money',
   description: 'Saves the Pilon III fund the farmer chose, or null to clear it. No money moves.',
   input: SetPensionFundInputSchema,
   request: (body) => ({ method: 'PUT', path: '/api/pension/fund', body }),
@@ -588,6 +594,7 @@ export const StartPensionInputSchema = z.strictObject({
 
 export const startPension = defineWrite({
   name: 'start_pension',
+  timeout: 'money',
   description: "Starts the monthly pension payment. Simulated in test mode.",
   input: StartPensionInputSchema,
   request: (body) => ({ method: 'POST', path: '/api/pension', body }),
@@ -595,6 +602,7 @@ export const startPension = defineWrite({
 
 export const changePension = defineWrite({
   name: 'change_pension',
+  timeout: 'money',
   description: 'Changes the monthly pension amount from the next payment on, and fixes the salary again. Simulated in test mode.',
   input: StartPensionInputSchema,
   request: (body) => ({ method: 'PUT', path: '/api/pension', body }),
@@ -602,6 +610,7 @@ export const changePension = defineWrite({
 
 export const stopPension = defineWrite({
   name: 'stop_pension',
+  timeout: 'money',
   description: 'Stops the monthly pension payments. What was paid stays put away, and the salary is fixed again. Simulated in test mode.',
   input: z.strictObject({}),
   request: () => ({ method: 'DELETE', path: '/api/pension' }),
@@ -626,16 +635,22 @@ export const getPayouts = defineRead({
 
 export const simulateApiaAdvance = defineWrite({
   name: 'simulate_apia_advance',
+  timeout: 'long',
   description: 'Demo only: sends the farm its APIA advance through Stripe test mode.',
   input: NoInput,
   access: 'user',
   request: () => ({ method: 'POST', path: '/api/demo/income', body: { kind: 'apia_advance' } }),
 });
 
-export const AdvanceClockInputSchema = z.strictObject({ months: z.number().int().min(1).max(12) });
+export const AdvanceClockInputSchema = z.strictObject({
+  months: z.number().int().min(1).max(12),
+  /** The demo date the phone saw: the same tap sent twice moves the clock once. */
+  from: z.string().max(40).optional(),
+});
 
 export const advanceClock = defineWrite({
   name: 'advance_clock',
+  timeout: 'long',
   description: 'Demo only: moves the clock forward, paying each salary and pension on the way.',
   input: AdvanceClockInputSchema,
   access: 'user',

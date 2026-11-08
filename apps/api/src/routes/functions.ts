@@ -44,6 +44,9 @@ export function readRunner({ repo, data, params, now, getRates, monitor }: ReadD
     /** The farm's own today, which the demo clock can move. Null without a farm. */
     today: async () => (await load())?.today ?? null,
 
+    /** The farm as stored. The assistant's replay cache keys on it, so a saved change means a new answer. */
+    farm: async () => (await load())?.farm ?? null,
+
     async run(fn: ReadFunction, input: unknown): Promise<ReadOutcome> {
       if (!fn.input.safeParse(input).success) return { ok: false, status: 400, error: 'invalid_input' };
       const ctx = await load();

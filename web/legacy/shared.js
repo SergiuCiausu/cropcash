@@ -1,39 +1,12 @@
-/* Ported from farm-app by web/scripts/port-legacy.mjs. Edit farm-app, or edit here and stop re-running the port. */
+/* Legacy page script, run by lib/boot.ts. Replaced page by page in docs/web-react-port-plan.md N5. */
 /* eslint-disable */
 // @ts-nocheck
+import { iconSvg } from '../lib/ui/icons';
 export default function install() {
-/* Palettes, icons, money formatting and shared interactions. The landing page's farm is Ion's, from the engine. Money is held as integer bani and formatted by lei(). */
+/* Icons, money formatting and shared interactions. The landing page's farm is Ion's, from the engine. Money is held as integer bani and formatted by lei(). */
 (function () {
-  const PALETTES = [
-    { id: "violet", name: "Field & Violet", note: "Lime and violet", v: { "a": "#5BA52A", "ink-a": "#3D7A13", "tint-a": "#E9F7D3", b: "#7C5CFC", "ink-b": "#5B3CD6", "tint-b": "#ECE8FF", bg: "#F8F8F3", deep1: "#2C5A14", deep2: "#4A32B0", hero: "#B4E85C" } },
-    { id: "gold", name: "Field & Gold", note: "Lime and gold", v: { "a": "#5BA52A", "ink-a": "#3D7A13", "tint-a": "#E9F7D3", b: "#F2B81F", "ink-b": "#8A5C00", "tint-b": "#FFF2C9", bg: "#FBFAF1", deep1: "#2C5A14", deep2: "#8A5C00", hero: "#B4E85C" } },
-    /* Two jobs: violet marks estimates and simulated money, gold marks what needs attention */
-    { id: "both", name: "Field, Violet & Gold", note: "Violet for estimates, gold for bills", v: { "a": "#5BA52A", "ink-a": "#3D7A13", "tint-a": "#E9F7D3", b: "#7C5CFC", "ink-b": "#5B3CD6", "tint-b": "#ECE8FF", c: "#F2B81F", "ink-c": "#8A5C00", "tint-c": "#FFF2C9", bg: "#FBFAF3", deep1: "#2C5A14", deep2: "#4A32B0", hero: "#B4E85C" } },
-    { id: "wheat", name: "Ripe Wheat", note: "Gold and olive", v: { a: "#E0A526", b: "#7C8B3A", "ink-a": "#855500", "ink-b": "#525E26", "tint-a": "#FBEFCF", "tint-b": "#EBEFD6", bg: "#FBF8F0", deep1: "#5F4108", deep2: "#856410", hero: "#F5CE4E" } },
-    { id: "clay", name: "Turned Soil", note: "Terracotta and sage", v: { a: "#C8683A", b: "#6F9A7C", "ink-a": "#9A431C", "ink-b": "#3C674D", "tint-a": "#F8E4D9", "tint-b": "#DFEDE3", bg: "#FAF6F2", deep1: "#6F2E13", deep2: "#A04E27", hero: "#F6AE7E" } },
-    { id: "vine", name: "Vineyard", note: "Plum and vine leaf", v: { a: "#8E3A74", b: "#6E9B46", "ink-a": "#7A2E63", "ink-b": "#46692A", "tint-a": "#F3E1EE", "tint-b": "#E5F0D9", bg: "#FAF6F9", deep1: "#4A1B40", deep2: "#7A2E63", hero: "#E6AEDC" } },
-  ];
-
-  const ICONS = {
-    plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>',
-    shield: '<path d="M12 3.5 5 6v5.5c0 4.500 3 7.500 7 9 4-1.500 7-4.500 7-9V6Z"/><path d="m9 12 2.200 2.200L15.200 10"/>',
-    cal: '<rect x="4" y="5.500" width="16" height="15" rx="3"/><path d="M4 10.500h16M8.500 3.500v4M15.500 3.500v4"/>',
-    home: '<path d="M4 10.500 12 4l8 6.500V19a1.500 1.500 0 0 1-1.500 1.500h-13A1.500 1.500 0 0 1 4 19Z"/><path d="M9.500 20.500V14h5v6.500"/>',
-    chart: '<path d="M5 20v-7M12 20V5M19 20v-10"/>',
-    sprout: '<path d="M12 21v-9"/><path d="M12 12C12 8 9 5.500 4.500 5.500 4.500 10 7.500 12 12 12Z"/><path d="M12 14c0-3.500 2.500-6 7.500-6 0 4.500-3 6-7.500 6Z"/>',
-    bank: '<path d="M3 21h18M5 21V10M19 21V10M9.500 21V10M14.500 21V10M3 10l9-6 9 6Z"/>',
-    sack: '<path d="M6.500 8.500h11l1.500 12H5Z"/><path d="M9 8.500V7a3 3 0 0 1 6 0v1.500"/>',
-    down: '<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>', up: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
-    map: '<path d="M9 4 3 6.500v13L9 17l6 3 6-2.500v-13L15 7Z"/><path d="M9 4v13M15 7v13"/>',
-    tool: '<path d="M20 7.500a5 5 0 0 1-6.700 4.700l-6.800 6.800a2 2 0 0 1-2.800-2.800l6.800-6.800A5 5 0 0 1 17 4l-3 3 3 3Z"/>',
-    drop: '<path d="M12 3.500c3.500 4.500 6 7.500 6 10.500a6 6 0 0 1-12 0c0-3 2.500-6 6-10.500Z"/>',
-    spray: '<path d="M9 9h6v11.500H9ZM10.500 9V5.500h3V9M16.500 4h.01M19.500 4h.01M18 6.500h.01M19.500 9h.01"/>',
-    seed: '<path d="M12 21c-4.500-2-6-6-6-9.500C6 7.500 9 4 12 3c3 1 6 4.500 6 8.500 0 3.500-1.500 7.500-6 9.500Z"/><path d="M12 8v8"/>',
-    check: '<path d="m5 12.500 4.500 4.500L19 7.500"/>',
-    hourglass: '<path d="M7 3.500h10M7 20.500h10"/><path d="M8 3.500c0 4.500 8 4.500 8 8.500s-8 4-8 8.500"/><path d="M16 3.500c0 4.500-8 4.500-8 8.500s8 4 8 8.500"/>',
-    arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
-  };
-  const icon = (n) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n].replace(/\.500/g, ".5").replace(/\.200/g, ".2")}</svg>`;
+  /* The icons live in lib/ui, shared with the React frame. */
+  const icon = iconSvg;
 
   /* ---- Money ---- */
   const MINUS = "−";
@@ -126,35 +99,6 @@ export default function install() {
     return () => cancelAnimationFrame(id);
   }
 
-  /* ---- Palette ---- */
-  const DEFAULT = document.documentElement.dataset.defaultPalette || "violet";
-  const LAYOUT = (location.pathname.split("/").pop() || "index").replace(/\.html$/, "");
-  const KEY = `farm-palette:${LAYOUT}`;
-  /* Single-accent palettes use their second color for both jobs */
-  /* Six-category chart colors, each set checked with the dataviz palette validator */
-  const FIELD_CH = ["#5BA52A", "#7C5CFC", "#3D7A13", "#5B3CD6", "#C98A00", "#B8476A"];
-  const CH = { violet: FIELD_CH, gold: FIELD_CH, both: FIELD_CH, wheat: ["#B8860B", "#5B6FC8", "#2F7A4A", "#A04A12", "#5E8F1E", "#C0425A"], clay: ["#C8683A", "#6A5BC8", "#2F9A6C", "#8F3A12", "#B08A1E", "#3A6FC0"], vine: ["#8E3A74", "#5F9E2E", "#C25BA8", "#3A6E1A", "#B08A1E", "#5B6FC8"] };
-  const tokens = (p) => ({ c: p.v.b, "ink-c": p.v["ink-b"], "tint-c": p.v["tint-b"], dn: p.v.c || p.v.hero, ...Object.fromEntries(CH[p.id].map((c, i) => [`ch${i + 1}`, c])), ...p.v });
-  function palette(id, save = true) {
-    const p = PALETTES.find((x) => x.id === id) || PALETTES.find((x) => x.id === DEFAULT);
-    for (const [k, v] of Object.entries(tokens(p))) document.documentElement.style.setProperty(`--${k}`, v);
-    document.documentElement.dataset.palette = p.id;
-    const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = p.v.bg;
-    document.querySelectorAll("[data-pal]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.pal === p.id));
-    if (save) { try { localStorage.setItem(KEY, p.id); } catch (e) {} }
-  }
-  function mountPalette(host) {
-    host.classList.add("pal");
-    host.innerHTML = `<button type="button" class="pal-btn" aria-label="Color palette" aria-expanded="false"><span class="pal-dot"></span></button><div class="pal-menu" hidden><p>Color palette</p>${PALETTES.map((p) => `<button type="button" class="pal-opt" data-pal="${p.id}" aria-pressed="false" style="--c1:${p.v.a};--c2:${p.v.b};--c3:${tokens(p).c}"><i></i><span>${p.name}<small>${p.note}</small></span>${icon("check")}</button>`).join("")}</div>`;
-    const btn = host.querySelector(".pal-btn"), menu = host.querySelector(".pal-menu");
-    const set = (open) => { menu.hidden = !open; btn.setAttribute("aria-expanded", open); };
-    btn.addEventListener("click", () => set(menu.hidden));
-    menu.addEventListener("click", (e) => { const o = e.target.closest("[data-pal]"); if (o) { palette(o.dataset.pal); set(false); btn.focus(); } });
-    document.addEventListener("pointerdown", (e) => { if (!host.contains(e.target)) set(false); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { set(false); btn.focus(); } });
-    palette(document.documentElement.dataset.palette, false);
-  }
-
   /* ---- Toast and undo ---- */
   let toastEl, toastT;
   function toast(msg, undo) {
@@ -234,9 +178,6 @@ export default function install() {
 
   /* ---- Boot ---- */
   const q = new URLSearchParams(location.search);
-  /* A saved cyan choice no longer exists, so it falls through to this layout's default */
-  let saved = null; try { saved = localStorage.getItem(KEY) || localStorage.getItem("farm-mobile-palette"); } catch (e) {}
-  palette(q.get("palette") || saved || DEFAULT, false);
 
   document.addEventListener("click", (e) => {
     const t = e.target.closest("[data-go],[data-entry],[data-rule],[data-cost],[data-move],[data-path],[data-undo],[data-jump]");
@@ -252,18 +193,16 @@ export default function install() {
   });
   addEventListener("message", (e) => {
     if (!e.data || e.data.type !== "farm") return;
-    if (e.data.palette) palette(e.data.palette, false);
     if (e.data.view) go(e.data.view);
   });
 
-  const FF = { S, PALETTES, tokens, palette, icon, lei, signed, series, lowOf, table, balance, on, emit, txRow, costRows, cropBody, cropState, resCard, cleanList, ruleRows, mountChart, mountPalette, spring, reduced, go, toast, closeEntry, COMING, CROPS, COSTS, costTotal, CLEAN, GOAL, MONTHS, MONTHS_LONG,
+  const FF = { S, icon, lei, signed, series, lowOf, table, balance, on, emit, txRow, costRows, cropBody, cropState, resCard, cleanList, ruleRows, mountChart, spring, reduced, go, toast, closeEntry, COMING, CROPS, COSTS, costTotal, CLEAN, GOAL, MONTHS, MONTHS_LONG,
     get dialog() { return dlg; },
     start() {
       document.querySelector(".app").insertAdjacentHTML("beforeend", `<div class="toast" id="toast" role="status"><span></span><button type="button" data-undo>Undo</button></div>`);
       toastEl = document.getElementById("toast");
       buildEntry();
       document.querySelectorAll("[data-ic]").forEach((el) => el.insertAdjacentHTML("afterbegin", icon(el.dataset.ic)));
-      document.querySelectorAll("[data-pal-host]").forEach(mountPalette);
       go(q.get("view") || "home");
     },
   };

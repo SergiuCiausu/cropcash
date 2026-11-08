@@ -5,11 +5,10 @@ import demoIon from '../../docs/data/demo-ion.json';
 import { loadData } from '../../packages/shared/src/data/index';
 import { buildFarmPlan, farmData, grainInBarn } from '../../packages/shared/src/functions/plan';
 import { harvestYear } from '../../packages/shared/src/farm/index';
+import { group } from './cc/format';
 
 const SHORT = ['ian.', 'feb.', 'mar.', 'apr.', 'mai', 'iun.', 'iul.', 'aug.', 'sept.', 'oct.', 'nov.', 'dec.'];
 const LONG = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
-/* Same as app.js: Ion's wheat is sown in October 2026. */
-const PLANTED: Record<string, string> = { grau: '2026-10' };
 const PATHS = { poor: 'bad', expected: 'medium', good: 'good' } as const;
 
 export interface LandingTx { ic: string; tone: string; name: string; sub: string; bani: number; date: string; status?: string }
@@ -29,7 +28,6 @@ export interface LandingFigures {
   salary: number;
 }
 
-const group = (n: number) => String(Math.abs(Math.trunc(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 const num = (v: number) => String(v).replace('.', ',');
 const day = (iso: string) => `${+iso.slice(8, 10)} ${SHORT[+iso.slice(5, 7) - 1]}`;
 const COST_ICON: [RegExp, string][] = [[/îngrășăm/, 'sack'], [/tratament|erbicid/, 'spray'], [/recolt/, 'tool'], [/arat|teren/, 'map'], [/sămânț|semănat/, 'seed']];
@@ -45,7 +43,7 @@ export function landingFigures(): LandingFigures {
   const farm = {
     birth_year: +today.slice(0, 4) - demoIon.age,
     start_balance_bani: demoIon.start_balance_lei * 100,
-    parcels: demoIon.parcels.map((p) => ({ crop_id: p.crop_id, area_ari: Math.round(p.area_ha * 100), is_arable: true, ...(PLANTED[p.crop_id] ? { planted_month: PLANTED[p.crop_id] } : {}) })),
+    parcels: demoIon.parcels.map((p) => ({ crop_id: p.crop_id, area_ari: Math.round(p.area_ha * 100), is_arable: true, ...(p.planted_month ? { planted_month: p.planted_month } : {}) })),
     transactions: [],
     stored_grain: grainInBarn([], [], data),
     pension_plans: { monthly_bani: data.params.pension_demo_lei.value * 100, status: 'active' },

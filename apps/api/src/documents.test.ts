@@ -87,13 +87,27 @@ describe('POST /api/documents/read', () => {
   it('stops at the daily limit, for that farmer only', async () => {
     const read = vi.fn(async () => invoice);
     const { app } = setup({ read });
+    // A different photo each time: the same one again would be a replay, which doesn't count.
     for (let i = 0; i < data.params.documents.reads_per_day.value; i++) {
-      await request(app).post('/api/documents/read').set(auth).send(paper);
+      await request(app).post('/api/documents/read').set(auth).send({ files: [{ mediaType: 'image/jpeg', data: `/9j/AAAA${String(i).padStart(4, 'A')}` }] });
     }
     const res = await request(app).post('/api/documents/read').set(auth).send(paper);
     expect(res.status).toBe(429);
     expect(res.body.error).toBe('too_many_reads');
     expect((await request(app).post('/api/documents/read').set({ Authorization: 'Bearer good2' }).send(paper)).status).toBe(200);
+  });
+
+  it('the same paper sent again gets the reading already paid for, without a second model call (IDEM-13)', async () => {
+    const read = vi.fn(async () => invoice);
+    const { app } = setup({ read });
+    const first = await request(app).post('/api/documents/read').set(auth).send(paper);
+    const again = await request(app).post('/api/documents/read').set(auth).send(paper);
+    expect(again.status).toBe(200);
+    expect(again.body).toEqual(first.body);
+    expect(read).toHaveBeenCalledOnce();
+    // Another farmer sending the same photo is another request.
+    await request(app).post('/api/documents/read').set({ Authorization: 'Bearer good2' }).send(paper);
+    expect(read).toHaveBeenCalledTimes(2);
   });
 
   it('says so when the model gives no usable answer', async () => {

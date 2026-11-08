@@ -77,6 +77,26 @@ describe('farmer sources', () => {
     expect(res.body.sources).toEqual([]);
   });
 
+  it('two adds of the same link at once read the page once and both get it (IDEM-14)', async () => {
+    let finish!: () => void;
+    const gate = new Promise<void>((done) => (finish = done));
+    const read = vi.fn(async (url: string): Promise<PageRead> => {
+      await gate;
+      return { ...okRead, url } as PageRead;
+    });
+    const { app, store } = setup({ read });
+    const post = () => request(app).post('/api/sources').set(mine).send({ url: 'https://afir.ro/x' }).then((r) => r);
+    const both = Promise.all([post(), post()]);
+    await new Promise((r) => setTimeout(r, 50));
+    finish();
+    const [a, b] = await both;
+    expect([a.status, b.status]).toEqual([201, 201]);
+    expect(b.body.source.url).toBe(a.body.source.url);
+    expect(read).toHaveBeenCalledOnce();
+    expect(store.pages).toHaveLength(1);
+    expect((await request(app).get('/api/sources').set(mine)).body.sources).toHaveLength(1);
+  });
+
   it('leaves routes behind the session closed', async () => {
     const { app } = setup();
     await request(app).get('/api/me').set(mine).expect(401);

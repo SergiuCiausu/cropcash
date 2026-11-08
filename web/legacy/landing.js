@@ -8,6 +8,18 @@ const paintNav = () => nav.classList.toggle("is-scrolled", scrollY > 150);
 addEventListener("scroll", paintNav, { passive: true });
 paintNav();
 
+/* Already signed in on this phone: the account buttons open the farm instead. Read from storage,
+   so it works offline too (Live.hasSession, lib/live/auth.ts). */
+(function account() {
+  let signedIn = false;
+  try { signedIn = Live.hasSession(localStorage); } catch (e) { /* blocked storage: signed out */ }
+  if (!signedIn) return;
+  document.querySelectorAll("[data-account]").forEach((a) => {
+    a.href = "/acasa";
+    a.querySelector("[data-label]").textContent = "Mergi la ferma ta";
+  });
+})();
+
 /* The app's sample farm */
 (function farm() {
   const { S, lei } = FF;

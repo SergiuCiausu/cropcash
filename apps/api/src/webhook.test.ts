@@ -13,6 +13,7 @@ const stripe = new Stripe('sk_test_dummy_for_signature_checks');
 
 function memoryAdmin() {
   const txs = new Map<string, NewTransaction>();
+  const leases = new Map<string, string>();
   const admin: AdminRepo = {
     farmByUser: async () => null,
     farmBy: async () => null,
@@ -20,14 +21,24 @@ function memoryAdmin() {
     recordTransaction: vi.fn(async (tx: NewTransaction) => {
       if (!txs.has(tx.stripe_object_id)) txs.set(tx.stripe_object_id, tx);
     }),
-    recordPayout: async () => {},
+    claimPayout: vi.fn(async () => null),
+    finishPayout: vi.fn(async () => {}),
     setPayoutStatus: vi.fn(async () => 1),
     removePayoutTransaction: vi.fn(async (id: string) => void txs.delete(id)),
     upsertPension: async () => {},
     updatePension: vi.fn(async () => {}),
     setSalary: vi.fn(async () => {}),
+    takeLease: vi.fn(async (farmerId: string, op: string, holder: string) => {
+      const k = `${farmerId}:${op}`;
+      if (leases.has(k)) return false;
+      leases.set(k, holder);
+      return true;
+    }),
+    releaseLease: vi.fn(async (farmerId: string, op: string, holder: string) => {
+      if (leases.get(`${farmerId}:${op}`) === holder) leases.delete(`${farmerId}:${op}`);
+    }),
   };
-  return { admin, txs };
+  return { admin, txs, leases };
 }
 
 const repo = {} as Repo;
@@ -154,7 +165,7 @@ describe('POST /api/pension (step 7)', () => {
     expect(start).not.toHaveBeenCalled();
 
     expect((await post(200)).status).toBe(201);
-    expect(start).toHaveBeenCalledWith(expect.objectContaining({ id: 'farm-1' }), 20_000);
+    expect(start).toHaveBeenCalledWith(expect.objectContaining({ id: 'farm-1' }), 20_000, null);
     start.mockRestore();
   });
 
@@ -205,9 +216,17 @@ describe('changing and stopping the pension', () => {
     for (const farm of [pensionFarm(null), pensionFarm('stopped')]) {
       const { admin, app } = withFarm(farm);
       expect((await request(app).put('/api/pension').set(auth).send({ monthlyLei: 300 })).body.error).toBe('no_pension');
-      expect((await request(app).delete('/api/pension').set(auth)).status).toBe(409);
       expect(admin.setSalary).not.toHaveBeenCalled();
     }
+    expect((await request(withFarm(pensionFarm(null)).app).delete('/api/pension').set(auth)).status).toBe(409);
+  });
+
+  it('stopping a pension already stopped answers 204, without asking Stripe again (IDEM-06)', async () => {
+    const stop = vi.spyOn(MoneyService.prototype, 'stopPension').mockResolvedValue();
+    const { app } = withFarm(pensionFarm('stopped'));
+    expect((await request(app).delete('/api/pension').set(auth)).status).toBe(204);
+    expect(stop).not.toHaveBeenCalled();
+    stop.mockRestore();
   });
 
   it('lets a stopped pension start again', async () => {
@@ -225,15 +244,15 @@ describe('changing and stopping the pension', () => {
 });
 
 describe('MoneyService pension changes', () => {
-  const service = (calls: string[]) => {
+  const service = (calls: string[], sub: object = {}) => {
     const { admin } = memoryAdmin();
     const fake = {
       subscriptions: {
-        retrieve: async () => ({ items: { data: [{ id: 'si_1' }] } }),
+        retrieve: async () => ({ status: 'active', items: { data: [{ id: 'si_1' }] }, ...sub }),
         update: async (id: string, body: object) => void calls.push(`update ${id} ${JSON.stringify(body)}`),
         cancel: async (id: string, body: object) => void calls.push(`cancel ${id} ${JSON.stringify(body)}`),
       },
-      prices: { create: async (p: { unit_amount: number }) => ({ id: `price_${p.unit_amount}` }) },
+      prices: { list: async () => ({ data: [] }), create: async (p: { unit_amount: number }) => ({ id: `price_${p.unit_amount}` }) },
     } as unknown as Stripe;
     return { admin, money: new MoneyService(fake, admin, data, async () => {}) };
   };
@@ -251,7 +270,17 @@ describe('MoneyService pension changes', () => {
     const { admin, money } = service(calls);
     await money.stopPension(pensionFarm('active') as never);
     expect(calls).toEqual(['cancel sub_1 {"prorate":false}']);
-    expect(admin.updatePension).toHaveBeenCalledWith('farm-1', { status: 'stopped' });
+    expect(admin.updatePension).toHaveBeenNthCalledWith(1, 'farm-1', { status: 'stopping' });
+    expect(admin.updatePension).toHaveBeenLastCalledWith('farm-1', { status: 'stopped' });
+  });
+
+  it('finishes a stop that crashed after Stripe cancelled, without cancelling again (IDEM-06)', async () => {
+    const calls: string[] = [];
+    const { admin, money } = service(calls, { status: 'canceled' });
+    const farm = { ...(pensionFarm('active') as object), pension_plans: [{ monthly_bani: 20_000, status: 'stopping', stripe_subscription_id: 'sub_1' }] };
+    await money.stopPension(farm as never);
+    expect(calls).toEqual([]);
+    expect(admin.updatePension).toHaveBeenLastCalledWith('farm-1', { status: 'stopped' });
   });
 
   it('refuses to touch Stripe with no running pension', async () => {

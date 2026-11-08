@@ -1,3 +1,5 @@
+import { KEYS } from '../cc/storage';
+import { DEMO_PAGES, isDemoPath, pageOf } from '../paths';
 import type { Api } from './client';
 
 /** The same words as `auth.*` in ro.json. A test keeps them equal. */
@@ -14,6 +16,12 @@ export const AUTH_TEXT = {
   switchToLogin: 'Ai deja cont? Intră',
   checkEmail: 'Ți-am trimis un email. Apasă pe linkul din el, apoi intră în cont.',
   wait: 'Așteaptă puțin…',
+  /* Shown instead of a page when the farm isn't on this phone yet (guardTarget). */
+  farmNeedsNet: 'Pornește internetul o dată',
+  farmNeedsNetWhy: 'Ca să-ți aducem ferma pe telefon. După aceea merge și fără internet.',
+  farmFailed: 'Nu am putut aduce ferma',
+  farmFailedWhy: 'Mai încearcă o dată peste puțin timp.',
+  retry: 'Încearcă din nou',
   errors: {
     invalid_credentials: 'Emailul sau parola nu sunt bune.',
     user_already_exists: 'Există deja un cont cu emailul ăsta. Intră în cont.',
@@ -51,16 +59,8 @@ export function linkErrorKey(hash: string): ErrorKey | null {
 
 export const HOME = '/acasa';
 const ONBOARDING = '/onboarding';
-const RETURN_PAGES: readonly string[] = [
-  HOME,
-  '/subventii',
-  '/calendar',
-  '/prognoza',
-  '/recolte',
-  '/salariu',
-  '/oportunitati',
-  '/surse',
-];
+/* Every page of the farmer's app (lib/paths.ts), so a sign-in can come back to any of them. */
+const RETURN_PAGES: readonly string[] = DEMO_PAGES;
 
 /** Only pages of this app, so a crafted link can't send the farmer to another site. */
 export function safeNext(next: string | null): string | null {
@@ -72,7 +72,45 @@ export function safeNext(next: string | null): string | null {
 }
 
 /** Pages open from this copy, so it has to exist before the first one loads. */
-export const FARM_COPY = 'cropcash-me';
+export const FARM_COPY = KEYS.me;
+
+/** A Supabase session saved in this browser. Read without the network, so it works offline. */
+export function hasSession(store: Pick<Storage, 'length' | 'key'>): boolean {
+  try {
+    return Array.from({ length: store.length }, (_, i) => store.key(i)).some((k) => !!k && /^sb-.*-auth-token/.test(k));
+  } catch {
+    return false;
+  }
+}
+
+/** The copy of /api/me the pages open from. */
+export function hasFarmCopy(store: Pick<Storage, 'getItem'>): boolean {
+  try {
+    const farm = JSON.parse(store.getItem(FARM_COPY) ?? 'null');
+    return typeof farm === 'object' && farm !== null;
+  } catch {
+    return false;
+  }
+}
+
+export type Guard =
+  | { action: 'start' }
+  | { action: 'redirect'; to: string }
+  | { action: 'load-farm'; next: string }
+  | { action: 'need-net' };
+
+/** Who may open a page, decided before any page script runs (lib/boot.ts). The farmer's app needs
+    an account and its farm; Ion's farm, the landing page and /login are open to everyone.
+    load-farm: signed in, but the farm isn't on this phone yet, so it comes from /api/me first. */
+export function guardTarget({ pathname, hash, hasSession, hasFarmCopy, online }: { pathname: string; hash: string; hasSession: boolean; hasFarmCopy: boolean; online: boolean }): Guard {
+  if (isDemoPath(pathname)) return { action: 'start' };
+  const page = pageOf(pathname);
+  if (page !== ONBOARDING && !RETURN_PAGES.includes(page)) return { action: 'start' };
+  const back = safeNext(`${page}${hash}`);
+  if (!hasSession) return { action: 'redirect', to: back && page !== ONBOARDING ? `/login?next=${encodeURIComponent(back)}` : '/login' };
+  if (page === ONBOARDING || hasFarmCopy) return { action: 'start' };
+  return online ? { action: 'load-farm', next: back ?? HOME } : { action: 'need-net' };
+}
 
 /** A new account needs a farm first. If the API can't say, the page itself asks again. */
 export async function landingPage(api: Api, next: string | null, store: Pick<Storage, 'setItem'>): Promise<string> {
@@ -90,7 +128,8 @@ export async function landingPage(api: Api, next: string | null, store: Pick<Sto
   }
 }
 
-type KeyStore = Pick<Storage, 'length' | 'key' | 'removeItem'>;
+/** getItem is optional so a caller that can't read keeps the old behaviour: clear everything. */
+type KeyStore = Pick<Storage, 'length' | 'key' | 'removeItem'> & { getItem?: Storage['getItem'] };
 
 function removeKeys(store: KeyStore, match: (key: string) => boolean) {
   try {
@@ -101,8 +140,38 @@ function removeKeys(store: KeyStore, match: (key: string) => boolean) {
   }
 }
 
-/** Everything saved about a farm. The farmer's choice of colours is not farm data. */
-export const clearFarmData = (store: KeyStore) => removeKeys(store, (key) => key.startsWith('cropcash'));
+/** The records waiting for internet, and whose account they belong to. */
+export const OUTBOX_KEY = 'cropcash-outbox';
+export const OUTBOX_OWNER_KEY = 'cropcash-outbox-owner';
+
+/** Notes which account the queue belongs to, from the saved session, which is there offline too. */
+export function stampOutboxOwner(store: Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem'>) {
+  try {
+    const key = Array.from({ length: store.length }, (_, i) => store.key(i)).find((k) => !!k && /^sb-.*-auth-token$/.test(k));
+    const id = key ? (JSON.parse(store.getItem(key) ?? 'null') as { user?: { id?: string } } | null)?.user?.id : null;
+    if (id) store.setItem(OUTBOX_OWNER_KEY, id);
+  } catch {
+    /* Without an owner the queue is cleared at the next sign-in, as before. */
+  }
+}
+
+function outboxOwner(store: KeyStore): string | null {
+  try {
+    return store.getItem?.(OUTBOX_OWNER_KEY) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Everything saved about a farm. The farmer's choice of colours is not farm data.
+ * `keepOutboxOf`: the account signing in. Its own unsent records stay, so signing in again after a
+ * session ran out doesn't lose the sales noted offline (FAIL-04). Another account's records go.
+ */
+export function clearFarmData(store: KeyStore, keepOutboxOf: string | null = null) {
+  const keep = keepOutboxOf !== null && outboxOwner(store) === keepOutboxOf;
+  removeKeys(store, (key) => key.startsWith('cropcash') && !(keep && (key === OUTBOX_KEY || key === OUTBOX_OWNER_KEY)));
+}
 const clearSession = (store: KeyStore) => removeKeys(store, (key) => /^sb-.*-auth-token/.test(key));
 
 interface AuthResult<D> {
@@ -111,15 +180,19 @@ interface AuthResult<D> {
 }
 
 /** The part of the Supabase client that login uses. */
+type User = { id?: string; identities?: unknown[] } | null | undefined;
+
 export interface AuthClient {
   getSession(): Promise<AuthResult<{ session: unknown }>>;
-  signInWithPassword(input: { email: string; password: string }): Promise<AuthResult<unknown>>;
+  signInWithPassword(input: { email: string; password: string }): Promise<AuthResult<{ user?: User }>>;
   signUp(input: {
     email: string;
     password: string;
     options: { emailRedirectTo: string };
-  }): Promise<AuthResult<{ session: unknown; user: { identities?: unknown[] } | null }>>;
+  }): Promise<AuthResult<{ session: unknown; user: User }>>;
   signOut(): Promise<{ error: unknown }>;
+  /** Optional so older fakes still fit; the real Supabase client has it. */
+  refreshSession?(): Promise<AuthResult<{ session: unknown }>>;
 }
 
 export function createAuth(client: AuthClient, store: KeyStore) {
@@ -130,9 +203,9 @@ export function createAuth(client: AuthClient, store: KeyStore) {
     },
 
     async signIn(email: string, password: string): Promise<void> {
-      const { error } = await client.signInWithPassword({ email, password });
+      const { data, error } = await client.signInWithPassword({ email, password });
       if (error) throw error;
-      clearFarmData(store);
+      clearFarmData(store, data?.user?.id ?? null);
     },
 
     /** Returns false when the account waits for the link in the email. */
@@ -141,8 +214,21 @@ export function createAuth(client: AuthClient, store: KeyStore) {
       if (error) throw error;
       // With email checks on, Supabase answers an existing address like a new one, with no identities.
       if (data.user?.identities?.length === 0) throw { code: 'user_already_exists' };
-      clearFarmData(store);
+      clearFarmData(store, data.user?.id ?? null);
       return data.session !== null;
+    },
+
+    /**
+     * After a 401: try the refresh token once before treating the farmer as signed out (FAIL-04,
+     * FAIL-11). Never throws: false means a sign-in is really needed.
+     */
+    async refresh(): Promise<boolean> {
+      try {
+        const result = await client.refreshSession?.();
+        return !!result && !result.error && result.data.session !== null;
+      } catch {
+        return false;
+      }
     },
 
     /** Must work offline, where Supabase keeps the session because it can't reach the server. */

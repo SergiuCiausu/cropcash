@@ -10,3 +10,18 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # These four reach the browser on purpose, so the scanner must not stop the build for finding them
+  # in web/out. It stays on for everything else, the secret keys included.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_API_URL,VITE_DEMO_MODE"
+
+# Scripts have the hash of their content in the name, so a phone may keep them for good.
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# The worker decides what the phone runs, so a new one must always be seen.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

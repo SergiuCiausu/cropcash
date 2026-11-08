@@ -8,11 +8,18 @@
   "age": 55,
   "start_balance_lei": 35000,
   "parcels": [
-    { "crop_id": "grau", "area_ha": 8 },
+    { "crop_id": "grau", "area_ha": 8, "planted_month": "2026-10" },
     { "crop_id": "porumb", "area_ha": 7 }
   ],
+  "parcels_note": "planted_month: luna în care e semănat grâul lui Ion (presupunere de demo, mutată aici din farm-app/app.js, ca să nu mai stea în cod). Porumbul se seamănă primăvara, așa că nu are încă lună. seed:demo nu o trimite.",
   "demo_start": {
     "value": "2026-11-15",
     "note": "Ziua la care pornește ceasul de test Stripe: după fereastra de deschidere a avansului APIA, înainte de primul salariu (1 decembrie). Avansul încă nu e simulat (09 §3)."
+  },
+  "demo_account": {
+    "payouts_shown": {
+      "value": 3,
+      "note": "Câte salarii programate arată /ferma-lui-ion/bani. Nu e o sumă: sumele vin din planul lui Ion (web/lib/demo-account.ts). Alegere de afișare, nu dată reală."
+    }
   }
 }

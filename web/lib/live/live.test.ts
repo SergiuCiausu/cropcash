@@ -101,6 +101,24 @@ describe('read', () => {
 });
 
 describe('write', () => {
+  const UUID = '11111111-1111-4111-8111-111111111111';
+
+  it('a delete that was already done is not an error (IDEM-11)', async () => {
+    const { write } = setup({ response: () => json({ error: 'not_found' }, 404) });
+    await expect(write('undo_transaction', { id: UUID })).resolves.toBeUndefined();
+  });
+
+  it('a 404 on any other write is still an error', async () => {
+    const { write } = setup({ response: () => json({ error: 'no_farm' }, 404) });
+    expect(await code(write('complete_task', { id: 'a:2026' }))).toBe('no_farm');
+  });
+
+  it('sends the version it was given as If-Match, version 0 included (IDEM-12)', async () => {
+    const { write, fetchFn } = setup();
+    await write('complete_task', { id: 'a:2026' }, { version: 0 });
+    expect(sent(fetchFn).headers.get('If-Match')).toBe('0');
+  });
+
   it('uses the route from the registry', async () => {
     const { write, fetchFn } = setup();
     await write('follow_opportunity', { key: 'afir:x' });
@@ -161,5 +179,27 @@ describe('public config', () => {
     expect(() => publicConfig({ ...env, VITE_SUPABASE_ANON_KEY: 'sb_secret_abc' })).toThrow('secret');
     expect(() => publicConfig({ ...env, VITE_SUPABASE_ANON_KEY: jwt('service_role') })).toThrow('secret');
     expect(publicConfig({ ...env, VITE_SUPABASE_ANON_KEY: jwt('anon') }).supabaseKey).toBe(jwt('anon'));
+  });
+
+  it('refuses a Netlify build that would point the app at localhost (FAIL-15)', () => {
+    expect(() => publicConfig({ ...env, NETLIFY: 'true' })).toThrow('VITE_API_URL');
+    expect(() => publicConfig({ ...env, NETLIFY: 'true', VITE_API_URL: 'http://api.x' })).toThrow('VITE_API_URL');
+    expect(publicConfig({ ...env, NETLIFY: 'true', VITE_API_URL: 'https://api.x' }).apiUrl).toBe('https://api.x');
+    expect(publicConfig(env).apiUrl).toBe('http://localhost:3001');
+  });
+});
+
+describe('how long each write may take', () => {
+  const timeoutOf = async (name: string, input: unknown) => {
+    const api = vi.fn(async () => ({}));
+    await createFunctions(api as never, () => FUNCTIONS).write(name, input);
+    return (api.mock.calls[0] as unknown as [string, { timeout: string }])[1].timeout;
+  };
+
+  it('uses the registry: money, the demo buttons, and "write" for the rest', async () => {
+    expect(await timeoutOf('start_pension', { monthlyLei: 300 })).toBe('money');
+    expect(await timeoutOf('advance_clock', { months: 1 })).toBe('long');
+    expect(await timeoutOf('simulate_apia_advance', {})).toBe('long');
+    expect(await timeoutOf('complete_task', { id: 'x:2026' })).toBe('write');
   });
 });

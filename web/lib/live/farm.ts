@@ -11,6 +11,8 @@ export interface MeFarm {
   parcels: { crop_id: string; area_ari: number; planted_month?: string | null }[];
   salary_bani?: number | null;
   harvests?: HarvestsInput | null;
+  /** Goes up on every harvests save. Sent back as If-Match, so a stale phone can't overwrite (IDEM-12). */
+  harvests_version?: number;
   apia_decision?: { campaignYear: number; totalBani: number } | null;
   transactions?: (MovedMoney & { id?: string })[];
   task_completions?: { task_id: string }[];

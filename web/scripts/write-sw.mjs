@@ -1,6 +1,7 @@
 /* After `next build`: writes out/sw.js, the service worker that keeps the app on the phone.
    Same worker as farm-app (lib/live/service-worker.mjs), over the exported files, plus each page
-   under its route (/salariu as well as salariu.html), because that is the address people open. */
+   under its route (/salariu as well as salariu.html), because that is the address people open.
+   Ion's farm is one folder down (ferma-lui-ion/salariu.html → /ferma-lui-ion/salariu). */
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { cacheList, swSource, versionOf } from '../lib/live/service-worker.mjs';
@@ -8,7 +9,7 @@ import { cacheList, swSource, versionOf } from '../lib/live/service-worker.mjs';
 /** Every exported file, and the route each page answers to. */
 export function webCacheList(root) {
   const files = cacheList(root).filter((f) => !/^(404|_not-found)\.html$/.test(f) && !f.startsWith('_not-found/'));
-  const routes = files.filter((f) => f.endsWith('.html') && !f.includes('/')).map((f) => (f === 'index.html' ? './' : f.slice(0, -5)));
+  const routes = files.filter((f) => f.endsWith('.html') && !f.startsWith('_next/')).map((f) => (f === 'index.html' ? './' : f.slice(0, -5)));
   return { files, cached: [...files, ...routes] };
 }
 

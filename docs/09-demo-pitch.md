@@ -35,6 +35,11 @@
 
 **Pregătirea demo-ului:** contul lui Ion e creat dinainte (`npm run seed:demo`, ~20 s, date în `docs/data/demo-ion.json`), Test Clock-ul e la 15 noiembrie 2026 și avansul încă nu e simulat. `npm run demo:rehearse` rulează scriptul de mai sus de 3 ori la rând pe Supabase și Stripe reale și afișează cifrele de spus lângă cele din aplicație; după el, rulează iar `seed:demo`. Avem și un video de rezervă, dacă pică rețeaua.
 
+**Unde deschidem (din 8 nov 2026, aplicația cere cont):**
+- **Începem pe ferma lui Ion, `/ferma-lui-ion/acasa`** (butonul „Vezi ferma lui Ion” de pe prima pagină). Arată că oricine poate vedea aplicația fără cont. Nu mută bani: pagina Bani e un exemplu calculat din planul lui Ion.
+- **De la onboarding încolo (0:40) suntem în cont:** `/login` cu `DEMO_EMAIL`. Onboarding-ul și tot ce trece prin Stripe (2:10–3:20) cer cont. Intră în cont înainte de demo; ferma lui Ion rămâne exemplul și pentru cine e logat, deci nu încurcă.
+- **Cifrele din script sunt cele din cont.** Ferma lui Ion pornește cu pensia de 200 lei deja scăzută, deci acolo salariul e 850 lei, nu 1.050. Nu citi cifrele din script de pe acea pagină.
+
 **Cifrele de mai sus vin din aplicație** (verificate cu `demo:rehearse`, 3 repetiții fără erori, 8 nov 2026, după scoaterea fondului pentru ani proști). Dacă se schimbă datele din `docs/data`, se schimbă și ele: rulează repetiția și actualizează tabelul.
 
 ## 4. Concurența și diferențierea

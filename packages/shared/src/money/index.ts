@@ -36,6 +36,19 @@ export function baniToLei(bani: Bani): number {
   return bani / 100;
 }
 
+/**
+ * Whole lei as a farmer types them: "35 000", "35.000", "35,000", "35000 lei", "35.000,00".
+ * A dot or comma before exactly three digits groups thousands. Null for anything else ("12,5",
+ * "1.2.3", ""), so a misread amount is refused and never saved as a smaller one.
+ */
+export function parseWholeLei(text: string | null | undefined): number | null {
+  const typed = text?.replace(/lei|ron/gi, '').replace(/\s/g, '') ?? '';
+  const match = /^(\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,]0{1,2})?$/.exec(typed);
+  if (!match) return null;
+  const lei = Number(match[1]!.replace(/[.,]/g, ''));
+  return Number.isSafeInteger(lei) ? lei : null;
+}
+
 export function centsToEur(cents: Cents): number {
   return cents / 100;
 }

@@ -10,7 +10,6 @@
 .farm { margin-top: auto; padding: 12px; border-radius: 16px; font-size: 13px; line-height: 1.45; color: var(--on-hero-2); }
 .farm b { display: block; font-size: 14px; color: var(--on-hero); }
 .farm .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 4px; border-top: 1px solid var(--glass-line); color: var(--on-hero); font-weight: 500; }
-.pal.up .pal-menu, .up .pal-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; transform-origin: bottom left; }
 .main { padding: 24px 32px 48px; min-width: 0; }
 .main > div { max-width: 1120px; margin-inline: auto; }
 .page-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
@@ -56,7 +55,6 @@
   .rail nav .ic { font-size: 21px; }
   .m-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: calc(60px + var(--safe-t)); padding: var(--safe-t) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); border-radius: 0 0 20px 20px; }
   .main { padding: 16px max(16px, env(safe-area-inset-right)) calc(92px + var(--safe-b)) max(16px, env(safe-area-inset-left)); }
-  .pal-btn { width: 48px; height: 48px; }
   .page-h { display: block; margin-bottom: 16px; }
   .page-h .acts { display: none; }
   h1 { font-size: 30px; }

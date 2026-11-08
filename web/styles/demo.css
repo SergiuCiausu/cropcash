@@ -1,0 +1,8 @@
+/* Ion's example farm (/ferma-lui-ion): the strip above each page and the reset in the rail.
+   Same tokens as the offline note (subsidies.css), so both palettes and dark mode follow. */
+.demo-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; margin-bottom: 16px; padding: 12px 16px; border-radius: 14px; background: var(--tint-b); color: var(--text-1); font-size: 14px; line-height: 1.45; }
+.demo-strip p { flex: 1 1 280px; margin: 0; }
+.demo-strip b { color: var(--ink-b); font-weight: 600; }
+.demo-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.farm [data-demo-reset] { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+@media (max-width: 479px) { .demo-acts, .demo-acts .btn { width: 100%; } }

@@ -96,6 +96,8 @@ export function defineRead<Input extends z.ZodType, Output>(def: {
   };
 }
 
+export type WriteTimeout = 'money' | 'upload' | 'long';
+
 export interface ApiRequest {
   method: 'POST' | 'PUT' | 'DELETE';
   path: string;
@@ -105,8 +107,15 @@ export interface ApiRequest {
 export interface WriteFunction<Input extends z.ZodType = z.ZodType> extends FunctionDef<Input> {
   access: 'confirm' | 'user';
   runs: 'api';
-  /** The API call that performs it. Moves or saves money data, so it never joins the outbox. */
+  /** The API call that performs it. Only lib/live/outbox.ts QUEUEABLE may wait offline, and never a money move. */
   request(input: z.input<Input>): ApiRequest;
+  /**
+   * 'gone': a delete whose 404 means "already done". Sent again after the first one worked, it
+   * resolves instead of failing (docs/idempotency-plan.md, IDEM-11).
+   */
+  repeatSafe?: 'gone';
+  /** How long the phone waits. Defaults to the 'write' limit (plan-params.json, network). */
+  timeout?: WriteTimeout;
 }
 
 /** Needs the database. The AI can only propose it; the farmer's tap sends the request. */
@@ -117,8 +126,10 @@ export function defineWrite<Input extends z.ZodType>(def: {
   request(input: z.output<Input>): ApiRequest;
   /** 'user' hides it from the AI completely. Defaults to 'confirm'. */
   access?: 'confirm' | 'user';
+  repeatSafe?: 'gone';
+  timeout?: WriteTimeout;
 }): WriteFunction<Input> {
-  const { name, description, input, request, access = 'confirm' } = def;
+  const { name, description, input, request, access = 'confirm', repeatSafe, timeout } = def;
   return {
     name,
     description,
@@ -126,5 +137,7 @@ export function defineWrite<Input extends z.ZodType>(def: {
     access,
     runs: 'api',
     request: (raw) => request(input.parse(raw) as z.output<Input>),
+    ...(repeatSafe ? { repeatSafe } : {}),
+    ...(timeout ? { timeout } : {}),
   };
 }

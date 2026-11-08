@@ -34,26 +34,36 @@
 - **Laptop:** bară laterală colorată cu paginile, antet de pagină cu acțiuni, grilă de carduri.
 - **Telefon (sub 760 px):** aceeași bară devine o bară de taburi jos, iar sus rămâne o bandă colorată scurtă.
 - **Paginile:** Acasă · Subvenții (cu Oportunități și Ce s-a schimbat) · Calendar · Prognoză · Recolte · Salariu (cu Datele planului și Contul tău) · Pensie. Butonul „Întreabă” stă în colțul din dreapta jos pe toate, mai puțin la onboarding.
+- **Taburile pe culturi:** Acasă, Subvenții, Calendar, Prognoză și Recolte au sus o bandă cu „Toată ferma” și câte un tab pentru fiecare cultură din recolta aleasă, plus „+ Adaugă”. Un tab schimbă cifrele pe loc, fără să reîncarce pagina și fără altă adresă. Alegerea rămâne pe telefon și merge și fără internet. Butonul de lângă meniu alege doar anul recoltei. Salariu, Contul tău și Pensie arată mereu toată ferma, pentru că țin de un singur cont.
+- **„Pe culturi”:** sub „Toată ferma”, pe Acasă și Prognoză, un tabel arată pentru fiecare cultură ce intră, ce iese și ce rămâne pe toată recolta. Ce nu ține de o cultură (cheltuieli comune, credite) are rândul lui, ca rândurile să dea exact totalul.
 - Planurile mai vechi, cu `farm-app/mobile/c-deck.html` și `farm-app/desktop/2-rail.html`, au fost înlocuite; fișierele nu mai sunt în repo.
 - **Diferențe față de prototip:** am scos „Înregistrează o vânzare / cheltuială”, „Activitate recentă”, „Costuri de anulat” și comutatoarele de reguli, pentru că încă nu au date în spate. În locul lor sunt salariul cu creditul (pasul 5), plicurile și banii pentru lunile grele. Graficele pentru laptop sunt desenate de mână (varianta de rezervă din prototip), nu cu Recharts.
 
 > Varianta cu 4 taburi (Acasă, Prognoză, Culturi, Rezerve) și butonul de microfon a fost un plan intermediar. Navigația de acum e cea de mai sus.
 
-> Tabelele de mai jos descriu primul flux gândit. Onboarding-ul (O1–O7) e implementat așa. Ecranele B/C/Î/D au fost înlocuite de paginile de mai sus, iar conținutul lor s-a mutat acolo.
+> Tabelele de mai jos descriu primul flux gândit. Onboarding-ul (O1–O3 + rezultatul) e implementat așa. Ecranele B/C/Î/D au fost înlocuite de paginile de mai sus, iar conținutul lor s-a mutat acolo.
 
-### O. Onboarding (o singură dată, ~2 minute)
+### Cum intri în aplicație
+
+| De unde | Ce vezi | Ce apeși | Ce urmează |
+|---|---|---|---|
+| Prima pagină, fără cont | „Fă-ți cont”, „Intră în cont”, „Vezi ferma lui Ion” | **Fă-ți cont** | `/login?mode=register`, apoi onboarding |
+| Prima pagină, cu sesiune pe telefon | „Mergi la ferma ta” | **Mergi la ferma ta** | `/acasa` |
+| Orice pagină a fermei, fără cont | nimic din fermă | – | `/login`, iar după login te întoarce unde voiai să ajungi |
+| Ferma lui Ion (`/ferma-lui-ion/acasa`) | aplicația cu datele lui Ion și o bandă sus: „Asta e ferma lui Ion, un exemplu.” | **Fă-ți cont** sau **Pornește din nou** | ce schimbi rămâne doar pe acest dispozitiv; pe pagina Bani nu se mută bani |
+
+În timp ce pagina pornește, se vede un skeleton cu forma ei. Detalii: `07-architecture.md` §9.
+
+### O. Onboarding (o singură dată, 3 pași)
 
 | # | Ecran | Ce vede | Ce apasă | Ce urmează |
 |---|---|---|---|---|
-| O1 | Bun venit | „Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună.” | **Începe** | O2 |
-| O2 | Județul | listă cu căutare | alege „Teleorman” | O6 |
-| O6 | Hârtia de la APIA (opțional) | „Ai o hârtie de la APIA? Cererea sau decizia de plată.” Cererea completează hectarele, decizia păstrează și suma. | **Sar peste** | O3 |
-| O3 | Culturile | carduri mari: Grâu, Porumb, Floarea-soarelui, cu „câte hectare?” și butoane +/− | 8 ha grâu, 7 ha porumb → **Gata** | O4 |
-| O4 | Numele și vârsta | „Cum te cheamă?” și „Câți ani ai?” (număr mare) | Ion, 55 → **Gata** | O5 |
-| O5 | Banii de acum (opțional) | „Cam câți bani ai acum?” Ne trebuie ca să-i spunem dacă îi ajung. | 35.000 → **Arată-mi banii** (sau „Nu știu, sar peste” = 0) | O7 |
-| O7 | Rezultatul | „De la APIA primești cam **16.900 lei**” (între 15.200 și 17.100) | **Vezi când vin banii** | C1 |
+| O1 | Despre tine și fermă | „Hai să-ți vedem banii.” Numele, vârsta și județul (listă derulantă) pe același ecran. Cere cont: ferma se salvează mereu pe server. | Ion, 55, Teleorman → **Mai departe** | O2 |
+| O2 | Culturile | Butonul pentru hârtia de la APIA (opțional: cererea completează hectarele, decizia păstrează și suma), apoi Grâu, Porumb, Floarea-soarelui cu butoane +/− și suma de la APIA, calculată pe loc cu vârsta | 8 ha grâu, 7 ha porumb → **Mai departe** | O3 |
+| O3 | Banii de acum (opțional) | „Câți bani ai acum?” Ne trebuie ca să-i spunem dacă îi ajung. | 35.000 → **Arată-mi banii** (sau „Nu știu, sar peste” = 0) | Rezultatul |
+| – | Rezultatul | „De la APIA primești **16.900 lei**” (între 15.200 și 17.100) | **Vezi cât îți aduce ferma**, sau „Spune-ne ce ai strâns și ce ai semănat” (Recolte) | Prognoză |
 
-Pe O7 apare și lista schemelor („Sprijin de bază ✓, Redistributiv ✓, Eco-schemă ✓”), iar la detalii schemele care nu se aplică și motivul („Tineri fermieri: doar sub 40 de ani”).
+Ce a strâns fermierul și când a semănat nu se mai întreabă la onboarding. Până le completează pe Recolte, folosim mediile și luna obișnuită de semănat. Când ferma e refăcută („Schimbă ferma”), ce era deja salvat pe Recolte rămâne.
 
 ### B. Tabul „Bani”: „Câți bani am?”
 

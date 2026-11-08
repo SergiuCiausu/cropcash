@@ -38,9 +38,15 @@ const CACHE = 'cropcash-farm-${version}';
 const FONTS = 'cropcash-fonts';
 const FILES = ${JSON.stringify(files)};
 const WAIT_MS = 4000;
+/* Photos are nice to have offline. One that fails mustn't cost the farmer the whole offline app. */
+const isPhoto = (f) => /\.(jpe?g|webp)$/.test(f);
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches.open(CACHE)
+      .then((cache) => cache.addAll(FILES.filter((f) => !isPhoto(f))).then(() => Promise.allSettled(FILES.filter(isPhoto).map((f) => cache.add(f)))))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -52,7 +58,7 @@ self.addEventListener('activate', (event) => {
 });
 
 /* Pages and scripts: the network first, so a change shows at once; the phone's copy when the
-   network is missing or too slow. Fonts never change, so the copy comes first. The API is never
+   network is missing, too slow or answers with an error. Fonts never change, so the copy comes first. The API is never
    cached here: the pages keep their own copy of the farm. */
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -65,10 +71,12 @@ self.addEventListener('fetch', (event) => {
 async function networkFirst(req, url) {
   const cache = await caches.open(CACHE);
   const key = url.origin + url.pathname;
-  const network = fetch(req).then((res) => {
-    if (res.ok) cache.put(key, res.clone());
+  const network = fetch(req).then(async (res) => {
+    if (!res.ok) return (await cache.match(key)) ?? res;
+    cache.put(key, res.clone());
     return res;
   });
+  network.catch(() => undefined); // When the phone's copy wins the race, nobody is left waiting on this.
   const slow = new Promise((done) => setTimeout(done, WAIT_MS));
   try {
     const first = await Promise.race([network, slow.then(() => cache.match(key))]);
@@ -83,9 +91,13 @@ async function cacheFirst(req) {
   const cache = await caches.open(FONTS);
   const hit = await cache.match(req);
   if (hit) return hit;
-  const res = await fetch(req);
-  if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
-  return res;
+  try {
+    const res = await fetch(req);
+    if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
+    return res;
+  } catch (e) {
+    return Response.error(); // Offline with no copy: the page falls back to the phone's own font.
+  }
 }
 `;
 }

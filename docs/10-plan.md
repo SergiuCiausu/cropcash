@@ -111,8 +111,51 @@
   - f. **Familia** (~1 h): `explain_numbers` și meniul de partajare al telefonului.
   - g. **Actele și costul creditului** (~2 h): `get_required_documents`, `get_credit_cost`. Rămân `null` până avem surse.
 
+- [x] **12. Operațiile cu bani rulate de două ori fac un singur lucru (Must din `docs/idempotency-plan.md`)** · ~6 h · MINIM
+  - **Făcut (2026-11-08):** IDEM-01…07. Migrația `018_idempotency.sql` (trebuie aplicată cu `npm run db:migrate` înainte de deploy-ul API-ului): tabela `farm_leases` cu `take_farm_lease` / `release_farm_lease`, statusul `creating` la `payouts`, `pension_plans.start_key`, indexul unic pe `(farmer_id, group_id, kind)` pentru credite, `record_expense` cu lacăt pe `client_id`.
+    - IDEM-01 (dăm timpul înainte): telefonul trimite `from`, iar ținta e `from` + luni. Același tap trimis din nou răspunde `already`, o rulare căzută la jumătate continuă, iar un ecran vechi primește `409 stale_clock`. Salariul se rezervă în `payouts` înainte de Stripe, iar plățile și veniturile au chei Stripe fixe.
+    - IDEM-02 (pornește pensia): cheie pe dialog (`Idempotency-Key`). Un abonament rămas pornit după o cădere e preluat, nu dublat.
+    - IDEM-03 (avansul APIA): a doua cerere răspunde `200 already`, nu 409.
+    - IDEM-04 (contul Stripe): chei Stripe pe fermă pentru cont, IBAN, client și card.
+    - IDEM-05 (vânzare, cheltuială): Recolte păstrează același `clientId` cât timp înregistrarea e aceeași.
+    - IDEM-06 (oprește pensia): starea `stopping`, iar o pensie deja oprită răspunde `204`.
+    - IDEM-07 (credit de la asistent): cardul trimite `groupId`.
+    - Cheia de intenție e în `web/lib/live/intent.ts` și e folosită și în `web/lib/cc/store.ts` (portarea React).
+  - **Teste:** `apps/api/src/idempotency.test.ts`, `web/lib/live/intent.test.ts` și cazuri noi în `webhook.test.ts` și `app.test.ts`. `tests/stripe/flow.test.ts` verifică și reluarea pe sandbox (`npm run test:stripe`).
+  - **Diferențe față de plan:**
+    - Fără starea `starting` la pensie: abonamentul se caută în Stripe după `metadata.farmer_id`.
+    - Fără indexul unic pentru avansul APIA, pentru că ar fi oprit și avansul din anul următor la „Dăm timpul înainte”.
+    - Ceasul de test și update-ul contului nu au cheie, pentru că trimit „acum”.
+
+- [x] **13. Restul din `docs/idempotency-plan.md` (Should)** · ~6 h · bonus, în ordinea asta
+  - a. **IDEM-08: coada pe mai multe taburi** (~2 h). `navigator.locks` pentru `flushOutbox`, `queue()` și ștergerea din coadă. `clientId` completat pentru înregistrările vechi din coadă înainte de trimitere. Se ține `outboxId → id de pe server` 24 h, ca o ștergere după trimitere să șteargă de pe server.
+  - b. **IDEM-09: schimbarea pensiei** (~1 h). Prețul se refolosește după `lookup_key` (`cc-pension-<bani>`). Lacătul și „aceeași sumă nu mai întreabă Stripe” sunt deja făcute la pasul 12.
+  - c. **IDEM-10: plățile salariului în ordinea greșită** (~1 h). `setPayoutStatus` nu mai trece din `failed` în `paid`.
+  - d. **IDEM-11: „deja făcut” nu e eroare** (~1 h). Un 404 la `undo_transaction`, `reopen_task` și `remove_credit` contează ca reușită în `web/lib/live/functions.ts` (marcaj `repeatSafe: 'gone'` în registru).
+  - e. **IDEM-12: recoltele salvate de pe două telefoane** (~1 h). `farmers.harvests_version`; o versiune veche primește `409 changed_elsewhere`, iar pagina aduce cifrele noi.
+  - **Gata când:** fiecare are testul din `docs/idempotency-plan.md` (de două ori la rând, de două ori deodată, căzut la jumătate).
+  - **Făcut (2026-11-08):** toate cinci, cu migrația `019_harvests_version.sql`. Diferențe față de plan: fără `navigator.locks` (browser vechi, http), lacătul ține ordinea doar în același tab, iar `clientId` rămâne protecția între taburi. La IDEM-12, salvările de recolte nu intră încă în coadă; asta ține de FAIL-14 din `docs/failure-handling-plan.md`.
+
+- [x] **14. Ce a rămas din `docs/idempotency-plan.md` (Later)** · ~2 h · bonus
+  - **Făcut (2026-11-08):** IDEM-13…15, fără migrație.
+    - IDEM-13: `apps/api/src/replay-cache.ts` ține 10 minute, în memorie, răspunsul la aceeași hârtie și la aceeași întrebare pe aceeași fermă. Repetarea nu mai cere încă un apel la Claude și nu se numără la limita pe zi. Cererile identice care se suprapun folosesc același apel, iar o eroare nu se păstrează. La asistent, ferma face parte din cheie, deci după o salvare răspunsul se calculează din nou. La hârtii se păstrează doar hash-ul fișierelor și câmpurile citite.
+    - IDEM-14: două adăugări simultane ale aceluiași link din Surse citesc pagina o singură dată și se numără o singură dată.
+    - IDEM-15: în Recolte, fără cont, un al doilea tap înainte de reîncărcare nu mai adaugă înregistrarea de două ori.
+  - **Teste:** `apps/api/src/replay-cache.test.ts` și cazuri noi în `assistant.test.ts`, `documents.test.ts`, `sources.test.ts`. IDEM-15 nu are test automat, pentru că `recolte.js` nu rulează în Vitest.
+
+- [x] **15. Erori și rețea slabă (`docs/failure-handling-plan.md`, FAIL-01…15)** · bonus
+  - **Făcut (2026-11-08):** timp limită la fiecare apel, coada cu reîncercări și proprietar, salvările de plan fără net, banii cu răspuns pierdut, pagina care nu pornește, service worker-ul. Pe server: IDEM-09, IDEM-10 și IDEM-12 (migrația 019).
+  - **Teste:** `npm test` acoperă logica. Nu au rulat încă, pe codul ăsta: `npm run db:migrate`, `test:integration`, `test:stripe`, `demo:rehearse` și verificarea de mână din planul de construcție.
+
 **Total MINIM:** ~49 h · **Total cu bonus:** ~83 h
 
 ## Interfața: din `apps/web` în `farm-app`, apoi în `web/` (Next.js)
 
 După pașii de mai sus, interfața s-a mutat din `apps/web` în `farm-app`, pas cu pas (W1–W11 în `docs/farm-app-wiring.md`). Pe 8 nov 2026, echipa a mutat paginile `farm-app` într-o aplicație Next.js în `web/` (`docs/web-nextjs-plan.md`), iar `farm-app` și `apps/web` au fost scoase din repo. `npm run dev` și `npm run build` pornesc acum `web/` cu API-ul, iar `netlify.toml` publică `web/out`.
+
+## Login obligatoriu, ferma lui Ion și încărcarea (8 nov 2026)
+
+Planul pas cu pas e în `docs/13-auth-demo-loading-plan.md`; cum funcționează, în `docs/07-architecture.md` §9.
+
+- **Făcut:** aplicația fermierului cere cont. Ferma lui Ion s-a mutat la `/ferma-lui-ion/[pagină]`, cu datele pe dispozitiv și pagina Bani ca exemplu, fără Stripe. Prima pagină duce la cont sau la ferma lui Ion. Fiecare ecran și onboarding-ul au skeleton, iar o pagină care nu pornește spune asta și oferă o nouă încercare.
+- **Rămas:** pasul 9 din plan (verificarea în browser pe telefon și laptop, luminos și întunecat, cu și fără net).

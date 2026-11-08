@@ -1,20 +1,12 @@
-/* Ported from farm-app/subsidies/onboarding.html by web/scripts/port-legacy.mjs. */
-import type { Metadata, Viewport } from 'next';
-import LegacyPage from '../../components/LegacyPage';
-import '../../styles/shared.css';
-import '../../styles/desktop.css';
-import '../../styles/rail.css';
-import '../../styles/subsidies.css';
+/* Onboarding in three steps, in the same Rail frame as the rest of the app: the lime sidebar lists the
+   steps and fills in the farm as it's typed. Phones get the lime top bar instead (components/pages/Onboarding.tsx). */
+import type { Metadata } from 'next';
+import Onboarding from '../../components/pages/Onboarding';
+import { APP_VIEWPORT } from '../../components/appStyles';
 
-export const metadata: Metadata = { title: "Începe · CropCash" };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: "#B4E85C" };
+export const metadata: Metadata = { title: 'Începe · CropCash' };
+export const viewport = APP_VIEWPORT;
 
 export default function OnboardingPage() {
-  return (
-    <LegacyPage scripts={["shared","engine","app","papers","seasons","onboarding"]} palette="both">
-      <main className="ob">
-        <form className="ob-card" id="step" noValidate></form>
-      </main>
-    </LegacyPage>
-  );
+  return <Onboarding />;
 }

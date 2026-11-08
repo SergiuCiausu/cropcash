@@ -1,14 +1,15 @@
-/* Shared by the three mobile variations: neutrals, phone stage, palette control, toast, entry dialog.
-   Palette colors (--a, --b, --c and their ink and tint forms, --bg, --deep1, --deep2, --hero, --dn) are set by shared.js. */
+/* Shared by the three mobile variations: neutrals, phone stage, toast, entry dialog.
+   The colours are the chosen palette, Field, Violet & Gold: violet marks estimates and simulated money, gold what needs attention. */
 :root {
   --text-1: #18201C; --text-2: #4A524E; --text-3: #5E6662;
   --surface: #FFFFFF; --hair: rgba(20, 32, 26, .10); --hair-2: rgba(20, 32, 26, .18);
   --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  /* Fallbacks so the page is usable before shared.js runs */
   --a: #5BA52A; --b: #7C5CFC; --ink-a: #3D7A13; --ink-b: #5B3CD6; --tint-a: #E9F7D3; --tint-b: #ECE8FF;
-  --c: #7C5CFC; --ink-c: #5B3CD6; --tint-c: #ECE8FF; --dn: #B4E85C;
-  --bg: #F8F8F3; --deep1: #2C5A14; --deep2: #4A32B0;
+  --c: #F2B81F; --ink-c: #8A5C00; --tint-c: #FFF2C9; --dn: #F2B81F;
+  /* Six chart colours, checked with the dataviz palette validator */
+  --ch1: #5BA52A; --ch2: #7C5CFC; --ch3: #3D7A13; --ch4: #5B3CD6; --ch5: #C98A00; --ch6: #B8476A;
+  --bg: #FBFAF3; --deep1: #2C5A14; --deep2: #4A32B0;
   --pal-radius: 12px;
   /* Bright hero: dark text on a light, saturated field */
   --hero: #B4E85C; --on-hero: #18201C; --on-hero-2: #36423B;
@@ -36,27 +37,6 @@ b, strong { font-weight: 600; }
   .app { width: 390px; height: min(844px, calc(100dvh - 32px)); border-radius: 36px; outline: 1px solid var(--hair-2); }
 }
 
-/* Palette control */
-.pal { position: relative; flex: none; }
-.pal-btn { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; }
-.pal-dot, .pal-opt i { position: relative; overflow: hidden; border-radius: 50%; }
-.pal-dot { width: 26px; height: 26px; background: var(--a); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--hair-2); }
-.pal-dot::before, .pal-dot::after, .pal-opt i::before, .pal-opt i::after { content: ""; position: absolute; inset: 0; }
-.pal-dot::before, .pal-opt i::before { z-index: 1; clip-path: polygon(100% 45%, 100% 100%, 45% 100%); }
-.pal-dot::after, .pal-opt i::after { clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-.pal-dot::before { background: var(--c); }
-.pal-dot::after { background: var(--b); }
-.pal-opt i { background: var(--c1); }
-.pal-opt i::before { background: var(--c3); }
-.pal-opt i::after { background: var(--c2); }
-.pal-menu { position: absolute; z-index: 50; top: calc(100% + 6px); right: 0; width: 244px; padding: 6px; background: var(--surface); border: 1px solid var(--hair-2); border-radius: var(--pal-radius); transform-origin: top right; box-shadow: 0 10px 30px rgba(20, 32, 26, .14); }
-.pal-menu p { padding: 8px 10px 6px; font-size: 13px; color: var(--text-2); }
-.pal-opt { display: grid; grid-template-columns: 30px minmax(0, 1fr) 16px; gap: 10px; align-items: center; width: 100%; min-height: 48px; padding: 6px 10px; border-radius: calc(var(--pal-radius) - 4px); text-align: left; font-size: 14px; font-weight: 500; line-height: 1.25; }
-.pal-opt small { display: block; font-size: 12.5px; font-weight: 400; color: var(--text-3); }
-.pal-opt i { width: 30px; height: 30px; }
-.pal-opt .ic { opacity: 0; font-size: 16px; color: var(--ink-a); }
-.pal-opt[aria-pressed="true"] { background: var(--tint-a); }
-.pal-opt[aria-pressed="true"] .ic { opacity: 1; }
 
 /* Shared list parts; each variation restyles them */
 .tx { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 60px; padding: 8px 0; }

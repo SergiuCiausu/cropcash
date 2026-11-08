@@ -28,8 +28,11 @@ export const MONEY_FARM_SELECT = [
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
   'transactions (amount_bani, kind, category, occurred_at, crop_id, source, expected_payment_id)',
-  'pension_plans (monthly_bani, status, stripe_subscription_id)',
+  'pension_plans (monthly_bani, status, stripe_subscription_id, start_key)',
 ].join(', ');
+
+/** The money operations that must not run twice at once for one farm. */
+export type LeaseOp = 'stripe_setup' | 'pension' | 'demo_money';
 
 /**
  * Writes that only the server may do (money records, Stripe ids, the demo clock).
@@ -41,17 +44,37 @@ export interface AdminRepo {
   setStripeIds(farmerId: string, ids: Partial<Pick<MoneyFarm, 'stripe_account_id' | 'stripe_customer_id' | 'test_clock_id' | 'demo_now'>>): Promise<void>;
   /** Idempotent on stripe_object_id: a webhook and the API can both record the same payment. */
   recordTransaction(tx: NewTransaction): Promise<void>;
-  recordPayout(p: { farmer_id: string; amount_bani: number; scheduled_for: string; stripe_payout_id: string | null; status: string }): Promise<void>;
+  /**
+   * Claims the salary of one payday before Stripe is asked to pay it. Null when this call made the
+   * claim; otherwise the row already there, so a retry never pays the same month twice.
+   */
+  claimPayout(p: { farmer_id: string; amount_bani: number; scheduled_for: string }): Promise<{ status: string; stripe_payout_id: string | null } | null>;
+  /** Fills in a claimed salary: the Stripe payout and its status, or 'failed'. */
+  finishPayout(farmerId: string, scheduledFor: string, patch: { stripe_payout_id: string | null; status: 'pending' | 'failed' }): Promise<void>;
   /** Returns how many rows were updated (0 when the payout isn't recorded yet). */
   setPayoutStatus(stripePayoutId: string, status: 'paid' | 'failed'): Promise<number>;
   /** Takes back a salary that never reached the farmer, so the money counts as theirs again. */
   removePayoutTransaction(stripePayoutId: string): Promise<void>;
-  upsertPension(p: { farmer_id: string; monthly_bani: number; stripe_subscription_id: string; started_at: string }): Promise<void>;
-  /** A new monthly amount, or 'stopped'. A stopped plan can be started again with upsertPension. */
-  updatePension(farmerId: string, patch: { monthly_bani?: number; status?: 'active' | 'stopped' }): Promise<void>;
+  upsertPension(p: { farmer_id: string; monthly_bani: number; stripe_subscription_id: string; started_at: string; start_key: string | null }): Promise<void>;
+  /** A new monthly amount, or a status. A stopped plan can be started again with upsertPension. */
+  updatePension(farmerId: string, patch: { monthly_bani?: number; status?: 'active' | 'stopping' | 'stopped' }): Promise<void>;
+  /** One money operation at a time per farm (migration 018). False when someone else holds it. */
+  takeLease(farmerId: string, op: LeaseOp, holder: string, ttlSeconds: number): Promise<boolean>;
+  releaseLease(farmerId: string, op: LeaseOp, holder: string): Promise<void>;
   /** Fixes the salary paid each month (docs/08 §1c). */
   setSalary(farmerId: string, salaryBani: number): Promise<void>;
 }
+
+/**
+ * Which payout statuses a webhook may move from (IDEM-10). Stripe doesn't promise order: a late
+ * payout.paid after payout.failed must not mark it paid again, because the failed one already gave
+ * the salary back. A paid payout can still fail later, so failed is allowed from paid. A status the
+ * row already has is not in its own list, so a redelivered event changes nothing (0 rows).
+ */
+export const PAYOUT_MOVES_FROM: Record<'paid' | 'failed', readonly string[]> = {
+  paid: ['pending', 'creating'],
+  failed: ['pending', 'creating', 'paid'],
+};
 
 export function supabaseAdminRepo(admin: SupabaseClient): AdminRepo {
   const one = async (field: string, value: string) => {
@@ -75,10 +98,25 @@ export function supabaseAdminRepo(admin: SupabaseClient): AdminRepo {
       if (error) throw new Error(error.message);
     },
 
-    async recordPayout(p) {
-      const { error } = await admin
+    async claimPayout(p) {
+      const { data, error } = await admin
         .from('payouts')
-        .upsert(p, { onConflict: 'farmer_id,scheduled_for', ignoreDuplicates: true });
+        .upsert({ ...p, stripe_payout_id: null, status: 'creating' }, { onConflict: 'farmer_id,scheduled_for', ignoreDuplicates: true })
+        .select('id');
+      if (error) throw new Error(error.message);
+      if (data?.length) return null;
+      const existing = await admin
+        .from('payouts')
+        .select('status, stripe_payout_id')
+        .eq('farmer_id', p.farmer_id)
+        .eq('scheduled_for', p.scheduled_for)
+        .single();
+      if (existing.error) throw new Error(existing.error.message);
+      return existing.data as { status: string; stripe_payout_id: string | null };
+    },
+
+    async finishPayout(farmerId, scheduledFor, patch) {
+      const { error } = await admin.from('payouts').update(patch).eq('farmer_id', farmerId).eq('scheduled_for', scheduledFor);
       if (error) throw new Error(error.message);
     },
 
@@ -87,6 +125,7 @@ export function supabaseAdminRepo(admin: SupabaseClient): AdminRepo {
         .from('payouts')
         .update({ status })
         .eq('stripe_payout_id', stripePayoutId)
+        .in('status', PAYOUT_MOVES_FROM[status])
         .select('id');
       if (error) throw new Error(error.message);
       return data?.length ?? 0;
@@ -115,6 +154,17 @@ export function supabaseAdminRepo(admin: SupabaseClient): AdminRepo {
 
     async setSalary(farmerId, salaryBani) {
       const { error } = await admin.from('farmers').update({ salary_bani: salaryBani }).eq('id', farmerId);
+      if (error) throw new Error(error.message);
+    },
+
+    async takeLease(farmerId, op, holder, ttlSeconds) {
+      const { data, error } = await admin.rpc('take_farm_lease', { p_farmer: farmerId, p_op: op, p_holder: holder, p_ttl_s: ttlSeconds });
+      if (error) throw new Error(error.message);
+      return data === true;
+    },
+
+    async releaseLease(farmerId, op, holder) {
+      const { error } = await admin.rpc('release_farm_lease', { p_farmer: farmerId, p_op: op, p_holder: holder });
       if (error) throw new Error(error.message);
     },
   };

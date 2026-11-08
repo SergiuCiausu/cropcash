@@ -12,6 +12,8 @@ export const CreditInputSchema = z
     amountLei: z.number().int().min(100).max(10_000_000),
     takeMonth: MonthKey,
     repayMonth: MonthKey,
+    /** Set by the phone when the card appears, so a credit saved twice is saved once (migration 018). */
+    groupId: z.uuid().optional(),
   })
   .refine((c) => c.repayMonth > c.takeMonth, { message: 'repay after take', path: ['repayMonth'] });
 export type CreditInput = z.infer<typeof CreditInputSchema>;

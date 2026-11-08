@@ -67,7 +67,7 @@ A `confirm` tool never executes during the AI's turn. It returns a pending actio
 |---|---|---|
 | `phone` | `packages/shared` on the device. The API can run it too. | Works, with the last saved data |
 | `outbox` | Saved locally, then sent to the API | Works. Shows "Se trimite când ai internet." |
-| `api` | Express | In `farm-app`, the button has `data-needs-net` and says why without internet (in `apps/web`: `<NeedsInternet>`, with a message from `ro.json`) |
+| `api` | Express | The button is a `NetButton` (`web/components/app/bits.tsx`): `data-needs-net`, turned off without internet, and it says why |
 
 ### Status in the tables below
 

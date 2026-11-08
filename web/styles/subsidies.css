@@ -370,6 +370,11 @@ main a.btn-dark { color: var(--surface); }
 .rail .h-chip { margin-top: auto; }
 .rail .h-chip + .farm { margin-top: 8px; }
 .m-top .h-chip { min-height: 40px; }
+.crop-tabs { position: sticky; top: 0; z-index: 20; margin-bottom: 12px; padding-block: 4px; background: var(--bg); }
+.crop-tabs .vtabs { margin: 0; scroll-behavior: smooth; }
+.crop-tabs .chip { min-height: 48px; font-size: 15.5px; }
+.crop-tabs .chip.add { color: var(--text-2); font-weight: 500; }
+.crop-table .crop-total th, .crop-table .crop-total td { font-weight: 600; }
 dialog.h-sheet { width: min(420px, calc(100vw - 32px)); padding: 20px; border: 0; border-radius: 20px; background: var(--surface); color: var(--text-1); }
 dialog.h-sheet::backdrop { background: rgba(20, 32, 26, .4); }
 dialog.h-sheet h2 { font-size: 18px; }
@@ -423,10 +428,6 @@ dialog.h-sheet .ob-crop:first-of-type { margin-top: 8px; }
 .ob-field { display: block; margin-top: 16px; font-size: 14px; font-weight: 500; }
 .ob-field input { display: block; width: 100%; min-height: 52px; margin-top: 4px; padding: 0 14px; border: 1px solid var(--hair-2); border-radius: 14px; background: var(--surface); font: inherit; font-size: 18px; color: var(--text-1); }
 .ob-err { margin-top: 12px; font-size: 14.5px; color: var(--loss); }
-.ob-list { display: grid; max-height: 280px; margin-top: 8px; overflow-y: auto; border: 1px solid var(--hair); border-radius: 14px; }
-.ob-list button { min-height: 48px; padding: 0 14px; font-size: 16px; text-align: left; }
-.ob-list button + button { border-top: 1px solid var(--hair); }
-.ob-list button[aria-pressed="true"] { background: var(--tint-a); color: var(--ink-a); font-weight: 600; }
 .ob-crop { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--hair); }
 .lead + .ob-crop { margin-top: 12px; }
 .ob-crop b { font-size: 17px; font-weight: 600; }
@@ -665,6 +666,7 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
 #net-banner { display: grid; gap: 8px; margin-bottom: 16px; }
 .net-note.warn { background: var(--warn-bg, #FFF4D6); }
 .net-note .h-quiet { margin-left: 8px; }
+.amount-echo { display: block; min-height: 1.4em; margin-top: 4px; font-size: 13px; color: var(--text-2); }
 .net-why { display: block; margin-top: 6px; font-size: 13px; color: var(--text-2); }
 
 /* ---- Pensie ---- */
@@ -701,3 +703,61 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
 #why-not .sums li.pn-funds { display: block; padding: 0 0 6px 14px; border-top: 0; }
 #why-not .pn-funds .sums { margin: 0; padding-left: 12px; border-left: 2px solid var(--hair); }
 #why-not .pn-funds .sums li { padding: 6px 0; font-size: 14px; }
+
+/* Onboarding in the Rail frame (/onboarding only; /login keeps .ob). The sidebar lists the steps and
+   fills in the farm. On phones the steps move to the lime top bar and the buttons stay at the bottom. */
+.ob-flow .ob-main { max-width: 680px; }
+.ob-flow .page-h .eyebrow { margin-bottom: 6px; }
+.ob-flow .page-h .lead { display: block; }
+.ob-flow .page-h h1:focus { outline: none; }
+.ob-flow .card > h2 { margin-bottom: 4px; }
+.ob-flow .card .ob-field:first-of-type { margin-top: 12px; }
+.ob-flow .ob-field + .ob-err { margin-top: 6px; }
+.ob-flow .card .note { margin-top: 4px; }
+.ob-flow .ob-paper { margin-top: 12px; }
+.ob-flow .card-h + .ob-crop { margin-top: 8px; }
+.ob-flow .ob-crop:last-of-type { padding-bottom: 0; }
+.ob-flow .ob-step input[aria-invalid] { border-color: var(--loss); }
+.ob-flow .ob-field [aria-invalid] { border-color: var(--loss); }
+.ob-flow .ob-live { padding: 20px 24px; border-radius: 20px; font-size: inherit; }
+.ob-flow .ob-live .amount { font-size: 32px; }
+.ob-flow .ob-s.done { color: var(--on-hero); }
+.ob-flow .ob-s:disabled { opacity: .55; cursor: default; }
+.ob-flow .farm .ob-amt { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--glass-line); color: var(--on-hero); }
+.ob-flow .farm .ob-amt span:last-child { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ob-next { display: grid; margin-top: 4px; }
+.ob-next a { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 12px 0; border-top: 1px solid var(--hair); color: var(--text-1); text-decoration: none; }
+.ob-next a:first-child { border-top: 0; }
+.ob-next b { display: block; font-size: 15px; font-weight: 600; }
+.ob-next small { display: block; font-size: 13px; color: var(--text-2); }
+.ob-next .ic { font-size: 18px; color: var(--text-2); transition: transform 160ms ease; }
+@media (hover: hover) and (pointer: fine) { .ob-next a:hover .ic { transform: translateX(3px); color: var(--text-1); } }
+@media (prefers-reduced-motion: reduce) { .ob-next .ic { transition: none; } }
+.ob-pills { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-line); }
+.ob-pills button { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px 0 6px; border-radius: 999px; font-size: 13.5px; font-weight: 500; color: var(--on-hero-2); }
+.ob-pills .n { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 255, 255, .5); font-size: 12px; font-weight: 600; color: var(--on-hero); }
+.ob-pills .n .ic { font-size: 14px; }
+.ob-pills [aria-current] { background: var(--surface); color: var(--text-1); font-weight: 600; }
+.ob-pills [aria-current] .n { background: var(--on-hero); color: var(--hero); }
+.ob-pills button:disabled { opacity: .6; }
+/* Wide screens show the amount in the sidebar's farm card, so the step doesn't repeat it. */
+@media (min-width: 761px) and (min-height: 501px) {
+  .ob-flow .ob-live { display: none; }
+}
+@media (max-width: 760px), (max-height: 500px) {
+  .ob-flow .rail { display: none; }
+  .ob-flow .main { padding-bottom: 0; }
+  .ob-flow .ob-actions { position: sticky; z-index: 5; bottom: 0; margin: 16px calc(-1 * max(16px, env(safe-area-inset-right))) 0 calc(-1 * max(16px, env(safe-area-inset-left))); padding: 12px max(16px, env(safe-area-inset-right)) calc(12px + var(--safe-b)) max(16px, env(safe-area-inset-left)); background: var(--bg); border-top: 1px solid var(--hair); }
+  .ob-flow .ob-actions .btn { flex: 1 1 auto; }
+  .ob-flow .ob-live { padding: 16px; border-radius: 18px; }
+}
+@media (max-width: 359px) { .ob-pills button { padding: 0 8px 0 4px; font-size: 12.5px; } }
+/* /login in the same frame: a status line, and the link to Ion's farm in the sidebar card. */
+.ob-flow .ob-info { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--tint-a); color: var(--ink-a); font-size: 14.5px; }
+.ob-flow .card .note#hint { margin-top: 6px; }
+.ob-look { display: inline-block; margin-top: 8px; color: var(--on-hero); font-weight: 600; }
+.ob-look-m { display: none; }
+@media (max-width: 760px), (max-height: 500px) {
+  .ob-look-m { display: block; margin: 0; padding: 4px 0 calc(16px + var(--safe-b)); text-align: center; }
+  .ob-look-m a { color: var(--text-1); font-weight: 600; }
+}

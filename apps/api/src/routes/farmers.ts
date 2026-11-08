@@ -105,10 +105,20 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams):
     }
   });
 
-  /** Replaces the farm's harvest years, closed crops and gathered grain. */
+  /**
+   * Replaces the farm's harvest years, closed crops and gathered grain. The phone sends the version
+   * its copy had in If-Match; a save made on an older copy gets 409 changed_elsewhere instead of
+   * overwriting the newer one (IDEM-12). Without If-Match (older builds) it saves on the version
+   * read here, so only a save racing it loses.
+   */
   r.put('/farmers/me/harvests', async (req, res) => {
     const parsed = HarvestsInputSchema.safeParse(req.body);
     if (!parsed.success) {
+      res.status(400).json({ error: 'invalid_input' });
+      return;
+    }
+    const ifMatch = req.header('If-Match');
+    if (ifMatch !== undefined && !/^"?\d{1,9}"?$/.test(ifMatch.trim())) {
       res.status(400).json({ error: 'invalid_input' });
       return;
     }
@@ -123,8 +133,17 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams):
       res.status(404).json({ error: 'no_farm' });
       return;
     }
-    await repo.setHarvests(token, farm.id, parsed.data);
-    res.json({ harvests: parsed.data });
+    const base = ifMatch !== undefined ? Number(ifMatch.trim().replace(/"/g, '')) : (farm.harvests_version ?? 0);
+    try {
+      const version = await repo.setHarvests(token, farm.id, parsed.data, base);
+      res.json({ harvests: parsed.data, version });
+    } catch (err) {
+      if (err instanceof RepoError && err.code === 'conflict') {
+        res.status(409).json({ error: 'changed_elsewhere', version: farm.harvests_version ?? 0 });
+        return;
+      }
+      throw err;
+    }
   });
 
   /** The current user's subsidy estimate (min / probable / max, advance and balance). */

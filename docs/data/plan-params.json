@@ -241,5 +241,77 @@
       "status": "DE-VERIFICAT",
       "note": "Viteza maximă a vântului pentru stropit. Lipsește o sursă, deci avertizarea de vânt e oprită (docs/11-open-questions.md)."
     }
+  },
+  "network": {
+    "read_timeout_s": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul o citire de la API (/api/me, oportunități, vremea). De ajustat cu timpi reali de pe un telefon la țară (docs/failure-handling-plan.md)."
+    },
+    "write_timeout_s": {
+      "value": 15,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul o salvare (vânzare, cheltuială, plan). După atât, o vânzare intră în coadă."
+    },
+    "money_timeout_s": {
+      "value": 20,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul o mutare de bani (pensie, plicuri, Stripe). Nu se reîncearcă singură."
+    },
+    "setup_timeout_s": {
+      "value": 60,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul deschiderea contului CropCash: sunt mai multe apeluri Stripe la rând."
+    },
+    "long_timeout_s": {
+      "value": 600,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul butoanele de demo: avansul APIA așteaptă până la 30 s banii, iar timpul dat înainte până la 60 s la fiecare mutare a ceasului Stripe."
+    },
+    "health_timeout_s": {
+      "value": 5,
+      "status": "presupunere",
+      "note": "Cât așteaptă verificarea /api/health care spune dacă internetul chiar merge."
+    },
+    "ai_timeout_s": {
+      "value": 60,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul răspunsul asistentului."
+    },
+    "upload_timeout_s": {
+      "value": 90,
+      "status": "presupunere",
+      "note": "Cât așteaptă telefonul citirea unei hârtii (încărcare + citire)."
+    },
+    "slow_hint_s": {
+      "value": 15,
+      "status": "presupunere",
+      "note": "După cât timp asistentul spune că încă lucrează."
+    },
+    "ping_retry_s": {
+      "value": 30,
+      "status": "presupunere",
+      "note": "Cât de des verifică telefonul dacă a revenit internetul, cât timp verificarea eșuează."
+    },
+    "outbox_retry_s": {
+      "values": [30, 120, 600, 1800],
+      "status": "presupunere",
+      "note": "Pauzele dintre încercările de a trimite coada când serverul nu răspunde. Ultima se repetă. Fiecare primește ±20% la întâmplare, ca telefoanele să nu încerce toate odată."
+    },
+    "outbox_jitter_pct": {
+      "value": 20,
+      "status": "presupunere",
+      "note": "Cât de mult variază la întâmplare pauza dintre încercări."
+    },
+    "outbox_max_tries": {
+      "value": 8,
+      "status": "presupunere",
+      "note": "După atâtea încercări eșuate, o înregistrare trece la cele refuzate, dar numai dacă a trecut și timpul de mai jos."
+    },
+    "outbox_give_up_hours": {
+      "value": 24,
+      "status": "presupunere",
+      "note": "Cel mai scurt timp în care o înregistrare rămâne în coadă înainte să fie dată la refuzate."
+    }
   }
 }

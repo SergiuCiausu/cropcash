@@ -4,7 +4,7 @@
 
 | Strat | Tehnologie | De ce |
 |---|---|---|
-| Frontend | `web/`: Next.js cu export static, ca PWA. Paginile vechi din `farm-app` sunt învelite în rute Next: HTML-ul lor e JSX, iar scripturile lor (`web/legacy/*.js`) pornesc prin `web/lib/boot.ts`. Logica vine din `packages/shared`, importată ca modul | Un singur front-end, servit ca fișiere statice, care merge offline. `farm-app` și `apps/web` (prima interfață, React + Vite) au fost scoase pe 8 nov 2026. |
+| Frontend | `web/`: Next.js cu export static, ca PWA. Paginile aplicației sunt componente React (`web/components/pages/`), care citesc ferma din `web/lib/cc` prin hook-uri. Doar landing-ul mai pornește din scripturi (`web/legacy/`, prin `web/lib/boot.ts`). Logica vine din `packages/shared`, importată ca modul | Un singur front-end, servit ca fișiere statice, care merge offline. `farm-app` și `apps/web` (prima interfață, React + Vite) au fost scoase pe 8 nov 2026. |
 | Backend | Node.js + Express + TypeScript | Aceeași limbă ca frontend-ul, așa că logica (subvenții, netezire) e partajată. |
 | DB și auth | Supabase (Postgres) | Auth și Postgres gata făcute, fără ops, cu un tier gratuit suficient pentru demo. |
 | Plăți | Stripe, **doar în test mode** | Connect, payouts, subscriptions și Test Clocks acoperă tot flow-ul banilor (challenge-ul e Stripe). |
@@ -21,8 +21,8 @@
 cropcash/
 ├── web/                      Next.js PWA (export static în web/out)
 │   ├── app/                  o rută pe pagină: acasa, subventii, calendar, recolte, prognoza, salariu, pensie, bani, …
-│   ├── legacy/               scripturile paginilor (app.js = cadrul, net, outbox; assistant.js = „Întreabă”)
-│   ├── lib/                  boot.ts, engine.ts, live/ (auth, client API, funcții, outbox, service worker)
+│   ├── legacy/               scripturile landing-ului (shared.js, landing.js, charts.js)
+│   ├── lib/                  cc/ (ferma, cadrul, net, outbox), live/ (auth, client API, funcții, service worker), boot.ts (landing)
 │   ├── styles/, public/      CSS-ul global, manifest, iconițe, imagini
 │   └── scripts/              write-sw.mjs (service worker după build), make-icons.mjs
 ├── apps/
@@ -344,6 +344,17 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 4. **Scrierile mărunte** (sarcină „Am făcut”, o intrare la motorină) intră într-o **outbox** în IndexedDB și se trimit automat când revine netul. Există un singur utilizator pe cont, deci nu apar conflicte reale. Regula: câștigă ultima scriere.
 5. **Tot ce mișcă bani** (confirmarea plicurilor, pornirea pensiei, simularea avansului, avansarea timpului) **cere net**. Nu punem bani în coadă. Înregistrarea unei vânzări sau cheltuieli nu mută bani, doar notează ce s-a întâmplat, așa că intră în outbox (`docs/f4-screens.md`).
 
+### Când rețeaua merge prost
+
+Detaliile, pe fiecare caz, sunt în `docs/failure-handling-plan.md`.
+
+- **Timp limită la fiecare apel.** Valorile stau în `docs/data/plan-params.json`, blocul `network`. Clasele sunt citire, scriere, bani, deschiderea contului, butoanele de demo, asistent și hârtii. Un apel care nu primește răspuns se termină cu `timeout`.
+- **Coada (outbox).** Are un proprietar, așa că intrarea din nou în același cont o păstrează, iar alt cont nu o trimite. Un 401, 408, 429 sau `busy` nu pierde nimic: se reîncearcă după 30 s, 2 min, 10 min, 30 min, cu o abatere de 20 %, și se respectă `Retry-After`. Un element e pus deoparte abia după 8 încercări și cel puțin 24 de ore.
+- **Salvările de plan** (`save_harvests`, `update_farm`) pot aștepta în coadă, iar cea mai nouă o înlocuiește pe cea care așteaptă. Pleacă cu versiunea de pe care au pornit (`If-Match`), așa că nu suprascriu ce a salvat alt telefon. Cele care au expirat în timp nu intră în coadă, pentru că poate au ajuns deja pe server.
+- **Bani cu răspuns pierdut.** Nu intră niciodată în coadă. Aplicația citește `/api/me` și vede ce s-a întâmplat: dacă s-a făcut, e gata; dacă nu, spune că nu s-au mutat bani; dacă nu poate citi, spune „Nu știm încă…” și butonul rămâne oprit până la următoarea deschidere.
+- **O pagină care nu pornește** se reîncarcă o singură dată dacă îi lipsește codul, apoi arată un mesaj cu „Încearcă din nou”.
+- **Service worker-ul** nu mai servește erori de la gazdă când are o copie bună, iar o poză care nu se descarcă nu îl mai oprește din instalare.
+
 ### Ce merge și ce nu
 
 | Feature | Offline | Mesajul, când nu merge |
@@ -352,8 +363,11 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 | Scenarii, toggle-ul de secetă, slider-ul de pensie, prognoza | ✅ calculate local | — |
 | Subvenția recalculată după o schimbare de hectare | ✅ calculată local; salvarea merge în outbox | — |
 | Sarcini „Am făcut”, intrări la motorină | ✅ prin outbox | „Se trimite când ai internet.” |
-| Vânzări și cheltuieli înregistrate, schimbarea datelor fermei | ✅ prin outbox; salariul apare „provizoriu” până se trimit | „Se trimite când ai internet.” |
+| Vânzări și cheltuieli înregistrate, schimbarea datelor fermei și a planului | ✅ prin outbox; salariul apare „provizoriu” până se trimit | „Se trimite când ai internet.” |
 | Login (prima dată) | ❌ | „Pornește internetul ca să intri în cont.” |
+| O pagină a fermei, cu sesiune dar fără copia fermei pe telefon | ❌ | „Pornește internetul o dată.” Pagina pornește singură când revine netul. |
+| Ferma lui Ion (`/ferma-lui-ion/*`) | ✅ toată, calculată pe telefon. Ce schimbi rămâne doar pe acest dispozitiv | — |
+| Skeletonul de încărcare | ✅ e în HTML-ul static, salvat de service worker | — |
 | Confirmarea împărțirii pe plicuri | ❌ | „Pornește internetul ca să muți banii.” |
 | Pornirea sau modificarea pensiei | ❌ | „Pornește internetul ca să pornești pensia.” |
 | Încărcarea PDF-ului APIA (AI) | ❌ | „Pornește internetul ca să citim hârtia de la APIA.” |
@@ -378,7 +392,42 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 - **RLS** e testat pe proiectul real cu `npm run test:integration`: doi utilizatori, izolare la citire și scriere, plus un token falsificat.
 - **Auth:** Supabase Auth cu **email + parolă**. Magic link-ul e incomod în PWA, pentru că linkul se deschide în browser, nu în aplicația instalată. Login-ul cu telefon (SMS OTP) e mai potrivit pentru fermieri, dar cere un furnizor de SMS plătit. E în roadmap.
 - **Pe telefon:** PWA instalabil („Adaugă pe ecranul principal”), cu manifest (`web/public/manifest.webmanifest`, pornește pe `/acasa`) și iconițe (`web/public/icons/`, făcute de `web/scripts/make-icons.mjs`). Merge pe Android și iOS fără magazin de aplicații. Dacă vrem în Play Store sau App Store, același cod se împachetează cu Capacitor (vezi open questions).
-- **Contul demo:** `DEMO_EMAIL` din `.env` (`ion@cropcash.test` în `.env.example`), creat de `npm run seed:demo`.
+- **Contul demo:** `DEMO_EMAIL` din `.env` (`ion@cropcash.test` în `.env.example`), creat de `npm run seed:demo`. E contul cu Stripe real (test mode). Nu e același lucru cu ferma lui Ion de mai jos.
+
+### Două locuri: ferma ta și ferma lui Ion
+| | Ferma ta | Ferma lui Ion |
+|---|---|---|
+| **Adresa** | `/acasa`, `/salariu`, … | `/ferma-lui-ion/acasa`, `/ferma-lui-ion/salariu`, … (`/ferma-lui-ion` trimite la `acasa`) |
+| **Cont** | obligatoriu | nu e nevoie, și rămâne Ion și pentru cine e logat |
+| **Datele** | Supabase, cu copie pe telefon | `docs/data/demo-ion.json`, fără niciun apel la API |
+| **Ce salvează** | cheile `cropcash-*` | cheile `cropcash-demo-*`, doar pe acest dispozitiv. „Pornește din nou” le șterge |
+| **Bani** | Stripe (test mode) | exemplu calculat din planul lui Ion (`web/lib/demo-account.ts`). Nu se mută bani |
+
+- **Un singur corp de pagină:** ecranele stau în `web/screens/<nume>.tsx`, iar `web/components/Screen.tsx` le desenează. `web/app/<nume>/page.tsx` și `web/app/ferma-lui-ion/[page]/page.tsx` doar aleg ecranul, ca cele două adrese să nu se despartă.
+- **Modul se citește din adresă** (`web/lib/paths.ts`). Link-urile între pagini trec prin `appHref`, iar cheile salvate prin `storageKey`. O scanare din `web/lib/paths.test.ts` oprește un link care nu trece pe acolo.
+- **Prima pagină** e pentru vizitatori: „Fă-ți cont”, „Intră în cont” și „Vezi ferma lui Ion”. Cine are deja sesiune pe telefon vede „Mergi la ferma ta”.
+
+### Paza de la intrare
+`guardTarget` (`web/lib/live/auth.ts`) e o funcție pură, cu teste, care decide **înainte să pornească pagina**. O folosește `web/components/app/Guard.tsx`. Citește sesiunea și copia fermei din `localStorage`, deci merge și fără net.
+
+| Situația | Ce se întâmplă |
+|---|---|
+| Ferma lui Ion, prima pagină, `/login` | se deschid pentru oricine |
+| Fără sesiune | `/login?next=<pagina>`, iar după login te întoarce acolo. De pe `/onboarding`, simplu `/login` |
+| Sesiune și copia fermei pe telefon | pagina pornește, și offline |
+| Sesiune, fără copie, cu net | aduce ferma de la `/api/me`; dacă nu ai fermă încă, mergi la onboarding |
+| Sesiune, fără copie, fără net | ecranul „Pornește internetul o dată” |
+| Ferma nu se poate aduce | „Nu am putut aduce ferma”, cu „Încearcă din nou” |
+
+Paza nu e securitate. Datele sunt apărate de API și RLS. Ea doar nu lasă o pagină să pornească fără fermă.
+
+### Stările de încărcare
+`loading.tsx` din Next nu ajută la un export static, pentru că nimic nu așteaptă pe server. Așa că:
+- **Skeletonul** e în HTML-ul static (`web/components/skeleton/`, câte unul pe ecran în `screens.tsx`), deci apare înainte de orice script. Doar forme, fără cifre. Folosește clasele reale ale paginii, ca să nu sară nimic când dispare. Login-ul nu are, pentru că formularul lui e deja în HTML.
+- **`markReady()`** (`web/lib/ui/ready.ts`) pune `data-ready` pe `<html>`, iar skeletonul dispare în 120 ms. Îl cheamă ecranul când ajunge ferma și paza când arată un card. Până atunci, skeletonul rămâne, inclusiv cât timp paza aduce ferma.
+- **Dacă pagina nu pornește:** `web/app/error.tsx` arată „Pagina nu a pornit”, cu „Încearcă din nou” (`web/components/PageFailed.tsx`). Fără net, cardul spune că pagina nu e încă salvată pe telefon.
+- **Înăuntrul paginii:** vremea și graficele își țin locul până vin. Fiecare se termină cu conținut sau cu un mesaj. Reîmprospătarea din fundal nu are skeleton, pentru că pe ecran e deja copia salvată.
+- **Fără JavaScript** skeletonul nu apare, iar la „mișcare redusă” nu strălucește.
 
 ## 10. Deploy
 
@@ -396,7 +445,7 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 
 Asistentul (pașii 9c–9d) e făcut. Vocea (9e) a fost scoasă pe 8 noiembrie 2026. Notificările sunt pasul 9f. Detaliile sunt în `docs/functions.md`, secțiunile 14 și 17.
 
-**Asistentul** (`apps/api/src/ai/assistant.ts`, `routes/assistant.ts`, foaia `web/legacy/assistant.js`)
+**Asistentul** (`apps/api/src/ai/assistant.ts`, `routes/assistant.ts`, foaia `web/components/app/Assistant.tsx`)
 - Rulează pe API, cu modelul din `ANTHROPIC_MODEL` (implicit `claude-sonnet-5-5`). Fără `ANTHROPIC_API_KEY`, doar asistentul și citirea hârtiilor sunt oprite (503).
 - Uneltele vin din registrul de funcții, așa că butoanele și AI-ul dau aceleași cifre. AI-ul nu face calcule singur.
 - O funcție `read` rulează direct, pe planul fermierului. O funcție `confirm` din lista permisă (`ASSISTANT_WRITES`) nu rulează: asistentul întoarce funcția și valorile, validate cu schema Zod, iar foaia arată un card. Apăsarea „Da, salvează” trimite aceeași cerere ca butonul din aplicație (`Live.write`), cu token-ul fermierului. O funcție `user` nu e unealtă. Pensia (Stripe) nu e în listă.

@@ -91,8 +91,11 @@ describe('Stripe money flow (sandbox)', () => {
     expect(available).toBe(amount);
     const plan = computeFarmPlan(await me(), data);
     expect(plan.startBalance).toBe(3_500_000 + amount);
-    // A second advance is refused.
-    expect((await request(app).post('/api/demo/income').set(auth()).send({ kind: 'apia_advance' })).status).toBe(409);
+    // Asked again, it answers `already` and pays nothing (IDEM-03).
+    const again = await request(app).post('/api/demo/income').set(auth()).send({ kind: 'apia_advance' });
+    expect(again.status).toBe(200);
+    expect(again.body.already).toBe(true);
+    expect(computeFarmPlan(await me(), data).startBalance).toBe(3_500_000 + amount);
   });
 
   it('starts a 200 lei/month pension (first contribution paid now)', async () => {
@@ -103,7 +106,8 @@ describe('Stripe money flow (sandbox)', () => {
   });
 
   it('6 months forward: 6 salaries paid out, 6 more pension contributions, APIA balance in March', async () => {
-    const res = await request(app).post('/api/demo/advance').set(auth()).send({ months: 6 });
+    const from = (await me()).demo_now;
+    const res = await request(app).post('/api/demo/advance').set(auth()).send({ months: 6, from });
     expect(res.status).toBe(200);
     const events = res.body.events as AdvanceEvent[];
     const salaries = events.filter((e) => e.type === 'salary');
@@ -113,6 +117,10 @@ describe('Stripe money flow (sandbox)', () => {
     const pensions = events.filter((e) => e.type === 'pension').length;
     expect(pensions).toBeGreaterThanOrEqual(5);
     expect(pensions).toBeLessThanOrEqual(6);
+
+    // The same tap sent again moves nothing (IDEM-01).
+    const again = await request(app).post('/api/demo/advance').set(auth()).send({ months: 6, from });
+    expect(again.body).toEqual({ events: [], already: true });
 
     const farm = await me();
     expect(farm.payouts).toHaveLength(6);

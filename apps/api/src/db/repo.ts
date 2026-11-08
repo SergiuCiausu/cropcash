@@ -5,6 +5,8 @@ export interface FarmRow extends StoredFarm {
   id: string;
   name: string;
   county: string;
+  /** Moves up by one on each harvests save (migration 019). Missing before the migration ran. */
+  harvests_version?: number;
 }
 
 export interface NewFarm {
@@ -19,6 +21,8 @@ export interface NewCredit {
   amountBani: number;
   takeDate: string;
   repayDate: string;
+  /** The phone's id for this credit: the same one sent again returns it without a second credit. */
+  groupId?: string;
 }
 
 export interface NewSale {
@@ -64,7 +68,11 @@ export interface Repo {
   completeTask(token: string, farmerId: string, taskId: string): Promise<void>;
   reopenTask(token: string, taskId: string): Promise<boolean>;
   updateFarm(token: string, farm: NewFarm): Promise<void>;
-  setHarvests(token: string, farmerId: string, harvests: HarvestsInput): Promise<void>;
+  /**
+   * Saves the document only if the farm is still at `version`, and returns the new version.
+   * Throws RepoError 'conflict' when another save got there first (IDEM-12).
+   */
+  setHarvests(token: string, farmerId: string, harvests: HarvestsInput, version: number): Promise<number>;
   /** Null removes it, and the plan goes back to the estimate. */
   setApiaDecision(token: string, farmerId: string, decision: ApiaDecision | null): Promise<void>;
   setPensionFund(token: string, farmerId: string, fundId: string | null): Promise<void>;
@@ -83,7 +91,7 @@ const parcelRow = (p: NewFarm['parcels'][number]) => ({
 });
 
 export const FARM_SELECT = [
-  'id, name, county, birth_year, start_balance_bani, pension_fund_id, demo_now, stripe_account_id, salary_bani, harvests, apia_decision',
+  'id, name, county, birth_year, start_balance_bani, pension_fund_id, demo_now, stripe_account_id, salary_bani, harvests, harvests_version, apia_decision',
   'parcels (crop_id, area_ari, is_arable, planted_month)',
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
@@ -137,7 +145,7 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
     },
 
     async addCredit(token, farmerId, c) {
-      const groupId = crypto.randomUUID();
+      const groupId = c.groupId ?? crypto.randomUUID();
       const row = (kind: string, direction: 'in' | 'out', date: string) => ({
         farmer_id: farmerId,
         group_id: groupId,
@@ -153,6 +161,8 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
         .forUser(token)
         .from('expected_payments')
         .insert([row('credit', 'in', c.takeDate), row('loan_repayment', 'out', c.repayDate)]);
+      // Sent before (the answer was lost): both rows are already there, as one insert.
+      if (error?.code === '23505' && c.groupId) return groupId;
       if (error) throw new RepoError('db_error', error.message);
       return groupId;
     },
@@ -249,9 +259,17 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
       if (error) throw new RepoError('db_error', error.message);
     },
 
-    async setHarvests(token, farmerId, harvests) {
-      const { error } = await db.forUser(token).from('farmers').update({ harvests }).eq('id', farmerId);
+    async setHarvests(token, farmerId, harvests, version) {
+      const { data, error } = await db
+        .forUser(token)
+        .from('farmers')
+        .update({ harvests, harvests_version: version + 1 })
+        .eq('id', farmerId)
+        .eq('harvests_version', version)
+        .select('harvests_version');
       if (error) throw new RepoError('db_error', error.message);
+      if (!data?.length) throw new RepoError('conflict', 'harvests changed since this version');
+      return version + 1;
     },
 
     async setSalary(token, farmerId, salaryBani) {

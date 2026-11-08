@@ -222,6 +222,23 @@ export const PlanParamsFileSchema = z.object({
     frost_min_c: z.object({ value: z.number() }).passthrough(),
     spray_wind_max_kmh: Param,
   }),
+  /** How long the phone waits on the API, and how the outbox retries (docs/failure-handling-plan.md). */
+  network: z.object({
+    read_timeout_s: PositiveParam,
+    write_timeout_s: PositiveParam,
+    money_timeout_s: PositiveParam,
+    setup_timeout_s: PositiveParam,
+    long_timeout_s: PositiveParam,
+    health_timeout_s: PositiveParam,
+    ai_timeout_s: PositiveParam,
+    upload_timeout_s: PositiveParam,
+    slow_hint_s: PositiveParam,
+    ping_retry_s: PositiveParam,
+    outbox_retry_s: z.object({ values: z.array(z.number().positive()).min(1) }).passthrough(),
+    outbox_jitter_pct: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+    outbox_max_tries: PositiveParam,
+    outbox_give_up_hours: PositiveParam,
+  }),
 });
 export type PlanParamsFile = z.infer<typeof PlanParamsFileSchema>;
 
@@ -283,6 +300,8 @@ const MinMeanMax = z.object({ min: z.number(), mean: z.number(), max: z.number()
 export const CropSchema = z.object({
   id: z.string(),
   name_ro: z.string(),
+  /** With the article, for sentences: "Vinzi grâul". A farmer's own crop has none. */
+  name_ro_art: z.string().optional(),
   cost_lei_per_ha: MinMeanMax,
   yield_t_per_ha: MinMeanMax,
   price_lei_per_kg: MinMeanMax,

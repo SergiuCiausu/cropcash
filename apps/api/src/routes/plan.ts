@@ -41,6 +41,7 @@ export function planRouter(repo: Repo, data: AppData): Router {
       amountBani: leiToBani(c.amountLei),
       takeDate: `${c.takeMonth}-01`,
       repayDate: `${c.repayMonth}-01`,
+      ...(c.groupId ? { groupId: c.groupId } : {}),
     });
     await fixSalary(token);
     res.status(201).json({ groupId });

@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 
 /**
  * The words the farmer must never see (CLAUDE.md, docs/01), searched in everything web/ puts on
- * screen: the pages (web/app), their scripts (web/legacy) and components. "CropCash" is fine,
+ * screen: the pages (web/app, web/screens), their scripts (web/legacy) and components. "CropCash" is fine,
  * "cash-flow" is not. Replaces the ro.json test that went away with apps/web.
  */
 const FORBIDDEN: [string, RegExp][] = [
@@ -17,7 +17,7 @@ const FORBIDDEN: [string, RegExp][] = [
 ];
 
 const web = join(import.meta.dirname, '..');
-const ROOTS = ['app', 'legacy', 'components'];
+const ROOTS = ['app', 'legacy', 'components', 'screens'];
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => {
@@ -40,6 +40,7 @@ describe('words on screen', () => {
       readFileSync(file, 'utf8')
         .split('\n')
         .forEach((line, i) => {
+          if (/^\s*(import|export) .* from '/.test(line)) return; // A path, not words on screen.
           for (const [word, re] of FORBIDDEN) {
             if (re.test(line)) hits.push(`${relative(web, file)}:${i + 1} ${word}`);
           }

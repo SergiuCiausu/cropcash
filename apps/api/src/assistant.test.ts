@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import type Anthropic from '@anthropic-ai/sdk';
-import { loadData } from '@cropcash/shared';
-import { assistantTools, createAssistant, type Assistant, type MessagesClient } from './ai/assistant';
+import { buildFarmPlan, loadData, type ReadFunction, type StoredFarm } from '@cropcash/shared';
+import { MAX_CARDS, SHOW_CARD, assistantTools, createAssistant, type Assistant, type MessagesClient } from './ai/assistant';
 import { createApp } from './app';
 import type { FarmRow, Repo } from './db/repo';
 import type { ReadOutcome } from './routes/functions';
@@ -126,6 +126,70 @@ describe('the assistant loop', () => {
   });
 });
 
+describe('cards', () => {
+  /* Runs the real read function on the test farm, so a card holds real output. */
+  const ctx = { farm: farm as StoredFarm, plan: buildFarmPlan(farm as StoredFarm, data, { month: '2026-11' }), data, today: '2026-11-07' };
+  const realRead = vi.fn(async (fn: ReadFunction, input: unknown): Promise<ReadOutcome> => ({ ok: true, result: fn.execute(input, ctx) }));
+  const show = (id: string, card: string, input: unknown) => toolUse(id, SHOW_CARD, { card, input });
+  const resultsOf = (sent: Anthropic.Beta.MessageCreateParamsNonStreaming[]) =>
+    sent[1]!.messages.at(-1)!.content as Anthropic.Beta.BetaToolResultBlockParam[];
+  const askWith = (...calls: Anthropic.Beta.BetaToolUseBlock[]) => {
+    const { client, sent } = scripted({ stop_reason: 'tool_use', content: calls }, { content: [text('Uite cardul.')] });
+    realRead.mockClear();
+    return createAssistant({ client, model: 'm' })({ turns: [{ role: 'user', text: 'Pot să-mi iau o drujbă?' }], today: '2026-11-07', runRead: realRead }).then((out) => ({ out, sent }));
+  };
+
+  it('offers show_card last, with every card type', () => {
+    const { tools } = assistantTools();
+    const last = tools.at(-1)!;
+    expect(last.name).toBe(SHOW_CARD);
+    expect((last.input_schema.properties as { card: { enum: string[] } }).card.enum).toEqual(expect.arrayContaining(['purchase', 'salary', 'months']));
+  });
+
+  it("fills the card from the card's own function, not from the model", async () => {
+    const { out, sent } = await askWith(show('t1', 'purchase', { amount: 200_000 }));
+    expect(realRead).toHaveBeenCalledTimes(1);
+    expect(realRead.mock.calls[0]![0]).toMatchObject({ name: 'check_purchase' });
+    const expected = ctx.plan.timelines.medium.lowest.balance - 200_000;
+    expect(out.cards).toHaveLength(1);
+    expect(out.cards[0]).toMatchObject({ type: 'purchase', data: { amount: 200_000, lowestAfter: { balance: expected } } });
+    expect(resultsOf(sent)[0]!.content).toMatch(/^Card shown/);
+  });
+
+  it('refuses an unknown card or a bad input without running anything', async () => {
+    const { out, sent } = await askWith(show('t1', 'drujba', {}), show('t2', 'purchase', { amount: 12.5 }));
+    expect(out.cards).toEqual([]);
+    expect(realRead).not.toHaveBeenCalled();
+    expect(resultsOf(sent).map((r) => r.is_error)).toEqual([true, true]);
+  });
+
+  it('shows no card when the function has nothing for that input', async () => {
+    const { out, sent } = await askWith(show('t1', 'purchase', { amount: 100_000, month: '2030-01' }));
+    expect(out.cards).toEqual([]);
+    expect(resultsOf(sent)[0]!.content).toMatch(/^No card/);
+  });
+
+  it(`keeps at most ${MAX_CARDS} cards and drops the same card twice`, async () => {
+    const { out, sent } = await askWith(
+      show('t1', 'salary', { scenario: 'medium' }),
+      show('t2', 'salary', { scenario: 'medium' }),
+      show('t3', 'months', { scenario: 'medium' }),
+      show('t4', 'tight_months', { scenario: 'medium' }),
+    );
+    expect(out.cards.map((c) => c.type)).toEqual(['salary', 'months']);
+    expect(resultsOf(sent).map((r) => r.is_error ?? false)).toEqual([false, false, false, true]);
+  });
+
+  it('draws no card when the data does not match the card', async () => {
+    const { client, sent } = scripted({ stop_reason: 'tool_use', content: [show('t1', 'salary', { scenario: 'medium' })] }, { content: [text('ok')] });
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const out = await createAssistant({ client, model: 'm' })({ turns: [{ role: 'user', text: '?' }], today: '2026-11-07', runRead: async () => okRead({ salary: '850 lei' }) });
+    error.mockRestore();
+    expect(out.cards).toEqual([]);
+    expect(resultsOf(sent)[0]!.is_error).toBe(true);
+  });
+});
+
 describe('POST /api/assistant', () => {
   const repo = { getMyFarm: vi.fn(async (token: string) => (token === 'good' ? structuredClone(farm) : null)) } as unknown as Repo;
   const verifyToken = async (token: string) => {
@@ -159,7 +223,7 @@ describe('POST /api/assistant', () => {
     const assistant: Assistant = async ({ runRead, today }) => {
       const { findRead } = await import('@cropcash/shared');
       const salary = await runRead(findRead('get_salary')!, { scenario: 'medium' });
-      return { reply: `${today} ${salary.ok}`, sources: [], unverified: [], actions: [] };
+      return { reply: `${today} ${salary.ok}`, sources: [], unverified: [], actions: [], cards: [] };
     };
     const res = await ask(app(assistant), question);
     expect(res.status).toBe(200);
@@ -167,10 +231,29 @@ describe('POST /api/assistant', () => {
   });
 
   it('stops at the daily limit', async () => {
-    const a = app(async () => ({ reply: 'ok', sources: [], unverified: [], actions: [] }), 2);
+    const a = app(async () => ({ reply: 'ok', sources: [], unverified: [], actions: [], cards: [] }), 2);
+    const q = (text: string) => [{ role: 'user', text }];
+    expect((await ask(a, q('Cât pot cheltui?'))).status).toBe(200);
+    expect((await ask(a, q('Când vine avansul?'))).status).toBe(200);
+    expect((await ask(a, q('Cât am la pensie?'))).status).toBe(429);
+  });
+
+  it('the same question again gets the answer already paid for, without counting against the day (IDEM-13)', async () => {
+    const model = vi.fn(async () => ({ reply: 'ok', sources: [], unverified: [], actions: [], cards: [] }));
+    const a = app(model, 1);
     expect((await ask(a, question)).status).toBe(200);
+    const again = await ask(a, question);
+    expect(again.status).toBe(200);
+    expect(again.body.reply).toBe('ok');
+    expect(model).toHaveBeenCalledOnce();
+  });
+
+  it('a failed answer is not kept: asking again calls the model again', async () => {
+    const model = vi.fn().mockRejectedValueOnce(new Error('down')).mockResolvedValueOnce({ reply: 'ok', sources: [], unverified: [], actions: [], cards: [] });
+    const a = app(model);
+    expect((await ask(a, question)).status).toBe(502);
     expect((await ask(a, question)).status).toBe(200);
-    expect((await ask(a, question)).status).toBe(429);
+    expect(model).toHaveBeenCalledTimes(2);
   });
 
   it('hides the error when the model call fails', async () => {

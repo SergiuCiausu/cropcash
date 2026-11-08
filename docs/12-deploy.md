@@ -75,6 +75,14 @@ API-ul încarcă bibliotecile monitorului din `node_modules` la rulare, deci pe 
 cd /srv/cropcash && git pull && npm ci && npm run build -w @cropcash/api && pm2 reload cropcash-api
 ```
 
+## Ordinea la o versiune nouă
+
+1. `npm run db:migrate`: migrațiile doar adaugă, deci codul vechi merge mai departe. Codul nou citește coloana `harvests_version` (019), iar fără ea `/api/me` pică.
+2. API-ul pe VPS.
+3. Front-end-ul pe Netlify. Un build pe Netlify se oprește dacă `VITE_API_URL` lipsește sau nu e `https://`.
+
+Aplicația de telefon (React Native + Expo) e descrisă în `docs/14-mobile-expo.md`. Dacă se schimbă adresa site-ului, se schimbă și acolo.
+
 ## 3. Front-end pe Netlify
 
 1. [app.netlify.com](https://app.netlify.com) → **Add new project** → **Import an existing project** → GitHub → repo-ul `cropcash`. `netlify.toml` setează build-ul (`npm run build -w @cropcash/next`, publish `web/out`); nu schimba nimic acolo.

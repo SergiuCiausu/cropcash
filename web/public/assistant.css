@@ -50,3 +50,38 @@ dialog.ask-sheet::backdrop { background: rgba(20, 32, 26, .4); }
 .ask-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .ask-foot { margin: 0; padding: 0 16px calc(12px + var(--safe-b, 0px)); font-size: 12.5px; color: var(--text-2, #36423B); }
 .ask-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+
+/* Cards the assistant shows under an answer (web/components/assistant-cards). */
+.ask-card .eyebrow { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--text-2, #36423B); }
+.ask-card-big { margin: 4px 0 0 !important; font-size: 28px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.ask-card-big span { font-size: 16px; font-weight: 500; color: var(--text-2, #36423B); }
+.ask-card-note { margin-top: 8px !important; color: var(--text-2, #36423B); }
+.ask-card-warn { margin-top: 8px !important; padding: 8px 12px; border-radius: 10px; background: #FDECEA; color: #8A1C12; font-weight: 600; }
+.ask-neg { color: #B3261E; }
+.ask-compare { width: 100%; margin-top: 10px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ask-compare th, .ask-compare td { padding: 6px 0; border-top: 1px solid var(--hair, rgba(20, 32, 26, .1)); text-align: right; vertical-align: top; }
+.ask-compare thead th { border-top: 0; font-size: 13.5px; font-weight: 500; color: var(--text-2, #36423B); }
+.ask-compare thead td { border-top: 0; }
+.ask-compare tbody th { padding-right: 10px; font-weight: 400; text-align: left; color: var(--text-2, #36423B); }
+.ask-compare td { padding-left: 10px; font-weight: 600; white-space: nowrap; }
+.ask-compare small { display: block; font-size: 12.5px; font-weight: 400; color: var(--text-2, #36423B); }
+.ask-chart { display: block; width: 100%; height: auto; margin-top: 10px; }
+.ask-chart-zero { stroke: var(--hair-2, rgba(20, 32, 26, .18)); stroke-width: 1; }
+.ask-chart-label { font-size: 10px; fill: var(--text-2, #36423B); }
+.ask-bar { fill: var(--a, #5BA52A); }
+.ask-bar.low { fill: var(--b, #7C5CFC); }
+.ask-bar.neg { fill: #B3261E; }
+.ask-card-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 10px 0 0; }
+.ask-card-facts dt { color: var(--text-2, #36423B); }
+.ask-card-facts dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.ask-card-facts small { font-weight: 400; color: var(--text-2, #36423B); white-space: nowrap; }
+.ask-card-more { margin-top: 10px; }
+.ask-card-more summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.ask-compare thead .ask-left { text-align: left; }
+.ask-msg .ask-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.ask-list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 8px 0; border-top: 1px solid var(--hair, rgba(20, 32, 26, .1)); }
+.ask-list-when { grid-column: 1 / -1; font-size: 13.5px; color: var(--text-2, #36423B); }
+.ask-list-when small { margin-left: 6px; }
+.ask-list-what { font-weight: 600; }
+.ask-list-sum { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ask-list-sum.out { color: var(--text-2, #36423B); }

@@ -2,6 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { Assistant } from '../ai/assistant';
 import { readRunner, type ReadDeps } from './functions';
+import { ReplayCache, requestKey } from '../replay-cache';
+
+/** How long an answer is kept for the same question on the same farm (IDEM-13). */
+const REPLAY_MS = 10 * 60 * 1000;
 
 /** The conversation lives in the browser, so each request carries it, as text only. */
 const AskSchema = z.strictObject({
@@ -29,6 +33,8 @@ export function dailyLimiter(limit: number, now: () => Date) {
 export function assistantRouter(deps: ReadDeps, assistant: Assistant | undefined, dailyLimit: number): Router {
   const r = Router();
   const allow = dailyLimiter(dailyLimit, deps.now);
+  type Answer = Awaited<ReturnType<Assistant>>;
+  const answers = new ReplayCache<Answer>(REPLAY_MS);
 
   r.post('/assistant', async (req, res) => {
     if (!assistant) {
@@ -46,12 +52,16 @@ export function assistantRouter(deps: ReadDeps, assistant: Assistant | undefined
       res.status(404).json({ error: 'no_farm' });
       return;
     }
-    if (!allow(res.locals.auth.userId)) {
+    /* The same question again (a tap after a 502, a second tab) gets the answer already paid for, and
+       doesn't count against the day. The farm is in the key: after a save, it is a new question. */
+    const key = requestKey(res.locals.auth.userId, today, parsed.data.messages, await reads.farm());
+    const kept = answers.get(key);
+    if (!kept && !allow(res.locals.auth.userId)) {
       res.status(429).json({ error: 'daily_limit' });
       return;
     }
     try {
-      res.json(await assistant({ turns: parsed.data.messages, today, runRead: (fn, input) => reads.run(fn, input) }));
+      res.json(await (kept ?? answers.run(key, () => assistant({ turns: parsed.data.messages, today, runRead: (fn, input) => reads.run(fn, input) }))));
     } catch (err) {
       console.error('[assistant]', err);
       res.status(502).json({ error: 'assistant_failed' });

@@ -8,8 +8,10 @@ Aplicație de hackathon pentru challenge-ul Stripe „Rethinking Financial Futur
 - Dacă o decizie de arhitectură diferă de docs, întrebi înainte.
 
 ## Stack-ul
-Interfața e **`web/`** (Next.js, export static în `web/out`, PWA cu service worker, merge offline). Paginile au fost portate din vechiul `farm-app`; scripturile lor stau în `web/legacy/`. `farm-app` și `apps/web` au fost scoase · Express + TS în `apps/api` · logica pură în `packages/shared` · Supabase (DB + login email/parolă) · Stripe (test mode) · Claude API + Zod · Vitest.
+Interfața e **`web/`** (Next.js, export static în `web/out`, PWA cu service worker, merge offline). Paginile aplicației sunt componente React (`web/components/pages/`, în ramele din `web/components/app/`), cu datele din `web/lib/cc`. Doar landing-ul mai pornește din scripturi (`web/legacy/`). `farm-app` și `apps/web` au fost scoase · Express + TS în `apps/api` · logica pură în `packages/shared` · Supabase (DB + login email/parolă) · Stripe (test mode) · Claude API + Zod · Vitest.
 Deploy: front pe **Netlify**, API pe **VPS RareCloud** (pm2 + Caddy cu HTTPS), DB în **Supabase cloud**. Fără Railway.
+
+**Rutele:** aplicația fermierului (`/acasa`, `/salariu`, …) cere cont. Ferma lui Ion, exemplul fără cont, stă la `/ferma-lui-ion/[pagină]`, din `docs/data/demo-ion.json`, și nu cheamă API-ul. Cele două folosesc același ecran din `web/screens/`. Contul `DEMO_EMAIL` e separat: e pentru partea cu Stripe din pitch. Detalii în `docs/07-architecture.md` §9.
 
 ## Comenzile (după pasul 1)
 ```bash
@@ -29,7 +31,7 @@ npm run test:assistant  # cele 20 de întrebări de test pe Claude-ul real (~20 
 ```
 
 ## Reguli
-- **UI în română, cu diacritice**, cu limbaj simplu. Fără „lichiditate”, „cash-flow”, „portofoliu”, „randament”. Textele stau în pagini (`web/app/*/page.tsx` și `web/legacy/*.js`).
+- **UI în română, cu diacritice**, cu limbaj simplu. Fără „lichiditate”, „cash-flow”, „portofoliu”, „randament”. Textele stau în `web/app` și `web/components`.
 - **Codul e în engleză** (nume, comentarii, commit-uri).
 - **Stripe doar în test mode.** Aplicația refuză cheile care nu încep cu `sk_test_`.
 - **Cifrele vin doar din `docs/data/*.json`.** Nicio cifră hardcodată în componente sau în logică.
@@ -37,7 +39,9 @@ npm run test:assistant  # cele 20 de întrebări de test pe Claude-ul real (~20 
 - Banii se țin în bani/eurocenți, ca **numere întregi**. Niciodată float.
 - `packages/shared` = funcții pure, fără I/O, cu teste.
 - Testele trebuie să treacă înainte de orice commit.
-- **Offline-first:** orice feature nou spune ce face fără net. Un buton care cere net primește `data-needs-net="motivul"`, iar `app.js` îl oprește fără net și spune de ce (vezi `docs/07-architecture.md` §8). Operațiile care mută bani nu se pun niciodată în coada offline. Vânzările și cheltuielile înregistrate de fermier pot intra în coadă, pentru că doar notează ce s-a întâmplat deja.
+- **Offline-first:** orice feature nou spune ce face fără net. Un buton care cere net folosește `NetButton` cu `reason="motivul"` (`web/components/app/bits.tsx`), care îl oprește fără net și spune de ce (vezi `docs/07-architecture.md` §8). Operațiile care mută bani nu se pun niciodată în coada offline. Vânzările și cheltuielile înregistrate de fermier pot intra în coadă, pentru că doar notează ce s-a întâmplat deja.
+- **Link-urile între pagini trec prin `appHref`**, iar cheile `cropcash-*` prin `storageKey`, ca vizitatorii să rămână pe ferma lui Ion și datele lor să nu ajungă în ferma cuiva.
+- **Un ecran nou** intră în `SCREENS` (`web/screens/index.ts`) și primește skeleton în `web/components/skeleton/screens.tsx`. Ce înlocuiește ecranul cu altceva (un card, de exemplu) cheamă `markReady()`, altfel skeletonul rămâne peste el.
 - Secretele stau doar în `.env` (vezi `.env.example`), niciodată în cod.
 
 ## Monitorul de subvenții (`subventii-monitor/`)
@@ -56,6 +60,7 @@ Script separat, adus din repo-ul echipei. Urmărește ~179 de surse oficiale (li
 | `docs/08-stripe.md` | atingi orice cod Stripe sau webhooks |
 | `docs/09-demo-pitch.md` | faci polish pentru demo sau date de seed |
 | `docs/10-plan.md` | începi un pas nou (și bifezi la final) |
+| `docs/13-auth-demo-loading-plan.md` | atingi rutele, paza de login, ferma lui Ion sau skeletonurile |
 | `docs/12-deploy.md` | faci deploy (Netlify, VPS cu pm2 + Caddy, webhooks Stripe) |
 | `docs/11-open-questions.md` | folosești o cifră marcată DE-VERIFICAT |
 | `data/calendar-2026.json` | lucrezi la calendar sau termene |

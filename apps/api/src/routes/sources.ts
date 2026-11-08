@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { AppData } from '@cropcash/shared';
 import type { NewPage, PageRead, PageReader } from 'subventii-monitor/pages';
 import type { SourcesStore } from '../db/sources';
+import { ReplayCache } from '../replay-cache';
 
 const KEY_HEADER = 'x-source-key';
 const KEY = /^[A-Za-z0-9_-]{43}$/;
@@ -74,27 +75,26 @@ export function sourcesRouter({ store, read, clean, newPage }: SourcesDeps, data
       return;
     }
 
+    const out = await adding.run(`${owner}|${url}`, () => add(owner, url, parsed.data.name || null, req.ip ?? 'unknown'));
+    res.status(out.status).json(out.body);
+  });
+
+  /* Two adds of the same link at once (a double tap, two tabs) share one read of the page and count
+     once against the day: the second waits for the first and gets its answer (IDEM-14). An add sent
+     after the first finished finds the source in the list and answers `already`. */
+  const adding = new ReplayCache<{ status: number; body: object }>(0);
+  async function add(owner: string, url: string, name: string | null, ip: string): Promise<{ status: number; body: object }> {
     const mine = await store.list(owner);
     const same = mine.find((s) => s.url === url);
-    if (same) {
-      res.json({ source: same, already: true });
-      return;
-    }
-    if (mine.length >= p.farmer_max.value) {
-      res.status(409).json({ error: 'too_many' });
-      return;
-    }
+    if (same) return { status: 200, body: { source: same, already: true } };
+    if (mine.length >= p.farmer_max.value) return { status: 409, body: { error: 'too_many' } };
     const day = now().toISOString().slice(0, 10);
-    if (!perIp.take(req.ip ?? 'unknown', day) || !perKey.take(owner, day)) {
-      res.status(429).json({ error: 'too_many_today' });
-      return;
-    }
+    if (!perIp.take(ip, day) || !perKey.take(owner, day)) return { status: 429, body: { error: 'too_many_today' } };
 
     let pageId = await store.pageId(url);
     if (pageId === null) {
       if ((await store.pageCount()) >= p.pages_max.value || reading >= p.reads_at_once.value) {
-        res.status(503).json({ error: 'busy' });
-        return;
+        return { status: 503, body: { error: 'busy' } };
       }
       reading += 1;
       let result: PageRead;
@@ -103,17 +103,14 @@ export function sourcesRouter({ store, read, clean, newPage }: SourcesDeps, data
       } finally {
         reading -= 1;
       }
-      if (result.state === 'refused') {
-        res.status(422).json({ error: result.reason });
-        return;
-      }
+      if (result.state === 'refused') return { status: 422, body: { error: result.reason } };
       pageId = await store.addPage(newPage(result, now()));
     }
 
-    await store.attach(owner, pageId, parsed.data.name || null);
+    await store.attach(owner, pageId, name);
     const source = (await store.list(owner)).find((s) => s.url === url);
-    res.status(201).json({ source });
-  });
+    return { status: 201, body: { source } };
+  }
 
   r.delete('/sources/:id', async (req, res) => {
     const owner = ownerOf(req, res);

@@ -37,8 +37,9 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
       return 'farm-1';
     }),
     addCredit: vi.fn(async (_token: string, _farmerId: string, c: NewCredit) => {
-      const groupId = '11111111-1111-4111-8111-111111111111';
-      credits.push({ ...c, groupId });
+      // Like the unique index from migration 018: the same group_id is saved once.
+      const groupId = c.groupId ?? '11111111-1111-4111-8111-111111111111';
+      if (!credits.some((x) => x.groupId === groupId)) credits.push({ ...c, groupId });
       return groupId;
     }),
     deleteCredit: vi.fn(async (_token: string, groupId: string) => credits.some((c) => c.groupId === groupId)),
@@ -70,8 +71,13 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
     opportunityDeadline: vi.fn(async () => undefined),
     followOpportunity: vi.fn(async () => {}),
     unfollowOpportunity: vi.fn(async () => {}),
-    setHarvests: vi.fn(async (token: string, _farmerId: string, harvests: HarvestsInput) => {
-      farms[token]!.harvests = harvests;
+    setHarvests: vi.fn(async (token: string, _farmerId: string, harvests: HarvestsInput, version: number) => {
+      // Like the guarded update in repo.ts (migration 019): only on the version the phone saw.
+      const farm = farms[token]!;
+      if ((farm.harvests_version ?? 0) !== version) throw new RepoError('conflict', 'changed');
+      farm.harvests = harvests;
+      farm.harvests_version = version + 1;
+      return version + 1;
     }),
     setApiaDecision: vi.fn(async (token: string, _farmerId: string, decision: ApiaDecision | null) => {
       farms[token]!.apia_decision = decision;
@@ -216,6 +222,18 @@ describe('credits and envelopes (step 5)', () => {
       .send({ amountLei: 14800, takeMonth: '2027-04', repayMonth: '2027-11' });
     expect(res.status).toBe(201);
     expect(credits[0]).toMatchObject({ amountBani: 1_480_000, takeDate: '2027-04-01', repayDate: '2027-11-01' });
+  });
+
+  it('a credit sent twice with the same groupId from the phone is saved once (IDEM-07)', async () => {
+    const { app, credits } = await onboarded();
+    const groupId = '22222222-2222-4222-8222-222222222222';
+    const body = { amountLei: 14800, takeMonth: '2027-04', repayMonth: '2027-11', groupId };
+    for (let i = 0; i < 2; i++) {
+      const res = await request(app).post('/api/credits').set(auth).send(body);
+      expect(res.status).toBe(201);
+      expect(res.body.groupId).toBe(groupId);
+    }
+    expect(credits).toHaveLength(1);
   });
 
   it('rejects a repayment before the credit and silly amounts', async () => {
@@ -579,6 +597,24 @@ describe('harvests', () => {
 
   it('needs a signed-in farmer', async () => {
     expect((await request(setup().app).put('/api/farmers/me/harvests').send(harvests)).status).toBe(401);
+  });
+
+  it('refuses a save made on an older copy, so it cannot overwrite a newer one (IDEM-12)', async () => {
+    const { app, farms } = setup();
+    const first = await request(app).put('/api/farmers/me/harvests').set(auth).set('If-Match', '0').send(harvests);
+    expect(first.body.version).toBe(1);
+    const stale = await request(app).put('/api/farmers/me/harvests').set(auth).set('If-Match', '0').send({ ...harvests, gathered: [] });
+    expect(stale.status).toBe(409);
+    expect(stale.body).toEqual({ error: 'changed_elsewhere', version: 1 });
+    expect(farms.good!.harvests).toEqual(harvests);
+    expect((await request(app).put('/api/farmers/me/harvests').set(auth).set('If-Match', '1').send({ ...harvests, gathered: [] })).status).toBe(200);
+  });
+
+  it('saves on the current version when an older build sends no If-Match, and refuses a bad one', async () => {
+    const { app } = setup();
+    expect((await request(app).put('/api/farmers/me/harvests').set(auth).send(harvests)).body.version).toBe(1);
+    expect((await request(app).put('/api/farmers/me/harvests').set(auth).send(harvests)).body.version).toBe(2);
+    expect((await request(app).put('/api/farmers/me/harvests').set(auth).set('If-Match', 'abc').send(harvests)).status).toBe(400);
   });
 
   it('refuses a user without a farm', async () => {

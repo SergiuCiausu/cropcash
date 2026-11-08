@@ -7,7 +7,27 @@ import {
   eurToCents,
   floorTo,
   haToAri,
+  parseWholeLei,
 } from './index';
+
+describe('parseWholeLei', () => {
+  it.each([
+    ['35000', 35000],
+    ['35 000', 35000],
+    ['35 000', 35000],
+    ['35.000', 35000],
+    ['35,000', 35000],
+    ['35000 lei', 35000],
+    ['35.000 LEI', 35000],
+    ['35 000,00', 35000],
+    ['35.000,00', 35000],
+    ['1.250.000', 1250000],
+    ['12,0', 12],
+    ['0', 0],
+  ])('reads %s', (text, lei) => expect(parseWholeLei(text)).toBe(lei));
+
+  it.each(['', '   ', '12,5', '12.50', '1.2.3', '1234.567', '-5', '5 ha', 'abc', null, undefined])('refuses %s', (text) => expect(parseWholeLei(text)).toBeNull());
+});
 
 describe('money', () => {
   it('converts decimals to integer minor units without float drift', () => {
