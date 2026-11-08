@@ -93,14 +93,36 @@ cd /srv/cropcash && git pull && npm ci && npm run build -w @cropcash/api && pm2 
 
 Variabilele `VITE_*` intră în build, deci după o schimbare a lor e nevoie de **Deploys → Trigger deploy**.
 
+### Fără acces Netlify la GitHub: deploy de pe calculator
+
+Site-ul `https://cropcash.netlify.app` e făcut așa (8 nov 2026), pentru că repo-ul e privat și Netlify nu-l vede din contul nostru. Nu se actualizează la `git push`; după o schimbare în `web/`:
+
+```bash
+npx netlify-cli login                                                     # o singură dată
+VITE_API_URL=https://cropcash-api.andreitutea.com npm run build:web       # în Git Bash; restul valorilor vin din .env
+npx netlify-cli deploy --prod --no-build --dir web/out --filter @cropcash/next
+```
+
+Când proprietarul repo-ului dă acces aplicației Netlify (GitHub → Settings → Applications), site-ul se leagă de repo din Netlify → Project configuration → Build & deploy, cu variabilele din tabelul de mai sus.
+
 ## 4. Webhooks Stripe
 
-Stripe Dashboard (test mode) → Developers → Webhooks → **Add endpoint**:
-- URL: `https://cropcash-api.andreitutea.com/api/webhooks/stripe`
-- ascultă pe **contul tău** și pe **conturile conectate**;
-- evenimente: `payment_intent.succeeded`, `invoice.paid`, `payout.paid`, `payout.failed`.
+Stripe nu mai lasă o singură destinație pentru ambele surse, deci sunt **două** destinații spre același URL. Stripe Dashboard (test mode) → Developers → Webhooks → **Add destination**, de două ori:
 
-Copiază **Signing secret** (`whsec_…`) în `STRIPE_WEBHOOK_SECRET` pe VPS (nu cel de la `stripe listen`), apoi `pm2 reload cropcash-api`. Fluxul merge și fără webhooks, dar așa se confirmă și plățile venite din Stripe.
+| Destinația | Scope | Evenimente (Snapshot, API version implicit) |
+|---|---|---|
+| 1 | **Your account** | `payment_intent.succeeded`, `invoice.paid` (avansul simulat și pensia, pe platformă) |
+| 2 | **Connected accounts** | `payout.paid`, `payout.failed` (salariul, pe contul conectat al fermierului) |
+
+URL-ul, la amândouă: `https://cropcash-api.andreitutea.com/api/webhooks/stripe`.
+
+Fiecare destinație are propriul **Signing secret** (`whsec_…`). Pe VPS, în `.env`, pune-le pe amândouă, separate prin virgulă (nu cel de la `stripe listen`):
+
+```
+STRIPE_WEBHOOK_SECRET=whsec_contul_tau,whsec_conturi_conectate
+```
+
+apoi `pm2 reload cropcash-api --update-env`. API-ul încearcă fiecare secret. Fluxul merge și fără webhooks, dar așa se confirmă și plățile venite din Stripe.
 
 ## 5. Verificare
 

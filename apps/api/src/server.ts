@@ -25,11 +25,23 @@ let money;
 if (env.stripeSecretKey && env.stripeWebhookSecret) {
   const stripe = createStripe(env.stripeSecretKey);
   const admin = supabaseAdminRepo(db.admin());
-  const webhookSecret = env.stripeWebhookSecret;
+  // Stripe gives one secret per event destination: "Your account" and "Connected accounts" are two
+  // destinations now, so STRIPE_WEBHOOK_SECRET may list several, separated by commas.
+  const webhookSecrets = env.stripeWebhookSecret.split(',').map((s) => s.trim()).filter(Boolean);
   money = {
     money: new MoneyService(stripe, admin, data),
     admin,
-    verifyWebhook: (raw: Buffer, signature: string) => stripe.webhooks.constructEvent(raw, signature, webhookSecret),
+    verifyWebhook: (raw: Buffer, signature: string) => {
+      let last: unknown;
+      for (const secret of webhookSecrets) {
+        try {
+          return stripe.webhooks.constructEvent(raw, signature, secret);
+        } catch (err) {
+          last = err;
+        }
+      }
+      throw last;
+    },
     demoMode: env.demoMode,
     data,
   };

@@ -14,3 +14,6 @@ coverage/
 farm-app/live.js
 farm-app/config.js
 farm-app/sw.js
+
+# Netlify CLI state (site id), local only
+.netlify/
