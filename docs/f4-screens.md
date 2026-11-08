@@ -1,5 +1,7 @@
 # F4 screens plan
 
+> **Historical (updated 2026-11-08).** Written for `farm-app` and `apps/web`, which were removed. The screens it planned live in the Next.js app in `web/` (pages in `web/app`, scripts in `web/legacy`). Current state: `progress.md`.
+
 HTML prototypes for the F4 functions, then the move into the React app. The functions already exist (`docs/functions.md`), but they have no buttons.
 
 Nothing here is built yet.

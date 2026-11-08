@@ -34,7 +34,7 @@
 | **Pensie** | Contribuții mici, automate, la Pilonul III sau CEI, cu simulare la 65 de ani. | „Îmi ajung?” |
 | **Asistent pentru termene și acte** | Un calendar unic cu bani, termene APIA și lucrări, plus rapoarte generate (de exemplu, motorina). | „Ce am de făcut?” |
 | **Subvenția, cinstit** | Un interval minim / probabil / maxim, defalcat pe avans și sold. | „Când vin banii?” |
-| **Întrebi cu vocea** | Un asistent răspunde din cifrele fermei, cu voce și text. Arată efectul, iar decizia rămâne a fermierului. | Pe fiecare tab |
+| **Întrebi aplicația** | Asistentul „Întreabă” răspunde în scris, din cifrele fermei. Arată efectul, iar decizia rămâne a fermierului. (Vocea a fost scoasă pe 8 nov 2026.) | Butonul „Întreabă”, pe fiecare pagină |
 
 ## Principiile de UX (obligatorii)
 
@@ -44,5 +44,5 @@
 4. **Fiecare ecran răspunde la o singură întrebare:** „Câți bani am?”, „Când vin banii?”, „Îmi ajung?”, „Ce am de făcut?”.
 5. **Sumele se afișează în lei.** Euro apare doar ca detaliu la subvenții.
 6. **Incertitudinea se arată simplu:** „între 15.200 și 17.000 lei, cel mai probabil 16.900 lei”, nu procente sau deviații.
-7. Textele de UI stau toate în `ro.json`, nu în componente.
-8. **Poți vorbi cu aplicația, dar nimic nu se salvează din vorbă.** Orice salvare cere o apăsare pe un card cu valorile exacte.
+7. Textele de UI stau în pagini (`web/app/*/page.tsx` și `web/legacy/*.js`). `ro.json` a plecat odată cu `apps/web`; `web/lib/language.test.ts` caută cuvintele interzise.
+8. **Asistentul nu salvează nimic singur.** Orice salvare propusă de el cere o apăsare pe un card cu valorile exacte.

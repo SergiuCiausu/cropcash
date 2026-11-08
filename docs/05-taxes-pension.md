@@ -35,7 +35,7 @@
 
 Plafonul de deductibilitate pentru Pilonul III și plafoanele CEI sunt `DE-VERIFICAT`.
 
-**Recomandarea în aplicație (simplă):** „Pune deoparte X lei pe lună pentru bătrânețe.” Implicit propunem **Pilonul III** (există azi). CEI e opțiunea „din 2027”. Nu recomandăm un fond anume, pentru că nu suntem consultant de investiții.
+**Recomandarea în aplicație (simplă):** „Pune deoparte X lei pe lună pentru pensie.” Implicit propunem **Pilonul III** (există azi). CEI e opțiunea „din 2027”. Nu recomandăm un fond anume, pentru că nu suntem consultant de investiții.
 
 Cifrele din §2 și §3 pe care le arată pagina de pensie („De ce nu Casa de Pensii?”) stau în `data/pension-options.json`, cu sursa și statusul lor. Fondurile Pilonului III apar acolo de la A la Z, doar cu suma minimă din `data/pension-funds.json`; nu le comparăm după cât cresc.
 

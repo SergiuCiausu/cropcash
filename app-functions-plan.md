@@ -1,5 +1,7 @@
 # App functions plan
 
+> **Historical (updated 2026-11-08).** An early team plan for a "Farm Futures" app. The functions that were built live in one registry, `packages/shared/src/functions/registry.ts`, documented in `docs/functions.md`; the AI assistant is in `apps/api/src/ai/assistant.ts`. `farm-app/desktop/2-rail.html` no longer exists.
+
 Plans the TypeScript functions behind the Farm Futures app: the subsidy calculators, and everything a user or the AI can do. Based on the Supabase data and the buttons in `farm-app/desktop/2-rail.html`.
 
 This is a plan. Nothing here is built yet.

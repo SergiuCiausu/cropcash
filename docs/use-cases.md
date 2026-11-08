@@ -1,3 +1,4 @@
+> **Note (2026-11-08):** voice was dropped, so the spoken use cases go through the written "Întreabă" assistant. The bad-year fund was also removed, so fund cases are out of scope. What is built: `docs/10-plan.md` and `progress.md`.
 The groups:
   - A. Getting started (1–5): onboarding by voice, a photo of the APIA decision, a "where do these numbers come from?" summary for his daughter.
   - B. Everyday money (6–13): "Cât pot cheltui?", "Pot să-mi iau o drujbă?", logging an expense or sale by voice with a card he confirms.

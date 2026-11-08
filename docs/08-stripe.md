@@ -23,7 +23,7 @@ Codul e în `apps/api/src/stripe/money.ts` (`MoneyService`) și `apps/api/src/ro
 | Ruta | Ce face |
 |---|---|
 | `POST /api/stripe/setup` | Creează o singură dată contul v2 al fermierului (cu datele de identificare de test), IBAN-ul de test, plățile manuale, **Test Clock-ul** („ceasul demo”, `farmers.demo_now`) și customer-ul cu card de test. Se poate apela de mai multe ori fără efecte duble. |
-| `POST /api/demo/income` | „Simulează avansul APIA”: suma din plan (12.652,20 lei pentru Ion), ca destination charge în contul fermierului, la data ceasului demo. |
+| `POST /api/demo/income` | „Simulează avansul APIA”: suma din plan (12.649 lei pentru Ion, 8 nov 2026), ca destination charge în contul fermierului, la data ceasului demo. |
 | `POST /api/pension` | Abonament lunar în RON pe customer-ul de pe Test Clock. Prima contribuție se plătește imediat. Merge și după o pensie oprită. |
 | `PUT /api/pension` | Altă sumă lunară: un preț nou pe același abonament, fără proration, deci contribuția deja plătită rămâne cum e și noua sumă se ia de la următoarea factură. |
 | `DELETE /api/pension` | Oprește abonamentul acum (`prorate: false`): ce s-a plătit rămâne, nu se mai ia nimic. Planul devine `stopped`. |
@@ -43,7 +43,7 @@ Codul e în `apps/api/src/stripe/money.ts` (`MoneyService`) și `apps/api/src/ro
 **Ce e simplificat (de spus la demo):**
 - Pensia se plătește cu un card de test, nu din soldul fermierului.
 - Salariul se plătește din banii ajunși prin Stripe: încasările APIA și, în demo, **creditul declarat** (intră în contul CropCash în luna lui, ca o plată APIA; rata se înregistrează din banca fermierului când trece data). Soldul de pornire nu e în Stripe. Dacă soldul Stripe nu ajunge, salariul e marcat „nu s-a putut plăti”.
-- **Salariul e fix** (pasul 9, migrarea 012): se fixează la salariul sigur din acel moment când fermierul apasă „Bine așa” la împărțire, declară/șterge un credit sau pornește, schimbă ori oprește pensia (`farmers.salary_bani`). În fiecare lună se plătește `min(fix, salariul sigur recalculat)`: nu crește singur, dar scade dacă banii n-ar ajunge. Pentru Ion cu credit: 2.850 lei din decembrie până în aprilie, 1.550 lei în mai (planul vede rambursarea din noiembrie).
+- **Salariul e fix** (pasul 9, migrarea 012): se fixează la salariul sigur din acel moment când fermierul apasă „Bine așa” la împărțire, declară/șterge un credit sau pornește, schimbă ori oprește pensia (`farmers.salary_bani`). În fiecare lună se plătește `min(fix, salariul sigur recalculat)`: nu crește singur, dar scade dacă banii n-ar ajunge. Pentru Ion cu credit (15.100 lei) și pensia de 200 lei: 2.700 lei din decembrie până în aprilie, 2.450 lei în mai (planul vede rambursarea din noiembrie). Cifrele vin din `demo:rehearse`, 8 nov 2026.
 - O încasare simulată așteaptă (până la 30 s) să apară banii în soldul fermierului, ca salariul plătit imediat după să-i găsească.
 
 **Testat cap-coadă:** `npm run test:stripe` (sandbox + Supabase): configurare, avans, pensie, 6 luni înainte → 6 salarii plătite, 5–6 contribuții, restul APIA în martie; apoi pensia trece la 300 lei, apoi se oprește.
@@ -84,7 +84,7 @@ Verificat tot pe sandbox: transferul ajunge în cont după ~3 secunde, nu imedia
 
 **Pensia:**
 9. `prices.create({ unit_amount: monthly, currency: 'ron', recurring: { interval: 'month' }, product })`, apoi `subscriptions.create({ customer, items: [{ price }] })`.
-10. Webhook-ul `invoice.paid` adaugă o `Transaction` și crește plicul „Bătrânețe”.
+10. Webhook-ul `invoice.paid` sincronizează facturile de pensie plătite și crește plicul „Pensie”.
 
 ## 3. Webhooks
 
@@ -93,10 +93,13 @@ Verificat tot pe sandbox: transferul ajunge în cont după ~3 secunde, nu imedia
 | `payment_intent.succeeded` | platformă | creează Transaction și scoate încasarea din prognoză. **Nu `transfer.created`:** transferul unei plăți destination nu are metadata, verificat pe sandbox |
 | `payout.paid` | **connected account** (Connect) | Payout → `paid`, scade plicul „Salariu” |
 | `payout.failed` | connected account | Payout → `failed`, notificare |
-| `invoice.paid` | platformă | crește plicul „Bătrânețe” |
+| `invoice.paid` | platformă | sincronizează contribuțiile de pensie, crește plicul „Pensie” |
 
 - **Idempotență:** `transactions.stripe_object_id` e `unique`, deci un eveniment trimis de două ori nu dublează banii.
-- **Verificarea semnăturii** se face cu `STRIPE_WEBHOOK_SECRET`, pe raw body (`express.raw()` doar pe ruta de webhooks).
+- **Verificarea semnăturii** se face cu `STRIPE_WEBHOOK_SECRET`, pe raw body (`express.raw()` doar pe ruta de webhooks). Variabila poate conține mai multe secrete, separate prin virgulă, iar API-ul le încearcă pe rând.
+
+### Pe serverul public (8 nov 2026)
+Stripe nu mai lasă o singură destinație pentru ambele surse, deci în sandbox sunt **două destinații** spre `https://cropcash-api.andreitutea.com/api/webhooks/stripe`: **Your account** (`payment_intent.succeeded`, `invoice.paid`) și **Connected accounts** (`payout.paid`, `payout.failed`). Pe VPS, `STRIPE_WEBHOOK_SECRET` are secretele amândurora. Ambele au livrat cu succes la test. Pașii sunt în `12-deploy.md` §4.
 
 ### Comanda de dezvoltare
 ```bash
@@ -132,4 +135,4 @@ stripe listen \
 
 ## 6. Variabile de mediu
 
-`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `DEMO_MODE`, `VITE_DEMO_MODE` (vezi `.env.example`). Fără cele două chei, API-ul pornește fără rutele care mută bani. Cheia publicabilă nu e necesară în MVP, pentru că nu colectăm carduri în frontend.
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (unul sau mai multe, separate prin virgulă), `DEMO_MODE`, `VITE_DEMO_MODE` (vezi `.env.example`). Local, `STRIPE_WEBHOOK_SECRET` e cel afișat de `stripe listen`; pe server, cele două ale destinațiilor publice. Fără cele două chei, API-ul pornește fără rutele care mută bani. Cheia publicabilă nu e necesară în MVP, pentru că nu colectăm carduri în frontend.

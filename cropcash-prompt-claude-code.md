@@ -1,5 +1,7 @@
 # PROMPT PENTRU CLAUDE CODE — CropCash
 
+> **Istoric (actualizat 8 nov 2026).** E promptul de pornire al proiectului. Între timp s-au schimbat: fondul pentru ani proști a fost scos, vocea a fost scoasă, interfața e în `web/` (Next.js), iar regulile de acum sunt în `CLAUDE.md`.
+
 Ești în repo-ul unui proiect de hackathon. Construim **CropCash**, o aplicație de management financiar pentru fermele mici și mijlocii din România. Mai jos ai tot contextul. Nu știi nimic altceva despre proiect în afară de ce scrie aici și de fișierele din `docs/source/` (dacă există).
 
 ---

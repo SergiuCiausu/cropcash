@@ -232,6 +232,6 @@ Scheduling and notifications come last, once the reports have proven reliable. D
 |---|---|
 | Where it runs | Windows Task Scheduler on this PC |
 | Notification channel | None until reports are reliable, then Telegram |
-| Audience: farmers or internal | Markdown digest first; `opportunities.json` for `farm-app` if farmers will see it |
+| Audience: farmers or internal | Markdown digest first; `opportunities.json` for the app (now `web/`) if farmers will see it |
 | Personalization by county, sector, legal form | Store the fields now, filter later |
 | Claude extraction on PDFs | Rules first |

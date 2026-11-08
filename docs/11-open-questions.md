@@ -57,7 +57,7 @@
 | P21 | Proiecția pe 3 ani (trimestre) și cursorul de 1–10 ani din Prognoză repetă prețurile, costurile și subvențiile de acum în fiecare an, iar scenariul ales (bun / normal / secetă) se aplică tuturor anilor | Nu avem prognoze de preț sau cuantumuri pentru 2027–2028. Istoricul INS și Open-Meteo nu sunt încă integrate (#19). |
 | P22 | Ion e persoană fizică, nu PFA | Persona nu spune. Contează la finanțări: DR-12 și DR-14 nu acceptă persoane fizice. |
 | P23 | Lunile grele se calculează din plan: pentru Ion, martie–mai 2027, cu cel mai jos sold cam 7.800 lei în mai | Costurile din `crops-reference.json` încep în martie, iar soldul pornește de la 35.000 lei (P9), deci Ion nu ajunge pe minus. Fără salariul din plan. |
-| P24 | Paginile statice din `farm-app/subsidies` socotesc cu pensia de 200 lei/lună din exemplul din `07-architecture.md` | Așa ies 650 lei salariu sigur și 2.400 lei cu 14.000 lei credit. O fermă autentificată nu folosește exemplul: `buildFarmPlan` ține pensia la 0 până pornește planul de pensie, ca ecranul să arate exact ce plătește Stripe. |
+| P24 | Paginile fără cont (`web/legacy`, fostele pagini din `farm-app/subsidies`) socotesc cu pensia de 200 lei/lună din exemplul din `07-architecture.md` | Așa ies 650 lei salariu sigur și 2.400 lei cu 14.000 lei credit. O fermă autentificată nu folosește exemplul: `buildFarmPlan` ține pensia la 0 până pornește planul de pensie, ca ecranul să arate exact ce plătește Stripe. |
 | P25 | Recoltele de după 2027 refolosesc sumele și datele din 2026, iar Recolta 2026 din paginile statice are cifre ilustrative | Avem doar `subsidies-2026.json` și `calendar-2026.json`. Paginile arată „de verificat”, respectiv „date ilustrative”. |
 | P26 | Producția și prețul notate de fermier devin anul normal pentru toți anii următori, iar anul bun și cel slab se scalează cu același raport. Costurile rămân mediile | Un singur an notat poate fi neobișnuit. Fermierul îl poate schimba în Recolte. |
 | P27 | `sowing_month` din `crops-reference.json` vine din lunile de semănat din `expense_months` (grâu oct., porumb și floarea-soarelui apr.). Timpul până la recoltă se schimbă doar după cultură, nu după soi sau vreme. Un semănat întârziat mută recolta cu aceleași luni | Calendar agricol general, `months_status: DE-VERIFICAT`. |
@@ -80,7 +80,7 @@
 ## D. Decizii
 
 ### Luate
-- **Deploy:** front pe Netlify, API pe un VPS RareCloud, DB și auth în Supabase. Fără Railway.
+- **Deploy (făcut pe 8 nov 2026):** front pe Netlify (https://cropcash.netlify.app), API pe VPS-ul Ubuntu, la https://cropcash-api.andreitutea.com (pm2 + Caddy), DB și auth în Supabase. Fără Railway. Detalii în `12-deploy.md`.
 - **Login:** obligatoriu la demo. Folosim email + parolă (Supabase).
 - **Telefon:** PWA instalabil.
 - **Offline:** merge pentru tot ce se poate; ce cere net arată un mesaj (`07-architecture.md` §8).
@@ -91,20 +91,22 @@
 - **Stripe rămâne** (juriul dă puncte în plus pentru folosirea Stripe). Fluxul din `08-stripe.md` e o simulare de demo. Limitarea „APIA nu plătește prin Stripe” e spusă deschis în pitch. Open banking (Salt Edge) e pasul de producție, doar în pitch.
 - **Creditul de punte:** varianta A + C. Aplicația spune informativ cât credit îi trebuie și când, fără să numească vreo bancă (A). Fermierul poate introduce și singur un credit pe care îl ia oricum, iar aplicația îl include în plan (C). Riscul legal de intermediere de credit, dacă am numi bănci, e DE-VERIFICAT; de aceea nu numim.
 
-- **Asistentul și vocea intră în demo** (7 noiembrie 2026): pașii 9c–9e sunt în minimul din `10-plan.md`. Asistentul se deschide de la un buton de microfon de pe fiecare tab, iar navigația rămâne la 4 taburi. Decizia vine după ce fermierul vede cifrele: AI-ul nu spune da sau nu și nu refuză.
+- **Asistentul intră în demo, vocea nu** (7 nov 2026, apoi 8 nov 2026): asistentul scris „Întreabă” e făcut (pașii 9c–9d), cu un buton pe fiecare pagină. Vocea (9e) a fost scoasă la cererea echipei. Decizia rămâne a fermierului: AI-ul nu spune da sau nu și nu refuză.
+- **Asistentul, modelul:** `claude-sonnet-5-5` (8 nov 2026). Haiku a greșit sume de 100 de ori la test; Opus e mai scump fără câștig vizibil. Se schimbă din `ANTHROPIC_MODEL`.
+- **Asistentul, conversația:** stă în browser, fără tabele pe server; o salvare propusă e un card pe care fermierul îl apasă (`07-architecture.md` §11).
 - **Numele funcțiilor din `use-cases.md`** se mapează pe cele din `functions.md`, ca fiecare funcție să aibă o singură definiție.
 
 ### Deschise
-1. **Domeniul pentru API:** ce (sub)domeniu pointăm spre VPS? E necesar pentru HTTPS.
+1. ~~**Domeniul pentru API**~~ **Rezolvat (8 nov 2026):** `cropcash-api.andreitutea.com`, record A în Namecheap spre VPS.
 2. **Magazinele de aplicații:** e suficient PWA-ul sau vrem și Play Store / App Store (prin Capacitor, ~0,5–1 zi în plus)?
 3. **Vremea, vântul pentru stropit:** `weather.spray_wind_max_kmh` e `null` (DE-VERIFICAT) în `plan-params.json`, până avem o sursă. Până atunci, avertizarea de vânt e oprită.
 4. **Vremea, pragul de îngheț:** `weather.frost_min_c` e 0 °C la 2 m, presupunere de produs. Pragul real diferă pe cultură și pe stadiu.
 5. **Vremea, licența la lansare:** termenii Open-Meteo trec aplicațiile cu abonamente la uz comercial. Alegem plan plătit sau instanță proprie? Prețurile planurilor nu apar pe pagina de prețuri. Tot de confirmat: dacă putem stoca datele și dacă modelul regional acoperă România.
 6. **Lista completă de use case-uri:** `docs/use-cases.md` e un rezumat. Fără cele 50 de cazuri, acoperirea s-a verificat pe grupe, iar etichetele MVP / Should / Later nu se pot compara cu planul.
-7. **Vocea, recunoașterea:** merge româna din browser pe un telefon ieftin, cu semnal slab și zgomot? Dacă nu, ce serviciu pe server alegem și cu ce cost?
-8. **Vocea, citirea cu voce tare:** ce telefoane au voce românească? Ce facem pe celelalte, în afară de text?
+7. ~~**Vocea, recunoașterea**~~ **Nu mai e nevoie:** vocea a fost scoasă (8 nov 2026).
+8. ~~**Vocea, citirea cu voce tare**~~ **Nu mai e nevoie:** la fel.
 9. **Notificările:** câte pe săptămână și în ce ore? Merg pe telefoanele fermierilor și pe iPhone, fără instalare? Valorile merg în `plan-params.json`, ca presupuneri.
-10. **Asistentul, costul:** câte mesaje pe zi pentru un fermier? Limita merge în configurație.
+10. **Asistentul, costul:** limita e acum 40 de mesaje pe zi pentru un fermier (`ASSISTANT_DAILY_LIMIT`), o presupunere. Costul real pe mesaj n-a fost măsurat.
 11. **Actele necesare:** lista pentru fiecare termen cere o sursă oficială. Până atunci, `documents_ro` e `null` (DE-VERIFICAT).
 12. **Vânzarea mai târziu:** lipsesc prețurile pe luni și costul depozitării. Până atunci, răspunsul arată doar când vin banii.
 13. **Pensia sărită o lună:** merge așa la Pilonul III sau la CEI? În demo e o simulare.

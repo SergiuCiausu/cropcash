@@ -358,7 +358,7 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 | Pornirea sau modificarea pensiei | ❌ | „Pornește internetul ca să pornești pensia.” |
 | Încărcarea PDF-ului APIA (AI) | ❌ | „Pornește internetul ca să citim hârtia de la APIA.” |
 | Radarul de fonduri, actualizarea prețurilor | ❌ (se arată ultima versiune) | „Pornește internetul ca să vezi ce e nou.” |
-| Asistentul și vocea | ❌ | „Pornește internetul ca să vorbești cu mine.” |
+| Asistentul „Întreabă” | ❌ | „Pornește internetul ca să întrebi.” |
 | Notificările | ✅ cardul „Mesaje” arată ultima listă salvată; mesajele noi cer net | — |
 | Vremea | ✅ ultima prognoză salvată pe telefon, doar zilele rămase. Nu schimbă niciodată cifrele din plan | „Date din {data}. Pornește internetul ca să vezi ce e nou.” |
 | Demo: simularea avansului, „Dăm timpul înainte” | ❌ | — |
@@ -392,7 +392,7 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 
 **CORS:** API-ul acceptă doar originea Netlify și `localhost:5173`.
 
-## 11. Asistentul, vocea și notificările
+## 11. Asistentul și notificările
 
 Asistentul (pașii 9c–9d) e făcut. Vocea (9e) a fost scoasă pe 8 noiembrie 2026. Notificările sunt pasul 9f. Detaliile sunt în `docs/functions.md`, secțiunile 14 și 17.
 

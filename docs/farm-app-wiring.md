@@ -1,5 +1,7 @@
 # Wiring the scripts to farm-app
 
+> **Historical (updated 2026-11-08).** W1–W12 were all built (see `progress.md`). `farm-app` was then moved into the Next.js app in `web/` (`docs/web-nextjs-plan.md`) and removed from the repo. Paths below point to files that no longer exist; the same code is in `web/lib/live` and `web/legacy`.
+
 **Status:** plan only. Nothing here is built. Written on 2026-11-07.
 
 **Goal:** `farm-app` becomes the app we run, on live data, and we stop using `apps/web`. Hosting comes later.

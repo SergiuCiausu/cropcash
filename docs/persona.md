@@ -1,5 +1,7 @@
 # Persona
 
+> **Note (2026-11-08):** voice was dropped from the product. Everything below that Ion says aloud he now types to the "Întreabă" assistant, with the same rules (a save is always a card he taps).
+
 CropCash is built around one farmer, Ion, and one helper, his daughter. If a feature doesn't help Ion answer one of his questions, it waits.
 
 Ion is a made-up composite, not a real person. His figures are demo data, and the money figures come from `docs/07-architecture.md` and `docs/11-open-questions.md`. If they change there, those files win.
