@@ -76,16 +76,16 @@ async function rehearse(n: number) {
     say('Avansul APIA', '12.649 lei', `${lei(inc.amount)} lei`);
     p = await plan();
     await call('PUT', '/envelopes', p.proposal);
-    say('Salariul fără credit', '1.000 lei', `${lei(p.salary.salary)} lei`);
+    say('Salariul fără credit', '1.050 lei', `${lei(p.salary.salary)} lei`);
     const sug = p.creditSuggestion ?? fail('no credit suggestion');
-    say('Salariul cu credit', '2.850 lei', `${lei(sug.salary)} lei`);
-    say('Creditul', '14.800 lei în 2027-04', `${lei(sug.credit.amount)} lei în ${sug.credit.takeMonth}`);
+    say('Salariul cu credit', '2.950 lei', `${lei(sug.salary)} lei`);
+    say('Creditul', '15.100 lei în 2027-04', `${lei(sug.credit.amount)} lei în ${sug.credit.takeMonth}`);
     const take = sug.credit.takeMonth!;
     const [y, m] = take.split('-').map(Number) as [number, number];
     const repay = `${m + 7 > 12 ? y + 1 : y}-${String(((m + 6) % 12) + 1).padStart(2, '0')}`;
     await call('POST', '/credits', { amountLei: sug.credit.amount / 100, takeMonth: take, repayMonth: repay });
     p = await plan();
-    say('Salariul după credit', '2.850 lei', `${lei(p.monthlySalary)} lei`);
+    say('Salariul după credit', '2.950 lei', `${lei(p.monthlySalary)} lei`);
 
     // 2:40 Pension: started before moving time, so its contributions show up month by month.
     await call('POST', '/pension', { monthlyLei: 200 });
@@ -101,7 +101,7 @@ async function rehearse(n: number) {
     if (pensions < 5) fail(`expected at least 5 pension contributions, got ${pensions}`);
     say(
       '6 luni înainte',
-      '5 × 2.850, mai: 1.550; pensia',
+      '5 × 2.700, mai: 2.450; pensia',
       `${sal.map((e) => `${e.date.slice(5, 7)}: ${lei(e.amount)}`).join(', ')}; ${pensions} × pensie; ` +
         `${ev.filter((e) => e.type === 'income').map((e) => e.kind).join(', ')} · ${((Date.now() - t1) / 1000).toFixed(0)}s`,
     );
@@ -109,7 +109,7 @@ async function rehearse(n: number) {
 
     // 3:25 Drought.
     const yearIn = (sc: 'bad' | 'medium') => p.projection[sc].years.find((x) => x.year === 2027)?.in ?? 0;
-    say('Secetă: venit 2027', '~80.000 lei (vs ~98.000)', `${lei(yearIn('bad'), 1000)} lei (vs ${lei(yearIn('medium'), 1000)})`);
+    say('Secetă: venit 2027', '~79.000 lei (vs ~98.000)', `${lei(yearIn('bad'), 1000)} lei (vs ${lei(yearIn('medium'), 1000)})`);
     say('Secetă: salariul sigur', '0 lei', `${lei(p.salaries.bad.salary)} lei`);
   } finally {
     server.close();

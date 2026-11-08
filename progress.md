@@ -177,8 +177,8 @@ Every button and every future AI tool goes through one registry in `packages/sha
 
 ## In progress
 
-- **Removing "Fondul pentru ani proști"**, at the user's request: no 10% set aside, no fund in the plan, tile or rows. Another session is doing it. Salary figures will change.
-- **The pitch figures** in `docs/09-demo-pitch.md` are out of date. The app now gives an APIA advance of 12.649 lei and a salary of 850 lei (2.700 with the loan). The pitch still says 12.652, 1.000 and 2.850. Update the table after the fund removal and a clean `demo:rehearse`.
+- **"Fondul pentru ani proști" is removed**, at the user's request.
+- **The pitch figures** in `docs/09-demo-pitch.md` match the app again (2026-11-08, `demo:rehearse` 3 times without errors): advance 12.649 lei, salary 1.050 lei, 2.950 with a 15.100 lei credit, 2.700 paid once the 200 lei pension starts, 2.450 in May.
 
 ## Still to run, by the user
 

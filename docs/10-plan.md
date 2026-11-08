@@ -61,7 +61,8 @@
   - **Gata când:** tab-ul Culturi arată prognoza pe 7 zile a județului, cu avertizare de îngheț și creditul Open-Meteo. Fără net se vede ultima prognoză salvată. La pasul 9b, copia din `localStorage` trece în cache-ul comun.
   - **Extra:** vremea istorică pentru scenarii rămâne la pasul 8. Instalarea pe VPS e în `open-meteo-vps-setup.md`.
 
-- [ ] **9. Polish UX pentru demo + datele lui Ion** · ~4 h · MINIM
+- [x] **9. Polish UX pentru demo + datele lui Ion** · ~4 h · MINIM
+  - **Făcut (8 nov 2026):** `demo:rehearse` trece de 3 ori la rând, iar cifrele din `09-demo-pitch.md` sunt cele din aplicație. Deploy: front pe https://cropcash.netlify.app (urcat de pe calculator, vezi `12-deploy.md`), API pe https://cropcash-api.andreitutea.com (VPS, pm2 + Caddy), webhooks Stripe pe două destinații, livrate cu succes. **Rămâne:** testul pe un telefon real.
   - **Fișiere:** `scripts/seed-demo.ts`, `ro.json` (revizuire de limbaj), componente.
   - **Gata când:** `npm run seed:demo` reface starea de start în mai puțin de 30 de secunde. Niciun cuvânt interzis în UI (avem un test care caută în `ro.json`). Scriptul din `09-demo-pitch.md` merge de 3 ori la rând. Deploy-ul funcționează: front pe Netlify, API pe VPS-ul RareCloud cu HTTPS (Caddy), webhooks Stripe pe URL-ul public.
   - **Stare (7 nov 2026):** ✅ `seed:demo` (~20 s, date în `docs/data/demo-ion.json`). ✅ Testul de limbaj: din 8 nov 2026 e `web/lib/language.test.ts` (cuvintele interzise în `web/app`, `web/legacy`, `web/components`), după ce `apps/web` și `ro.json` au fost scoase. ✅ `npm run demo:rehearse` rulează scriptul de 3 ori la rând; pentru asta, salariul e acum fix (scade doar la nevoie) și creditul declarat intră în contul CropCash în demo (P18, P22, migrarea 012); scriptul din 09 §3 are cifrele reale și pensia înainte de salt. ⏳ **Deploy:** fișierele sunt gata (`netlify.toml`, `deploy/`, `docs/12-deploy.md`), lipsesc domeniul API-ului, accesul pe VPS și contul Netlify.
