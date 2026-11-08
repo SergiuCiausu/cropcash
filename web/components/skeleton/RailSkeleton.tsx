@@ -25,6 +25,13 @@ export default function RailSkeleton({ tabs = TABS, children }: { tabs?: readonl
                 <Bone w={72} h={12} className="on-field sk-tab-label" />
               </span>
             ))}
+            {/* "Mai mult": shown on a phone only, like the real one. */}
+            {tabs === TABS && (
+              <span className="sk-tab more-tab">
+                <Bone w={20} h={20} r={6} className="on-field" />
+                <Bone w={72} h={12} className="on-field sk-tab-label" />
+              </span>
+            )}
           </nav>
           <div className="farm glass sk-farm">
             <BoneText lines={3} h={11} />

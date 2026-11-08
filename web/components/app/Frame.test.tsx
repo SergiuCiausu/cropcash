@@ -90,10 +90,33 @@ describe('the frame', () => {
     expect(document.querySelector('.crop-tabs')).toBeNull();
     cleanup();
     await show('demo', '/recolte');
-    const chip = document.querySelector('button.h-chip') as HTMLButtonElement;
-    expect(chip.textContent).toMatch(/^Recolta \d{4}$/);
-    fireEvent.click(chip);
-    expect(screen.getByRole('heading', { name: 'Alege recolta' })).toBeTruthy();
+    const picker = screen.getAllByRole('combobox', { name: 'Alege recolta' })[0] as HTMLSelectElement;
+    const options = [...picker.options].map((o) => o.textContent);
+    expect(options[0]).toMatch(/^Recolta \d{4}$/);
+    expect(options.at(-1)).toBe('+ Începe anul următor');
+  });
+
+  it('shows Acasă\'s year as plain text, not a picker', async () => {
+    await show('demo', '/acasa');
+    expect(screen.queryByRole('combobox', { name: 'Alege recolta' })).toBeNull();
+    expect(document.querySelector('.h-chip.whole')?.textContent).toMatch(/^Recolta \d{4}$/);
+  });
+
+  it('opens "Mai mult" with the pages that have no tab on a phone', async () => {
+    await show('demo', '/acasa');
+    const more = screen.getByRole('button', { name: 'Mai mult' });
+    expect(more.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(more);
+    const menu = document.getElementById('more-menu') as HTMLElement;
+    expect(within(menu).getAllByRole('link').map((a) => a.textContent)).toEqual(['Calendar', 'Prognoză', 'Pensie']);
+    expect(within(menu).getByRole('link', { name: 'Calendar' }).getAttribute('href')).toBe('/ferma-lui-ion/calendar');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(document.getElementById('more-menu')).toBeNull();
+  });
+
+  it('marks "Mai mult" as the current tab on a page inside it', async () => {
+    await show('demo', '/pensie');
+    expect(screen.getByRole('button', { name: 'Mai mult' }).className).toContain('m-current');
   });
 
   const tab = (name: RegExp) => screen.getByRole('button', { name });

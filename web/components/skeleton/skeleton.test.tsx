@@ -51,8 +51,10 @@ describe('screen skeletons', () => {
   });
 
   it('draws one rail row per tab', () => {
-    expect(page('acasa').match(/class="sk-tab/g)).toHaveLength(7);
-    expect(page('acasa').match(/sk-tab rail-only/g)).toHaveLength(1);
+    // Seven on the rail, three of them only there, and "Mai mult" for a phone.
+    expect(page('acasa').match(/class="sk-tab/g)).toHaveLength(8);
+    expect(page('acasa').match(/sk-tab rail-only/g)).toHaveLength(3);
+    expect(page('acasa').match(/sk-tab more-tab/g)).toHaveLength(1);
   });
 
   it('gives onboarding its own frame, with a status line and no rail tabs of the app', () => {

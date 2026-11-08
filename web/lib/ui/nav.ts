@@ -2,12 +2,15 @@
    a page belongs to. Pure, so the React frame and its tests share it. */
 import type { IconName } from './icons';
 
-/** The bottom tabs on a phone and the rail on a computer. Pensie is on the rail only. */
+/**
+ * The rail on a computer shows them all. A phone's bottom bar shows four, with big labels, and puts the
+ * `railOnly` ones under "Mai mult" (MoreMenu in Frame.tsx), so Ion's buttons stay wide enough to read.
+ */
 export const TABS: { path: string; icon: IconName; label: string; railOnly?: true }[] = [
   { path: '/acasa', icon: 'home', label: 'Acasă' },
   { path: '/subventii', icon: 'bank', label: 'Subvenții' },
-  { path: '/calendar', icon: 'cal', label: 'Calendar' },
-  { path: '/prognoza', icon: 'chart', label: 'Prognoză' },
+  { path: '/calendar', icon: 'cal', label: 'Calendar', railOnly: true },
+  { path: '/prognoza', icon: 'chart', label: 'Prognoză', railOnly: true },
   { path: '/recolte', icon: 'sprout', label: 'Recolte' },
   { path: '/salariu', icon: 'sack', label: 'Salariu' },
   { path: '/pensie', icon: 'hourglass', label: 'Pensie', railOnly: true },
@@ -20,7 +23,7 @@ export const SUBSIDY_PAGES: { path: string; label: string }[] = [
   { path: '/surse', label: 'Ce s-a schimbat' },
 ];
 
-/** Pensie and Contul tău have no tab on a phone, so the Salariu pages link to each other. */
+/** The Salariu pages link to each other; on a phone Pensie and Contul tău are also under "Mai mult". */
 export const SALARY_PAGES: { path: string; label: string }[] = [
   { path: '/salariu', label: 'Salariul' },
   { path: '/pensie', label: 'Pensie' },

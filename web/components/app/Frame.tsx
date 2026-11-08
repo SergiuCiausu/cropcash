@@ -15,7 +15,7 @@ import { Icon } from './bits';
 import { FrameContext, type FrameInfo } from './context';
 import { CropTabs } from './CropTabs';
 import { Guard } from './Guard';
-import { HarvestChip, HarvestSheet } from './HarvestPicker';
+import { HarvestChip } from './HarvestPicker';
 import { NetBanner } from './NetBanner';
 import { Bell, NotificationPanel, Toaster, useToaster } from './Notifications';
 import { Assistant } from './Assistant';
@@ -54,7 +54,6 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   const store = useStore();
   const { ready, farm } = useFarmState();
   const view = useView(scope);
-  const [picker, setPicker] = useState(false);
   const [panel, setPanel] = useState(false);
   const toaster = useToaster();
 
@@ -69,7 +68,7 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   /* A farm page with no farm on the phone waits for the guard, and draws nothing of the farm. */
   if (ready && farm && !farm.baseFarm) return <Guard />;
 
-  const chip = view ? <HarvestChip view={view} onOpen={() => setPicker(true)} /> : null;
+  const chip = view ? <HarvestChip view={view} /> : null;
   const bell = (where: string) => <Bell key={where} open={panel} mode={mode} onToggle={() => setPanel((o) => !o)} />;
   const isDemo = mode === 'demo';
   const signedIn = !isDemo && !!farm?.signedIn;
@@ -88,11 +87,12 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
             <Logo />
             <nav aria-label="Principal">
               {TABS.map((t) => (
-                <PageLink key={t.path} path={t.path} href={href(t.path)} className={t.railOnly ? 'rail-only' : t.path === '/salariu' && page === '/pensie' ? 'm-current' : undefined} aria-current={t.path === section ? 'page' : undefined}>
+                <PageLink key={t.path} path={t.path} href={href(t.path)} className={t.railOnly ? 'rail-only' : undefined} aria-current={t.path === section ? 'page' : undefined}>
                   <Icon name={t.icon} />
                   {t.label}
                 </PageLink>
               ))}
+              <MoreMenu page={page} section={section} href={href} signedIn={signedIn} />
             </nav>
             {view && bell('rail')}
             {chip}
@@ -140,12 +140,61 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
           </main>
         </div>
       </div>
-      {view && scope === 'picked' && <HarvestSheet view={view} open={picker} onClose={() => setPicker(false)} />}
       {view && <NotificationPanel view={view} open={panel} onClose={() => setPanel(false)} />}
       <Toaster toaster={toaster} />
       {view && <Assistant />}
       </PapersProvider>
     </FrameContext.Provider>
+  );
+}
+
+/**
+ * A phone's bottom bar has four tabs and "Mai mult", which opens the rail-only pages (Calendar, Prognoză,
+ * Pensie, and Contul tău when signed in) just above the bar. A small menu, not a Sheet: a Sheet adds a
+ * history entry, and leaving the page from inside one would make Back land on the wrong page.
+ */
+function MoreMenu({ page, section, href, signedIn }: { page: string; section: string; href: (p: string) => string; signedIn: boolean }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => setOpen(false), [page]);
+  useEffect(() => {
+    /* "Întreabă" floats above the bottom bar and would cover the menu's last row. */
+    document.documentElement.classList.toggle('more-open', open);
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, [open]);
+  const items = [
+    ...TABS.filter((t) => t.railOnly),
+    ...(signedIn ? [{ path: '/bani', icon: 'shield' as const, label: 'Contul tău' }] : []),
+  ];
+  const here = items.some((t) => t.path === section || t.path === page);
+  return (
+    <>
+      <button
+        type="button"
+        className={here ? 'more-tab m-current' : 'more-tab'}
+        aria-expanded={open}
+        aria-controls="more-menu"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <Icon name="more" />
+        Mai mult
+      </button>
+      {open && (
+        <>
+          <div className="more-backdrop" onClick={() => setOpen(false)} />
+          <div className="more-menu" id="more-menu">
+            {items.map((t) => (
+              <PageLink key={t.path} path={t.path} href={href(t.path)} aria-current={t.path === page ? 'page' : undefined}>
+                <Icon name={t.icon} />
+                {t.label}
+              </PageLink>
+            ))}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

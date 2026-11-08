@@ -20,7 +20,9 @@ describe('navigation', () => {
     expect(sectionOf('/bani')).toBe('/salariu');
     expect(sectionOf('/date-plan')).toBe('/salariu');
     expect(sectionOf('/calendar')).toBe('/calendar');
-    expect(TABS.filter((t) => t.railOnly).map((t) => t.path)).toEqual(['/pensie']);
+    // On a phone these sit under "Mai mult"; the bar keeps Acasă, Subvenții, Recolte and Salariu.
+    expect(TABS.filter((t) => t.railOnly).map((t) => t.path)).toEqual(['/calendar', '/prognoza', '/pensie']);
+    expect(TABS.filter((t) => !t.railOnly).map((t) => t.path)).toEqual(['/acasa', '/subventii', '/recolte', '/salariu']);
   });
 
   it('lists exactly the screens drawn by React', () => {

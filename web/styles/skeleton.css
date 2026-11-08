@@ -36,7 +36,8 @@ html[data-ready] .boot-skel { opacity: 0; visibility: hidden; pointer-events: no
   .boot-skel .sk-head .sk-title { height: 34px !important; }
   .boot-skel .sk-head > .bone { display: none; }
 }
-@media (max-width: 760px) { .boot-skel .sk-tab.rail-only { display: none; } }
+.boot-skel .sk-tab.more-tab { display: none; }
+@media (max-width: 760px) { .boot-skel .sk-tab.rail-only { display: none; } .boot-skel .sk-tab.more-tab { display: flex; } }
 
 /* ---- Failed: what boot() couldn't start, with a way to try again ---- */
 .boot-fail { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: var(--bg); }
