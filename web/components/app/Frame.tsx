@@ -9,6 +9,7 @@ import { date } from '../../lib/cc/format';
 import { scopeOf } from '../../lib/cc/plan';
 import { useFarmState, useStore, useView } from '../../lib/cc/react';
 import { appHref, storageKey, type Mode } from '../../lib/paths';
+import '../../lib/ui/install';
 import { CROP_TAB_PAGES, isReactPage, SALARY_PAGES, sectionOf, SUBSIDY_PAGES, TABS } from '../../lib/ui/nav';
 import { Icon } from './bits';
 import { FrameContext, type FrameInfo } from './context';

@@ -766,11 +766,21 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
   .ob-look-m a { color: var(--text-1); font-weight: 600; }
 }
 
+.share-text { max-height: 45vh; margin: 12px 0 0; padding: 12px; overflow: auto; border-radius: 12px; background: var(--bg); font: inherit; font-size: 15px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+#print-share { display: none; }
+@media print {
+  /* The screen's full-height body would spill onto a blank second sheet. */
+  html, body { height: auto; }
+  body.printing-share > :not(#print-share) { display: none !important; }
+  body.printing-share #print-share { display: block; font: 14pt/1.5 serif; white-space: pre-wrap; }
+}
+
 /* Phones: last in the last stylesheet, so nothing above shrinks these back. */
 @media (max-width: 760px) {
   .btn { min-height: 48px; }
   .chip, .vtabs .chip, .subnav a, .h-rec button, .verdict .see, th .link { min-height: 44px; }
   .subnav.phone-only { display: flex; }
+  .page-h .acts.on-phone { display: flex; margin-top: 12px; }
   /* Padding on an inline link makes a bigger target without moving the lines around it. */
   .card .note a, .card-h a { padding-block: 14px; }
 }

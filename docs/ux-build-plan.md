@@ -130,15 +130,17 @@ Each changes what gets built. Steps not listed here can start now.
 
 ## Phase D: Reach outside the app
 
-- [ ] **D1. Install card (F-21)** · ~1.5 h
+- [x] **D1. Install card (F-21)** · ~1.5 h
   - Add `web/lib/ui/install.ts`, capturing `beforeinstallprompt` at module load because it fires early, plus `components/app/InstallCard.tsx` on Acasă. Hidden when already installed. iPhone gets written steps. One "Nu acum" that stays dismissed, under `storageKey`.
+  - Only on a farmer's own farm: installed from Ion's farm, the app would open on the login page (`start_url` is `/acasa`). **Still to do:** try the install on a real Android and iPhone.
 
-- [ ] **D2. Phone calendar (F-23)** · ~2.5 h
+- [x] **D2. Phone calendar (F-23)** · ~2.5 h
   - Add pure `buildIcs(item, reminderDays)` in `packages/shared` with tests for escaping, all-day dates and a stable `UID`, so adding twice replaces. The reminder lead time goes in `plan-params.json` with an entry in `docs/11-open-questions.md`, plus the schema.
   - "Pune în calendarul telefonului" in `ItemSheet` for tasks with a date. Use the share sheet with a file where supported, otherwise a download. Test on real Android and iPhone, since installed-app file handling differs.
   - **Offline:** generated on the phone.
+  - **Still to do:** the real-phone test above. Check that the file opens, that adding twice replaces the event, and that the alarm survives, since calendar apps may ignore alarms in imported files.
 
-- [ ] **D3. Send to family (F-30, plan step 11f)** · ~2 h
+- [x] **D3. Send to family (F-30, plan step 11f)** · ~2 h
   - Per `docs/functions.md` §18: a pure text summary of salary, assumptions and next money, shown before sending. `navigator.share` on Salariu and Subvenții, with copy and print as fallbacks.
   - **Offline:** the text is ready; sending depends on the chosen app.
 

@@ -7,11 +7,13 @@ import { computeSubsidies } from '../../../packages/shared/src/subsidies/index';
 import { whatIfSubsidy } from '../../../packages/shared/src/functions/whatIf';
 import { about, cents, date, daysLeft, exact, failText, ha, num, zile } from '../../lib/cc/format';
 import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
+import { subsidyShareText } from '../../lib/ui/family-text';
 import { Icon, Sheet, useHref, Verify } from '../app/bits';
 import { useWidth } from '../app/FarmChart';
 import { PageLink, SubNav } from '../app/Frame';
 import { FutureNote } from '../app/PageNotes';
 import { PaperButton, usePapers } from '../app/Papers';
+import { ShareSheet } from '../app/ShareSheet';
 
 const AREA = new Set(['total_ha', 'arable_ha', 'unproductive_ha']);
 const AXIS_START = '2026-10-01';
@@ -154,6 +156,15 @@ export default function Subventii() {
   ];
   const pay = payKey ? payments[payKey] : null;
   const payDays = pay ? daysLeft(pay.event.end, TODAY) : 0;
+  /* Always the whole farm: a share of one crop means nothing to someone who can't see the tabs. */
+  const shareBody = subsidyShareText({
+    summary: FARM.summary,
+    year: campaign,
+    total: t(`${about(totals.lei.probable)} lei`),
+    range: decided ? 'din decizia de plată' : t(`între ${about(totals.lei.min)} lei și ${about(totals.lei.max)} lei`),
+    advance: t(`${exact(totals.advanceLei)} lei, între ${date(A.start)} și ${date(A.end, true)}`),
+    balance: t(`${exact(totals.balanceLei.probable)} lei, între ${date(B.start)} și ${date(B.end, true)}`),
+  });
 
   return (
     <>
@@ -161,6 +172,9 @@ export default function Subventii() {
         <div>
           <h1>Subvenția ta</h1>
           <p className="lead">{crop ? `Partea pentru ${crop.name.toLowerCase()} din subvenția fermei.` : 'Cât primești de la APIA pentru 2026 și când vin banii.'}</p>
+        </div>
+        <div className="acts on-phone">
+          <ShareSheet title="Subvenția fermei" text={shareBody} />
         </div>
       </header>
       <FutureNote />

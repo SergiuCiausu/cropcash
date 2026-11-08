@@ -66,6 +66,7 @@
 | P28 | Grâul din hambar se socotește vândut în prima lună a planului, la prețul notat sau la medie | Nu întrebăm luna vânzării, ca formularul să rămână scurt. Vânzările notate în altă lună decât cea obișnuită scad din hambar. |
 | P29 | Limitele pentru sursele fermierilor din `plan-params.json` → `sources`: 25 de surse de fermier, 10 adăugări pe zi, 30 pe adresă IP, 2.000 de pagini în total, 10 MB | Sunt alegeri ale noastre, ca să nu poată fi abuzat serverul. Fără cont, limita pe IP e principala protecție, iar contorul se golește la repornirea API-ului. |
 | P30 | Fără cont, lista de surse aparține unei chei din browser. Pe alt aparat nu se vede, iar dacă se șterg datele browserului, lista se pierde | Sign-in-ul a fost lăsat pe mai târziu. Când revine, cheia se poate lega de cont. |
+| P31 | Alarma unui termen pus în calendarul telefonului sună cu 7 zile înainte, la 9:00 (`plan-params.json` → `calendar_reminder_days`, `calendar_reminder_hour`). Dacă termenul e mai aproape, sună în ziua de dinainte | Alegere de produs, ca să ajungă fermierul la APIA la timp. N-am întrebat fermieri câte zile le trebuie. |
 
 ## C. Contradicții găsite
 

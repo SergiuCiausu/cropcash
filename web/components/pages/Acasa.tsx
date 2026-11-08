@@ -15,6 +15,7 @@ import { pageFits } from '../../lib/live/monitor';
 import { chartRows, cropChartRows, monthName, yearEnds } from '../../lib/ui/chart';
 import type { IconName } from '../../lib/ui/icons';
 import { Icon, OfflineNote, useHref } from '../app/bits';
+import { InstallCard } from '../app/InstallCard';
 import { ItemSheet } from '../app/ItemSheet';
 import { AverageNote } from '../app/PageNotes';
 import { CropBreakdown } from '../app/CropBreakdown';
@@ -381,6 +382,7 @@ export default function Acasa() {
           </p>
         </section>
         {!!farm.me && <Weather view={view} />}
+        {!crop && !!farm.me && <InstallCard />}
       </div>
       <ItemSheet item={picked} items={ahead} view={view} onClose={() => setPicked(null)} />
     </>

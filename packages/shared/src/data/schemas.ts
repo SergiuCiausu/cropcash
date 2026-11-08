@@ -178,6 +178,8 @@ export const PlanParamsFileSchema = z.object({
     slider_step_lei: PositiveParam,
   }),
   pension_suggest_min_lei: PositiveParam,
+  calendar_reminder_days: PositiveParam,
+  calendar_reminder_hour: PositiveParam,
   opportunities_closing_soon_days: PositiveParam,
   opportunities_changes_days: PositiveParam,
   documents: z.object({

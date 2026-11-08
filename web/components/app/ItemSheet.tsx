@@ -5,7 +5,9 @@
 import { useState } from 'react';
 import { about, date, daysLeft, eurShort, exact, failText, zile } from '../../lib/cc/format';
 import type { FarmView, PlanItem } from '../../lib/cc/plan';
-import { useFarm, useMoney, useOnline, useStore } from '../../lib/cc/react';
+import { buildIcs } from '../../../packages/shared/src/calendar/ics';
+import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
+import { saveCalendarFile } from '../../lib/ui/share';
 import { NetButton, Sheet, useHref, Verify } from './bits';
 
 export type SheetItem = Omit<PlanItem, 'icon'> & { follow?: boolean; url?: string; keys?: string[]; budgets?: (number | null | undefined)[] };
@@ -79,14 +81,45 @@ export function ItemDetail({ item: i, items, view }: { item: SheetItem; items: S
   );
 }
 
+/** A deadline in the phone's own calendar, with an alarm. Made on the phone, so it works offline. */
+function ToPhoneCalendar({ item: i, view }: { item: SheetItem; view: FarmView }) {
+  const [note, setNote] = useState('');
+  const put = async () => {
+    const { calendar_reminder_days: days, calendar_reminder_hour: hour } = view.data().params;
+    const left = daysLeft(i.date, view.today);
+    const event = i.event as { source_url?: string; note?: string } | null | undefined;
+    const description = [explain(i), event?.note, i.unverified ? 'Verifică la instituție înainte să te bazezi pe această dată.' : '', event?.source_url].filter(Boolean).join('\n');
+    /* The alarm has to fall before the day itself, and still be ahead of us. */
+    const reminder = left >= 1 ? { daysBefore: Math.min(days.value, left), hour: hour.value } : null;
+    const ics = buildIcs({ id: i.id, title: i.title, date: i.date, description }, reminder);
+    setNote('');
+    try {
+      const how = await saveCalendarFile(`cropcash-${i.date}.ics`, ics, i.title);
+      if (how === 'downloaded') setNote('Fișierul s-a descărcat. Deschide-l ca să intre în calendar.');
+    } catch {
+      setNote('Nu am putut face fișierul. Încearcă din nou.');
+    }
+  };
+  return (
+    <>
+      <button type="button" className="btn btn-line" onClick={() => void put()}>
+        Pune în calendarul telefonului
+      </button>
+      {note && <small role="status">{note}</small>}
+    </>
+  );
+}
+
 /** What can be done with an item: tick a task, or stop following a call. */
 export function ItemActions({ item: i, onDone }: { item: SheetItem; onDone: () => void }) {
   const farm = useFarm()!;
   const store = useStore()!;
   const online = useOnline();
   const href = useHref();
+  const view = useView('farm')!;
   const onServer = !!farm.me;
   const isDone = farm.doneTasks.includes(i.id);
+  const canCalendar = (i.task || i.follow) && i.exactDay && !!i.date && !isDone && daysLeft(i.date, view.today) >= 0;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const run = async (action: () => Promise<void>, fail: (e: unknown) => string) => {
@@ -125,6 +158,7 @@ export function ItemActions({ item: i, onDone }: { item: SheetItem; onDone: () =
           Vezi oportunitățile
         </a>
       )}
+      {canCalendar && <ToPhoneCalendar item={i} view={view} />}
       {error && (
         <small className="send-failed" role="alert">
           {error}

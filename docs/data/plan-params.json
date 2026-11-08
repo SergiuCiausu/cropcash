@@ -56,6 +56,16 @@
       "note": "Pasul slider-ului."
     }
   },
+  "calendar_reminder_days": {
+    "value": 7,
+    "status": "presupunere",
+    "note": "Cu câte zile înainte sună alarma unui termen pus în calendarul telefonului (P31)."
+  },
+  "calendar_reminder_hour": {
+    "value": 9,
+    "status": "presupunere",
+    "note": "La ce oră sună alarma, ca să nu sune la miezul nopții (P31)."
+  },
   "opportunities_closing_soon_days": {
     "value": 14,
     "status": "presupunere",

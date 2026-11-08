@@ -5,11 +5,14 @@
    /ferma-lui-ion/salariu (screens/salariu.tsx). Offline it computes from what's saved on the phone. */
 import { useState } from 'react';
 import { salaryBreakdown, salaryMonths, type MoneyLine } from '../../../packages/shared/src/functions/explain';
-import { num } from '../../lib/cc/format';
+import { date, num } from '../../lib/cc/format';
 import { useFarm, useMoney, useView } from '../../lib/cc/react';
 import { YEARS, yearName, type Year } from '../../lib/ui/chart';
+import { salaryShareText } from '../../lib/ui/family-text';
+import { nextMoneyIn } from '../../lib/ui/next-money';
 import { OfflineNote, useHref } from '../app/bits';
 import { AverageNote } from '../app/PageNotes';
+import { ShareSheet } from '../app/ShareSheet';
 import { PageLink } from '../app/Frame';
 
 const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
@@ -104,8 +107,18 @@ export default function Salariu() {
     `Am pornit de la ${lei(onServer ? plan.startBalance : view.farm.startBalanceBani)} în cont.`,
     crops.length ? `Într-un an normal: ${both(crops)}.` : '',
     'Banii de la APIA sunt puși în ultima zi în care pot veni, ca planul să țină și dacă întârzie.',
-    ownPension ? `Pensie: ${lei(ownPension)} pe lună${onServer || farm.ownPension !== null ? '' : ', ca exemplu'}.` : 'Nu pui bani deoparte pentru pensie.',
+    ownPension ? `Pensie: ${lei(ownPension)} pe lună${onServer || farm.ownPension !== null ? '' : ', ca exemplu'}.` : 'Fără bani puși deoparte pentru pensie.',
   ].filter(Boolean);
+
+  const nextMoney = nextMoneyIn(view);
+  const shareBody = salaryShareText({
+    summary: view.farm.summary,
+    yearLabel: yearName(year),
+    salary: lei(ledger.salary),
+    deficit: b.deficit,
+    nextMoney: nextMoney ? `${lei(nextMoney.value)}, pe ${date(nextMoney.date).replace(/[.]$/, '')}` : null,
+    assumed,
+  });
 
   return (
     <>
@@ -113,6 +126,9 @@ export default function Salariu() {
         <div>
           <h1>Salariul tău</h1>
           <p className="lead">Cât poți scoate lună de lună din {view.farm.summary}.</p>
+        </div>
+        <div className="acts on-phone">
+          <ShareSheet title="Salariul din fermă" text={shareBody} />
         </div>
       </header>
       <OfflineNote>Nu ai internet. Salariul se calculează pe telefon, din datele salvate.</OfflineNote>
