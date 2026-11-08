@@ -3,16 +3,22 @@
    there is now (was web/legacy/onboarding.js). What was gathered and what's sown are asked on Recolte,
    linked from the result. The sidebar lists the steps and fills in the farm as it's typed.
    Everything is calculated on the phone. Onboarding needs an account, and the farm goes to the
-   server, so the last step needs internet. */
+   server, so the last step needs internet. What's typed stays on the phone until it's saved, and the
+   phone's Back moves between the steps. */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { computeSubsidies, withApiaDecision } from '../../../packages/shared/src/subsidies/index';
 import { isOwnCrop, OnboardingInputSchema } from '../../../packages/shared/src/farm/index';
 import { parseWholeLei } from '../../../packages/shared/src/money/index';
-import { about, exact, failText, group } from '../../lib/cc/format';
+import { salaryBreakdown } from '../../../packages/shared/src/functions/explain';
+import { about, date, exact, failText, group } from '../../lib/cc/format';
 import { ionFarm } from '../../lib/cc/farm';
-import { FarmProvider, useFarm, useOnline, useStore } from '../../lib/cc/react';
+import type { FarmState } from '../../lib/cc/farm';
+import { FarmProvider, useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
 import * as Live from '../../lib/live/index';
 import { onboardingHarvests } from '../../lib/live/farm';
+import { appHref, storageKey } from '../../lib/paths';
+import { monthName } from '../../lib/ui/chart';
+import { nextMoneyIn } from '../../lib/ui/next-money';
 import { AmountEcho, Icon } from '../app/bits';
 import { FlowFrame } from '../app/FlowFrame';
 import FlowSkeleton from '../skeleton/FlowSkeleton';
@@ -31,6 +37,57 @@ type Field = 'name' | 'age' | 'county' | 'crops' | 'money' | 'form';
 const num = (v: string) => parseFloat(String(v).replace(',', '.'));
 const roundHa = (v: number) => Math.round(Math.max(0, v) * 100) / 100;
 const haText = (v: number) => String(v).replace('.', ',');
+
+const HOME = '/acasa';
+const DRAFT = storageKey('cropcash-onboarding-draft', 'farm');
+interface Form {
+  i: number;
+  name: string;
+  age: string;
+  county: string;
+  ha: Record<string, number>;
+  money: string;
+  decisionBani: number | null;
+}
+
+/** What the form opens with: the saved farm when there is one, otherwise nothing. */
+function savedForm(farm: FarmState, cropIds: string[]): Form {
+  const me = farm.me;
+  const area = new Map((me?.parcels ?? []).map((p) => [p.crop_id, p.area_ari / 100]));
+  return {
+    i: 0,
+    name: me?.name ?? '',
+    age: me && farm.baseFarm ? String(farm.baseFarm.age) : '',
+    county: me?.county ?? '',
+    ha: Object.fromEntries(cropIds.map((id) => [id, area.get(id) ?? 0])),
+    money: me ? group(Math.round(me.start_balance_bani / 100)) : '',
+    decisionBani: null,
+  };
+}
+
+/** Typing left unfinished, as long as the farm it started from hasn't changed since. */
+function readDraft(seed: string): Form | null {
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT) ?? 'null') as { seed: string; form: Form } | null;
+    return draft?.seed === seed ? draft.form : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(seed: string, form: Form) {
+  try {
+    localStorage.setItem(DRAFT, JSON.stringify({ seed, form }));
+  } catch {
+    /* Blocked storage: the form still works, it just won't survive a reload. */
+  }
+}
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT);
+  } catch {
+    /* Nothing was saved. */
+  }
+}
 
 export default function Onboarding() {
   return (
@@ -64,24 +121,39 @@ function Steps() {
   const year = app.subsidies.meta.campaign_year;
   /* A repeat run (a second tap, or "Schimbă ferma") edits the saved farm and keeps its sowing months. */
   const me = farm.me;
-  const [i, setI] = useState(0);
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [county, setCounty] = useState('');
-  const [ha, setHa] = useState<Record<string, number>>(() => Object.fromEntries(crops.map((c) => [c.id, 0])));
+  const money_ = useMoney();
+  const view = useView('farm');
+  const [editing] = useState(!!me);
+  const [opening] = useState(() => {
+    const saved = savedForm(farm, crops.map((c) => c.id));
+    const seed = JSON.stringify(saved);
+    return { seed, form: readDraft(seed) ?? saved };
+  });
+  const [i, setI] = useState(() => {
+    const onThisEntry = (history.state as { ccStep?: unknown } | null)?.ccStep;
+    return Math.min(MONEY, typeof onThisEntry === 'number' ? onThisEntry : opening.form.i);
+  });
+  const [name, setName] = useState(opening.form.name);
+  const [age, setAge] = useState(opening.form.age);
+  const [county, setCounty] = useState(opening.form.county);
+  const [ha, setHa] = useState<Record<string, number>>(opening.form.ha);
   const [haText_, setHaText] = useState<Record<string, string>>({});
-  const [money, setMoney] = useState('');
+  const [money, setMoney] = useState(opening.form.money);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [paperNote, setPaperNote] = useState('');
-  const [decisionBani, setDecisionBani] = useState<number | null>(null);
+  const [decisionBani, setDecisionBani] = useState<number | null>(opening.form.decisionBani);
   const [saving, setSaving] = useState(false);
   const h1 = useRef<HTMLHeadingElement>(null);
   const firstError = useRef<Field | null>(null);
+  const finished = useRef(false);
 
   const sown = useMemo(() => new Map((me?.parcels ?? []).filter((p) => p.planted_month).map((p) => [p.crop_id, p.planted_month!])), [me]);
-  const parcels = crops.filter((c) => ha[c.id] > 0).map((c) => ({ cropId: c.id, areaHa: ha[c.id], ...(sown.has(c.id) ? { plantedMonth: sown.get(c.id)! } : {}) }));
+  /* The farmer's own crops are edited on Recolte, and an edit here keeps them. */
+  const ownParcels = (me?.parcels ?? []).filter((p) => isOwnCrop(p.crop_id)).map((p) => ({ cropId: p.crop_id, areaHa: p.area_ari / 100, ...(sown.has(p.crop_id) ? { plantedMonth: sown.get(p.crop_id)! } : {}) }));
+  const nameOf = (id: string) => app.crops.crops.find((c) => c.id === id)?.name_ro ?? id;
+  const parcels = [...crops.filter((c) => ha[c.id] > 0).map((c) => ({ cropId: c.id, areaHa: ha[c.id], ...(sown.has(c.id) ? { plantedMonth: sown.get(c.id)! } : {}) })), ...ownParcels];
   const totalHa = parcels.reduce((s, p) => s + Math.round(p.areaHa * 100), 0) / 100;
-  const cropNames = parcels.map((p) => crops.find((c) => c.id === p.cropId)!.name_ro.toLowerCase());
+  const cropNames = parcels.map((p) => nameOf(p.cropId).toLowerCase());
   /* Age is asked first, so the figure already counts the young farmer scheme. A payment decision replaces the estimate. */
   const estimate = () => {
     const r = computeSubsidies({ age: +age, parcels }, app);
@@ -96,10 +168,38 @@ function Steps() {
     firstError.current = null;
   }, [i, errors]);
 
-  const go = (n: number) => {
+  /* What's typed outlives a reload or a closed tab, until the save. */
+  useEffect(() => {
+    if (!finished.current) writeDraft(opening.seed, { i, name, age, county, ha, money, decisionBani });
+  }, [opening.seed, i, name, age, county, ha, money, decisionBani]);
+
+  const show = (n: number) => {
     setI(n);
     setErrors({});
     scrollTo(0, 0);
+  };
+  /* One history entry per step, so the phone's Back goes one step back and doesn't leave the form. */
+  useEffect(() => {
+    const state = history.state as { ccStep?: number; ccFrom?: number } | null;
+    /* A reload of the last page: the farm is saved, so there's nothing left to fill in. */
+    if (state?.ccStep === RESULT) return location.replace(HOME);
+    history.replaceState({ ...state, ccStep: i, ccFrom: state?.ccFrom ?? i }, '');
+    const onPop = () => {
+      if (finished.current) return location.replace(HOME);
+      const step = (history.state as { ccStep?: unknown } | null)?.ccStep;
+      if (typeof step === 'number') show(step);
+    };
+    addEventListener('popstate', onPop);
+    return () => removeEventListener('popstate', onPop);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const go = (n: number) => {
+    if (n > i) history.pushState({ ...history.state, ccStep: n }, '');
+    else if (n < i) {
+      const first = (history.state as { ccFrom?: number } | null)?.ccFrom ?? 0;
+      if (n >= first) history.go(n - i);
+      else history.replaceState({ ...history.state, ccStep: n, ccFrom: n }, '');
+    }
+    show(n);
   };
   const fail = (e: Partial<Record<Field, string>>) => {
     firstError.current = Object.keys(e)[0] as Field;
@@ -118,8 +218,7 @@ function Steps() {
     },
     () => (parcels.length ? null : { crops: 'Scrie hectarele pentru cel puțin o cultură.' }),
     () => {
-      if (money.trim() === '') return null;
-      const v = parseWholeLei(money);
+      const v = money.trim() === '' && !editing ? 0 : parseWholeLei(money);
       return v !== null && v <= 100000000 ? null : { money: `Scrie suma ca număr, de exemplu ${group(ionFarm(app).startBalanceBani / 100)}.` };
     },
   ];
@@ -157,6 +256,8 @@ function Steps() {
       const failed = await save(m);
       setSaving(false);
       if (failed) return fail({ form: failed });
+      finished.current = true;
+      clearDraft();
     }
     go(i + 1);
   }
@@ -241,7 +342,7 @@ function Steps() {
   if (i === 0)
     body = (
       <>
-        {heading('Hai să-ți vedem banii', 'Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună. Sunt doar trei pași.')}
+        {editing ? heading('Schimbă datele fermei', 'Verifică ce e scris și schimbă ce nu mai e bine.') : heading('Hai să-ți vedem banii', 'Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună. Sunt doar trei pași.')}
         <section className="card">
           <h2>Despre tine</h2>
           <label className="ob-field">
@@ -317,6 +418,7 @@ function Steps() {
             </div>
           ))}
           {err('crops')}
+          {ownParcels.length > 0 && <p className="note gap">Păstrăm și {ownParcels.map((p) => `${nameOf(p.cropId)} (${haText(p.areaHa)} ha)`).join(', ')}. Le schimbi din Recolte.</p>}
         </section>
         <section className="chart-card field hero-card ob-live gap" aria-live="polite">
           <p className="eyebrow">De la APIA primești</p>
@@ -359,17 +461,19 @@ function Steps() {
             <button type="submit" className="btn btn-dark" disabled={saving}>
               Arată-mi banii
             </button>
-            <button
-              type="button"
-              className="btn btn-line"
-              disabled={saving}
-              onClick={() => {
-                setMoney('');
-                void next('');
-              }}
-            >
-              Nu știu, sar peste
-            </button>
+            {!editing && (
+              <button
+                type="button"
+                className="btn btn-line"
+                disabled={saving}
+                onClick={() => {
+                  setMoney('');
+                  void next('');
+                }}
+              >
+                Nu știu, sar peste
+              </button>
+            )}
           </>,
         )}
       </>
@@ -386,10 +490,36 @@ function Steps() {
         <Icon name="arrow" />
       </a>
     );
+    /* The salary is the promise of the app, so it comes first. It waits for the farm saved a moment ago. */
+    const lei = (bani: number) => money_.text(`${exact(bani)} lei`);
+    let result: { salary: number; line: string; short: boolean } | null = null;
+    try {
+      if (view && !view.closed) {
+        const plan = view.farmPlan();
+        const { deficit, limitingMonth } = salaryBreakdown(plan, 'medium', view.data());
+        const coming = nextMoneyIn(view);
+        const line = deficit ? `În ${monthName(limitingMonth!)} banii nu ajung.` : coming ? `Următorii bani: ${lei(coming.value)}, pe ${date(coming.date).replace(/[.]$/, '')}.` : '';
+        result = { salary: plan.monthlySalary, line, short: !!deficit };
+      }
+    } catch {
+      result = null;
+    }
     body = (
       <>
-        {heading('Ferma ta e gata', `Am creat Recolta ${farm.baseYear} cu ${haText(totalHa)} ha de ${cropNames.join(' și ')}.`)}
-        <section className="chart-card field hero-card">
+        {heading(editing ? 'Am salvat ferma' : 'Ferma ta e gata', `${editing ? 'Recolta' : 'Am creat Recolta'} ${farm.baseYear}${editing ? ' are acum' : ' cu'} ${haText(totalHa)} ha de ${cropNames.join(' și ')}.`)}
+        {result && (
+          <section className="chart-card field hero-card">
+            <p className="eyebrow">Salariul tău</p>
+            <p className="amount">{lei(result.salary)} pe lună</p>
+            {result.line && <p className="range">{result.line}</p>}
+            {result.short && (
+              <p className="range">
+                <a href={appHref('/prognoza', 'farm')}>Vezi ce poți face</a>
+              </p>
+            )}
+          </section>
+        )}
+        <section className={result ? 'card gap' : 'chart-card field hero-card'}>
           <p className="eyebrow">De la APIA primești</p>
           <p className="amount">{decided ? exact(totals.lei.probable) : about(totals.lei.probable)} lei</p>
           <p className="range">{decided ? 'din decizia ta de plată' : `între ${about(totals.lei.min)} lei și ${about(totals.lei.max)} lei`}</p>
@@ -402,6 +532,11 @@ function Steps() {
             </p>
           </div>
         </section>
+        <div className="ob-actions">
+          <a className="btn btn-dark" href={HOME}>
+            Mergi la ferma ta
+          </a>
+        </div>
         <section className="card gap">
           <h2>Ce urmează</h2>
           <nav className="ob-next" aria-label="Ce urmează">

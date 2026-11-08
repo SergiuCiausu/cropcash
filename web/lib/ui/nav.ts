@@ -20,6 +20,13 @@ export const SUBSIDY_PAGES: { path: string; label: string }[] = [
   { path: '/surse', label: 'Ce s-a schimbat' },
 ];
 
+/** Pensie and Contul tău have no tab on a phone, so the Salariu pages link to each other. */
+export const SALARY_PAGES: { path: string; label: string }[] = [
+  { path: '/salariu', label: 'Salariul' },
+  { path: '/pensie', label: 'Pensie' },
+  { path: '/bani', label: 'Contul tău' },
+];
+
 /** The tab a page sits under: the subsidy pages under Subvenții, Datele planului and Bani under Salariu. */
 export function sectionOf(page: string): string {
   if (SUBSIDY_PAGES.some((p) => p.path === page)) return '/subventii';

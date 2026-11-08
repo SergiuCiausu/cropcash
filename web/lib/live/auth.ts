@@ -15,6 +15,20 @@ export const AUTH_TEXT = {
   switchToRegister: 'N-ai cont? Fă-ți unul',
   switchToLogin: 'Ai deja cont? Intră',
   checkEmail: 'Ți-am trimis un email. Apasă pe linkul din el, apoi intră în cont.',
+  forgotLink: 'Am uitat parola',
+  forgotTitle: 'Ai uitat parola?',
+  forgotLead: 'Scrie adresa contului și îți trimitem un link pentru o parolă nouă.',
+  forgotButton: 'Trimite-mi linkul',
+  forgotSent: 'Dacă există un cont cu adresa asta, ți-am trimis un email. Apasă pe linkul din el ca să pui o parolă nouă.',
+  backToLogin: 'Înapoi la intrare',
+  newPasswordTitle: 'Pune o parolă nouă',
+  newPasswordLead: 'După ce o salvezi, intri direct în cont.',
+  newPassword: 'Parola nouă',
+  newPasswordButton: 'Salvează parola',
+  showPassword: 'Arată parola',
+  hidePassword: 'Ascunde parola',
+  resendButton: 'Trimite din nou emailul',
+  resent: 'Ți-am trimis din nou emailul. Uită-te și în Spam.',
   wait: 'Așteaptă puțin…',
   /* Shown instead of a page when the farm isn't on this phone yet (guardTarget). */
   farmNeedsNet: 'Pornește internetul o dată',
@@ -27,11 +41,12 @@ export const AUTH_TEXT = {
     user_already_exists: 'Există deja un cont cu emailul ăsta. Intră în cont.',
     weak_password: 'Parola e prea scurtă. Pune cel puțin 6 caractere.',
     email_not_confirmed: 'Încă n-ai apăsat pe linkul din email.',
+    same_password: 'Parola nouă trebuie să fie alta decât cea veche.',
     over_email_send_rate_limit: 'Prea multe încercări. Mai încearcă peste câteva minute.',
     validation_failed: 'Verifică adresa de email.',
     generic: 'Nu a mers. Mai încearcă o dată.',
     offline: 'Pornește internetul ca să intri în cont.',
-    link_expired: 'Linkul din email nu mai merge. Intră în cont sau fă-ți contul din nou.',
+    link_expired: 'Linkul din email nu mai merge. Cere altul mai jos.',
   },
 } as const;
 
@@ -42,6 +57,7 @@ const SUPABASE_ERRORS: readonly string[] = [
   'user_already_exists',
   'weak_password',
   'email_not_confirmed',
+  'same_password',
   'over_email_send_rate_limit',
   'validation_failed',
 ];
@@ -191,6 +207,9 @@ export interface AuthClient {
     options: { emailRedirectTo: string };
   }): Promise<AuthResult<{ session: unknown; user: User }>>;
   signOut(): Promise<{ error: unknown }>;
+  resetPasswordForEmail(email: string, options: { redirectTo: string }): Promise<AuthResult<unknown>>;
+  updateUser(attributes: { password: string }): Promise<AuthResult<{ user?: User }>>;
+  resend(input: { type: 'signup'; email: string; options: { emailRedirectTo: string } }): Promise<AuthResult<unknown>>;
   /** Optional so older fakes still fit; the real Supabase client has it. */
   refreshSession?(): Promise<AuthResult<{ session: unknown }>>;
 }
@@ -216,6 +235,24 @@ export function createAuth(client: AuthClient, store: KeyStore) {
       if (data.user?.identities?.length === 0) throw { code: 'user_already_exists' };
       clearFarmData(store, data.user?.id ?? null);
       return data.session !== null;
+    },
+
+    /** Supabase answers the same for an address with no account, so this tells a stranger nothing. */
+    async sendPasswordReset(email: string, redirectTo: string): Promise<void> {
+      const { error } = await client.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+    },
+
+    /** For the session the recovery link opened. Another farmer's copy on this phone goes, as at sign-in. */
+    async setNewPassword(password: string): Promise<void> {
+      const { data, error } = await client.updateUser({ password });
+      if (error) throw error;
+      clearFarmData(store, data?.user?.id ?? null);
+    },
+
+    async resendConfirmation(email: string, emailRedirectTo: string): Promise<void> {
+      const { error } = await client.resend({ type: 'signup', email, options: { emailRedirectTo } });
+      if (error) throw error;
     },
 
     /**

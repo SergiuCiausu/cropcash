@@ -125,12 +125,24 @@ export default function Prognoza() {
   const hasReal = h.records.some((r) => !crop || r.cropId === crop.id);
   const shownEconomics = crop ? plan.economics.filter((c) => c.cropId === crop.id) : plan.economics;
   const own = view.harvests.gathered.length > 0;
+  /* What this kind of year means: the county's real harvests, or the country's where it has too few. */
+  const yh = data.params.yield_history;
+  const sownIds = new Set(view.farm.parcels.map((p) => p.cropId));
+  const bases = data.crops.crops.filter((c) => sownIds.has(c.id) && c.yield_basis).map((c) => c.yield_basis!);
   const foot = crop
     ? `Subvenția e împărțită după hectare. Costurile, producția și prețurile sunt medii estimate, unde nu le-ai notat tu. Cel mai jos nivel al banilor și anii următori sunt la ${view.projectName(h, null)}.`
     : t(
-        `Am pornit de la ${exact(view.farm.startBalanceBani)} lei în cont. ${own ? 'Producția și prețul sunt ce ai notat tu, unde le-ai notat. Restul, inclusiv costurile, sunt medii estimate.' : 'Costurile, producția și prețurile sunt medii estimate, nu cifrele tale.'}`,
+        `Am pornit de la ${exact(view.farm.startBalanceBani)} lei în cont. ${own ? 'Producția și prețul sunt ce ai notat tu, unde le-ai notat. Restul, inclusiv costurile, sunt medii estimate.' : `${bases.length > 0 ? 'Producția vine din istoricul INS. Costurile și prețurile sunt medii estimate' : 'Costurile, producția și prețurile sunt medii estimate'}, nu cifrele tale.`}`,
       );
   const left = inSum - outSum;
+
+  const countyName = bases.some((b) => b.area !== 'RO') ? `județul ${view.farm.county}` : 'țară';
+  const yearMeaning = {
+    bad: `recolte ca în cei mai slabi ${yh.extreme_years.value} ani din ultimii ${yh.window_years.value}`,
+    medium: `o recoltă obișnuită din ultimii ${yh.window_years.value} ani`,
+    good: `recolte ca în cei mai buni ${yh.extreme_years.value} ani din ultimii ${yh.window_years.value}`,
+  }[year];
+  const afterBad = !crop && year === 'bad' ? view.afterBadHarvest() : null;
 
   return (
     <>
@@ -145,6 +157,12 @@ export default function Prognoza() {
       <div className="vtabs page-tabs" role="group" aria-label="Ce fel de an">
         <YearChips year={year} onPick={setYear} />
       </div>
+      {bases.length > 0 && (
+        <p className="note">
+          {name} înseamnă {yearMeaning}, în {countyName}. Sursa: INS, recoltele {bases[0].from}–{bases[0].to}. Prețul și costurile sunt aceleași în toți cei trei ani.
+          {own && ' Unde ai notat recolta ta, ea ține locul anului normal.'}
+        </p>
+      )}
       <div className={`fc-pair${crop ? ' solo' : ''}`}>
         <section className="card fc-main">
           <div className="card-h">
@@ -220,7 +238,15 @@ export default function Prognoza() {
           <div>
             <p className="eyebrow">Într-un an slab</p>
             <h2>Intră cu {lei(sum(normal.months, 'in') - sum(plan.timelines.bad.months, 'in'))} mai puțin decât într-un an normal.</h2>
-            <p>Costurile cresc și ele. La sfârșitul celor 12 luni ai cu {lei(normal.months[normal.months.length - 1].balanceEnd - last.balanceEnd)} mai puțin.</p>
+            <p>La sfârșitul celor 12 luni ai cu {lei(normal.months[normal.months.length - 1].balanceEnd - last.balanceEnd)} mai puțin.</p>
+            {afterBad && (
+              <p>
+                {afterBad.missing > 0
+                  ? `Se simte în primăvara de după: în ${monthName(afterBad.lowest.key)} îți lipsesc ${lei(afterBad.missing)}, înainte de salariu și pensie.`
+                  : `Se simte în primăvara de după: în ${monthName(afterBad.lowest.key)} mai ai ${lei(afterBad.lowest.balance)}, înainte de salariu și pensie.`}{' '}
+                {`Salariul care ține ${afterBad.months} de luni: ${lei(afterBad.salary)}, față de ${lei(afterBad.normalSalary)} în ani normali.`}
+              </p>
+            )}
           </div>
         </section>
       )}

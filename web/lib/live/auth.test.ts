@@ -30,11 +30,46 @@ function setup(over: Partial<AuthClient> = {}) {
     signInWithPassword: async () => ({ data: {}, error: null }),
     signUp: async () => ({ data: { session, user: { identities: [{}] } }, error: null }),
     signOut: async () => ({ error: null }),
+    resetPasswordForEmail: async () => ({ data: {}, error: null }),
+    updateUser: async () => ({ data: {}, error: null }),
+    resend: async () => ({ data: {}, error: null }),
     ...over,
   };
   const store = fakeStore(SAVED);
   return { auth: createAuth(client, store), store, client };
 }
+
+describe('getting back into an account', () => {
+  it('asks for the reset link to come back to the new-password page', async () => {
+    const resetPasswordForEmail = vi.fn<AuthClient['resetPasswordForEmail']>(async () => ({ data: {}, error: null }));
+    await setup({ resetPasswordForEmail }).auth.sendPasswordReset('a@b.ro', 'https://x/login?mode=new-password');
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('a@b.ro', { redirectTo: 'https://x/login?mode=new-password' });
+  });
+
+  it('passes on a refused reset', async () => {
+    const error = { code: 'over_email_send_rate_limit' };
+    await expect(setup({ resetPasswordForEmail: async () => ({ data: {}, error }) }).auth.sendPasswordReset('a@b.ro', 'u')).rejects.toBe(error);
+  });
+
+  it('drops the farm copy left on the phone once the new password is set', async () => {
+    const { auth, store } = setup({ updateUser: async () => ({ data: { user: { id: 'u1' } }, error: null }) });
+    await auth.setNewPassword('parola-noua');
+    expect(store.items.has('cropcash-farm')).toBe(false);
+  });
+
+  it('keeps the farm copy when the new password is refused', async () => {
+    const error = { code: 'same_password' };
+    const { auth, store } = setup({ updateUser: async () => ({ data: {}, error }) });
+    await expect(auth.setNewPassword('parola')).rejects.toBe(error);
+    expect(store.items.has('cropcash-farm')).toBe(true);
+  });
+
+  it('sends the confirmation email again', async () => {
+    const resend = vi.fn<AuthClient['resend']>(async () => ({ data: {}, error: null }));
+    await setup({ resend }).auth.resendConfirmation('a@b.ro', 'https://x/login');
+    expect(resend).toHaveBeenCalledWith({ type: 'signup', email: 'a@b.ro', options: { emailRedirectTo: 'https://x/login' } });
+  });
+});
 
 describe('error messages', () => {
   it('finds the message for every known code', () => {

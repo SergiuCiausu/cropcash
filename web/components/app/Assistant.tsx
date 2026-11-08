@@ -3,7 +3,7 @@
    every page opens it. Answers come from POST /api/assistant. A save the assistant prepares arrives
    as a card with the exact values; only the farmer's tap sends it, through the store's send(), so the
    figures update at once. The conversation stays in this tab (sessionStorage). Needs internet and a
-   signed-in farm; on Ion's farm it offers an account instead. */
+   signed-in farm; on Ion's farm it shows prepared answers from his plan, which also work offline. */
 import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import planParams from '../../../docs/data/plan-params.json';
 import { failText } from '../../lib/cc/format';
@@ -12,6 +12,7 @@ import { newIntentKey } from '../../lib/live/intent';
 import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
 import { pageKeys } from '../../lib/cc/storage';
 import { blocks, card, ERRORS, EXAMPLES, MAX_TURNS, NO_NET, withClientId, type Action, type Span, type Turn } from '../../lib/ui/assistant';
+import { DEMO_QUESTIONS, demoCard, type DemoContext } from '../../lib/ui/demo-assistant';
 import { AssistantCards } from '../assistant-cards';
 import { ErrorLine, NetButton, Sheet } from './bits';
 import { FrameContext } from './context';
@@ -27,6 +28,42 @@ type Item =
 /** A turn as this tab keeps it: the answer's cards stay with it, but only role and text go to the API. */
 type Kept = Turn & { cards?: unknown[] };
 export const forApi = (turns: Kept[]): Turn[] => turns.map(({ role, text }) => ({ role, text }));
+
+/** Ion's farm: prepared questions, answered on the phone from his plan. */
+function DemoAsk() {
+  const view = useView('farm');
+  const [asked, setAsked] = useState<(typeof DEMO_QUESTIONS)[number] | null>(null);
+  /* The cards read only the plan, so the plan's farm shape is enough. */
+  const card = asked && view ? demoCard(asked.card, { farm: view.storedFarm() as unknown as DemoContext['farm'], plan: view.farmPlan(), data: view.data(), today: view.today }) : null;
+  return (
+    <>
+      {asked ? (
+        <>
+          <div className="ask-msg me">
+            <p>{asked.question}</p>
+          </div>
+          <div className="ask-msg ai">
+            <Rich text={asked.answer} />
+            <p className="ask-note">Exemplu de răspuns. În contul tău, asistentul răspunde despre ferma ta.</p>
+          </div>
+          {card && <AssistantCards cards={[card]} />}
+        </>
+      ) : (
+        <p className="ask-empty">Așa răspunde asistentul despre ferma lui Ion. Alege o întrebare.</p>
+      )}
+      <div className="ask-chips">
+        {DEMO_QUESTIONS.filter((q) => q !== asked).map((q) => (
+          <button type="button" className="ask-chip" key={q.question} onClick={() => setAsked(q)}>
+            {q.question}
+          </button>
+        ))}
+      </div>
+      <a className="btn btn-dark gap" href="/login?mode=register">
+        Fă-ți cont
+      </a>
+    </>
+  );
+}
 
 function Rich({ text }: { text: string }) {
   const money = useMoney();
@@ -123,6 +160,7 @@ export function Assistant() {
   /* Ion's farm is never signed in, even when the visitor is: the assistant answers only for a real farm. */
   const signedIn = mode === 'farm' && !!farm?.signedIn;
   const [open, setOpen] = useState(false);
+  const [small, setSmall] = useState(false);
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
   const [slow, setSlow] = useState(false);
@@ -150,6 +188,18 @@ export function Assistant() {
     place();
     addEventListener('resize', place);
     return () => removeEventListener('resize', place);
+  }, []);
+
+  /* Scrolling down, the button shrinks to its icon, so it covers less of what's being read. */
+  useEffect(() => {
+    let last = scrollY;
+    const onScroll = () => {
+      if (Math.abs(scrollY - last) < 8) return;
+      setSmall(scrollY > last && scrollY > 40);
+      last = scrollY;
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    return () => removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
@@ -212,7 +262,7 @@ export function Assistant() {
 
   return (
     <>
-      <button type="button" className="ask-fab" aria-haspopup="dialog" onClick={openSheet}>
+      <button type="button" className={`ask-fab${small ? ' small' : ''}`} aria-label="Întreabă" aria-haspopup="dialog" onClick={openSheet}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 5h16v11H9l-5 4z" />
         </svg>
@@ -226,7 +276,9 @@ export function Assistant() {
           </button>
         </header>
         <div className="ask-log" role="log" aria-live="polite" ref={log}>
-          {!signedIn ? (
+          {mode === 'demo' ? (
+            <DemoAsk />
+          ) : !signedIn ? (
             <div className="ask-empty">
               <p>Asistentul răspunde din cifrele fermei tale, așa că lucrează doar cu un cont.</p>
               <a className="btn btn-dark" href="/login">
@@ -323,7 +375,7 @@ export function Assistant() {
               </NetButton>
             </form>
             <p className="ask-foot">
-              Cifrele vin din planul fermei tale. Asistentul nu salvează nimic singur: tu apeși pe card.{' '}
+              Răspunde un program de inteligență artificială, nu un om, și poate greși. Cifrele vin din planul fermei tale. Asistentul nu salvează nimic singur: tu apeși pe card.{' '}
               <button
                 type="button"
                 className="ask-link"

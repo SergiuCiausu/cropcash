@@ -95,12 +95,12 @@ describe('buildTimeline — Ion, normal year, late payments (docs/07 §4)', () =
 });
 
 describe('scenarios', () => {
-  it('drought: minimum yield at the mean price, maximum costs, minimum subsidy', () => {
+  it('drought: minimum yield at the mean price, the same costs, minimum subsidy', () => {
     const bad = buildTimeline(input, data, { ...opts, amounts: 'bad' });
     const jul = bad.months.find((m) => m.key === '2027-07')!;
     expect(lei(jul.in)).toBe(33600); // 8 ha × 4 t × 1,05 lei/kg
     const mar = bad.months.find((m) => m.key === '2027-03')!;
-    expect(lei(mar.out)).toBe(8 * 5000 * 0.25 + 7 * 6000 * 0.15);
+    expect(lei(mar.out)).toBe(8 * 4250 * 0.25 + 7 * 5000 * 0.15);
     expect(bad.lowest.balance).toBeLessThan(tl.lowest.balance);
   });
 
@@ -109,10 +109,10 @@ describe('scenarios', () => {
     expect(early.months.find((m) => m.key === '2026-12')!.entries.some((e) => e.kind === 'apia_balance')).toBe(true);
   });
 
-  it('corn sale range: drought 33,250 / normal 43,225 / good 61,600 lei', () => {
+  it('corn sale range: only the yield moves, at the mean price', () => {
     const corn = data.crops.crops.find((c) => c.id === 'porumb')!;
     const r = cropSaleRange(corn, 700);
-    expect([r.min, r.probable, r.max].map(lei)).toEqual([33250, 43225, 61600]);
+    expect([r.min, r.probable, r.max].map(lei)).toEqual([33250, 43225, 53200]);
   });
 
   it('a farm with no money going out has no hard months', () => {

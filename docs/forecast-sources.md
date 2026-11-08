@@ -19,11 +19,11 @@ Every money forecast comes from one calculation, `buildFarmPlan` (`packages/shar
 | Forecast | Shown on | Based on |
 |---|---|---|
 | [Money month by month](#1-money-month-by-month) | Prognoză, Calendar, assistant | Start balance + crop sales + crop costs + APIA + credits |
-| [Crop sales](#2-crop-sales) | Prognoză | Hectares × yield × price from `crops-reference.json`, or the farmer's own |
+| [Crop sales](#2-crop-sales) | Prognoză | Hectares × county yield (INS) × price, or the farmer's own |
 | [Crop costs](#3-crop-costs) | Prognoză | Hectares × cost per ha, spread over months by our assumed shares |
 | [APIA subsidy](#4-apia-subsidy) | Subvenții, Acasă, assistant | Scheme rates × farm area × ECB rate; range from PD-01's history |
 | [APIA payment dates](#5-apia-payment-dates) | Calendar, Prognoză | Official 2026 windows, always the last day |
-| [Bad, normal, good year](#6-bad-normal-and-good-year) | Prognoză chips | Which end of each range is used |
+| [Bad, normal, good year](#6-bad-normal-and-good-year) | Prognoză chips | The county's real harvests |
 | [The next 1–10 years](#7-the-next-110-years) | Prognoză "Următorii ani" | One kind of year repeated at today's figures |
 | [Monthly salary](#8-monthly-salary) | Salariu, Acasă, Stripe payout | The normal year only |
 | [Hardest months](#9-hardest-months) | Prognoză, Acasă, Calendar, assistant | The running balance before salary |
@@ -51,7 +51,7 @@ Every money forecast comes from one calculation, `buildFarmPlan` (`packages/shar
 
 ### Crop figures (`docs/data/crops-reference.json`)
 
-One national source for all counties: [capital.ro](https://www.capital.ro/este-agricultura-profitabila-in-romania-in-2026-analiza-costuri-vs-venituri-pentru-fermieri.html), label Press / older (2025). The file says each mean is the midpoint of min and max, calculated by us and not taken from the article.
+**Yields** come from INS by county (next section). The yield columns below are used only for a crop INS doesn't cover. **Costs and prices** come from one national source for all counties: [capital.ro](https://www.capital.ro/este-agricultura-profitabila-in-romania-in-2026-analiza-costuri-vs-venituri-pentru-fermieri.html), label Press / older (2025). The file says each mean is the midpoint of min and max, calculated by us and not taken from the article.
 
 | Crop | Cost lei/ha (min / mean / max) | Yield t/ha (min / mean / max) | Price lei/kg (min / mean / max) | Sold |
 |---|---|---|---|---|
@@ -63,9 +63,22 @@ The farmer's own figures replace these, in this order (`plannedFigures`, `withFa
 
 1. Expected yield and price from "Datele planului".
 2. Yield and price noted in Recolte.
-3. The table above.
+3. The county's INS history (below).
+4. The national INS row, and only then the table above.
 
 Their figure becomes the normal year, and the bad and good years keep the same ratio to it. Costs always stay the table's, unless it's a crop the farmer added, which uses only their numbers (P30).
+
+### County yields (`crops-reference.json` → `county_history`)
+
+INS table AGR110A, average yield per hectare, all ownership forms, 2011–2025, for every county and the country. Label Official. Calculated in `cashflow/county-yields.ts`, with the settings in `plan-params.json` → `yield_history`.
+
+| Crop in Teleorman, t/ha | Bad | Normal | Good |
+|---|---|---|---|
+| Wheat | 2,97 | 4,31 | 5,03 |
+| Maize | 1,47 | 4,01 | 7,09 |
+| Sunflower | 1,02 | 2,09 | 3,09 |
+
+A county with fewer than 12 reported harvests of a crop uses the country's figures. That applies to București, and to sunflower in Brașov and Harghita.
 
 ### Subsidy figures (`docs/data/subsidies-2026.json`, `subsidies-history.json`)
 
@@ -138,18 +151,20 @@ The plan always assumes the last day, so it still holds if the money comes late 
 
 ### 6. Bad, normal and good year
 
-These are three cases we chose (P4). They aren't predictions and have no probabilities attached.
+A kind of year is defined by the harvest, from the county's last 15 harvests (P4). It says what has happened, not what will happen.
 
 | | Bad | Normal | Good |
 |---|---|---|---|
-| Yield | min | mean | max |
-| Price | **mean** | mean | max |
-| Costs | max | mean | min |
+| Yield | average of the 3 worst | median | average of the 3 best |
+| Price | mean | mean | mean |
+| Costs | mean | mean | mean |
 | APIA balance | lowest | probable | highest |
 | APIA advance | same | same | same |
 | APIA date | last day | last day | last day |
 
-The price stays at the mean in a bad year on the assumption that it doesn't fall when national output falls.
+Price stays at the mean because INS farm-gate prices barely follow national yield. Costs stay at the mean because they're paid before the harvest is known.
+
+**After a bad harvest** (`afterBadHarvest`, shown under "An slab" on Prognoză and through `get_after_bad_harvest`): the 12-month plan can't show a drought, because its limit usually falls before the harvest. This runs the bad year for 24 months and reports the lowest point after the first harvest and the salary that would hold.
 
 ### 7. The next 1–10 years
 
@@ -212,7 +227,6 @@ The frost warning triggers at 0 °C or below (Our assumption). The wind warning 
 ## What no forecast uses
 
 - Weather, either forecast or historical.
-- County yields from INS: downloaded on 2026-11-08 into `county_history`, but no code reads them yet, so a farm's county doesn't change its crop figures (`docs/an-slab-an-bun-plan.md`).
 - Monthly price history or live market prices.
 - Storage costs or selling later than harvest.
 - Interest on credits.
@@ -222,11 +236,11 @@ The frost warning triggers at 0 °C or below (Our assumption). The wind warning 
 
 ## Weak points to know about
 
-1. **The "safe" salary is only safe in a normal year.** It's calculated from the normal year, and the bad-year fund was removed on 7 Nov 2026. In Ion's bad year the safe salary is 0.
-2. **Yields, prices and costs rest on one 2025 press article**, with national figures and midpoints we calculated.
+1. **The "safe" salary is only safe in a normal year.** It's calculated from the normal year, and the bad-year fund was removed on 7 Nov 2026. After one bad harvest, the salary that holds for Ion over 24 months is 0.
+2. **Prices and costs rest on one 2025 press article**, with national figures and midpoints we calculated. Costs were probably written for bigger harvests than most counties get, so a crop can show a loss at its county's real yield, as maize does for Ion.
 3. **The monthly cost shares are Unverified and carry no flag.** Their entries are marked `unverified: false`, and no code reads `months_status`. These shares decide when the hardest months fall.
 4. **The subsidy range comes from three years of one scheme**, and every other scheme borrows it.
-5. **A bad year stacks every bad outcome at once.** The lower subsidy also has nothing to do with drought: it comes from budget divided by total declared area.
+5. **The lower subsidy in a bad year has nothing to do with drought.** It comes from budget divided by total declared area, and is kept there as a small, separate risk.
 6. **Credit what-ifs understate the cost**, because interest is missing.
 7. **The multi-year view is a repeat, not a forecast.** It repeats today's figures for up to 10 years.
 8. **Screens and the assistant calculate the pension's monthly figure differently.** They match for Ion, who has exactly 10 years left, and differ for everyone else.
@@ -234,6 +248,59 @@ The frost warning triggers at 0 °C or below (Our assumption). The wind warning 
 
 ## Where the docs and code disagree
 
-- `docs/07-architecture.md` §5 gives the APIA balance date as 1 Dec / mid-window / 30 Jun by kind of year. The code uses the last day in all three.
-- The same section gives Ion's subsidy as 16.869,60 lei, from an older exchange rate. It's now about 16.866 lei.
 - `saleForecast`, `quarterlyProjection` and `salaryByScenario` are still in `cashflow/scenarios.ts`, but no screen or registry function calls them. `docs/10-plan.md` step 8 still describes that sale card and the quarterly view as shipped.
+
+## Notes: INS averages by county
+
+Yield in t/ha for each county, as bad / normal / good. Calculated by `withCountyYields` from INS table AGR110A, 2011–2025.
+
+- **Bad** is the average of the 3 worst harvests, **normal** is the median harvest, and **good** is the average of the 3 best.
+- \* The county has fewer than 12 reported harvests of that crop, so it uses the national figures.
+- These are county averages that mix irrigated and rain-fed land. A single farm's bad year can be much worse.
+- A farmer's own yield replaces the normal figure, and the bad and good figures keep the county's ratio to it.
+
+| County | Wheat | Maize | Sunflower |
+|---|---|---|---|
+| **Romania (national row)** | 3,03 / 4,00 / 4,85 | 2,77 / 4,16 / 6,70 | 1,39 / 1,93 / 2,91 |
+| Alba | 3,13 / 4,29 / 4,83 | 2,99 / 4,86 / 6,71 | 1,36 / 2,45 / 2,69 |
+| Arad | 3,80 / 4,48 / 5,29 | 2,70 / 4,59 / 6,88 | 1,55 / 2,17 / 3,20 |
+| Argeș | 2,79 / 3,58 / 4,43 | 2,04 / 3,79 / 5,96 | 1,35 / 1,91 / 2,66 |
+| Bacău | 2,68 / 3,37 / 4,44 | 3,04 / 4,45 / 6,18 | 1,47 / 1,93 / 2,80 |
+| Bihor | 3,21 / 4,07 / 4,51 | 2,95 / 4,78 / 7,20 | 1,42 / 1,98 / 2,59 |
+| Bistrița-Năsăud | 2,69 / 3,31 / 3,92 | 2,53 / 4,41 / 5,37 | 0,81 / 2,01 / 2,57 |
+| Botoșani | 2,68 / 3,17 / 4,65 | 2,30 / 4,33 / 6,57 | 1,22 / 1,99 / 2,94 |
+| Brașov | 3,31 / 3,86 / 4,81 | 3,03 / 4,82 / 5,82 | 1,39 / 1,93 / 2,91 \* |
+| Brăila | 3,07 / 4,42 / 5,30 | 3,93 / 5,76 / 8,04 | 1,66 / 2,13 / 2,99 |
+| București | 3,03 / 4,00 / 4,85 \* | 2,77 / 4,16 / 6,70 \* | 1,39 / 1,93 / 2,91 \* |
+| Buzău | 1,54 / 3,53 / 5,19 | 0,81 / 4,09 / 7,32 | 0,97 / 1,73 / 2,99 |
+| Caraș-Severin | 2,84 / 4,14 / 4,65 | 2,93 / 3,72 / 5,43 | 1,41 / 1,70 / 2,25 |
+| Călărași | 2,91 / 5,05 / 5,71 | 2,84 / 5,29 / 8,20 | 1,72 / 2,43 / 3,14 |
+| Cluj | 3,07 / 4,13 / 4,52 | 3,11 / 4,58 / 6,64 | 1,86 / 2,31 / 2,97 |
+| Constanța | 2,31 / 4,31 / 5,54 | 1,40 / 3,27 / 6,51 | 1,15 / 1,50 / 3,44 |
+| Covasna | 2,93 / 3,76 / 4,78 | 3,62 / 4,78 / 7,01 | 1,67 / 2,08 / 2,51 |
+| Dâmbovița | 2,59 / 3,33 / 4,78 | 1,83 / 3,67 / 5,05 | 1,12 / 2,07 / 2,39 |
+| Dolj | 2,74 / 3,81 / 4,57 | 2,03 / 4,47 / 6,99 | 1,18 / 2,01 / 2,94 |
+| Galați | 1,41 / 3,15 / 4,61 | 1,13 / 3,26 / 6,20 | 0,79 / 1,67 / 2,80 |
+| Giurgiu | 3,30 / 4,11 / 5,29 | 2,47 / 4,73 / 7,34 | 1,46 / 2,21 / 2,81 |
+| Gorj | 2,80 / 3,38 / 4,23 | 2,50 / 3,70 / 5,90 | 0,86 / 1,50 / 2,81 |
+| Harghita | 2,50 / 3,25 / 3,72 | 2,65 / 4,53 / 5,74 | 1,39 / 1,93 / 2,91 \* |
+| Hunedoara | 3,16 / 3,78 / 4,14 | 2,63 / 4,16 / 5,81 | 1,39 / 1,86 / 2,37 |
+| Ialomița | 2,76 / 4,59 / 5,96 | 2,84 / 5,47 / 8,67 | 1,52 / 2,33 / 2,84 |
+| Iași | 2,60 / 3,45 / 4,57 | 1,61 / 3,86 / 5,97 | 1,23 / 1,86 / 2,66 |
+| Ilfov | 3,33 / 4,23 / 4,83 | 1,52 / 4,31 / 6,70 | 1,26 / 1,92 / 2,43 |
+| Maramureș | 2,74 / 3,57 / 4,67 | 2,62 / 3,65 / 5,68 | 0,97 / 1,94 / 3,13 |
+| Mehedinți | 2,83 / 3,36 / 4,84 | 1,24 / 3,40 / 6,47 | 0,97 / 1,83 / 3,57 |
+| Mureș | 3,40 / 4,52 / 5,41 | 3,65 / 5,78 / 7,09 | 1,88 / 2,44 / 3,01 |
+| Neamț | 3,21 / 4,28 / 5,23 | 3,63 / 5,23 / 8,12 | 1,91 / 2,34 / 3,15 |
+| Olt | 2,81 / 4,14 / 5,10 | 1,37 / 3,69 / 6,39 | 0,95 / 1,96 / 3,18 |
+| Prahova | 2,51 / 3,72 / 5,04 | 1,65 / 4,37 / 5,93 | 1,33 / 2,14 / 2,47 |
+| Satu Mare | 3,37 / 4,17 / 4,58 | 3,13 / 4,82 / 7,35 | 1,77 / 2,14 / 3,37 |
+| Sălaj | 2,82 / 3,48 / 3,82 | 2,80 / 3,75 / 5,83 | 1,49 / 1,89 / 2,67 |
+| Sibiu | 3,05 / 3,56 / 3,82 | 3,43 / 4,61 / 5,87 | 1,35 / 2,12 / 2,48 |
+| Suceava | 2,61 / 3,63 / 4,47 | 2,98 / 4,96 / 6,33 | 1,53 / 2,03 / 2,90 |
+| Teleorman | 2,97 / 4,31 / 5,03 | 1,47 / 4,01 / 7,09 | 1,02 / 2,09 / 3,09 |
+| Timiș | 4,09 / 5,12 / 5,77 | 2,22 / 4,64 / 8,97 | 1,81 / 2,46 / 3,29 |
+| Tulcea | 1,93 / 3,69 / 4,79 | 1,53 / 3,23 / 6,62 | 1,13 / 1,76 / 2,89 |
+| Vaslui | 2,36 / 3,37 / 4,10 | 1,48 / 3,37 / 5,51 | 0,99 / 1,53 / 3,12 |
+| Vâlcea | 2,94 / 3,39 / 4,50 | 1,69 / 4,13 / 6,42 | 0,80 / 1,60 / 2,98 |
+| Vrancea | 1,35 / 3,37 / 4,55 | 0,79 / 3,54 / 5,81 | 0,87 / 1,78 / 2,51 |

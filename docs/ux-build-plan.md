@@ -69,7 +69,7 @@ Each changes what gets built. Steps not listed here can start now.
   - **`Pensie.tsx`:** add `yes` to `Ask`. Labels: "Da, pornesc cu X lei", "Da, schimb la X lei", "Da, opresc pensia". Stop gets a distinct style. The CSS has no danger button yet, so add one.
   - Remove the disabled "Sar o lună" and its note (`:212-216`). `Bani.tsx:209` links to Datele planului. `Bani.tsx:188` becomes "Activează contul"; the "simulat" note in the page lead stays.
 
-- [ ] **A4. Saved, with effect, and undo (F-13, F-20)** · ~3.5 h
+- [x] **A4. Saved, with effect, and undo (F-13, F-20)** · ~3.5 h
   - **Toaster:** let `Message.action` carry a function as well as a link, and add an `onExpire` callback fired when the toast's timer really ends (it pauses while read).
   - **Add** pure `salaryEffectText(beforeBani, afterBani, money)` in `web/lib/ui/messages.ts`, and a `useSaved()` hook that reads the salary before a save and notifies after it. A queued write says "Se trimite când ai internet." `store.send` needs to report whether it queued.
   - **Across a page load:** a one-shot message under `storageKey('cropcash-flash', mode)`, read by `Frame` on mount, for `DatePlan.tsx:133`.
@@ -80,7 +80,7 @@ Each changes what gets built. Steps not listed here can start now.
 
 ## Phase B: First run
 
-- [ ] **B1. Onboarding rework (F-04, F-14, F-06)** · ~4 h, one pass over `Onboarding.tsx`
+- [x] **B1. Onboarding rework (F-04, F-14, F-06)** · ~4 h, one pass over `Onboarding.tsx`
   - **F-04, pre-fill:** seed name, age, county, hectares and balance from `farm.me`. In edit mode, change the heading, hide "Nu știu, sar peste" and keep the saved balance if untouched.
   - **Also fix, found while planning:** own-crop parcels are filtered out at `:61` and `:81`, so an edit also removes custom crops from the year. Carry them through unchanged.
   - **Phone entry:** "Schimbă datele fermei" in Contul tău (`Bani.tsx`), not shown on Ion's farm.
@@ -89,7 +89,7 @@ Each changes what gets built. Steps not listed here can start now.
   - **Tests:** edit pre-fills and preserves balance and own crops; draft survives a remount; the result shows the salary and links to `/acasa`.
   - **Offline:** all steps work until the final save, which needs internet and says so.
 
-- [ ] **B2. Password and email recovery (F-03)** · ~3 h
+- [x] **B2. Password and email recovery (F-03)** · ~3 h
   - **`Login.tsx`:** add `forgot` and `new-password` modes, so there is no new route, screen or skeleton. "Am uitat parola", a show-password toggle with `aria-pressed`, and "Trimite din nou emailul" after `email_not_confirmed`.
   - **`lib/live/auth.ts`:** extend `AuthClient` with `resetPasswordForEmail`, `updateUser` and `resend`, plus new `AUTH_TEXT` strings. The reset screen says the same thing whether or not the address exists. Change the `link_expired` text so it stops advising a new account.
   - **Care point:** the recovery link signs the user in, and the current effect would send them straight to the app. Check for the recovery mode before `isSignedIn`.
@@ -100,33 +100,33 @@ Each changes what gets built. Steps not listed here can start now.
 
 ## Phase C: Demo polish and honesty
 
-- [ ] **C1. Notifications bell (F-07)** · ~1.5 h
+- [x] **C1. Notifications bell (F-07)** · ~1.5 h
   - In `Notifications.tsx`, show the test panel only when `mode === 'demo' || publicConfig().demo`. Otherwise show "Mesaje": rows from `buildMessage` for each message kind, skipping nulls, with a useful empty state. Computed on the phone, so it works offline. Step F4 replaces the source with the server inbox.
   - **Note:** `VITE_DEMO_MODE` is per build, so a production build with it on shows the panel to everyone, as the demo controls in Contul tău already do. Turn it off for real users.
   - **Tests:** extend `Frame.test.tsx` for both modes.
 
-- [ ] **C2. Space on the phone (F-09, F-11)** · ~2.5 h
+- [x] **C2. Space on the phone (F-09, F-11)** · ~2.5 h
   - **F-09:** `DemoStrip` collapses to one line after the first page, remembered through `storageKey`, keeping "Fă-ți cont" and a small "Pornește din nou". Add bottom padding to `.main` so "Întreabă" never covers content, and shrink it to its icon while scrolling down. Respect reduced motion.
   - **F-11:** under 760 px in `rail.css`, `.btn` at least 48 px, chips 44 px, text links and the crop-row buttons at least 44 px tall through padding.
   - **Check:** script at 360 px over all 11 pages, plus login and onboarding: no horizontal overflow, nothing under 44 px except inline text links.
 
-- [ ] **C3. Navigation, sign-out and honest labels (F-10, F-15, F-16, F-17)** · ~3.25 h
+- [x] **C3. Navigation, sign-out and honest labels (F-10, F-15, F-16, F-17)** · ~3.25 h
   - **F-10:** move "Ieși din cont" from `Frame.tsx:140-147` into Contul tău, including its no-farm state, with an always-on `Sheet` confirmation: "Ca să intri din nou îți trebuie parola." Keep the unsent-records wording.
   - **F-15:** generalize `SubNav` to take its pages. Add `SALARY_PAGES` (Salariul, Pensie, Contul tău) to `nav.ts`, shown under 760 px on those pages. Pensie stays in the computer rail. The Salariu tab shows as current on `/pensie` on phones only. Update skeletons.
   - **F-16:** when `view.figureSource` is `average` for any crop, add under the salary on Acasă and Salariu: "Calculat cu mediile. Spune-ne ce ai strâns", linking to `/recolte#strans`. Replace "poți scoate sigur" at `Salariu.tsx:122`.
   - **F-17:** add the AI sentence to the footer at `Assistant.tsx:330`.
   - **Tests:** `Salariu.test.tsx`, `Acasa.test.tsx`, `Frame.test.tsx`, `skeleton.test.tsx`.
 
-- [ ] **C4. Tappable Acasă rows (F-18)** · ~2.5 h
+- [x] **C4. Tappable Acasă rows (F-18)** · ~2.5 h
   - Extract `detailBody` and `ItemActions` from `Calendar.tsx` into `components/app/ItemSheet.tsx`. Acasă's "Ce urmează" rows become buttons opening it, with "Am făcut". Opportunity rows link to `/oportunitati#<key>`, and Oportunități opens that detail from the hash.
   - **Offline:** ticking uses the existing path.
 
-- [ ] **C5. Sample assistant on Ion's farm (F-22)** · ~2 h
+- [x] **C5. Sample assistant on Ion's farm (F-22)** · ~2 h
   - Add `web/lib/ui/demo-assistant.ts`: two or three prepared questions. Answers and cards are computed on the phone from Ion's plan with the same registry functions the assistant uses, with no figures in the text. Mark them "Exemplu de răspuns". End with a link to `/login?mode=register`. Never calls the API, so it works offline.
   - **Tests:** every answer's figures match `view.farmPlan()`; no network call.
 
-- [ ] **C6. Consistent errors (F-24)** · ~0.5 h
-  - Replace `confirm`/`alert` in `Surse.tsx:221-227` with `Sheet` and an inline error. Render `NetBanner` above both branches in `Frame.tsx:122-130`.
+- [x] **C6. Consistent errors (F-24)** · ~0.5 h
+  - Replace `confirm`/`alert` in `Surse.tsx:221-227` with `Sheet` and an inline error. `NetBanner` was already on the closed view (`PageNotes.tsx:64`), so `Frame.tsx` needed no change.
 
 ## Phase D: Reach outside the app
 

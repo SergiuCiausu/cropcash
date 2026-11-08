@@ -15,6 +15,8 @@ import { pageFits } from '../../lib/live/monitor';
 import { chartRows, cropChartRows, monthName, yearEnds } from '../../lib/ui/chart';
 import type { IconName } from '../../lib/ui/icons';
 import { Icon, OfflineNote, useHref } from '../app/bits';
+import { ItemSheet } from '../app/ItemSheet';
+import { AverageNote } from '../app/PageNotes';
 import { CropBreakdown } from '../app/CropBreakdown';
 import FarmChart from '../app/FarmChart';
 import { PageLink } from '../app/Frame';
@@ -44,6 +46,7 @@ function SalaryHero({ view, plan, nextMoney }: { view: View; plan: Plan; nextMon
       <p className="eyebrow">Salariul tău</p>
       <p className="amount">{lei(plan.monthlySalary)} pe lună</p>
       <p className="why">{salary.deficit ? `În ${monthName(salary.limitingMonth!)} banii nu ajung.` : nextMoney ? `Următorii bani: ${lei(nextMoney.value)}, pe ${date(nextMoney.date).replace(/[.]$/, '')}.` : ''}</p>
+      <AverageNote view={view} />
       <FarmChart className="chart fc-chart" id="fc" rows={rows} low={low} year="medium" label={`Banii tăi lună de lună. Cel mai jos: ${lei(low.v)}, în ${low.long}. La final, ${yearEnds(rows, 'medium', lei)}.`} />
     </section>
   );
@@ -243,13 +246,14 @@ export default function Acasa() {
     .map((i) => (crop && (i.kind === 'apia_advance' || i.kind === 'apia_balance') ? { ...i, title: `${i.title}, partea pentru ${crop.name.toLowerCase()}` } : i))
     .filter((i) => i.date && daysLeft(i.date, today) >= 0 && !(i.task && done.has(i.id)))
     .sort((a, b) => a.date.localeCompare(b.date));
+  const [picked, setPicked] = useState<(typeof ahead)[number] | null>(null);
   const coming = ahead.slice(0, MAX_ROWS);
   const nextMoney = ahead.find((i) => i.direction === 'in') ?? null;
   const amount = (i: (typeof ahead)[number]) => (i.direction === 'none' ? when(daysLeft(i.date, today)) : `${i.direction === 'in' ? '+' : '−'}${lei(i.value)}`);
 
   /* ---- Calls still open: the ones followed first, then the soonest ---- */
   const callRows = useMemo(() => {
-    const calls = new Map<string, { name: string; deadline: string | null; followed: boolean }>();
+    const calls = new Map<string, { key: string; name: string; deadline: string | null; followed: boolean }>();
     const fits = pageFits(monitor.calls, view.farm, view.data(), today);
     for (const c of monitor.calls) {
       const followed = monitor.follows.has(c.key);
@@ -258,7 +262,7 @@ export default function Acasa() {
       const close = ['near', 'check'].includes(fits[c.key]?.level);
       if (!open || !(followed || close)) continue;
       const id = `${callName(c)}|${c.deadline}`;
-      calls.set(id, { name: callName(c), deadline: c.deadline, followed: followed || !!calls.get(id)?.followed });
+      calls.set(id, { key: c.key, name: callName(c), deadline: c.deadline, followed: followed || !!calls.get(id)?.followed });
     }
     return [...calls.values()].sort((a, b) => Number(b.followed) - Number(a.followed) || (a.deadline || '9').localeCompare(b.deadline || '9'));
   }, [monitor, view, today]);
@@ -330,11 +334,13 @@ export default function Acasa() {
             {coming.length ? (
               coming.map((i, n) => (
                 <li key={`${i.id}${n}`}>
-                  <span>
-                    <b>{i.title}</b>
-                    <small>{date(i.date)}</small>
-                  </span>
-                  <span className={`ac-amt${i.direction === 'in' ? ' pos' : ''}`}>{amount(i)}</span>
+                  <button type="button" className="ac-row" onClick={() => setPicked(i)}>
+                    <span>
+                      <b>{i.title}</b>
+                      <small>{date(i.date)}</small>
+                    </span>
+                    <span className={`ac-amt${i.direction === 'in' ? ' pos' : ''}`}>{amount(i)}</span>
+                  </button>
                 </li>
               ))
             ) : (
@@ -355,11 +361,13 @@ export default function Acasa() {
             {callRows.length ? (
               callRows.slice(0, MAX_CALLS).map((r) => (
                 <li key={`${r.name}${r.deadline}`}>
-                  <span>
-                    <b>{r.name}</b>
-                    <small>{r.followed ? 'O urmărești' : 'Deschisă acum'}</small>
-                  </span>
-                  <span className="ac-amt">{r.deadline ? when(daysLeft(r.deadline, today)) : 'Fără termen'}</span>
+                  <PageLink className="ac-row" path="/oportunitati" href={href(`/oportunitati#${encodeURIComponent(r.key)}`)}>
+                    <span>
+                      <b>{r.name}</b>
+                      <small>{r.followed ? 'O urmărești' : 'Deschisă acum'}</small>
+                    </span>
+                    <span className="ac-amt">{r.deadline ? when(daysLeft(r.deadline, today)) : 'Fără termen'}</span>
+                  </PageLink>
                 </li>
               ))
             ) : (
@@ -374,6 +382,7 @@ export default function Acasa() {
         </section>
         {!!farm.me && <Weather view={view} />}
       </div>
+      <ItemSheet item={picked} items={ahead} view={view} onClose={() => setPicked(null)} />
     </>
   );
 }

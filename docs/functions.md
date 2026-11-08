@@ -118,6 +118,7 @@ A `confirm` tool never executes during the AI's turn. It returns a pending actio
 | `explain_salary` | "De ce atât?" | scenario | plain reason, limiting month, cumulative money | `read` | `phone` | Built |
 | `get_forecast` | Prognoză, "An slab / normal / bun" | scenario | 12 months, key figures, where money goes | `read` | `phone` | Built |
 | `get_tight_months` | Tight-months card, Rezerve | scenario | months, lowest point, amount missing | `read` | `phone` | Built |
+| `get_after_bad_harvest` | Prognoză, "An slab"; assistant | none | lowest point before the next harvest, salary that holds, what bad, normal and good mean in t/ha | `read` | `phone` | Built |
 | `list_upcoming` | "Ce urmează", calendar tile | days | payments, deadlines and work | `read` | `phone` | Built |
 | `set_salary_target` | Target field | target in lei | new salary and credit need | `confirm` | `outbox` | New |
 | `check_purchase` | "Pot să-mi iau...?", assistant | amount, month, optional | salary after it, tightest month after it | `read` | `phone` | Built (step 9c) |

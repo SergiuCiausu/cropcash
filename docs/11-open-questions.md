@@ -36,7 +36,7 @@
 | P1 | Schemele fără istoric folosesc factorii de interval de la BISS (0,900 / 1,011) | E singurul istoric complet. Fără el n-am avea interval. |
 | P2 | Avansul e sigur, iar incertitudinea stă doar în sold | Avansul se plătește pe cuantumul de referință deja anunțat. |
 | P3 | Data plății pe scenarii: pesimist = ultima zi a ferestrei, mediu = mijlocul, optimist = prima zi | Planul trebuie să țină și în cel mai rău caz. |
-| P4 | Anul de secetă: producție minimă, preț mediu, costuri maxime | Prețul tinde să nu scadă când scade producția. |
+| P4 | Un fel de an e definit de recoltă: producția din istoricul INS al județului (ultimele 15 recolte: mediana, media celor mai slabi 3, media celor mai buni 3). Prețul și costurile rămân medii în toți cei trei ani | Între 2011 și 2025, prețurile INS la poarta fermei aproape nu urmează producția pe țară (corelație −0,11 la grâu, −0,31 la porumb, −0,27 la floarea-soarelui, 14 schimbări pe an). Costurile se plătesc înainte să se știe recolta. Mediile sunt de la nivel de județ, deci o fermă poate avea un an mult mai slab. |
 | P5 | ~~Fondul de risc: 10% din fiecare încasare până la țintă~~ | **Scos pe 7 nov 2026.** Salariul nu mai pune nimic deoparte pentru un an slab. |
 | P6 | Randamentele pentru pensie: 2% / 4% / 6% | Doar ilustrativ; spunem explicit că nu e consultanță. |
 | P7 | Contribuția de pensie sugerată: 5% din salariu, rotunjită în jos la 50 lei, dar cel puțin minimul fondului ales (50 lei fără fond) | Ca să nu sperie, dar nici să nu sugereze 0 sau o sumă pe care fondul o refuză. |

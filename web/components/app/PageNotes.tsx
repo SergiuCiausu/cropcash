@@ -9,6 +9,20 @@ import { FrameContext } from './context';
 import { NetBanner } from './NetBanner';
 import { PageLink } from './Frame';
 
+/** Figures from county averages look as firm as the farmer's own, so the page says which they are. */
+export function AverageNote({ view }: { view: FarmView }) {
+  const { href } = useContext(FrameContext);
+  if (!view.farm.parcels.some((p) => view.figureSource(p.cropId) === 'average')) return null;
+  return (
+    <p className="why">
+      Calculat cu mediile.{' '}
+      <PageLink path="/recolte" href={href('/recolte#strans')}>
+        Spune-ne ce ai strâns
+      </PageLink>
+    </p>
+  );
+}
+
 /** Put right after the page header. Only a later, open harvest on a picker page is an estimate. */
 export function FutureNote() {
   const { scope } = useContext(FrameContext);

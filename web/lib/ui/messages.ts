@@ -16,6 +16,20 @@ export interface Message {
   action?: { label: string; href: string };
 }
 
+/** What a toast can take: a link, or a button that acts here, and what to do when it goes unused. */
+export type ToastInput = Omit<Message, 'kind' | 'action'> & {
+  kind?: string;
+  action?: Message['action'] | { label: string; run: () => void };
+  onExpire?: () => void;
+};
+
+/** What a save did to the monthly salary. Empty when there's no plan to compare. */
+export function salaryEffectText(beforeBani: number | null, afterBani: number | null): string {
+  if (beforeBani === null || afterBani === null) return '';
+  if (beforeBani === afterBani) return `Salariul rămâne ${exact(afterBani)} lei pe lună.`;
+  return `Salariul tău e acum ${exact(afterBani)} lei pe lună, de la ${exact(beforeBani)} lei.`;
+}
+
 export interface MessageInput {
   /** Null when a finished harvest is picked: there's no plan to read. */
   plan: FarmPlan | null;
@@ -115,6 +129,20 @@ export const MESSAGES: [string, string, Build, boolean][] = [
   ['money', 'Au intrat bani', money, true],
   ['payout', 'Plată eșuată', payoutFailed, false],
 ];
+
+/** What a real farmer's "Mesaje" can truthfully say: only what the plan knows, never a payment it didn't see. */
+const INBOX = ['deadline', 'spring', 'weekly', 'funding'];
+
+export function inboxMessages(input: MessageInput): Message[] {
+  return INBOX.flatMap((kind) => {
+    try {
+      return buildMessage(kind, input) ?? [];
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  });
+}
 
 export const TONE_WORD: Record<Tone, string> = { info: 'Informare', good: 'Veste bună', warn: 'Atenție', urgent: 'Rămâne până o închizi' };
 

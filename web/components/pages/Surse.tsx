@@ -216,16 +216,27 @@ export default function Surse() {
     };
   }, [API, online, savedKey, call, keep]);
 
+  const [removing, setRemoving] = useState<number | null>(null);
+  const [removeBusy, setRemoveBusy] = useState(false);
+  const [removeError, setRemoveError] = useState('');
+  const removingSource = mine.find((x) => x.id === removing);
+  const closeRemove = () => {
+    setRemoving(null);
+    setRemoveError('');
+  };
   async function removeMine(id: number) {
-    const s = mine.find((x) => x.id === id);
-    if (!s || !window.confirm(`Ștergi „${myName(s)}” din lista ta?`)) return;
+    setRemoveBusy(true);
+    setRemoveError('');
     try {
       const r = await call(`/${id}`, { method: 'DELETE' });
-      if (r.ok || r.error === 'not_found') keep(mine.filter((x) => x.id !== id));
-      else alert(ADD_ERROR.busy);
+      if (r.ok || r.error === 'not_found') {
+        keep(mine.filter((x) => x.id !== id));
+        closeRemove();
+      } else setRemoveError(ADD_ERROR.busy);
     } catch {
-      alert(ADD_ERROR.network);
+      setRemoveError(ADD_ERROR.network);
     }
+    setRemoveBusy(false);
   }
 
   /* ---- Search in the text already saved from official documents: needs internet and an account ---- */
@@ -275,7 +286,7 @@ export default function Surse() {
             <div className="diff">{s.shortDiff ? <DiffLines text={s.shortDiff} /> : <p>{s.preview}</p>}</div>
           </details>
         )}
-        <button type="button" className="src-remove" disabled={!canAdd} onClick={() => void removeMine(s.id)}>
+        <button type="button" className="src-remove" disabled={!canAdd} onClick={() => setRemoving(s.id)}>
           Șterge
         </button>
       </div>
@@ -478,6 +489,21 @@ export default function Surse() {
         {tab === 'changes' ? changesPanel() : tab === 'search' ? searchPanel() : tab === 'problems' ? problemsPanel() : sourcesPanel()}
       </div>
       {addSheet}
+      {removingSource && (
+        <Sheet open onClose={closeRemove} className="h-sheet" label="Ștergi sursa?" locked={removeBusy}>
+          <h2>Ștergi sursa?</h2>
+          <p className="note">„{myName(removingSource)}” iese din lista ta.</p>
+          <ErrorLine>{removeError}</ErrorLine>
+          <div className="ob-actions">
+            <NetButton reason="Pornește internetul ca să ștergi sursa." className="btn btn-dark" disabled={removeBusy} onClick={() => void removeMine(removingSource.id)}>
+              Da, șterge
+            </NetButton>
+            <button type="button" className="btn btn-line" disabled={removeBusy} onClick={closeRemove}>
+              Renunță
+            </button>
+          </div>
+        </Sheet>
+      )}
     </>
   );
 }

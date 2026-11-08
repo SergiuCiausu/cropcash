@@ -200,6 +200,11 @@
       "note": "Lipsește valoarea curentă; dobânda nu intră încă în calcul."
     }
   },
+  "yield_history": {
+    "window_years": { "value": 15, "status": "presupunere", "note": "Câte recolte din istoricul INS ale județului intră în calcul (docs/an-slab-an-bun-plan.md)." },
+    "extreme_years": { "value": 3, "status": "presupunere", "note": "Anul slab e media celor mai slabi ani, anul bun a celor mai buni. 3 din 15 = un an din cinci." },
+    "min_years": { "value": 12, "status": "presupunere", "note": "Cu mai puține recolte raportate în județ, folosim media pe țară." }
+  },
   "long_forecast": {
     "max_years": {
       "value": 10,

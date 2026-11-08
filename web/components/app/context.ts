@@ -3,7 +3,7 @@
 import { createContext } from 'react';
 import type { Mode } from '../../lib/paths';
 import type { Scope } from '../../lib/cc/plan';
-import type { Message } from '../../lib/ui/messages';
+import type { ToastInput } from '../../lib/ui/messages';
 
 export interface FrameInfo {
   /** "/salariu", whatever the prefix. */
@@ -13,7 +13,7 @@ export interface FrameInfo {
   /** A link inside the visitor's mode (lib/paths.ts appHref). */
   href: (path: string) => string;
   /** Shows a toast (the old CC.notify). */
-  notify: (n: Omit<Message, 'kind'> & { kind?: string }) => void;
+  notify: (n: ToastInput) => void;
 }
 
 export const FrameContext = createContext<FrameInfo>({ page: '/', mode: 'farm', scope: 'farm', href: (p) => p, notify: () => undefined });

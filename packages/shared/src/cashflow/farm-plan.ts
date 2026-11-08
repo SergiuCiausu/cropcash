@@ -15,6 +15,7 @@ import { applyPct, type Bani } from '../money';
 import { computeSubsidies, normalizeParcels, withApiaDecision, type SubsidyParams } from '../subsidies';
 import { monthsUntilNextIncome, proposeAllocation } from './allocation';
 import { firstDay, type MonthKey } from './dates';
+import { withCountyYields } from './county-yields';
 import { costsByCrop, cropEconomics, springNeed } from './insights';
 import { rollingYears } from './scenarios';
 import { plannedFigures, withFarmerHarvest } from './seasons';
@@ -38,11 +39,11 @@ export interface PlanFarm extends Omit<StoredFarm, 'transactions'> {
 }
 
 /**
- * The docs/data this farm plans with: its own crops are added (P30), and its own yield and price
- * replace the averages (P26, P29).
+ * The docs/data this farm plans with: its own crops are added (P30), yields come from its county's
+ * history, and its own yield and price replace those (P26, P29).
  */
-export function farmData(farm: Pick<StoredFarm, 'harvests'>, data: AppData): AppData {
-  const withOwn = withOwnCrops(data, farm.harvests?.ownCrops);
+export function farmData(farm: Pick<StoredFarm, 'harvests'> & { county?: string | null }, data: AppData): AppData {
+  const withOwn = withCountyYields(withOwnCrops(data, farm.harvests?.ownCrops), farm.county);
   const figures = plannedFigures(farm.harvests?.gathered ?? [], farm.harvests?.expected ?? []);
   return figures.length ? withFarmerHarvest(withOwn, figures) : withOwn;
 }
@@ -120,6 +121,35 @@ export function longForecast(farm: PlanFarm, baseData: AppData, { month, params 
   const years = (amounts: AmountScenario) =>
     rollingYears(buildTimeline(input, data, { start: month, months, timing: 'late', amounts }));
   return { bad: years('bad'), medium: years('medium'), good: years('good') };
+}
+
+/** Months that reach the spring after the next harvest, whatever month the plan starts in. */
+export const AFTER_BAD_HARVEST_MONTHS = 24;
+
+/**
+ * A bad harvest doesn't show when it comes: it shows in the months before the next one. This runs the
+ * bad year long enough to reach them. `lowest` is before salary and pension, as on Prognoză.
+ * Null when no harvest is planned in that time.
+ */
+export function afterBadHarvest(farm: PlanFarm, baseData: AppData, { month, params }: FarmPlanOptions) {
+  const data = farmData(farm, baseData);
+  const input = timelineInput(farm, data, params);
+  const run = (amounts: AmountScenario) =>
+    buildTimeline(input, data, { start: month, months: AFTER_BAD_HARVEST_MONTHS, timing: 'late', amounts });
+  const bad = run('bad');
+  const firstSale = bad.months.findIndex((m) => m.entries.some((e) => e.kind === 'crop_sale' && e.id.startsWith('sale:')));
+  if (firstSale < 0) return null;
+  const after = bad.months.slice(firstSale);
+  const low = after.reduce((lowest, m) => (m.balanceEnd < lowest.balanceEnd ? m : lowest), after[0]!);
+  const smoothing = { pensionMonthly: activePensionMonthly(farm.pension_plans) };
+  return {
+    months: AFTER_BAD_HARVEST_MONTHS,
+    harvestMonth: bad.months[firstSale]!.key,
+    lowest: { key: low.key, balance: low.balanceEnd },
+    missing: Math.max(0, -low.balanceEnd),
+    salary: maxSafeSalary(bad, smoothing, data).salary,
+    normalSalary: maxSafeSalary(run('medium'), smoothing, data).salary,
+  };
 }
 
 /**

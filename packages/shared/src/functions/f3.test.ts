@@ -107,7 +107,8 @@ describe('salary breakdown', () => {
   });
 
   it('says the money runs out, and what is left with nothing set aside', () => {
-    const b = salaryBreakdown(ion, 'bad', data);
+    const empty = buildFarmPlan({ ...farm, start_balance_bani: 0, pension_plans: { monthly_bani: 20_000, status: 'active' } }, data, { month: '2026-11' });
+    const b = salaryBreakdown(empty, 'bad', data);
     expect(b).toMatchObject({ deficit: true, salary: 0, exact: 0 });
     expect(b.available).toBeLessThan(b.withoutSetAsides);
   });

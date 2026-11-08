@@ -9,6 +9,7 @@ import { num } from '../../lib/cc/format';
 import { useFarm, useMoney, useView } from '../../lib/cc/react';
 import { YEARS, yearName, type Year } from '../../lib/ui/chart';
 import { OfflineNote, useHref } from '../app/bits';
+import { AverageNote } from '../app/PageNotes';
 import { PageLink } from '../app/Frame';
 
 const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
@@ -119,12 +120,13 @@ export default function Salariu() {
         <section className="chart-card field hero-card pay-hero s12">
           <div>
             <p className="eyebrow">
-              {yearName(year)}: {b.deficit ? 'banii nu ajung' : 'poți scoate sigur'}
+              {yearName(year)}: {b.deficit ? 'banii nu ajung' : 'atât poți scoate'}
             </p>
             <p className="amount">{lei(ledger.salary)} pe lună</p>
             <p className="why" aria-live="polite">
               {why}
             </p>
+            <AverageNote view={view} />
           </div>
           <div className="year-pick" role="group" aria-label="Ce fel de an">
             {YEARS.map(([k, label]) => (

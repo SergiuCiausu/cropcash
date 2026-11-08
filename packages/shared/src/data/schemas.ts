@@ -210,6 +210,11 @@ export const PlanParamsFileSchema = z.object({
     ifn_margin_over_robor_pct: Param,
     robor_6m_pct: Param,
   }),
+  yield_history: z.object({
+    window_years: PositiveParam,
+    extreme_years: PositiveParam,
+    min_years: PositiveParam,
+  }),
   long_forecast: z.object({
     max_years: PositiveParam,
     subsidy_rules_until_year: PositiveParam,
@@ -317,22 +322,25 @@ export const CropSchema = z.object({
   harvest_month: z.number().int().min(1).max(12),
   sale_month_default: z.number().int().min(1).max(12),
   status: StatusSchema,
+  /** Set when the yields come from the INS history: which area and harvests (cashflow/county-yields). */
+  yield_basis: z.object({ area: z.string(), from: z.number().int(), to: z.number().int() }).optional(),
 });
 export type Crop = z.infer<typeof CropSchema>;
 
-/** One year of county-level yield for a crop (INS). Empty until the data is downloaded. */
-export const CountyYieldSchema = z.object({
-  county: z.string(),
-  crop_id: z.string(),
-  year: z.number().int(),
-  yield_t_per_ha: z.number().nonnegative(),
-});
-export type CountyYield = z.infer<typeof CountyYieldSchema>;
+/** Yearly yields (INS AGR110A): area code → crop id → one value per year from first_year, in kg/ha. */
+export const CountyHistorySchema = z
+  .object({
+    status: StatusSchema,
+    source_url: z.string().url(),
+    first_year: z.number().int(),
+    data: z.record(z.string(), z.record(z.string(), z.array(z.number().int().positive().nullable()))),
+  })
+  .passthrough();
 
 export const CropsFileSchema = z.object({
   meta: z.object({ source_url: z.string().url() }).passthrough(),
   crops: z.array(CropSchema),
-  county_history: z.object({ status: StatusSchema, data: z.array(CountyYieldSchema) }).passthrough(),
+  county_history: CountyHistorySchema,
 });
 export type CropsFile = z.infer<typeof CropsFileSchema>;
 

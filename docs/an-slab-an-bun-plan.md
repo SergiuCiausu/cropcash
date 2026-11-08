@@ -1,6 +1,6 @@
 # Plan: "an slab" and "an bun" from real county history
 
-Status: **data downloaded, nothing implemented yet** (2026-11-08). The history is in `crops-reference.json` → `county_history`, and no code reads it. The figures below were calculated from that data and from trial runs of Ion's plan. Four decisions at the end need an answer before step 3.
+Status: **built on 2026-11-08 for every county**, with the four recommended decisions below. Still to do: new pitch figures in `docs/09-demo-pitch.md`, after `seed:demo` and `demo:rehearse`. "Today" in the tables means the rules before this change.
 
 ## Why the current years don't make sense
 
@@ -43,7 +43,7 @@ Why these choices:
 
 1. The farmer's own yield becomes normal. Bad and good keep the county's ratio to normal, which `withFarmerHarvest` already does.
 2. The county history, when it has at least 12 usable years.
-3. The national row (`RO`), for the few counties with too little data (București; sunflower in Harghita and Covasna).
+3. The national row (`RO`), for the few counties with too little data (București; sunflower in Brașov and Harghita).
 4. The article, only for a crop INS doesn't cover.
 
 ## What should change in a kind of year
@@ -95,7 +95,7 @@ Each step ends with `npm test` and `npm run typecheck` green. Everything is calc
 
 **Later, not in this plan:** the question „Cât ai scos în cel mai prost an?” in Datele planului; INS regional prices (PPA102C) instead of the article; a cost per hectare the farmer can edit.
 
-## Decisions needed
+## Decisions taken
 
 1. **Price and costs at the mean in all three years?** Recommended: yes. It removes the pitch line "salariul sigur ajunge la 0" for the 12-month view, and step 4 replaces it.
 2. **Add the 24-month "după un an slab" view?** Recommended: yes, since the 12-month plan can't show a drought otherwise.

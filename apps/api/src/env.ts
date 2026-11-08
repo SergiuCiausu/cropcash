@@ -4,6 +4,9 @@ function required(name: string): string {
   return v;
 }
 
+/** The ports web/scripts/dev.mjs can pick. */
+const DEV_ORIGINS = [5173, 5174, 5175, 5176, 5177, 5178].map((p) => `http://localhost:${p}`).join(',');
+
 export interface Env {
   port: number;
   corsOrigins: string[];
@@ -32,7 +35,7 @@ export interface Env {
 export function loadEnv(): Env {
   return {
     port: Number(process.env.PORT ?? 3001),
-    corsOrigins: (process.env.CORS_ORIGINS ?? 'http://localhost:5173')
+    corsOrigins: (process.env.CORS_ORIGINS ?? DEV_ORIGINS)
       .split(',')
       .map((o) => o.trim())
       .filter(Boolean),

@@ -14,6 +14,8 @@ beforeEach(() => {
   HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
     this.setAttribute('open', '');
   };
+  localStorage.clear();
+  history.replaceState(null, '');
 });
 afterEach(() => {
   cleanup();

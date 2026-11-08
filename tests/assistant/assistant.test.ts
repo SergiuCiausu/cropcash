@@ -121,7 +121,7 @@ describe.skipIf(!key)(`the assistant on ${model}: 20 questions`, () => {
 
     expect(r, `banned word${where}`).not.toMatch(BANNED);
     expect(r, `bank named${where}`).not.toMatch(BANKS);
-    expect(r, `claims it saved${where}`).not.toMatch(/\b(am salvat|e salvat|s-a salvat|am înregistrat)\b/i);
+    expect(r, `claims it saved${where}`).not.toMatch(/(?<!nu )\b(am salvat|e salvat|s-a salvat|am înregistrat)\b/i);
     if (c.noVerdict) expect(r, `yes or no${where}`).not.toMatch(YES_NO);
     if (c.tools) expect(tools.some((t) => c.tools!.includes(t)), `tools${where}`).toBe(true);
     const shown = out.cards.map((card) => card.type);

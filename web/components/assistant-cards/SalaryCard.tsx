@@ -8,7 +8,7 @@ export function SalaryCard({ data }: { data: CardData<'salary'> }) {
   const { salary, reason, limitingMonth, monthsUntilLimit, availableByThen, setAside } = data;
   return (
     <>
-      <p className="eyebrow">Salariul tău sigur</p>
+      <p className="eyebrow">Salariul tău</p>
       <p className="ask-card-big">
         <Money bani={salary} /> <span>pe lună</span>
       </p>

@@ -4,7 +4,8 @@
    show figures from before a change. */
 import type { AppData } from '../../../packages/shared/src/data/index';
 import { activePensionMonthly, isOwnCrop } from '../../../packages/shared/src/farm/index';
-import { buildFarmPlan, farmData as farmDataFor, grainInBarn as grainInBarnFor, longForecast as longForecastFor, type FarmPlan } from '../../../packages/shared/src/functions/plan';
+import { afterBadHarvest as afterBadHarvestFor, buildFarmPlan, farmData as farmDataFor, grainInBarn as grainInBarnFor, longForecast as longForecastFor, type FarmPlan } from '../../../packages/shared/src/functions/plan';
+import { withCountyYields } from '../../../packages/shared/src/cashflow/county-yields';
 import type { PlanFarm } from '../../../packages/shared/src/cashflow/farm-plan';
 import type { MonthPlan, Timeline, TimelineEntry } from '../../../packages/shared/src/cashflow/timeline';
 import type { FarmState, PageFarm } from './farm';
@@ -72,7 +73,10 @@ export interface PlanItem {
 /** Builds the view of one FarmState for one scope. Throws if there's no farm (the guard comes first). */
 export function farmView(state: FarmState, scope: Scope) {
   if (!state.baseFarm || !state.harvests) throw new Error('No farm to show: the sign-in guard runs before the pages.');
-  const { me, today, baseYear, farmData: base } = state;
+  const { me, today, baseYear, farmData: appData } = state;
+  /* Every figure below plans with this county's yields. The farm holds the county's name or its code. */
+  const countyName = state.baseFarm.county;
+  const base = withCountyYields(appData, appData.counties.counties.find((c) => c.name_ro === countyName || c.code === countyName)?.code);
   const harvests: HarvestState = state.harvests;
   const wholeFarm = scope === 'farm';
   const { selected, selectedCrop, scope: scoped, records: scopeRecords } = harvestScope(harvests, baseYear, wholeFarm);
@@ -141,6 +145,8 @@ export function farmView(state: FarmState, scope: Scope) {
   }
   /** Each kind of year, repeated, for the slider on Prognoză. */
   const longForecast = once(() => longForecastFor(storedFarm(), data(), { month: planMonth() }));
+  /** What a bad harvest does in the spring after it. */
+  const afterBadHarvest = once(() => afterBadHarvestFor(storedFarm(), data(), { month: planMonth() }));
 
   /** A plan entry as Calendar and Acasă show it. */
   function planItem(e: TimelineEntry, month: string): PlanItem {
@@ -287,6 +293,7 @@ export function farmView(state: FarmState, scope: Scope) {
     farmPlan,
     previewPlan,
     longForecast,
+    afterBadHarvest,
     planItem,
     harvestEnd,
     compare,

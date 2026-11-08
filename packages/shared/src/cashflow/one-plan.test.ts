@@ -158,7 +158,7 @@ describe("the farmer's own harvest", () => {
   });
 
   it('leaves the data alone when nothing was gathered', () => {
-    expect(farmData(ion(), data)).toBe(data);
+    expect(farmData({ ...ion(), county: null }, data)).toBe(data);
   });
 
   it('counts grain in the barn as income to come', () => {

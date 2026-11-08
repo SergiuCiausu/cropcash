@@ -182,6 +182,14 @@ const Recolte = () => (
   </div>
 );
 
+/** The links between the money pages, drawn on phones. */
+const withSalaryNav = (Page: () => React.ReactElement) => () => (
+  <>
+    <div className="subnav phone-only">{repeat(3, (i) => <Bone key={i} w={96} h={44} r={999} />)}</div>
+    <Page />
+  </>
+);
+
 const Salariu = () => (
   <div className="bento">
     <Hero span="s12" className="pay-hero">
@@ -245,10 +253,10 @@ export const SCREEN_SKELETONS = {
   calendar: Calendar,
   prognoza: Prognoza,
   recolte: Recolte,
-  salariu: Salariu,
-  pensie: Pensie,
+  salariu: withSalaryNav(Salariu),
+  pensie: withSalaryNav(Pensie),
   'date-plan': DatePlan,
-  bani: Bani,
+  bani: withSalaryNav(Bani),
 } satisfies Record<ScreenName, ComponentType>;
 
 /** Screens whose title has a button next to it. */

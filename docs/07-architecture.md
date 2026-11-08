@@ -280,21 +280,21 @@ Complexitate O(H). E o funcție pură, deci testabilă cu tabele de date.
 | Parametru | An bun | An mediu | An slab (secetă) |
 |---|---|---|---|
 | Subvenția | max | probabil | min |
-| Data soldului APIA | 1 dec | mijlocul ferestrei | 30 iun |
-| Producția (t/ha) | max | medie | min (sau media celor mai slabi ani din județ, când avem date INS) |
-| Prețul (lei/kg) | max | mediu | mediu |
-| Costurile | min | medii | max |
+| Data soldului APIA | ultima zi | ultima zi | ultima zi |
+| Producția (t/ha) | media celor mai buni 3 ani din ultimii 15 în județ | mediana ultimilor 15 ani în județ | media celor mai slabi 3 ani din ultimii 15 în județ |
+| Prețul (lei/kg) | mediu | mediu | mediu |
+| Costurile | medii | medii | medii |
 
-Prețul în anul de secetă rămâne „mediu”, nu „min”. Când producția scade la nivel național, prețul tinde să nu scadă. E o presupunere, notată în open questions.
+Un fel de an e definit de recoltă, din istoricul INS al județului (AGR110A, `cashflow/county-yields.ts`, parametrii în `plan-params.json` → `yield_history`). Un județ cu prea puține recolte raportate folosește media pe țară, iar producția notată de fermier devine anul normal, cu același raport pentru anul slab și cel bun. Prețul și costurile nu se schimbă de la un fel de an la altul (P4). Un an slab se simte în primăvara de după: `afterBadHarvest` (24 de luni) arată punctul cel mai de jos și salariul care ține.
 
 **Venitul pe cultură** = `ha × producție × 1000 × preț`. Pentru Ion (8 ha grâu, 7 ha porumb):
 
 | | Bun | Mediu | Secetă |
 |---|---|---|---|
-| Grâu | 8 × 6 t × 1,20 = 57.600 | 8 × 5 t × 1,05 = 42.000 | 8 × 4 t × 1,05 = 33.600 |
-| Porumb | 7 × 8 t × 1,10 = 61.600 | 7 × 6,5 t × 0,95 = 43.225 | 7 × 5 t × 0,95 = 33.250 |
-| Subvenție (lei) | ≈ 17.060 | 16.869,60 | ≈ 15.180 |
-| **Total venit** | ≈ 136.260 | 102.094,60 | ≈ 82.030 |
+| Grâu | 8 × 5,026 t × 1,05 = 42.218 | 8 × 4,308 t × 1,05 = 36.187 | 8 × 2,974 t × 1,05 = 24.981 |
+| Porumb | 7 × 7,09 t × 0,95 = 47.149 | 7 × 4,005 t × 0,95 = 26.633 | 7 × 1,469 t × 0,95 = 9.769 |
+| Subvenție (lei) | ≈ 17.058 | ≈ 16.866 | ≈ 15.179 |
+| **Total venit** | 106.425 | 79.686 | 49.929 |
 
 ### Anul slab, fără fond
 Fondul pentru ani proști a fost scos pe 7 nov 2026, la cererea echipei. Anul slab rămâne doar ca scenariu: Prognoză arată cât intră mai puțin decât într-un an normal și cu cât rămâne fermierul mai puțin la sfârșitul celor 12 luni (pentru Ion, 33.062 lei). Nimic nu se mai pune deoparte pentru el.
@@ -439,7 +439,7 @@ Paza nu e securitate. Datele sunt apărate de API și RLS. Ea doar nu lasă o pa
 
 **De ce HTTPS pe VPS e obligatoriu:** Netlify servește pe HTTPS, iar browserul blochează apelurile de la o pagină HTTPS către un API HTTP (mixed content). Și webhooks-urile Stripe cer un endpoint HTTPS. Avem nevoie de un domeniu sau subdomeniu care să pointeze spre IP-ul VPS-ului.
 
-**CORS:** API-ul acceptă doar originea Netlify și `localhost:5173`.
+**CORS:** API-ul acceptă doar originea Netlify și `localhost:5173`–`5178` (`npm run dev` ia primul port liber din interval, vezi `web/scripts/dev.mjs`).
 
 ## 11. Asistentul și notificările
 

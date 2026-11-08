@@ -37,7 +37,7 @@ const sentence = (s: string) => s.charAt(0).toLocaleUpperCase('ro') + s.slice(1)
 export function landingFigures(): LandingFigures {
   const today = demoIon.demo_start.value;
   const month = `${harvestYear(today) - 1}-11`;
-  const data = farmData({ harvests: { years: [], gathered: [], expected: [] } } as never, loadData());
+  const data = farmData({ county: demoIon.county, harvests: { years: [], gathered: [], expected: [] } } as never, loadData());
   const crops = data.crops.crops;
   const cropOf = (id: string) => crops.find((c) => c.id === id)!;
   const farm = {

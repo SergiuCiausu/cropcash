@@ -19,6 +19,8 @@ const config = publicConfig(process.env);
 
 const nextConfig: NextConfig = {
   output: 'export',
+  // Set by scripts/dev.mjs when 5173 is taken; a second dev server can't share .next.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   // /salariu is written as salariu.html, so the pages work from any static host.
   trailingSlash: false,
   // The legacy page scripts run once per page load and move DOM nodes; a double run would duplicate them.

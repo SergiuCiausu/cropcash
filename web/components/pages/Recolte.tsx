@@ -4,7 +4,7 @@
    result instead. On Ion's farm everything stays on the phone. On a real farm a sale or expense goes
    through the outbox, so it works offline; changing crops or closing a harvest needs internet.
    Nothing noted here moves money, it only records what already happened. */
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { isOwnCrop, OwnCropSchema, type OwnCrop } from '../../../packages/shared/src/farm/index';
 import { parseWholeLei } from '../../../packages/shared/src/money/index';
 import { date, exact, failText, group, MONTHS } from '../../lib/cc/format';
@@ -14,6 +14,8 @@ import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/re
 import { newIntentKey } from '../../lib/live/intent';
 import { decimalText, gatheredHint, isSown, isUsualMonth, monthLabel, plantedHint, readGathered, sowingChoices, usualPlanting, usualTonnes, type Crop, type GatheredText } from '../../lib/ui/seasons';
 import { AmountEcho, ErrorLine, OfflineNote, Sheet } from '../app/bits';
+import { FrameContext } from '../app/context';
+import { useSaved } from '../app/useSaved';
 import { CompareTable, FutureNote } from '../app/PageNotes';
 import { PaperButton, usePapers } from '../app/Papers';
 
@@ -69,7 +71,7 @@ export default function Recolte() {
   return <RecoltePage key={`${view.selected.id}:${view.selectedCrop}`} />;
 }
 
-type Saver = (change: (draft: HarvestState) => void, onError: (text: string) => void, onDone?: () => void) => Promise<void>;
+type Saver = (change: (draft: HarvestState) => void, onError: (text: string) => void, onDone?: () => void, title?: string) => Promise<void>;
 type Ask = { title: string; text: string; yes: string; run: (onError: (t: string) => void) => Promise<void> };
 
 function RecoltePage() {
@@ -98,11 +100,13 @@ function RecoltePage() {
   /* A second tap while a save runs is ignored, on the phone-only path too (IDEM-15). */
   const sending = useRef(false);
   const failedText = useCallback((e: unknown) => failText(e, online), [online]);
-  const save: Saver = async (change, onError, onDone) => {
+  const saved = useSaved();
+  const { notify } = useContext(FrameContext);
+  const save: Saver = async (change, onError, onDone, title = 'Am salvat') => {
     if (sending.current) return;
     sending.current = true;
     try {
-      await store.updateHarvests(change);
+      await saved(title, () => store.updateHarvests(change));
       onDone?.();
     } catch (e) {
       onError(failedText(e));
@@ -158,11 +162,11 @@ function RecoltePage() {
     return intent.current.key!;
   };
   /** The server already has the whole document, so only this one change needs sending. */
-  async function sendRecord(name: string, input: Record<string, unknown>, onDone?: () => void) {
+  async function sendRecord(name: string, input: Record<string, unknown>, onDone: () => void, title: string) {
     if (sending.current) return;
     sending.current = true;
     try {
-      await store.send(({ write }) => write(name, input));
+      await saved(title, () => store.send(({ write }) => write(name, input)));
       onDone?.();
     } catch (e) {
       setErr(failedText(e));
@@ -184,11 +188,12 @@ function RecoltePage() {
     if (lei === null || lei <= 0) return setErr(`Scrie suma în lei întregi, de exemplu ${group(12500)}.`);
     if (!day || day < firstDay || day > TODAY) return setErr(`Alege o zi între ${date(firstDay, true)} și azi.`);
     const target = forCrop && kind === 'expense' ? { cropId: forCrop } : {};
+    const noted = kind === 'sale' ? 'Am notat vânzarea' : 'Am notat cheltuiala';
     setErr(null);
     if (onServer) {
       const [name, input]: [string, Record<string, unknown>] =
         kind === 'sale' ? ['record_sale', { cropId: what, date: day, totalLei: lei, harvestYear: h.year }] : ['add_expense', { category: what, amountLei: lei, date: day, harvestYear: h.year, ...target }];
-      return void sendRecord(name, { ...input, clientId: intentKeyFor(name, input) }, resetForm);
+      return void sendRecord(name, { ...input, clientId: intentKeyFor(name, input) }, resetForm, noted);
     }
     const base = { id: `n${Date.now()}`, date: day };
     void save(
@@ -199,18 +204,67 @@ function RecoltePage() {
       },
       setErr,
       resetForm,
+      noted,
     );
   }
-  function undo(id: string) {
-    if (onServer) return void sendRecord('undo_transaction', { id });
-    void save((draft) => {
-      const hd = draft.items.find((x) => x.id === h.id)!;
-      hd.records = hd.records.filter((r) => r.id !== id);
-    }, setErr);
+
+  /* ---- Deleting: the row goes at once, and the delete itself waits until "Anulează" can't be tapped. ---- */
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
+  const waitingDeletes = useRef(new Map<string, () => void>());
+  const deleting = useRef<Promise<void>>(Promise.resolve());
+  const showAgain = (id: string) =>
+    setHidden((was) => {
+      const next = new Set(was);
+      next.delete(id);
+      return next;
+    });
+  /* One after another: two rows deleted close together mustn't overwrite each other. */
+  const sendDelete = (id: string) => {
+    deleting.current = deleting.current.then(async () => {
+      try {
+        if (onServer) await store.send(({ write }) => write('undo_transaction', { id }));
+        else
+          await store.updateHarvests((draft) => {
+            const hd = draft.items.find((x) => x.id === h.id)!;
+            hd.records = hd.records.filter((r) => r.id !== id);
+          });
+      } catch (e) {
+        showAgain(id);
+        setErr(failedText(e));
+      }
+    });
+  };
+  function undo(r: Harvest['records'][number]) {
+    const { id } = r;
+    if (waitingDeletes.current.has(id)) return;
+    const commit = () => {
+      if (waitingDeletes.current.delete(id)) sendDelete(id);
+    };
+    waitingDeletes.current.set(id, commit);
+    setHidden((was) => new Set(was).add(id));
+    notify({
+      tone: 'info',
+      title: `Am șters: ${label(r)}`,
+      action: {
+        label: 'Anulează',
+        run: () => {
+          waitingDeletes.current.delete(id);
+          showAgain(id);
+        },
+      },
+      onExpire: commit,
+    });
   }
+  /* Leaving the page counts as not wanting it back. */
+  useEffect(
+    () => () => {
+      for (const commit of [...waitingDeletes.current.values()]) commit();
+    },
+    [],
+  );
 
   const label = (r: Harvest['records'][number]) => (r.kind === 'sale' ? `Vânzare: ${cropName(r.cropId!)}` : r.kind === 'expense' ? (CATEGORIES.find(([k]) => k === r.category)?.[1] ?? 'Cheltuială') : APIA.find(([k]) => k === r.kind)?.[1]);
-  const sorted = [...shownRecords].sort((a, b) => b.date.localeCompare(a.date));
+  const sorted = shownRecords.filter((r) => !hidden.has(r.id)).sort((a, b) => b.date.localeCompare(a.date));
   const shown = allRecords ? sorted : sorted.slice(0, LATEST);
 
   /* ---- The sheets ---- */
@@ -412,7 +466,7 @@ function RecoltePage() {
                     </span>
                     <b>{t(`${r.amountBani < 0 ? '−' : '+'}${exact(Math.abs(r.amountBani))} lei`)}</b>
                     {isOpen && !r.fixed ? (
-                      <button type="button" aria-label={`Șterge ${label(r)}`} onClick={() => undo(r.id)}>
+                      <button type="button" aria-label={`Șterge ${label(r)}`} onClick={() => undo(r)}>
                         Șterge
                       </button>
                     ) : (

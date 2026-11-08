@@ -12,6 +12,7 @@ import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/re
 import { newIntentKey } from '../../lib/live/intent';
 import { pageKeys } from '../../lib/cc/storage';
 import { CHEVRON, ErrorLine, OfflineNote, Sheet, useHref, Verify } from '../app/bits';
+import { useSaved } from '../app/useSaved';
 import { PageLink } from '../app/Frame';
 import PensionChart, { type Growth, type PensionCompare } from '../app/PensionChart';
 
@@ -24,6 +25,7 @@ interface Ask {
   title: string;
   text: string;
   yes: string;
+  done: string;
   danger?: boolean;
   action: (tools: SendTools, key: string) => unknown;
 }
@@ -162,11 +164,11 @@ function PensiePage() {
     `Îți sugerăm ${lei(suggested)} pe lună, adică ${P.suggestMaxPctOfSalary}% din salariu, rotunjit.`
   );
 
-  const start = () => setAsk({ title: 'Pornești pensia?', text: `Pui ${lei(monthly)} pe lună, începând de azi. ${salaryLine(monthly)} În demo, plata se face cu un card de test.`, yes: `Da, pornesc cu ${lei(monthly)}`, action: ({ write }, key) => write('start_pension', { monthlyLei }, { key }) });
-  const change = () => setAsk({ title: 'Schimbi suma?', text: `De la următoarea plată pui ${lei(monthly)} pe lună în loc de ${lei(current)}. ${salaryLine(monthly)}`, yes: `Da, schimb la ${lei(monthly)}`, action: ({ write }) => write('change_pension', { monthlyLei }) });
+  const start = () => setAsk({ title: 'Pornești pensia?', text: `Pui ${lei(monthly)} pe lună, începând de azi. ${salaryLine(monthly)} În demo, plata se face cu un card de test.`, yes: `Da, pornesc cu ${lei(monthly)}`, done: 'Pensia a pornit', action: ({ write }, key) => write('start_pension', { monthlyLei }, { key }) });
+  const change = () => setAsk({ title: 'Schimbi suma?', text: `De la următoarea plată pui ${lei(monthly)} pe lună în loc de ${lei(current)}. ${salaryLine(monthly)}`, yes: `Da, schimb la ${lei(monthly)}`, done: 'Am schimbat suma', action: ({ write }) => write('change_pension', { monthlyLei }) });
   const stop = () => {
     const kept = savedSoFar > 0 ? ` Cei ${lei(savedSoFar)} puși până acum rămân deoparte.` : '';
-    setAsk({ title: 'Oprești pensia?', text: `De acum nu se mai ia nimic.${kept} ${salaryLine(0)}`, yes: 'Da, opresc pensia', danger: true, action: ({ write }) => write('stop_pension', {}) });
+    setAsk({ title: 'Oprești pensia?', text: `De acum nu se mai ia nimic.${kept} ${salaryLine(0)}`, yes: 'Da, opresc pensia', done: 'Am oprit pensia', danger: true, action: ({ write }) => write('stop_pension', {}) });
   };
 
   function actions(): ReactNode {
@@ -461,6 +463,7 @@ function PensiePage() {
 /* Asking before money moves. One key per dialog: the yes button again after an error sends the same key,
    so a pension that did start (the answer got lost) isn't started twice. Opening it again makes a new one. */
 function AskSheet({ ask, onClose }: { ask: Ask; onClose: () => void }) {
+  const saved = useSaved();
   const store = useStore()!;
   const online = useOnline();
   const [key] = useState(newIntentKey);
@@ -471,7 +474,7 @@ function AskSheet({ ask, onClose }: { ask: Ask; onClose: () => void }) {
     setBusy(true);
     setErr(null);
     try {
-      await store.send((tools) => ask.action(tools, key));
+      await saved(ask.done, () => store.send((tools) => ask.action(tools, key)));
       onClose();
     } catch (e) {
       setBusy(false);

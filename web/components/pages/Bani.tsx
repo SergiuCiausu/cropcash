@@ -14,6 +14,7 @@ import { failText as moneyFailText } from '../../lib/live/fail-text';
 import { publicConfig } from '../../lib/live/index';
 import { monthName } from '../../lib/ui/chart';
 import { ErrorLine, NetButton, OfflineNote, Sheet, useHref } from '../app/bits';
+import { useSaved } from '../app/useSaved';
 import { PageLink } from '../app/Frame';
 
 const NEEDS_NET = 'Pornește internetul ca să muți banii.';
@@ -73,6 +74,7 @@ export default function Bani() {
           <section className="card s12">
             <h2>Încă nu ai cont</h2>
             <p className="note">Banii se pot muta doar dintr-un cont. {farm.signedIn ? <a href="/onboarding">Spune-ne despre fermă</a> : <a href="/login">Intră în cont</a>}.</p>
+            <SignOut />
           </section>
         </div>
       </>
@@ -82,6 +84,32 @@ export default function Bani() {
       {header}
       {offline}
       <Account />
+    </>
+  );
+}
+
+/** Leaving the account asks first: coming back needs the password, and records not yet sent are lost. */
+function SignOut() {
+  const farm = useFarm()!;
+  const [asking, setAsking] = useState(false);
+  if (!farm.signedIn) return null;
+  return (
+    <>
+      <button type="button" className="btn btn-line gap" onClick={() => setAsking(true)}>
+        Ieși din cont
+      </button>
+      <Sheet open={asking} onClose={() => setAsking(false)} className="h-sheet" label="Ieși din cont?">
+        <h2>Ieși din cont?</h2>
+        <p className="note">{farm.outbox.length ? 'Ai lucruri notate care nu s-au trimis încă. Dacă ieși acum, se pierd.' : 'Ca să intri din nou îți trebuie parola.'}</p>
+        <div className="ob-actions">
+          <a className={`btn ${farm.outbox.length ? 'btn-danger' : 'btn-dark'}`} href="/login?signout=1">
+            Da, ies din cont
+          </a>
+          <button type="button" className="btn btn-line" onClick={() => setAsking(false)}>
+            Rămân
+          </button>
+        </div>
+      </Sheet>
     </>
   );
 }
@@ -118,13 +146,14 @@ function Account() {
   /* null = closed; 0 = the farmer asked; more = this much just arrived from APIA. */
   const [split, setSplit] = useState<number | null>(null);
   const problem = (e: unknown) => ((e as { code?: string } | null)?.code === 'stale_clock' ? 'Data s-a schimbat pe alt ecran. Reîncarcă pagina și încearcă din nou.' : moneyFailText(e, 'money', online));
-  async function run(id: string, slot: Slot, action: (tools: Tools) => Promise<unknown>, onDone?: () => void) {
+  const announce = useSaved();
+  async function run(id: string, slot: Slot, action: (tools: Tools) => Promise<unknown>, onDone?: () => void, title?: string) {
     if (running.current) return;
     running.current = true;
     setBusy(id);
     setErrs((x) => ({ ...x, [slot]: undefined }));
     try {
-      await store.send(action);
+      await (title ? announce(title, () => store.send(action)) : store.send(action));
       onDone?.();
     } catch (e) {
       /* It may have happened: no second tap until the next load shows it. */
@@ -177,7 +206,7 @@ function Account() {
           </div>
           <p className="note">Banii de la APIA ajung într-un cont CropCash, din care îți plătim salariul lunar.</p>
           <ErrorLine>{errs.setup}</ErrorLine>
-          {moneyButton('setup', 'Activează contul', 'btn btn-dark gap', () => void run('setup', 'setup', ({ api }) => api('/api/stripe/setup', { method: 'POST', timeout: 'setup', body: '{}' } as RequestInit)))}
+          {moneyButton('setup', 'Activează contul', 'btn btn-dark gap', () => void run('setup', 'setup', ({ api }) => api('/api/stripe/setup', { method: 'POST', timeout: 'setup', body: '{}' } as RequestInit), undefined, 'Am activat contul'))}
         </section>
       )}
       <section className="card s7">
@@ -263,6 +292,16 @@ function Account() {
         )}
         {code !== 'RON' && <p className="note gap">Sume orientative în {NAMES[code]}. Câmpurile și prețurile pe kilogram rămân în lei.</p>}
       </section>
+      {!DEMO && (
+        <section className="card s12">
+          <h2>Ferma ta</h2>
+          <p className="note">Numele, județul, hectarele și banii de acum.</p>
+          <a className="btn btn-line gap" href="/onboarding">
+            Schimbă datele fermei
+          </a>
+          <SignOut />
+        </section>
+      )}
       {showDemo && (
         <section className="card s12">
           <div className="card-h">
@@ -325,7 +364,7 @@ function Account() {
           <p className="note">Salariul și pensia acoperă {plan.monthsCovered === 1 ? 'o lună' : `${plan.monthsCovered} luni`}, până la următoarele încasări.</p>
           <ErrorLine>{errs.split}</ErrorLine>
           <div className="ob-actions">
-            {moneyButton('accept', 'Bine așa', 'btn btn-dark', () => void run('accept', 'split', ({ write }) => write('save_envelopes', plan.proposal as unknown as Record<string, unknown>), () => setSplit(null)))}
+            {moneyButton('accept', 'Bine așa', 'btn btn-dark', () => void run('accept', 'split', ({ write }) => write('save_envelopes', plan.proposal as unknown as Record<string, unknown>), () => setSplit(null), 'Am împărțit banii pe plicuri'))}
             <button type="button" className="btn btn-line" disabled={busy === 'accept'} onClick={() => setSplit(null)}>
               Mai târziu
             </button>

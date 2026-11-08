@@ -47,8 +47,8 @@ function fakeStore(mode: Mode, saved: Record<string, string>, online: boolean, m
 }
 
 /** Onboarding on a signed-in phone, without the page's own provider. */
-export async function showOnboarding(saved: Record<string, string> = SIGNED_IN, online = true) {
-  const { store, live } = fakeStore('farm', saved, online);
+export async function showOnboarding(saved: Record<string, string> = SIGNED_IN, online = true, me: object = ME) {
+  const { store, live } = fakeStore('farm', saved, online, me);
   await act(async () => {
     render(
       <FarmProvider mode="farm" store={store}>

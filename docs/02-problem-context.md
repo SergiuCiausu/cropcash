@@ -9,7 +9,9 @@
 | Ferme în România | 2,9 milioane, adică 31,8% din exploatațiile UE | 2020 | brief (digi24, cursdeguvernare) | din-2020 |
 | Ferme sub 5 ha | 90,3% | 2020 | idem | din-2020 |
 | Manageri de fermă peste 65 de ani | 44,3% | 2020 | idem | din-2020 |
-| Insolvențe în agricultură, S1 | **226**, față de 127 în S1 2025 (+80%) | 2026 | [forbes.ro](https://www.forbes.ro/criza-fara-precedent-in-agricultura-romaneasca-insolventele-au-explodat-cu-aproape-80-in-primul-semestru-514318) | confirmat-2026 |
+| Insolvențe în agricultură, S1 | **226** de firme agricole, față de 127 în S1 2025 (aproape +80%; analiză CITR pe date ONRC, [capital.ro](https://www.capital.ro/criza-din-agricultura-romaneasca-se-adanceste-insolventele-au-crescut-cu-aproape-80-iar-sute-de-firme-sunt-in-pericol.html)) | 2026 | [forbes.ro](https://www.forbes.ro/criza-fara-precedent-in-agricultura-romaneasca-insolventele-au-explodat-cu-aproape-80-in-primul-semestru-514318) | confirmat-2026 |
+| Recolta de grâu 2025 | AFR estima în iulie 2025 13,3–14 mil. tone, cel mai mare nivel din 1997. **Estimare, nu cifra finală** | 2025 | [agerpres](https://agerpres.ro/english/2025/07/28/wheat-production-could-reach-record-level-in-2025-says-head-of-romanian-farmers-association--1471668) | estimare |
+| Fermier din Călărași | „A fost 2022, 2023, 2024, 2025, ani secetoși” și „s-a împrumutat la bănci, a rostogolit niște datorii și mai rău s-a înfundat” | 2026 | [bzi.ro](https://www.bzi.ro/statistici-ingrijoratoare-a-crescut-numarul-firmelor-din-agricultura-cu-probleme-anul-acesta-este-un-drum-la-rascruce-5532708) | citat |
 
 > ⚠️ Brief-ul vechi spune „~800.000 de cereri”. Cifra e greșită. Folosim **671.334**.
 

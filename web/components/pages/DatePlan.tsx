@@ -11,6 +11,7 @@ import { failText, group } from '../../lib/cc/format';
 import { ionFarm } from '../../lib/cc/farm';
 import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
 import { AmountEcho, ErrorLine, OfflineNote, useHref } from '../app/bits';
+import { useSaved } from '../app/useSaved';
 import { PageLink } from '../app/Frame';
 
 const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
@@ -125,12 +126,13 @@ export default function DatePlan() {
     } else why = onServer ? `Dacă salvezi, ${lei(now)} devine suma pe care ți-o plătim lunar.` : 'Cifrele nu sunt salvate încă.';
   }
 
+  const saved = useSaved();
   async function save() {
     if (!ok || saving) return;
     setSaving(true);
     setSaveErr('');
     try {
-      await store.savePlanFigures(input);
+      await saved('Am salvat cifrele', () => store.savePlanFigures(input), true);
       location.href = href('/salariu');
     } catch (e) {
       setSaveErr(failText(e, online));

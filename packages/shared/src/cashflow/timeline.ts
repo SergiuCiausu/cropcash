@@ -164,35 +164,28 @@ function windowDate(start: IsoDate, end: IsoDate, timing: Timing): IsoDate {
 }
 
 /**
- * Crop sale value range (bani). Drought (min) = minimum yield at the MEAN price:
- * when national output drops, prices tend not to drop (docs/07 §5, assumption P4).
+ * Crop sale value range (bani). A kind of year is its harvest: only the yield moves, and the price
+ * stays the mean, because prices barely follow the national yield (docs/07 §5, assumption P4).
  */
 export function cropSaleRange(crop: Crop, areaAri: number): Range {
   const value = (tPerHa: number, leiPerKg: number) => Math.round(areaAri * tPerHa * leiPerKg * 1000);
   return {
     min: value(crop.yield_t_per_ha.min, crop.price_lei_per_kg.mean),
     probable: value(crop.yield_t_per_ha.mean, crop.price_lei_per_kg.mean),
-    max: value(crop.yield_t_per_ha.max, crop.price_lei_per_kg.max),
+    max: value(crop.yield_t_per_ha.max, crop.price_lei_per_kg.mean),
   };
 }
 
-/** The kilograms are known, so only the price moves. Same price rule as a yearly sale. */
+/** The kilograms are known and the price is the mean, so it's the same in every kind of year. */
 function storedGrainRange(crop: Crop, kg: number): Range {
-  const value = (leiPerKg: number) => Math.round(kg * leiPerKg * 100);
-  return {
-    min: value(crop.price_lei_per_kg.mean),
-    probable: value(crop.price_lei_per_kg.mean),
-    max: value(crop.price_lei_per_kg.max),
-  };
+  const value = Math.round(kg * crop.price_lei_per_kg.mean * 100);
+  return { min: value, probable: value, max: value };
 }
 
+/** The money goes out before anyone knows the harvest, so costs are the mean in every kind of year (P4). */
 export function cropCostRange(crop: Crop, areaAri: number, sharePct: number): Range {
-  const value = (leiPerHa: number) => Math.round((areaAri * leiPerHa * sharePct) / 100);
-  return {
-    min: value(crop.cost_lei_per_ha.min),
-    probable: value(crop.cost_lei_per_ha.mean),
-    max: value(crop.cost_lei_per_ha.max),
-  };
+  const value = Math.round((areaAri * crop.cost_lei_per_ha.mean * sharePct) / 100);
+  return { min: value, probable: value, max: value };
 }
 
 /** Yearly occurrences of a dated calendar event that overlap [from, to]: the real one, plus projections. */

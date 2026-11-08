@@ -97,7 +97,7 @@ Aplicația de telefon (React Native + Expo) e descrisă în `docs/14-mobile-expo
 
 3. Deploy. În **Project configuration → Change project name** poți alege numele (de exemplu `cropcash` → `cropcash.netlify.app`, dacă e liber).
 4. Pune adresa finală în `CORS_ORIGINS` pe VPS și `pm2 reload cropcash-api`.
-5. **Supabase** → Authentication → URL Configuration: **Site URL** = adresa Netlify, și adaug-o la **Redirect URLs** (pentru linkul din email).
+5. **Supabase** → Authentication → URL Configuration: **Site URL** = adresa Netlify, și adaug-o la **Redirect URLs** (pentru linkul din email). Tot acolo adaugă și `https://<adresa-netlify>/login?mode=new-password`, pentru parola uitată. La **Email Templates → Reset Password** pune textul în română. Serverul de email inclus în Supabase trimite doar câteva emailuri pe oră, deci pentru fermieri reali îți trebuie un SMTP propriu.
 
 Variabilele `VITE_*` intră în build, deci după o schimbare a lor e nevoie de **Deploys → Trigger deploy**.
 

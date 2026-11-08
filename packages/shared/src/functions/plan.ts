@@ -3,7 +3,9 @@ import type { FarmPlan } from '../cashflow/farm-plan';
 import type { SubsidyResult } from '../subsidies';
 
 export {
+  AFTER_BAD_HARVEST_MONTHS,
   PLAN_HORIZON_MONTHS,
+  afterBadHarvest,
   buildFarmPlan,
   farmSubsidies,
   farmData,

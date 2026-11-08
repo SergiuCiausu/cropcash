@@ -5,7 +5,9 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import type { FarmView } from '../../lib/cc/plan';
 import { callName } from '../../lib/cc/monitor';
 import { useFarm, useMoney, useMonitor } from '../../lib/cc/react';
-import { buildMessage, panelRows, type Message, type MessageInput, type Tone } from '../../lib/ui/messages';
+import { publicConfig } from '../../lib/live/index';
+import type { Mode } from '../../lib/paths';
+import { buildMessage, inboxMessages, panelRows, type MessageInput, type Tone, type ToastInput } from '../../lib/ui/messages';
 import { Icon } from './bits';
 import { FrameContext } from './context';
 import '../../styles/notifications.css';
@@ -27,7 +29,7 @@ const BELL = (
   </svg>
 );
 
-type Toast = Message & { id: number; leaving?: boolean; in?: boolean };
+type Toast = ToastInput & { kind: string; id: number; leaving?: boolean; in?: boolean };
 
 /** The queue of toasts: at most three on screen, the rest wait their turn. */
 export function useToaster() {
@@ -52,7 +54,7 @@ export function useToaster() {
   }, [setShown]);
 
   const notify = useCallback(
-    (n: Omit<Message, 'kind'> & { kind?: string }) => {
+    (n: ToastInput) => {
       waiting.current.push({ kind: 'note', ...n, tone: n.tone ?? 'info', id: ++next.current });
       drain();
     },
@@ -60,8 +62,10 @@ export function useToaster() {
   );
 
   const close = useCallback(
-    (id: number) => {
-      if (list.current.find((t) => t.id === id)?.leaving) return;
+    (id: number, expired = true) => {
+      const toast = list.current.find((t) => t.id === id);
+      if (toast?.leaving) return;
+      if (expired) toast?.onExpire?.();
       setShown((l) => l.map((t) => (t.id === id ? { ...t, leaving: true, in: false } : t)));
       setTimeout(() => {
         setShown((l) => l.filter((t) => t.id !== id));
@@ -83,6 +87,7 @@ function ToastItem({ t, toaster }: { t: Toast; toaster: Toaster }) {
   const began = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { close, show } = toaster;
+  const action = t.action;
   /* The timer pauses while the farmer reads or tabs through the toast. An urgent one stays. */
   const run = useCallback(() => {
     if (t.tone === 'urgent') return;
@@ -109,7 +114,20 @@ function ToastItem({ t, toaster }: { t: Toast; toaster: Toaster }) {
       <div className="ntf-text">
         <b>{t.title}</b>
         {t.body ? <p>{t.body}</p> : null}
-        {t.action ? <a href={t.action.href}>{t.action.label}</a> : null}
+        {action && 'run' in action ? (
+          <button
+            type="button"
+            className="ntf-act"
+            onClick={() => {
+              action.run();
+              close(t.id, false);
+            }}
+          >
+            {action.label}
+          </button>
+        ) : action ? (
+          <a href={action.href}>{action.label}</a>
+        ) : null}
       </div>
       <button type="button" className="ntf-x" aria-label="Închide" onClick={() => close(t.id)}>
         {X}
@@ -136,12 +154,16 @@ export function Toaster({ toaster }: { toaster: Toaster }) {
   );
 }
 
+/** The panel with test buttons is for the pitch. A farmer's bell opens their messages. */
+const isTesting = (mode: Mode) => mode === 'demo' || !!publicConfig().demo;
+
 /** One bell in the phone header and one in the rail: only one is ever visible, and neither covers the page. */
-export function Bell({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+export function Bell({ open, onToggle, mode }: { open: boolean; onToggle: () => void; mode: Mode }) {
+  const testing = isTesting(mode);
   return (
-    <button type="button" className="ntf-bell" aria-label="Probează notificările" aria-expanded={open} aria-controls="ntf-panel" onClick={onToggle}>
+    <button type="button" className="ntf-bell" aria-label={testing ? 'Probează notificările' : 'Mesaje'} aria-expanded={open} aria-controls="ntf-panel" onClick={onToggle}>
       {BELL}
-      <span>Notificări</span>
+      <span>{testing ? 'Notificări' : 'Mesaje'}</span>
     </button>
   );
 }
@@ -171,10 +193,11 @@ function useMessageInput(view: FarmView): MessageInput {
 }
 
 export function NotificationPanel({ view, open, onClose }: { view: FarmView; open: boolean; onClose: () => void }) {
-  const { notify } = useContext(FrameContext);
+  const { notify, mode } = useContext(FrameContext);
   const money = useMoney();
   const input = useMessageInput(view);
   const rows = useMemo(() => panelRows(input), [input]);
+  const inbox = useMemo(() => inboxMessages(input), [input]);
   const ref = useRef<HTMLElement>(null);
 
   const back = useCallback(() => {
@@ -198,6 +221,34 @@ export function NotificationPanel({ view, open, onClose }: { view: FarmView; ope
   const afterSend = () => {
     if (matchMedia('(max-width: 760px), (max-height: 500px)').matches) back();
   };
+
+  /* Worked out on the phone from the saved plan, so the messages are there without internet too. */
+  if (!isTesting(mode))
+    return (
+      <section ref={ref} className="ntf-panel" id="ntf-panel" hidden={!open} aria-label="Mesaje">
+        <div className="ntf-head">
+          <h2>Mesaje</h2>
+          <button type="button" className="ntf-x" aria-label="Închide" onClick={back}>
+            {X}
+          </button>
+        </div>
+        {inbox.length ? (
+          <ul>
+            {inbox.map((m) => (
+              <li key={m.kind} className="ntf-msg">
+                <span>
+                  <b>{money.text(m.title)}</b>
+                  {m.body ? <small>{money.text(m.body)}</small> : null}
+                  {m.action ? <a href={m.action.href}>{m.action.label}</a> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="ntf-empty">Nimic nou. Îți scriem aici când se apropie un termen sau când se schimbă ceva la bani.</p>
+        )}
+      </section>
+    );
 
   return (
     <section ref={ref} className="ntf-panel" id="ntf-panel" hidden={!open} aria-label="Probează notificările">

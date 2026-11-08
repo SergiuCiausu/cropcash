@@ -147,6 +147,10 @@
   - **Făcut (2026-11-08):** timp limită la fiecare apel, coada cu reîncercări și proprietar, salvările de plan fără net, banii cu răspuns pierdut, pagina care nu pornește, service worker-ul. Pe server: IDEM-09, IDEM-10 și IDEM-12 (migrația 019).
   - **Teste:** `npm test` acoperă logica. Nu au rulat încă, pe codul ăsta: `npm run db:migrate`, `test:integration`, `test:stripe`, `demo:rehearse` și verificarea de mână din planul de construcție.
 
+- [x] **16. „An slab” și „an bun” din istoricul INS, pe fiecare județ** · bonus
+  - **Făcut (2026-11-08):** producțiile pe județ din AGR110A, prețul și costurile la medie în toți cei trei ani, „după un an slab” pe 24 de luni în Prognoză și la asistent (`docs/an-slab-an-bun-plan.md`).
+  - **Rămas:** cifrele din pitch, după `seed:demo` și `demo:rehearse`.
+
 **Total MINIM:** ~49 h · **Total cu bonus:** ~83 h
 
 ## Interfața: din `apps/web` în `farm-app`, apoi în `web/` (Next.js)

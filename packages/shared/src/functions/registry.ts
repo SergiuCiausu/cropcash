@@ -30,7 +30,7 @@ import { ReadDocumentInputSchema } from '../documents';
 import { ApiaDecisionSchema, checkEligibility, profileForScheme } from '../subsidies';
 import { defineRead, defineWrite, type ReadContext, type ReadFunction, type WriteFunction } from './define';
 import { explainSalary, explainSubsidy } from './explain';
-import { planView, proposeSplit } from './plan';
+import { afterBadHarvest, farmData, planView, proposeSplit } from './plan';
 import { tasksForFarm } from './tasks';
 import { checkPurchase, whatIfCredit, whatIfPension, whatIfSubsidy } from './whatIf';
 import {
@@ -206,6 +206,24 @@ export const getTightMonths = defineRead({
 export const ListUpcomingInputSchema = z.strictObject({
   scenario: Scenario,
   days: z.number().int().min(1).max(366).default(42),
+});
+
+export const getAfterBadHarvest = defineRead({
+  name: 'get_after_bad_harvest',
+  description:
+    "What a bad harvest does to the money: the lowest point in the months before the next harvest, how much is missing, and the salary that would hold, against a normal year. Also what bad, normal and good mean in tonnes per hectare for this farm's crops, and the county and years they come from.",
+  input: NoInput,
+  run: (_input, { farm, data, plan }) => {
+    const local = farmData(farm, data);
+    const sown = new Set(plan.economics.map((c) => c.cropId));
+    return {
+      effect: afterBadHarvest(farm, data, { month: plan.timelines.medium.months[0]!.key, params: plan.subsidyParams }),
+      yields: local.crops.crops
+        .filter((c) => sown.has(c.id))
+        .map((c) => ({ cropId: c.id, tonnesPerHa: c.yield_t_per_ha, basedOn: c.yield_basis ?? null })),
+    };
+  },
+  sources: (_output, { data }) => [{ title: 'INS, producția medie la hectar pe județe (AGR110A)', url: data.crops.county_history.source_url }],
 });
 
 export const listUpcoming = defineRead({
@@ -827,6 +845,7 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   explainSalaryFn,
   getForecast,
   getTightMonths,
+  getAfterBadHarvest,
   listUpcoming,
   suggestCreditFn,
   whatIfCreditFn,

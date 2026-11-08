@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadData } from '../../../packages/shared/src/data/index';
 import { viewFor } from '../../lib/cc/plan';
@@ -143,10 +143,10 @@ describe('the frame', () => {
     expect(store.getState().farm?.ownPension).toBeNull();
   });
 
-  it('draws a signed-in farm with sign-out links', async () => {
+  it('draws a signed-in farm, with the way to the account', async () => {
     await show('farm', '/salariu', { 'sb-x-auth-token': '{}', 'cropcash-me': JSON.stringify(ME) });
     expect(screen.getByText(/Maria, Teleorman/)).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Ieși din cont' }).getAttribute('href')).toBe('/login?signout=1');
+    expect(screen.getAllByRole('link', { name: 'Contul tău' })[0].getAttribute('href')).toBe('/bani');
     expect(screen.queryByText(/ferma lui Ion/)).toBeNull();
   });
 
@@ -167,10 +167,10 @@ describe('the frame', () => {
     expect(screen.queryByText('Conținut')).toBeNull();
   });
 
-  it("keeps the assistant for a real farm: on Ion's farm it offers an account", async () => {
+  it("keeps the assistant for a real farm: on Ion's farm it shows examples and offers an account", async () => {
     await show('demo', '/acasa');
     fireEvent.click(screen.getByRole('button', { name: 'Întreabă' }));
-    expect(screen.getByRole('link', { name: 'Intră în cont' })).toBeTruthy();
+    expect(within(document.querySelector<HTMLElement>('dialog.ask-sheet')!).getByRole('link', { name: 'Fă-ți cont' })).toBeTruthy();
     expect(screen.queryByLabelText('Întrebarea ta')).toBeNull();
   });
 

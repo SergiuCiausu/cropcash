@@ -8,8 +8,8 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { date } from '../../lib/cc/format';
 import { scopeOf } from '../../lib/cc/plan';
 import { useFarmState, useStore, useView } from '../../lib/cc/react';
-import { appHref, type Mode } from '../../lib/paths';
-import { CROP_TAB_PAGES, isReactPage, sectionOf, SUBSIDY_PAGES, TABS } from '../../lib/ui/nav';
+import { appHref, storageKey, type Mode } from '../../lib/paths';
+import { CROP_TAB_PAGES, isReactPage, SALARY_PAGES, sectionOf, SUBSIDY_PAGES, TABS } from '../../lib/ui/nav';
 import { Icon } from './bits';
 import { FrameContext, type FrameInfo } from './context';
 import { CropTabs } from './CropTabs';
@@ -18,6 +18,7 @@ import { HarvestChip, HarvestSheet } from './HarvestPicker';
 import { NetBanner } from './NetBanner';
 import { Bell, NotificationPanel, Toaster, useToaster } from './Notifications';
 import { Assistant } from './Assistant';
+import { takeFlash } from './useSaved';
 import { ClosedView } from './PageNotes';
 import { PapersProvider } from './Papers';
 
@@ -59,12 +60,16 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   const href = useCallback((path: string) => appHref(path, mode), [mode]);
   const info: FrameInfo = useMemo(() => ({ page, mode, scope, href, notify: toaster.notify }), [page, mode, scope, href, toaster.notify]);
   const section = sectionOf(page);
+  useEffect(() => {
+    const note = takeFlash(mode);
+    if (note) toaster.notify(note);
+  }, [mode, toaster.notify]);
 
   /* A farm page with no farm on the phone waits for the guard, and draws nothing of the farm. */
   if (ready && farm && !farm.baseFarm) return <Guard />;
 
   const chip = view ? <HarvestChip view={view} onOpen={() => setPicker(true)} /> : null;
-  const bell = (where: string) => <Bell key={where} open={panel} onToggle={() => setPanel((o) => !o)} />;
+  const bell = (where: string) => <Bell key={where} open={panel} mode={mode} onToggle={() => setPanel((o) => !o)} />;
   const isDemo = mode === 'demo';
   const signedIn = !isDemo && !!farm?.signedIn;
 
@@ -82,7 +87,7 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
             <Logo />
             <nav aria-label="Principal">
               {TABS.map((t) => (
-                <PageLink key={t.path} path={t.path} href={href(t.path)} className={t.railOnly ? 'rail-only' : undefined} aria-current={t.path === section ? 'page' : undefined}>
+                <PageLink key={t.path} path={t.path} href={href(t.path)} className={t.railOnly ? 'rail-only' : t.path === '/salariu' && page === '/pensie' ? 'm-current' : undefined} aria-current={t.path === section ? 'page' : undefined}>
                   <Icon name={t.icon} />
                   {t.label}
                 </PageLink>
@@ -121,21 +126,14 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
                 <NetBanner />
                 {isDemo && view && <DemoStrip name={view.farm.name} onReset={() => resetDemo(store, view.farm.name)} />}
                 {view && CROP_TAB_PAGES.includes(page) && <CropTabs view={view} />}
+                {view && SALARY_PAGES.some((p) => p.path === page) && <SubNav page={page} href={href} pages={SALARY_PAGES} label="Salariu" className="phone-only" />}
                 {view ? children : null}
               </div>
             )}
             {/* Phones hide the rail, so this sits at the end of the page. */}
-            {signedIn && (
+            {signedIn && page !== '/bani' && (
               <p className="sign-out">
-                {farm?.me && <PageLink path="/bani" href={href('/bani')}>Contul tău</PageLink>}
-                <a
-                  href="/login?signout=1"
-                  onClick={(e) => {
-                    if (farm?.outbox.length && !confirm('Ai lucruri notate care nu s-au trimis încă. Dacă ieși din cont acum, se pierd. Ieși oricum?')) e.preventDefault();
-                  }}
-                >
-                  Ieși din cont
-                </a>
+                <PageLink path="/bani" href={href('/bani')}>Contul tău</PageLink>
               </p>
             )}
           </main>
@@ -150,8 +148,37 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   );
 }
 
-/** Ion's farm says it's an example, offers an account, and can throw away what the visitor changed. */
+const STRIP_SEEN = storageKey('cropcash-demo-strip-seen', 'demo');
+
+/** Ion's farm says it's an example, offers an account, and can throw away what the visitor changed.
+    After the first page it shrinks to one line, so the farm itself fits on a phone's first screen. */
 function DemoStrip({ name, onReset }: { name: string; onReset: () => void }) {
+  const [compact] = useState(() => {
+    try {
+      return !!sessionStorage.getItem(STRIP_SEEN);
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STRIP_SEEN, '1');
+    } catch {
+      /* Private mode: the strip just stays full size. */
+    }
+  }, []);
+  if (compact)
+    return (
+      <aside className="demo-strip compact" aria-label="Exemplu">
+        <p>
+          <b>Ferma lui {name}, un exemplu.</b>
+        </p>
+        <a href="/login?mode=register">Fă-ți cont</a>
+        <button type="button" className="link" onClick={onReset}>
+          Pornește din nou
+        </button>
+      </aside>
+    );
   return (
     <aside className="demo-strip" aria-label="Exemplu">
       <p>
@@ -174,10 +201,10 @@ function resetDemo(store: ReturnType<typeof useStore>, name: string) {
 }
 
 /** The sub-navigation of the Subvenții tab, for screens that have one. */
-export function SubNav({ page, href }: { page: string; href: (p: string) => string }) {
+export function SubNav({ page, href, pages = SUBSIDY_PAGES, label = 'Subvenții', className = '' }: { page: string; href: (p: string) => string; pages?: { path: string; label: string }[]; label?: string; className?: string }) {
   return (
-    <nav className="subnav" aria-label="Subvenții">
-      {SUBSIDY_PAGES.map((p) => (
+    <nav className={`subnav ${className}`.trim()} aria-label={label}>
+      {pages.map((p) => (
         <PageLink key={p.path} path={p.path} href={href(p.path)} aria-current={p.path === page ? 'page' : undefined}>
           {p.label}
         </PageLink>

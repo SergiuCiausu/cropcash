@@ -1,6 +1,7 @@
 /* "Întreabă": the assistant button and sheet (web/legacy/assistant.js). Its own file, like notifications.css. */
 .ask-fab { position: fixed; z-index: 45; right: max(16px, env(safe-area-inset-right)); bottom: var(--ask-bottom, 20px); display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 20px 0 16px; border: 0; border-radius: 999px; background: #1A1A1A; color: #FAF9F7; font: inherit; font-size: 16px; font-weight: 500; box-shadow: 0 8px 24px rgba(20, 32, 26, .22); cursor: pointer; transition: transform 140ms var(--ease-out, ease); }
 .ask-fab:active { transform: scale(.97); }
+@media (max-width: 760px) { .ask-fab.small { width: 52px; padding: 0; justify-content: center; } .ask-fab.small span { display: none; } }
 .ask-fab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
 .ask-fab:focus-visible { outline: 3px solid var(--a, #5BA52A); outline-offset: 3px; }
 

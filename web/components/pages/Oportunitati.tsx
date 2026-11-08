@@ -4,7 +4,7 @@
    phone. Signed out, a dated snapshot. How a call fits the farm uses the same rules as
    match_opportunities, so it works for any farm offline. Conditions come only from
    docs/data/funding-guides.json, or the page says to check the guide. */
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { date, daysLeft, eurShort, failText, group as groupDigits, zile } from '../../lib/cc/format';
 import { callCode, callName, VARIANT, type PageCall } from '../../lib/cc/monitor';
 import { useFarm, useMonitor, useMonitorRefresh, useOnline, useStore, useView } from '../../lib/cc/react';
@@ -149,6 +149,15 @@ export default function Oportunitati() {
   const [filter, setFilter] = useState({ text: '', kind: '', status: '', days: '', eur: '0' });
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const detail = rows.find((r) => r.key === detailKey) ?? null;
+  /* A row on Acasă opens its own call here. Near-identical calls share a row, so any of them finds it. */
+  const openedFromHash = useRef(false);
+  useEffect(() => {
+    if (openedFromHash.current || !rows.length || !location.hash) return;
+    openedFromHash.current = true;
+    const wanted = decodeURIComponent(location.hash.slice(1));
+    const row = rows.find((r) => r.calls.some((c) => c.key === wanted));
+    if (row) setDetailKey(row.key);
+  }, [rows]);
   const setF = (k: keyof typeof filter, v: string) => {
     setFilter((x) => ({ ...x, [k]: v }));
     setShown(PAGE_SIZE);
