@@ -84,22 +84,16 @@ describe('the frame', () => {
     expect(live.api).not.toHaveBeenCalled();
   });
 
-  it('shows "Toată ferma" on whole-farm pages and the year picker on the others', async () => {
+  it('has no harvest year picker in the frame, and no crop tabs on whole-farm pages', async () => {
     await show('demo', '/salariu');
-    expect(screen.getAllByText('Toată ferma').length).toBeGreaterThan(0);
     expect(document.querySelector('.crop-tabs')).toBeNull();
     cleanup();
-    await show('demo', '/recolte');
-    const picker = screen.getAllByRole('combobox', { name: 'Alege recolta' })[0] as HTMLSelectElement;
-    const options = [...picker.options].map((o) => o.textContent);
-    expect(options[0]).toMatch(/^Recolta \d{4}$/);
-    expect(options.at(-1)).toBe('+ Începe anul următor');
-  });
-
-  it('shows Acasă\'s year as plain text, not a picker', async () => {
-    await show('demo', '/acasa');
-    expect(screen.queryByRole('combobox', { name: 'Alege recolta' })).toBeNull();
-    expect(document.querySelector('.h-chip.whole')?.textContent).toMatch(/^Recolta \d{4}$/);
+    for (const page of ['/acasa', '/recolte']) {
+      await show('demo', page);
+      expect(screen.queryByRole('combobox')).toBeNull();
+      expect(screen.queryByText(/^Recolta \d{4}$/)).toBeNull();
+      cleanup();
+    }
   });
 
   it('opens "Mai mult" with the pages that have no tab on a phone', async () => {

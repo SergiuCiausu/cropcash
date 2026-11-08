@@ -107,7 +107,7 @@
 7. ~~**Vocea, recunoașterea**~~ **Nu mai e nevoie:** vocea a fost scoasă (8 nov 2026).
 8. ~~**Vocea, citirea cu voce tare**~~ **Nu mai e nevoie:** la fel.
 9. **Notificările:** câte pe săptămână și în ce ore? Merg pe telefoanele fermierilor și pe iPhone, fără instalare? Valorile merg în `plan-params.json`, ca presupuneri.
-10. **Asistentul, costul:** limita e acum 40 de mesaje pe zi pentru un fermier (`ASSISTANT_DAILY_LIMIT`), o presupunere. Costul real pe mesaj n-a fost măsurat.
+10. **Asistentul, costul:** limita e acum 5 mesaje pe zi pentru un fermier (de la 9 nov 2026; înainte 40) (`ASSISTANT_DAILY_LIMIT`), o presupunere. Costul real pe mesaj n-a fost măsurat.
 11. **Actele necesare:** lista pentru fiecare termen cere o sursă oficială. Până atunci, `documents_ro` e `null` (DE-VERIFICAT).
 12. **Vânzarea mai târziu:** lipsesc prețurile pe luni și costul depozitării. Până atunci, răspunsul arată doar când vin banii.
 13. **Pensia sărită o lună:** merge așa la Pilonul III sau la CEI? În demo e o simulare.

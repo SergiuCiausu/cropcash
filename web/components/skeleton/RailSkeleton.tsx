@@ -10,7 +10,6 @@ export default function RailSkeleton({ tabs = TABS, children }: { tabs?: readonl
     <>
       <header className="m-top field">
         <Bone w={36} h={36} r={10} className="on-field" />
-        <Bone w={104} h={40} r={14} className="on-field" />
       </header>
       <div className="shell">
         <aside className="rail field">

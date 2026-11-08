@@ -7,7 +7,7 @@ export const NO_NET = 'Pornește internetul ca să întrebi.';
 export const EXAMPLES = ['Cât pot să-mi iau salariu pe lună?', 'Pot să-mi iau o drujbă de 2.000 de lei în martie?', 'Am cheltuit azi 300 de lei pe motorină.', 'Ce termene am luna asta?'];
 export const ERRORS: Record<string, string> = {
   assistant_unavailable: 'Asistentul nu e pornit pe server.',
-  daily_limit: 'Ai pus multe întrebări azi. Mai încearcă mâine.',
+  daily_limit: 'Ai ajuns la numărul maxim de întrebări pe azi. Mai încearcă mâine.',
   no_farm: 'Completează întâi ferma, apoi poți întreba.',
 };
 

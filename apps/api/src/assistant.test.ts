@@ -230,6 +230,12 @@ describe('POST /api/assistant', () => {
     expect(res.body.reply).toBe('2026-11-07 true');
   });
 
+  it('allows 5 questions a day by default', async () => {
+    const a = createApp({ corsOrigins: [], verifyToken, repo, data, now: () => new Date('2026-11-07T10:00:00Z'), assistant: async () => ({ reply: 'ok', sources: [], unverified: [], actions: [], cards: [] }) });
+    for (let i = 1; i <= 5; i++) expect((await ask(a, [{ role: 'user', text: `Întrebarea ${i}` }])).status).toBe(200);
+    expect((await ask(a, [{ role: 'user', text: 'Întrebarea 6' }])).status).toBe(429);
+  });
+
   it('stops at the daily limit', async () => {
     const a = app(async () => ({ reply: 'ok', sources: [], unverified: [], actions: [], cards: [] }), 2);
     const q = (text: string) => [{ role: 'user', text }];

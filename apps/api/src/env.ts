@@ -48,7 +48,7 @@ export function loadEnv(): Env {
     stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || undefined,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'sk-ant-xxx' ? process.env.ANTHROPIC_API_KEY : undefined,
     anthropicModel: process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-5-5',
-    assistantDailyLimit: Number(process.env.ASSISTANT_DAILY_LIMIT) > 0 ? Number(process.env.ASSISTANT_DAILY_LIMIT) : 40,
+    assistantDailyLimit: Number(process.env.ASSISTANT_DAILY_LIMIT) > 0 ? Number(process.env.ASSISTANT_DAILY_LIMIT) : 5,
     contactEmail: process.env.CONTACT_EMAIL?.trim() || undefined,
     demoMode: process.env.DEMO_MODE === 'true',
   };

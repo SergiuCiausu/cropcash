@@ -15,7 +15,6 @@ import { Icon } from './bits';
 import { FrameContext, type FrameInfo } from './context';
 import { CropTabs } from './CropTabs';
 import { Guard } from './Guard';
-import { HarvestChip } from './HarvestPicker';
 import { NetBanner } from './NetBanner';
 import { Bell, NotificationPanel, Toaster, useToaster } from './Notifications';
 import { Assistant } from './Assistant';
@@ -68,7 +67,6 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   /* A farm page with no farm on the phone waits for the guard, and draws nothing of the farm. */
   if (ready && farm && !farm.baseFarm) return <Guard />;
 
-  const chip = view ? <HarvestChip view={view} /> : null;
   const bell = (where: string) => <Bell key={where} open={panel} mode={mode} onToggle={() => setPanel((o) => !o)} />;
   const isDemo = mode === 'demo';
   const signedIn = !isDemo && !!farm?.signedIn;
@@ -80,7 +78,6 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
         <header className="m-top field">
           <Logo />
           {view && bell('top')}
-          {chip}
         </header>
         <div className="shell">
           <aside className="rail field">
@@ -95,7 +92,6 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
               <MoreMenu page={page} section={section} href={href} signedIn={signedIn} />
             </nav>
             {view && bell('rail')}
-            {chip}
             {view && (
               <div className="farm glass">
                 <b>

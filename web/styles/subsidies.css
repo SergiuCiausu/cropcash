@@ -365,18 +365,6 @@ main a.btn-dark { color: var(--surface); }
 @media (max-width: 400px) { .year-pick button { padding-inline: 10px; } .year-pick b { font-size: 16px; } }
 
 /* Harvests */
-.h-chip { display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 12px; background: var(--surface); font: inherit; font-size: 14px; font-weight: 600; color: var(--text-1); }
-.h-chip .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
-/* Whole-farm pages: plain text, not a button. */
-.h-chip.whole { background: transparent; font-weight: 500; color: var(--on-hero-2); cursor: default; }
-/* The year picker: a native <select>, so a phone opens its own large list. */
-.h-select { position: relative; padding: 0; }
-.h-select select { appearance: none; -webkit-appearance: none; width: 100%; min-height: 44px; padding: 0 36px 0 12px; border: 0; border-radius: 12px; background: transparent; font: inherit; font-size: 15px; font-weight: 600; color: inherit; cursor: pointer; }
-.h-select select:focus-visible { outline: 2px solid var(--ink-a); outline-offset: 2px; }
-.h-select .chev { position: absolute; right: 12px; pointer-events: none; }
-.rail .h-chip { margin-top: auto; }
-.rail .h-chip + .farm { margin-top: 8px; }
-.m-top .h-chip { min-height: 44px; }
 .crop-tabs { position: sticky; top: 0; z-index: 20; margin-bottom: 12px; padding-block: 4px; background: var(--bg); }
 .crop-tabs .vtabs { margin: 0; scroll-behavior: smooth; }
 .crop-tabs .chip { min-height: 48px; font-size: 15.5px; }
@@ -475,7 +463,6 @@ dialog.h-sheet .ob-crop:first-of-type { margin-top: 8px; }
   .rail nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
   .rail nav a { padding-inline: 0; }
   .rail nav a.rail-only { display: none; }
-  .rail .h-chip { display: none; }
   dialog.h-sheet { width: 100%; max-width: none; margin: auto 0 0; border-radius: 20px 20px 0 0; }
   .h-record { flex-direction: column; align-items: stretch; }
   .h-record label { flex: none; }
@@ -806,4 +793,9 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
   .rail .more-menu a .ic { font-size: 21px; }
   .more-open .ask-fab { visibility: hidden; }
   .rail .more-menu a[aria-current] { box-shadow: none; background: var(--tint-a); color: var(--ink-a); font-weight: 600; }
+}
+
+/* A phone held sideways: tabs lay icon and label in a row, so "Mai mult" does too. */
+@media (max-width: 760px) and (max-height: 500px) {
+  .rail nav .more-tab { flex-direction: row; gap: 8px; min-height: 44px; }
 }

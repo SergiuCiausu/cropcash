@@ -59,7 +59,7 @@ export function createApp({
   readDocument,
   money,
   assistant,
-  assistantDailyLimit = 40,
+  assistantDailyLimit = 5,
 }: AppDeps) {
   const reads = { repo, data, params: subsidyParams, now, getRates, monitor };
   const app = express();
