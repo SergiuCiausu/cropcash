@@ -1,63 +1,117 @@
 # 12. Deploy (pasul 9)
 
-Front pe **Netlify**, API pe **VPS-ul RareCloud** (pm2 + Caddy cu HTTPS), DB în **Supabase cloud**. Fișierele sunt gata în repo: `netlify.toml`, `deploy/Caddyfile`, `deploy/ecosystem.config.cjs`.
+| Ce | Unde | Adresa |
+|---|---|---|
+| Front-end (`web/`, Next.js export static) | **Netlify** | `https://<site>.netlify.app` |
+| API (`apps/api`) | **VPS Ubuntu** `85.121.53.233`, sub pm2, în spatele Caddy (HTTPS automat) | `https://cropcash-api.andreitutea.com` |
+| DB + login | **Supabase cloud** | neschimbat |
 
-## Ce trebuie să ai înainte
+Fișierele din repo: `netlify.toml`, `deploy/Caddyfile`, `deploy/ecosystem.config.cjs`.
 
-| Ce | De ce |
-|---|---|
-| Un (sub)domeniu pentru API, de exemplu `api.cropcash.ro`, cu un record **A** spre IP-ul VPS-ului | Caddy cere un nume ca să ia certificatul HTTPS. Fără HTTPS, browserul blochează apelurile din Netlify (mixed content), iar Stripe nu trimite webhooks. |
-| Acces SSH pe VPS, cu porturile 80 și 443 deschise | Let's Encrypt verifică domeniul pe portul 80. |
-| Un cont Netlify legat de repo-ul GitHub | Build automat la fiecare push. |
+**De ce API-ul are nevoie de un nume de domeniu:** pagina de pe Netlify e pe HTTPS, iar browserul nu o lasă să cheme un API pe HTTP. HTTPS cere un certificat, iar Let's Encrypt dă certificate pe nume, nu pe IP. Numele `cropcash-api.andreitutea.com` doar arată spre VPS; datele merg direct din browser la VPS.
 
-## 1. API pe VPS (o singură dată)
+## 1. DNS (Namecheap, o singură dată)
+
+Domain List → `andreitutea.com` → **Manage** → **Advanced DNS** → **Add New Record**:
+
+| Type | Host | Value | TTL |
+|---|---|---|---|
+| A Record | `cropcash-api` | `85.121.53.233` | Automatic |
+
+Verificare (după câteva minute): `nslookup cropcash-api.andreitutea.com` arată `85.121.53.233`.
+
+## 2. API pe VPS (o singură dată)
+
+Porturile **80** și **443** trebuie să fie deschise (Let's Encrypt verifică domeniul pe 80). Dacă `ufw` e pornit: `sudo ufw allow 22,80,443/tcp`.
 
 ```bash
-# Node 22, pm2, Caddy (Ubuntu/Debian)
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs
+# Node 22, git, pm2
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs git
 sudo npm install -g pm2
-sudo apt-get install -y caddy
 
-git clone <repo> cropcash && cd cropcash
-npm ci
-npm run build -w @cropcash/api
-cp .env.example .env   # apoi completezi valorile (vezi mai jos)
+# Caddy, din repo-ul oficial
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update && sudo apt install -y caddy
 
-pm2 start deploy/ecosystem.config.cjs && pm2 save && pm2 startup
-
-# Caddy: pune domeniul în fișier și repornește
-sudo sed "s/{\$API_DOMAIN}/api.cropcash.ro/" deploy/Caddyfile | sudo tee /etc/caddy/Caddyfile
-sudo systemctl reload caddy
-curl https://api.cropcash.ro/api/health   # {"ok":true}
+# Proiectul (dacă repo-ul e privat, git cere un token GitHub ca parolă)
+sudo mkdir -p /srv/cropcash && sudo chown $USER /srv/cropcash
+git clone https://github.com/SergiuCiausu/cropcash.git /srv/cropcash
+cd /srv/cropcash
 ```
 
-**`.env` pe VPS:** aceleași chei ca local (`STRIPE_SECRET_KEY` doar `sk_test_`, `SUPABASE_*`), plus:
-- `CORS_ORIGINS=https://<site>.netlify.app` (adresa reală a site-ului Netlify);
-- `STRIPE_WEBHOOK_SECRET` = secretul endpoint-ului public de la pasul 3, **nu** cel de la `stripe listen`;
-- `DEMO_MODE=true` pentru butoanele de demo;
-- `CONTACT_EMAIL` (opțional), pus în User-Agent când API-ul citește o sursă adăugată de fermier.
+**`.env`:** copiază-l de pe calculator (în PowerShell, pe Windows), niciodată prin git:
+
+```
+scp C:\projects\CropCash\.env UTILIZATOR@85.121.53.233:/srv/cropcash/.env
+```
+
+Pe VPS, în `/srv/cropcash/.env`, schimbă:
+- `CORS_ORIGINS=https://<site>.netlify.app` (adresa reală de la pasul 3; la început poate rămâne cea de acum);
+- `OPEN_METEO_BASE_URL` gol sau `https://api.open-meteo.com` (serviciul public). Open-Meteo instalat local cere minim 8 GB RAM și configurare (`open-meteo-vps-setup.md`); pentru hackathon nu e nevoie.
+- `STRIPE_WEBHOOK_SECRET` vine la pasul 4.
+
+```bash
+npm ci
+npm run build -w @cropcash/api
+pm2 start deploy/ecosystem.config.cjs
+pm2 save
+pm2 startup          # rulează comanda pe care o afișează, ca API-ul să pornească după un restart
+
+sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+sudo systemctl reload caddy
+curl https://cropcash-api.andreitutea.com/api/health    # {"ok":true}
+```
 
 API-ul încarcă bibliotecile monitorului din `node_modules` la rulare, deci pe VPS rămâne `npm ci` complet, nu doar `dist/`.
 
-**Actualizare:** `git pull && npm ci && npm run build -w @cropcash/api && pm2 reload cropcash-api`.
+**Probleme:** `pm2 logs cropcash-api` (API-ul), `sudo journalctl -u caddy -n 50` (certificatul HTTPS).
 
-## 2. Front pe Netlify
+**Actualizare după un push:**
 
-1. „Add new site” → importă repo-ul. `netlify.toml` setează build-ul (`npm run build -w @cropcash/web`, publish `apps/web/dist`, fallback SPA).
-2. Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL=https://api.cropcash.ro`, `VITE_DEMO_MODE=true`.
-3. Deploy. Adresa site-ului intră în `CORS_ORIGINS` pe VPS (apoi `pm2 reload cropcash-api`).
-4. În Supabase → Authentication → URL Configuration: adaugă adresa Netlify la Site URL / Redirect URLs.
+```bash
+cd /srv/cropcash && git pull && npm ci && npm run build -w @cropcash/api && pm2 reload cropcash-api
+```
 
-## 3. Webhooks Stripe pe URL-ul public
+## 3. Front-end pe Netlify
 
-În Stripe Dashboard (test mode) → Developers → Webhooks → Add endpoint:
-- URL: `https://api.cropcash.ro/api/webhooks/stripe`
-- „Listen to events on Connected accounts” **și** „on your account”
-- Evenimente: `payment_intent.succeeded`, `invoice.paid`, `payout.paid`, `payout.failed`
+1. [app.netlify.com](https://app.netlify.com) → **Add new project** → **Import an existing project** → GitHub → repo-ul `cropcash`. `netlify.toml` setează build-ul (`npm run build -w @cropcash/next`, publish `web/out`); nu schimba nimic acolo.
+2. **Project configuration → Environment variables**, înainte de primul deploy:
 
-Copiază „Signing secret” (`whsec_…`) în `STRIPE_WEBHOOK_SECRET` pe VPS și `pm2 reload cropcash-api`. Fluxul merge și fără webhooks (API-ul înregistrează direct), dar așa se confirmă și plățile venite din Stripe.
+| Variabilă | Valoare |
+|---|---|
+| `VITE_SUPABASE_URL` | aceeași ca în `.env` |
+| `VITE_SUPABASE_ANON_KEY` | aceeași ca în `.env` (cheia publică `sb_publishable_…`, niciodată cea secretă) |
+| `VITE_API_URL` | `https://cropcash-api.andreitutea.com` |
+| `VITE_DEMO_MODE` | `true` |
 
-## 4. Înainte de pitch
+3. Deploy. În **Project configuration → Change project name** poți alege numele (de exemplu `cropcash` → `cropcash.netlify.app`, dacă e liber).
+4. Pune adresa finală în `CORS_ORIGINS` pe VPS și `pm2 reload cropcash-api`.
+5. **Supabase** → Authentication → URL Configuration: **Site URL** = adresa Netlify, și adaug-o la **Redirect URLs** (pentru linkul din email).
+
+Variabilele `VITE_*` intră în build, deci după o schimbare a lor e nevoie de **Deploys → Trigger deploy**.
+
+## 4. Webhooks Stripe
+
+Stripe Dashboard (test mode) → Developers → Webhooks → **Add endpoint**:
+- URL: `https://cropcash-api.andreitutea.com/api/webhooks/stripe`
+- ascultă pe **contul tău** și pe **conturile conectate**;
+- evenimente: `payment_intent.succeeded`, `invoice.paid`, `payout.paid`, `payout.failed`.
+
+Copiază **Signing secret** (`whsec_…`) în `STRIPE_WEBHOOK_SECRET` pe VPS (nu cel de la `stripe listen`), apoi `pm2 reload cropcash-api`. Fluxul merge și fără webhooks, dar așa se confirmă și plățile venite din Stripe.
+
+## 5. Verificare
+
+- `https://cropcash-api.andreitutea.com/api/health` → `{"ok":true}`.
+- Site-ul Netlify se deschide, iar login-ul cu contul demo merge.
+- „Întreabă” răspunde (cere `ANTHROPIC_API_KEY` în `.env` pe VPS).
+- Pe telefon: „Adaugă pe ecranul principal”, apoi modul avion: aplicația se deschide cu ultimele date.
+
+## 6. Înainte de pitch
+
+Pe calculator, cu `.env`-ul local (scriu în același Supabase și Stripe):
 
 ```bash
 npm run seed:demo          # contul lui Ion, ceasul la 15 noiembrie 2026 (~20 s)

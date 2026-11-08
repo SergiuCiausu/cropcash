@@ -1,8 +1,7 @@
-# API on the RareCloud VPS behind Caddy (automatic HTTPS with Let's Encrypt).
-# API_DOMAIN must point (DNS A record) to the VPS IP, e.g. api.cropcash.ro.
+# The API on the VPS (85.121.53.233) behind Caddy, with automatic HTTPS from Let's Encrypt.
+# DNS (Namecheap): A record  cropcash-api  ->  85.121.53.233
 # Install: sudo cp deploy/Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy
-# (set API_DOMAIN in /etc/default/caddy or replace {$API_DOMAIN} with the real name)
-{$API_DOMAIN} {
+cropcash-api.andreitutea.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:3001
 }
