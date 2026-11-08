@@ -799,3 +799,26 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
 @media (max-width: 760px) and (max-height: 500px) {
   .rail nav .more-tab { flex-direction: row; gap: 8px; min-height: 44px; }
 }
+
+/* "Intră în cont" (components/pages/Login.tsx): one card in the middle of the screen, the logo above
+   it, the switch between signing in and a new account at the top of the card. */
+.auth-page { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 100dvh; padding: calc(24px + var(--safe-t)) 16px calc(24px + var(--safe-b)); background: var(--bg); }
+.auth-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; letter-spacing: -.02em; color: var(--text-1); text-decoration: none; }
+.auth-brand .mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: #1A1A1A; color: var(--hero); font-size: 20px; }
+.auth-card { width: min(420px, 100%); padding: 28px; border: 1px solid var(--hair); border-radius: 24px; background: var(--surface); box-shadow: 0 12px 40px rgba(20, 32, 26, .08); }
+.auth-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 24px; padding: 4px; border-radius: 14px; background: var(--hover, rgba(20, 32, 26, .06)); }
+.auth-switch button { min-height: 44px; border: 0; border-radius: 11px; background: transparent; font: inherit; font-size: 15px; font-weight: 500; color: var(--text-2); cursor: pointer; }
+.auth-switch button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(20, 32, 26, .12); color: var(--text-1); font-weight: 600; }
+.auth-head h1 { font-size: 26px; line-height: 1.2; letter-spacing: -.025em; }
+.auth-head h1:focus { outline: none; }
+.auth-head .lead { margin-top: 6px; font-size: 15px; color: var(--text-2); }
+.auth-fields .ob-field:first-child { margin-top: 20px; }
+.auth-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 16px; margin-top: 4px; }
+.auth-links .ob-small { margin-right: 0; font-size: 14px; }
+.auth-card .ob-info { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--tint-a); color: var(--ink-a); font-size: 14.5px; }
+.auth-card .note { margin-top: 8px; }
+.auth-submit { width: 100%; min-height: 52px; margin-top: 20px; font-size: 16px; }
+.auth-back { display: flex; margin: 12px auto 0; }
+.auth-look { font-size: 14.5px; color: var(--text-2); text-align: center; }
+.auth-look a { color: var(--text-1); font-weight: 600; }
+@media (max-width: 480px) { .auth-card { padding: 20px; border-radius: 20px; } }

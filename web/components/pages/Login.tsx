@@ -4,8 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Live from '../../lib/live/index';
 import { AUTH_TEXT as TEXT } from '../../lib/live/auth';
-import { FlowFrame } from '../app/FlowFrame';
-import { ErrorLine } from '../app/bits';
+import { ErrorLine, Icon } from '../app/bits';
 
 type Mode = 'login' | 'register' | 'forgot' | 'new-password';
 
@@ -120,40 +119,39 @@ export default function Login() {
     emailRef.current?.focus();
   };
 
+  /* A plain sign-in page: the logo, one card in the middle of the screen with the switch between
+     signing in and making an account above the form, and Ion's farm below it for a look without one. */
+  const switchable = mode === 'login' || mode === 'register';
   return (
-    <FlowFrame
-      label="Cont"
-      onPick={pick}
-      steps={[
-        { id: 'login', label: TEXT.loginTitle, icon: 'home', current: login },
-        { id: 'register', label: TEXT.registerTitle, icon: 'sprout', current: !login },
-      ]}
-      aside={
-        <div className="farm glass">
-          <b>Vrei doar să te uiți?</b>
-          Vezi cum arată aplicația pe ferma lui Ion, fără cont.
-          <a className="ob-look" href="/ferma-lui-ion">
-            Vezi ferma lui Ion
-          </a>
-        </div>
-      }
-    >
+    <main className="auth-page">
+      <a className="auth-brand" href="/">
+        <span className="mark">
+          <Icon name="sprout" />
+        </span>
+        CropCash
+      </a>
       <form
-        className="ob-main"
+        className="auth-card"
         onSubmit={(e) => {
           e.preventDefault();
           void submit();
         }}
       >
-        <header className="page-h">
-          <div>
-            <p className="eyebrow">CropCash</p>
-            <h1 tabIndex={-1}>{TITLE[mode]}</h1>
-            <p className="lead">{LEAD[mode]}</p>
+        {switchable && (
+          <div className="auth-switch" role="group" aria-label="Cont">
+            <button type="button" aria-pressed={login} onClick={() => !login && pick('login')}>
+              {TEXT.loginTitle}
+            </button>
+            <button type="button" aria-pressed={mode === 'register'} onClick={() => mode !== 'register' && pick('register')}>
+              {TEXT.registerTitle}
+            </button>
           </div>
+        )}
+        <header className="auth-head">
+          <h1 tabIndex={-1}>{TITLE[mode]}</h1>
+          <p className="lead">{LEAD[mode]}</p>
         </header>
-        <section className="card">
-          <h2>Contul tău</h2>
+        <div className="auth-fields">
           {mode !== 'new-password' && (
             <label className="ob-field">
               <span>{TEXT.email}</span>
@@ -161,21 +159,23 @@ export default function Login() {
             </label>
           )}
           {mode !== 'forgot' && (
-            <>
-              <label className="ob-field">
-                <span>{mode === 'new-password' ? TEXT.newPassword : TEXT.password}</span>
-                <input type={showPassword ? 'text' : 'password'} autoComplete={login ? 'current-password' : 'new-password'} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-              </label>
+            <label className="ob-field">
+              <span>{mode === 'new-password' ? TEXT.newPassword : TEXT.password}</span>
+              <input type={showPassword ? 'text' : 'password'} autoComplete={login ? 'current-password' : 'new-password'} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+            </label>
+          )}
+          <div className="auth-links">
+            {mode !== 'forgot' && (
               <button type="button" className="ob-small" aria-pressed={showPassword} onClick={() => setShowPassword((s) => !s)}>
                 {showPassword ? TEXT.hidePassword : TEXT.showPassword}
               </button>
-            </>
-          )}
-          {login && (
-            <button type="button" className="ob-small" disabled={busy} onClick={() => (clear(), setMode('forgot'))}>
-              {TEXT.forgotLink}
-            </button>
-          )}
+            )}
+            {login && (
+              <button type="button" className="ob-small" disabled={busy} onClick={() => (clear(), setMode('forgot'))}>
+                {TEXT.forgotLink}
+              </button>
+            )}
+          </div>
           {(mode === 'register' || mode === 'new-password') && <p className="note">{TEXT.passwordHint}</p>}
           <ErrorLine>{error}</ErrorLine>
           {info && (
@@ -188,29 +188,19 @@ export default function Login() {
               {TEXT.resendButton}
             </button>
           )}
-        </section>
-        <div className="ob-actions">
-          <button type="submit" className="btn btn-dark" disabled={busy}>
-            {busy ? TEXT.wait : BUTTON[mode]}
-          </button>
-          {mode !== 'new-password' && (
-            <button
-              type="button"
-              className="btn btn-line"
-              disabled={busy}
-              onClick={() => {
-                clear();
-                setMode(login ? 'register' : 'login');
-              }}
-            >
-              {login ? TEXT.switchToRegister : mode === 'forgot' ? TEXT.backToLogin : TEXT.switchToLogin}
-            </button>
-          )}
         </div>
-        <p className="note ob-look-m">
-          Vrei doar să te uiți? <a href="/ferma-lui-ion">Vezi ferma lui Ion</a>, fără cont.
-        </p>
+        <button type="submit" className="btn btn-dark auth-submit" disabled={busy}>
+          {busy ? TEXT.wait : BUTTON[mode]}
+        </button>
+        {mode === 'forgot' && (
+          <button type="button" className="ob-small auth-back" disabled={busy} onClick={() => pick('login')}>
+            {TEXT.backToLogin}
+          </button>
+        )}
       </form>
-    </FlowFrame>
+      <p className="auth-look">
+        Vrei doar să te uiți? <a href="/ferma-lui-ion">Vezi ferma lui Ion</a>, fără cont.
+      </p>
+    </main>
   );
 }
