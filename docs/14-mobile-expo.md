@@ -1,6 +1,28 @@
 # Mobile app: wrapping the web app with React Native and Expo
 
-**Status:** written 2026-11-08. The web app needs no change to be wrapped. No Expo project exists yet, and nothing here has been run on a device.
+**Status:** written 2026-11-08. The web app needs no change to be wrapped. **Phase 0 built (2026-11-09):** the Expo project is in `mobile/` (Expo SDK 58, `react-native-webview` 14.0.1), with the wrapper below, the CropCash icons (`mobile/scripts/make-icons.mjs`) and `ro.cropcash.app` as the app id. It type-checks and bundles for Android and iOS. **Not yet run on a device.** The API on the VPS needs no change.
+
+## Running it (phase 0, Expo Go)
+
+```bash
+cd mobile
+npm install          # once; mobile/ is not an npm workspace, so the root install skips it
+npx expo start       # shows a QR code
+```
+
+Install **Expo Go** on the phone (Play Store / App Store) and scan the QR code (Android: from Expo Go; iPhone: with the camera). The phone and the computer must be on the same Wi-Fi; otherwise use `npx expo start --tunnel`. The app opens `https://cropcash.netlify.app/acasa`.
+
+In Expo Go, iOS can't use App-Bound Domains (Expo Go doesn't carry our `WKAppBoundDomains`), so the wrapper turns them off there: iPhone pages need internet in Expo Go. Offline on iOS is tested only in a real build (EAS).
+
+## Phases
+
+| Phase | What | State |
+|---|---|---|
+| 0 | Expo project, WebView on the live site, back button, external links, no-internet screen, icons | Built, not run on a device |
+| 1 | Wrapper handling: `.ics` download, share sheet, printing, camera and photo permissions checked on devices | To do |
+| 2 | `web/` knows it runs in the app (`window.CROPCASH_APP`, already injected): hides the install card, hands share, calendar and print to the app | To do; needs a yes (architecture change) |
+| 3 | Test on real Android and iPhone (checklist below) | To do |
+| 4 | EAS builds: Android APK (free Expo account), iPhone TestFlight (Apple Developer, $99/year). Store release needs account deletion in the app and a privacy policy | To do |
 
 **The approach:** a small Expo app that opens `https://cropcash.netlify.app` in `react-native-webview`. There is one codebase, and a Netlify deploy updates the app without a store release.
 
