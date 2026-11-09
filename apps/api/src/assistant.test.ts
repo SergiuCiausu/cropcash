@@ -60,6 +60,29 @@ describe('assistant tools', () => {
 });
 
 describe('the assistant loop', () => {
+  it('only proposes a crop cost: nothing runs until the farmer taps', async () => {
+    const { client } = scripted(
+      { stop_reason: 'tool_use', content: [toolUse('t1', 'set_crop_cost', { cropId: 'Grâu', fromHarvestYear: 2026 })] },
+      { content: [text('Verifică cardul și apasă „Da, salvează”.')] },
+    );
+    const runRead = vi.fn(async () => okRead(null));
+    const ask = createAssistant({ client, model: 'claude-opus-5-5', crops: data.crops.crops });
+    const out = await ask({ turns: [{ role: 'user', text: 'Pune costul din cheltuielile mele.' }], today: '2026-11-07', runRead });
+    expect(out.actions).toEqual([{ function: 'set_crop_cost', input: { cropId: 'grau', fromHarvestYear: 2026 } }]);
+    expect(runRead).not.toHaveBeenCalled();
+  });
+
+  it('offers the cost tools, and refuses a figure and a harvest together', async () => {
+    const names = assistantTools().tools.map((t) => t.name);
+    expect(names).toEqual(expect.arrayContaining(['get_crop_costs', 'get_cost_per_hectare', 'set_crop_cost']));
+    const { client } = scripted(
+      { stop_reason: 'tool_use', content: [toolUse('t1', 'set_crop_cost', { cropId: 'grau', costLeiPerHa: 3800, fromHarvestYear: 2026 })] },
+      { content: [text('Nu am putut.')] },
+    );
+    const out = await createAssistant({ client, model: 'claude-opus-5-5' })({ turns: [{ role: 'user', text: 'x' }], today: '2026-11-07', runRead: vi.fn() });
+    expect(out.actions).toEqual([]);
+  });
+
   it('runs reads, turns a write into a card, and answers', async () => {
     const { client, sent } = scripted(
       {

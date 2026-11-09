@@ -1,5 +1,5 @@
 import type { AppData } from '../../../packages/shared/src/data/index';
-import { ageFromBirthYear, recordHarvestYear, type HarvestsInput, type MovedMoney } from '../../../packages/shared/src/farm/index';
+import { ageFromBirthYear, recordHarvestYear, withOwnCrops, type HarvestsInput, type MovedMoney } from '../../../packages/shared/src/farm/index';
 
 /** The part of `/api/me` the pages read. The saved copy holds all of it. */
 export interface MeFarm {
@@ -129,9 +129,10 @@ export function harvestsFromServer(me: MeFarm, year: number, data: AppData, view
   };
   const years = [...saved.filter((y) => y.year !== year), current].sort((a, b) => a.year - b.year);
   const known = new Set(years.map((y) => y.year));
+  const crops = withOwnCrops(data, me.harvests?.ownCrops).crops.crops;
   const rows = (me.transactions ?? []).flatMap((t) => {
     const record = pageRecord(t);
-    return record ? [{ record, year: recordHarvestYear(t) }] : [];
+    return record ? [{ record, year: recordHarvestYear(t, crops) }] : [];
   });
   const items = years.map((y) => ({
     ...y,

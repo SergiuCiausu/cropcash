@@ -54,6 +54,21 @@ describe('assistant text and cards', () => {
     expect(card({ function: 'complete_task', input: { id: 'apia-2027' } }, String).task).toBe('apia-2027');
   });
 
+  it('shows a crop cost change with the cost it replaces', () => {
+    const costs = { current: () => 4250, fromHarvest: () => 3900 };
+    const rows = (input: object) => card({ function: 'set_crop_cost', input: { cropId: 'grau', ...input } }, () => 'Grâu', costs).rows;
+    expect(rows({ costLeiPerHa: 3800 })).toEqual([
+      ['Cultura', 'Grâu'],
+      ['Costul din plan', '4.250 lei/ha'],
+      ['Costul nou, pe tot sezonul', '3.800 lei/ha'],
+    ]);
+    expect(rows({ costLeiPerHa: null })[2]).toEqual(['Costul nou, pe tot sezonul', 'Media noastră']);
+    expect(rows({ fromHarvestYear: 2026 }).slice(2)).toEqual([
+      ['Costul nou, pe tot sezonul', '3.900 lei/ha'],
+      ['Calculat din', 'Recolta 2026'],
+    ]);
+  });
+
   it('gives sales and expenses one id per card', () => {
     expect(withClientId({ function: 'record_sale', input: { cropId: 'grau' } }, () => 'x').input.clientId).toBe('x');
     expect(withClientId({ function: 'add_credit', input: {} }, () => 'x').input.clientId).toBeUndefined();

@@ -129,10 +129,17 @@ export default function Prognoza() {
   const yh = data.params.yield_history;
   const sownIds = new Set(view.farm.parcels.map((p) => p.cropId));
   const bases = data.crops.crops.filter((c) => sownIds.has(c.id) && c.yield_basis).map((c) => c.yield_basis!);
+  const ownCost = view.harvests.expected.some((e) => e.costLeiPerHa != null && sownIds.has(e.cropId));
   const foot = crop
     ? `Subvenția e împărțită după hectare. Costurile, producția și prețurile sunt medii estimate, unde nu le-ai notat tu. Cel mai jos nivel al banilor și anii următori sunt la ${view.projectName(h, null)}.`
     : t(
-        `Am pornit de la ${exact(view.farm.startBalanceBani)} lei în cont. ${own ? 'Producția și prețul sunt ce ai notat tu, unde le-ai notat. Restul, inclusiv costurile, sunt medii estimate.' : `${bases.length > 0 ? 'Producția vine din istoricul INS. Costurile și prețurile sunt medii estimate' : 'Costurile, producția și prețurile sunt medii estimate'}, nu cifrele tale.`}`,
+        `Am pornit de la ${exact(view.farm.startBalanceBani)} lei în cont. ${
+          ownCost
+            ? `${own ? 'Producția, prețul și costurile sunt ce ai notat tu, unde le-ai notat.' : `${bases.length > 0 ? 'Producția vine din istoricul INS. ' : ''}Costurile sunt cele scrise de tine, unde le-ai schimbat.`} Restul sunt medii estimate.`
+            : own
+              ? 'Producția și prețul sunt ce ai notat tu, unde le-ai notat. Restul, inclusiv costurile, sunt medii estimate.'
+              : `${bases.length > 0 ? 'Producția vine din istoricul INS. Costurile și prețurile sunt medii estimate' : 'Costurile, producția și prețurile sunt medii estimate'}, nu cifrele tale.`
+        }`,
       );
   const left = inSum - outSum;
 
@@ -276,7 +283,11 @@ export default function Prognoza() {
         <section className="card s12">
           <div className="card-h">
             <h2>{crop ? 'Doar din vânzare, într-un an normal' : 'Culturile tale, într-un an normal'}</h2>
-            <span>Estimat</span>
+            <span>
+              <PageLink path="/date-plan" href={href('/date-plan')}>
+                Schimbă costurile
+              </PageLink>
+            </span>
           </div>
           <table className="crop-table">
             <thead>

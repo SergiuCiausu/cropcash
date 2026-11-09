@@ -661,6 +661,116 @@ describe('harvests', () => {
   });
 });
 
+describe('what a crop costs', () => {
+  const auth = { Authorization: 'Bearer good' };
+  const send = (app: ReturnType<typeof createApp>, body: object) => request(app).put('/api/farmers/me/crop-cost').set(auth).send(body);
+  const years = [
+    { year: 2026, status: 'closed' as const, openingBani: 0, parcels: [{ cropId: 'grau', areaHa: 8 }] },
+    { year: 2027, status: 'open' as const, openingBani: 3_500_000, parcels: [{ cropId: 'grau', areaHa: 8 }] },
+  ];
+  const expense = (amount_bani: number, harvest_year: number) => ({ id: `t${harvest_year}`, kind: 'expense', category: 'seeds', crop_id: 'grau', amount_bani, occurred_at: '2026-11-02T12:00:00Z', note: null, harvest_year });
+  const start = (more: Partial<FarmRow> = {}): FarmRow => ({
+    id: 'farm-1',
+    name: 'Ion',
+    county: 'TR',
+    birth_year: 1970,
+    start_balance_bani: 3_500_000,
+    parcels: [{ crop_id: 'grau', area_ari: 800, is_arable: true }],
+    harvests: { years, gathered: [{ cropId: 'grau', areaHa: 8, tonnes: 40, priceLeiPerKg: 1, storedTonnes: 0 }] },
+    harvests_version: 4,
+    ...more,
+  });
+  const setup = (more?: Partial<FarmRow>) => {
+    const mem = memoryRepo({ good: start(more) });
+    return { ...mem, app: createApp({ corsOrigins: [], verifyToken, repo: mem.repo, data, now: () => new Date('2026-11-07T10:00:00Z'), getRates: async () => null }) };
+  };
+
+  it('saves one crop on the version it read, and keeps the rest of the document', async () => {
+    const { app, farms, repo } = setup();
+    const res = await send(app, { cropId: 'grau', costLeiPerHa: 3800 });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ costLeiPerHa: 3800, version: 5 });
+    expect(farms.good!.harvests?.expected).toEqual([{ cropId: 'grau', yieldTPerHa: null, priceLeiPerKg: null, costLeiPerHa: 3800 }]);
+    expect(farms.good!.harvests?.gathered).toHaveLength(1);
+    expect(repo.setHarvests).toHaveBeenCalledWith('good', 'farm-1', expect.anything(), 4);
+  });
+
+  it('goes back to the average', async () => {
+    const { app, farms } = setup();
+    await send(app, { cropId: 'grau', costLeiPerHa: 3800 });
+    expect((await send(app, { cropId: 'grau', costLeiPerHa: null })).status).toBe(200);
+    expect(farms.good!.harvests?.expected).toEqual([]);
+  });
+
+  it('works out a figure from the expenses itself, from what get_cost_per_hectare shows', async () => {
+    const { app, farms } = setup({ transactions: [expense(-3_200_000, 2026)] as FarmRow['transactions'] });
+    const read = await request(app).post('/api/functions/get_cost_per_hectare').set(auth).send({ harvestYear: 2026, cropId: 'grau' });
+    expect(read.body.data[0].crops[0]).toMatchObject({ planPerHa: 400_000, seasonDone: true });
+    const res = await send(app, { cropId: 'grau', fromHarvestYear: 2026 });
+    expect(res.body.costLeiPerHa).toBe(4000);
+    expect(farms.good!.harvests?.expected?.[0]?.costLeiPerHa).toBe(4000);
+  });
+
+  it('refuses a harvest still running or without expenses', async () => {
+    const { app, repo } = setup({ transactions: [expense(-3_200_000, 2027)] as FarmRow['transactions'] });
+    expect((await send(app, { cropId: 'grau', fromHarvestYear: 2027 })).body).toEqual({ error: 'cost_not_ready' });
+    expect((await send(app, { cropId: 'grau', fromHarvestYear: 2026 })).status).toBe(409);
+    expect(repo.setHarvests).not.toHaveBeenCalled();
+  });
+
+  it("refuses a farmer's own crop and one not on the farm", async () => {
+    const { app, repo } = setup();
+    expect((await send(app, { cropId: 'own-ceapa-x', costLeiPerHa: 3000 })).body).toEqual({ error: 'invalid_input', issues: ['own_crop'] });
+    expect((await send(app, { cropId: 'porumb', costLeiPerHa: 3000 })).body).toEqual({ error: 'invalid_input', issues: ['unknown_crop'] });
+    expect((await send(app, { cropId: 'grau', costLeiPerHa: 0 })).status).toBe(400);
+    expect(repo.setHarvests).not.toHaveBeenCalled();
+  });
+
+  it('tries again on the newer copy when another phone saved first, and keeps its change', async () => {
+    const { app, farms, repo } = setup();
+    const save = repo.setHarvests as ReturnType<typeof vi.fn>;
+    const real = save.getMockImplementation()!;
+    save.mockImplementationOnce(async () => {
+      farms.good!.harvests = { ...farms.good!.harvests!, gathered: [] };
+      farms.good!.harvests_version = 5;
+      throw new RepoError('conflict', 'changed');
+    });
+    save.mockImplementation(real);
+    const res = await send(app, { cropId: 'grau', costLeiPerHa: 3800 });
+    expect(res.body.version).toBe(6);
+    expect(farms.good!.harvests?.gathered).toEqual([]);
+  });
+
+  it('gives up after a second conflict', async () => {
+    const { app, repo } = setup();
+    (repo.setHarvests as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+      throw new RepoError('conflict', 'changed');
+    });
+    const res = await send(app, { cropId: 'grau', costLeiPerHa: 3800 });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe('changed_elsewhere');
+    expect(repo.setHarvests).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not change a fixed salary', async () => {
+    const { app, repo } = setup({ salary_bani: 100_000 });
+    await send(app, { cropId: 'grau', costLeiPerHa: 1000 });
+    expect(repo.setSalary).not.toHaveBeenCalled();
+  });
+
+  it('builds the document for a farm that never saved one', async () => {
+    const { app, farms } = setup({ harvests: null, harvests_version: 0 });
+    expect((await send(app, { cropId: 'grau', costLeiPerHa: 3800 })).status).toBe(200);
+    expect(farms.good!.harvests?.years).toEqual([{ year: 2027, status: 'open', openingBani: 3_500_000, parcels: [{ cropId: 'grau', areaHa: 8 }] }]);
+  });
+
+  it('reads what the plan counts and where it comes from', async () => {
+    const { app } = setup({ harvests: { years, gathered: [], expected: [{ cropId: 'grau', yieldTPerHa: null, priceLeiPerKg: null, costLeiPerHa: 3800 }] } });
+    const res = await request(app).post('/api/functions/get_crop_costs').set(auth).send({});
+    expect(res.body.data).toEqual([{ cropId: 'grau', areaAri: 800, costPerHa: 380_000, total: 3_040_000, source: 'farmer', usualPerHa: { min: 350_000, max: 500_000 } }]);
+  });
+});
+
 describe('exchange rates', () => {
   const rates = { date: '2026-11-06', rates: { RON: 5.3403, USD: 1.1165, GBP: 0.83415 } };
   const farm: FarmRow = {

@@ -3,7 +3,7 @@
    each figure is worked out once, on first use. A new FarmState gets a new view, so nothing can
    show figures from before a change. */
 import type { AppData } from '../../../packages/shared/src/data/index';
-import { activePensionMonthly, isOwnCrop } from '../../../packages/shared/src/farm/index';
+import { activePensionMonthly, finishedCost, harvestCosts, isOwnCrop, latestFinishedCost } from '../../../packages/shared/src/farm/index';
 import { afterBadHarvest as afterBadHarvestFor, buildFarmPlan, farmData as farmDataFor, grainInBarn as grainInBarnFor, longForecast as longForecastFor, type FarmPlan } from '../../../packages/shared/src/functions/plan';
 import { withCountyYields } from '../../../packages/shared/src/cashflow/county-yields';
 import type { PlanFarm } from '../../../packages/shared/src/cashflow/farm-plan';
@@ -263,6 +263,15 @@ export function farmView(state: FarmState, scope: Scope) {
 
   const projectName = (h: Pick<Harvest, 'year'>, cropId: string | null = null) => (cropId ? `${cropName(cropId)} ${h.year}` : `Toată ferma ${h.year}`);
 
+  /* ---- What each crop really cost, from what was noted ---- */
+  function costsOf(h: Harvest, records: PageRecord[] = h.records) {
+    return harvestCosts({ year: h.year, status: h.status, parcels: h.parcels, records: records.filter((r) => r.kind === 'expense') }, base.crops.crops, today);
+  }
+  const allCosts = once(() => harvests.items.map((h) => costsOf(h)));
+  /** The figure "Folosește cifra asta" offers: the most recent finished harvest with such costs. */
+  const latestOwnCost = (cropId: string) => latestFinishedCost(allCosts(), cropId);
+  const costFromHarvest = (cropId: string, year: number) => finishedCost(allCosts(), cropId, year);
+
   return {
     scope,
     farm,
@@ -299,6 +308,9 @@ export function farmView(state: FarmState, scope: Scope) {
     compare,
     closeProject,
     projectName,
+    costsOf,
+    latestOwnCost,
+    costFromHarvest,
   };
 }
 

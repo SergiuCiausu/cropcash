@@ -1,5 +1,5 @@
 /**
- * Plan step 9c, "gata când": 20 test questions to the real assistant, on Ion's farm in memory.
+ * Plan step 9c, "gata când": test questions to the real assistant, on Ion's farm in memory.
  * Checks: right figures (computed here by the same registry functions), no banned words, no bank
  * names, no yes or no to "Pot să-mi iau…?" / "Să vând…?", and writes only as cards.
  *
@@ -101,9 +101,17 @@ const CASES: Case[] = [
   },
   { q: 'Șterge vânzarea de ieri.', actions: [], check: (r) => expect(r).toMatch(/Recolte/i) },
   { q: 'Spune-mi mai simplu cât pot să-mi iau pe lună.', figures: [salary], actions: [] },
+  { q: 'Cât mă costă grâul pe hectar în plan?', tools: ['get_crop_costs'], figures: ['4.250'], actions: [] },
+  {
+    q: 'La grâu cheltuiesc 3.800 de lei pe hectar pe tot sezonul. Schimbă costul din plan.',
+    actions: [{ function: 'set_crop_cost', input: { cropId: 'grau', costLeiPerHa: 3800 } }],
+    check: (r) => expect(r).toMatch(/card|apas|apeș/i),
+  },
+  { q: 'Pune porumbul înapoi la costul mediu.', actions: [{ function: 'set_crop_cost', input: { cropId: 'porumb', costLeiPerHa: null } }] },
+  { q: 'Am dat 30.000 de lei pe grâu tot sezonul, schimbă costul din plan.', actions: [], check: (r) => expect(r).toMatch(/hectar/i) },
 ];
 
-describe.skipIf(!key)(`the assistant on ${model}: 20 questions`, () => {
+describe.skipIf(!key)(`the assistant on ${model}: ${CASES.length} questions`, () => {
   const ask = createAnthropicAssistant(key!, model, data.crops.crops);
 
   it.concurrent.each(CASES)('$q', async (c) => {

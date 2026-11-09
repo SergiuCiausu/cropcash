@@ -125,6 +125,14 @@ describe('the farmer\'s own harvest', () => {
     expect(wheat.cost_lei_per_ha).toEqual(crop('grau').cost_lei_per_ha);
   });
 
+  it("takes the farmer's own cost, and leaves yield and price alone", () => {
+    const own = withFarmerHarvest(data, [{ cropId: 'grau', yieldTPerHa: null, priceLeiPerKg: null, costLeiPerHa: 3400 }]);
+    const wheat = own.crops.crops.find((c) => c.id === 'grau')!;
+    expect(wheat.cost_lei_per_ha.mean).toBe(3400);
+    expect(wheat.yield_t_per_ha).toEqual(crop('grau').yield_t_per_ha);
+    expect(wheat.price_lei_per_kg).toEqual(crop('grau').price_lei_per_kg);
+  });
+
   it('does not change the original data', () => {
     withFarmerHarvest(data, [{ cropId: 'grau', yieldTPerHa: 6, priceLeiPerKg: 2 }]);
     expect(crop('grau').yield_t_per_ha.mean).toBe(5);

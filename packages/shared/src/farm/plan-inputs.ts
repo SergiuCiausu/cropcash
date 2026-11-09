@@ -49,7 +49,8 @@ export function saleAmountBani(s: SaleInput): Bani {
 
 /** The first five are costs the plan already expects; the rest come on top. */
 export const EXPENSE_CATEGORIES = ['seeds', 'fertilizer', 'treatments', 'diesel', 'field_work', 'repairs', 'rent', 'other'] as const;
-const PLANNED_CATEGORIES: readonly string[] = EXPENSE_CATEGORIES.slice(0, 5);
+/** The categories the plan's crop costs stand for. A recorded one replaces the planned cost of its month. */
+export const PLANNED_CATEGORIES: readonly string[] = EXPENSE_CATEGORIES.slice(0, 5);
 
 export const ExpenseInputSchema = z.strictObject({
   category: z.enum(EXPENSE_CATEGORIES),

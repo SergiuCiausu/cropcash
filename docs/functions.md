@@ -92,7 +92,13 @@ A `confirm` tool never executes during the AI's turn. It returns a pending actio
 | `parse_onboarding_answer` | O2 to O5, mic button | step, spoken text | fields for that step, to confirm | `user` | `api` | New, step 9e |
 | `explain_numbers` | "De unde vin cifrele?" | none | each main figure, how it was worked out, its source | `read` | `phone` | New, step 11 |
 
+| `get_crop_costs` | Assistant | none | each crop's plan cost per hectare and in total, its source and the usual range | `read` | `phone` | Built |
+| `get_cost_per_hectare` | Recolte „Cheltuieli pe hectar”, Datele planului; assistant | harvest year, crop (optional) | what the recorded expenses add up to per hectare, by category, direct and shared | `read` | `phone` | Built |
+| `set_crop_cost` | Assistant card | crop, and `costLeiPerHa` (null is the average) or `fromHarvestYear` | the cost saved; the server works out a figure from expenses itself | `confirm` | `api` | Built |
+
 `update_farm` changes the subsidy, so the confirm card shows the new amount before saving.
+
+`get_cost_per_hectare` comes from one pure function (`packages/shared/src/farm/crop-costs.ts`). Only rows with a category count, a whole-farm cost is split by that harvest's hectares, and `planPerHa` leaves out rent, repairs and other, which the plan's crop cost doesn't stand for (P31).
 
 `parse_onboarding_answer` only fills in the form. The farmer checks the fields and taps, and `create_farm` stays out of the AI's reach.
 

@@ -22,6 +22,10 @@ import {
   farmInputFromStored,
   recordedTransactions,
   HarvestsInputSchema,
+  HarvestYearSchema,
+  SetCropCostInputSchema,
+  isOwnCrop,
+  storedHarvestCosts,
 } from '../farm';
 import { loadData } from '../data';
 import { leiToBani } from '../money';
@@ -443,6 +447,52 @@ export const saveHarvests = defineWrite({
   description: 'Saves the harvest years, closed crops and gathered grain. This replaces what was saved before.',
   input: HarvestsInputSchema,
   request: (body) => ({ method: 'PUT', path: '/api/farmers/me/harvests', body }),
+});
+
+// ── What a crop costs ───────────────────────────────────────────────────────
+
+export const getCropCosts = defineRead({
+  name: 'get_crop_costs',
+  description:
+    "What each crop costs in the plan for a whole season, per hectare and in total, whether that is the farmer's own figure or the average, and the usual range.",
+  input: NoInput,
+  run: (_input, { plan, farm, data }) =>
+    plan.economics.map((e) => {
+      const known = data.crops.crops.find((c) => c.id === e.cropId);
+      const own = farm.harvests?.expected?.find((x) => x.cropId === e.cropId)?.costLeiPerHa;
+      return {
+        cropId: e.cropId,
+        areaAri: e.areaAri,
+        costPerHa: e.costPerHa,
+        total: e.cost,
+        source: isOwnCrop(e.cropId) ? 'farmer_added_crop' : own != null ? 'farmer' : 'average',
+        usualPerHa: known ? { min: known.cost_lei_per_ha.min * 100, max: known.cost_lei_per_ha.max * 100 } : null,
+      };
+    }),
+});
+
+export const GetCostPerHectareInputSchema = z.strictObject({
+  harvestYear: HarvestYearSchema.optional(),
+  cropId: z.string().min(1).max(40).optional(),
+});
+
+export const getCostPerHectare = defineRead({
+  name: 'get_cost_per_hectare',
+  description:
+    "What each crop really cost per hectare, added up from the expenses the farmer recorded: by category, recorded for the crop (direct) or its part of whole-farm costs by hectares (shared). perHa counts everything; planPerHa only what a plan cost stands for. seasonDone false means the figures are only so far.",
+  input: GetCostPerHectareInputSchema,
+  run: ({ harvestYear, cropId }, { farm, data, today }) =>
+    storedHarvestCosts(farm, data, today)
+      .filter((h) => harvestYear === undefined || h.year === harvestYear)
+      .map((h) => ({ ...h, crops: h.crops.filter((c) => cropId === undefined || c.cropId === cropId) })),
+});
+
+export const setCropCost = defineWrite({
+  name: 'set_crop_cost',
+  description:
+    "Changes what a crop costs per hectare for the whole season in the plan. Give costLeiPerHa (null goes back to the average), or fromHarvestYear to use what the farmer's recorded expenses add up to in that finished harvest.",
+  input: SetCropCostInputSchema,
+  request: (body) => ({ method: 'PUT', path: '/api/farmers/me/crop-cost', body }),
 });
 
 // ── Papers the farmer uploads ─────────────────────────────────────────────────
@@ -888,6 +938,9 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   reopenTask,
   updateFarm,
   saveHarvests,
+  getCropCosts,
+  getCostPerHectare,
+  setCropCost,
   readDocument,
   saveApiaDecision,
   clearApiaDecision,

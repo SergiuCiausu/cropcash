@@ -39,6 +39,7 @@ export const FAIL_TEXT = {
     no_farm: 'Fă-ți întâi ferma.',
     stripe_not_set_up: 'Deschide întâi contul CropCash din pagina Bani.',
     credit_received: 'Creditul a intrat deja, nu se mai poate scoate.',
+    cost_not_ready: 'Recolta aceea nu e încheiată sau nu are cheltuieli notate.',
     too_much: 'Suma din plicuri e mai mare decât banii pe care îi ai.',
     daily_limit: 'Ai pus multe întrebări azi. Mai încearcă mâine.',
     assistant_unavailable: 'Asistentul nu merge acum. Încearcă mai târziu.',

@@ -84,6 +84,20 @@ describe('harvest year', () => {
     expect(recordHarvestYear({ occurred_at, harvest_year: null })).toBe(2027);
     expect(recordHarvestYear({ occurred_at, harvest_year: 2026 })).toBe(2026);
   });
+
+  it("files a crop's expense under that crop's next harvest", () => {
+    const crops = [{ id: 'grau', harvest_month: 7 }, { id: 'porumb', harvest_month: 10 }];
+    const cost = (crop_id: string, occurred_at: string, more = {}) => recordHarvestYear({ kind: 'expense', crop_id, occurred_at, ...more }, crops);
+    expect(cost('grau', '2026-10-15T12:00:00Z')).toBe(2027);
+    expect(cost('grau', '2027-07-15T12:00:00Z')).toBe(2027);
+    expect(cost('grau', '2027-08-15T12:00:00Z')).toBe(2028);
+    expect(cost('porumb', '2026-10-15T12:00:00Z')).toBe(2026);
+    expect(cost('porumb', '2026-11-15T12:00:00Z')).toBe(2027);
+    expect(cost('grau', '2026-10-15T12:00:00Z', { harvest_year: 2026 })).toBe(2026);
+    // A sale and a whole-farm cost still go by the date.
+    expect(recordHarvestYear({ kind: 'sale', crop_id: 'grau', occurred_at: '2026-10-15T12:00:00Z' }, crops)).toBe(2026);
+    expect(recordHarvestYear({ kind: 'expense', crop_id: null, occurred_at: '2026-10-15T12:00:00Z' }, crops)).toBe(2026);
+  });
 });
 
 describe('the figures the farmer expects', () => {

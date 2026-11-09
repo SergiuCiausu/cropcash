@@ -97,7 +97,7 @@ function Card({ action }: { action: Action }) {
   const [intent] = useState(newIntentKey);
   const [error, setError] = useState<string | null>(null);
   const [taskTitle, setTaskTitle] = useState<string | null>(null);
-  const c = card(action, (id) => view?.cropName(id) || id);
+  const c = card(action, (id) => view?.cropName(id) || id, view ? { current: (id) => view.data().crops.crops.find((x) => x.id === id)?.cost_lei_per_ha.mean ?? null, fromHarvest: view.costFromHarvest } : undefined);
 
   useEffect(() => {
     if (!c.task || !store) return;

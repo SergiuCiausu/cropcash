@@ -81,7 +81,7 @@ export function createApp({
 
   // Everything below requires a valid Supabase session.
   app.use('/api', requireAuth(verifyToken));
-  app.use('/api', farmersRouter(repo, data, subsidyParams));
+  app.use('/api', farmersRouter(repo, data, subsidyParams, now));
   app.use('/api', planRouter(repo, data));
   app.use('/api', recordsRouter(repo, data, subsidyParams, now));
   app.use('/api', functionsRouter(reads));

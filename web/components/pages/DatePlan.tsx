@@ -18,6 +18,7 @@ const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'i
 const monthName = (key: string) => `${MONTHS[+key.split('-')[1] - 1]} ${key.slice(0, 4)}`;
 const decimal = (v: number) => String(Math.round(v * 100) / 100).replace('.', ',');
 const MAX_OPENING_LEI = 100000000;
+const MAX_COST_LEI_PER_HA = 1000000;
 
 /* Reading what's typed. Null means the text isn't a usable number. */
 const wholeLei = parseWholeLei;
@@ -52,8 +53,11 @@ export default function DatePlan() {
         name: view.cropName(id),
         backYield: decimal(back.yield_t_per_ha.mean),
         backPrice: decimal(back.price_lei_per_kg.mean),
+        backCost: back.cost_lei_per_ha.mean,
         startYield: decimal(own?.yieldTPerHa ?? back.yield_t_per_ha.mean),
         startPrice: decimal(own?.priceLeiPerKg ?? back.price_lei_per_kg.mean),
+        startCost: own?.costLeiPerHa ?? back.cost_lei_per_ha.mean,
+        real: view.latestOwnCost(id),
         backWord: view.figureSource(id, false) === 'gathered' ? 'din Recolte' : 'media noastră',
       };
     });
@@ -63,7 +67,7 @@ export default function DatePlan() {
 
   const [opening, setOpening] = useState(group(Math.round(FARM.startBalanceBani / 100)));
   const [pensionText, setPensionText] = useState(group(Math.round(view.pensionBani() / 100)));
-  const [figures, setFigures] = useState(() => Object.fromEntries(crops.map((c) => [c.id, { y: c.startYield, p: c.startPrice }])));
+  const [figures, setFigures] = useState(() => Object.fromEntries(crops.map((c) => [c.id, { y: c.startYield, p: c.startPrice, c: group(c.startCost) }])));
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState('');
 
@@ -78,10 +82,18 @@ export default function DatePlan() {
     const y = decimalNumber(yieldText);
     const p = decimalNumber(priceText);
     const bad = !(y !== null && y > 0) || !(p !== null && p > 0);
+    const costLei = wholeLei(figures[c.id].c);
+    const costBad = costLei === null || costLei < 1 || costLei > MAX_COST_LEI_PER_HA;
+    const ownCost = costBad || costLei === c.backCost ? null : costLei;
     /* A figure left at its fallback isn't the farmer's own, so it keeps following Recolte. */
-    const row = { cropId: c.id, yieldTPerHa: yieldText === c.backYield ? null : y, priceLeiPerKg: priceText === c.backPrice ? null : p };
-    const own = row.yieldTPerHa !== null || row.priceLeiPerKg !== null;
+    const row = { cropId: c.id, yieldTPerHa: yieldText === c.backYield ? null : y, priceLeiPerKg: priceText === c.backPrice ? null : p, ...(ownCost === null ? {} : { costLeiPerHa: ownCost }) };
+    const own = row.yieldTPerHa !== null || row.priceLeiPerKg !== null || ownCost !== null;
     const range = view.baseData().crops.crops.find((x) => x.id === c.id)!;
+    const cr = range.cost_lei_per_ha;
+    const usualCost = `De obicei, ${group(cr.min)}–${group(cr.max)} lei/ha.`;
+    const costTotal = costBad ? '' : `${group(costLei)} lei/ha × ${decimal(c.area)} ha = ${lei(Math.round(costLei * c.area * 100))} pe sezon.${ownCost !== null && (costLei < cr.min || costLei > cr.max) ? ` ${usualCost}` : ''}`;
+    /* Few expenses noted make a figure that looks cheap, so the farmer is told before using it. */
+    const realLow = c.real !== null && c.real.leiPerHa < cr.min;
     const yr = range.yield_t_per_ha;
     const pr = range.price_lei_per_kg;
     const unusual =
@@ -92,16 +104,17 @@ export default function DatePlan() {
           : '';
     const total = bad ? '' : `${decimal(y!)} t/ha × ${decimal(c.area)} ha = ${decimal(y! * c.area)} t, adică ${lei(Math.round(y! * c.area * 1000 * p! * 100))}.${unusual}`;
     const changed = yieldText !== c.startYield || priceText !== c.startPrice;
-    return { c, bad, row, own, total, changed };
+    return { c, bad, costBad, costLei, costTotal, realLow, row, own, total, changed, costChanged: costLei !== c.startCost };
   });
 
-  const ok = openingOk && pensionOk && !rows.some((r) => r.bad);
+  const ok = openingOk && pensionOk && !rows.some((r) => r.bad || r.costBad);
   const input = {
     openingBani: openingOk ? openingLei * 100 : 0,
     pension: !onServer && pensionOk ? pensionLei! * 100 : 0,
     expected: [...view.harvests.expected.filter((e) => !crops.some((c) => c.id === e.cropId)), ...rows.filter((r) => r.own).map((r) => r.row)],
   };
   const changedCrops = rows.filter((r) => r.changed).map((r) => r.c);
+  const costChanged = rows.some((r) => r.costChanged);
 
   /* The preview: why the salary moved, or why it didn't. */
   const before = view.farmPlan();
@@ -111,14 +124,15 @@ export default function DatePlan() {
     const after = view.previewPlan(input);
     const was = before.monthlySalary;
     const now = after.monthlySalary;
-    const touched = input.openingBani !== FARM.startBalanceBani || (!onServer && input.pension !== view.pensionBani()) || changedCrops.length > 0;
+    const touched = input.openingBani !== FARM.startBalanceBani || (!onServer && input.pension !== view.pensionBani()) || changedCrops.length > 0 || costChanged;
     amount = was === now ? `${lei(now)} pe lună` : `${lei(was)} → ${lei(now)} pe lună`;
     if (!touched) why = 'Schimbă o cifră și vezi aici efectul.';
     else if (was === now) {
       const limit = after.salary.bindingMonth;
-      const same = input.openingBani === FARM.startBalanceBani && (onServer || input.pension === view.pensionBani());
+      const same = input.openingBani === FARM.startBalanceBani && (onServer || input.pension === view.pensionBani()) && !costChanged;
       const late = changedCrops.filter((c) => (firstSale(after, c.id) ?? '') > limit);
-      if (same && changedCrops.length && late.length === changedCrops.length) {
+      if (costChanged && after.salary.salary > was) why = 'Salariul stabilit nu crește singur. Cifra nouă se vede în Prognoză.';
+      else if (same && changedCrops.length && late.length === changedCrops.length) {
         const sale = late.length > 1 ? 'vânzarea recoltei vine' : `vânzarea de ${late[0].name.toLowerCase()} vine`;
         why = `Salariul depinde de banii de până în ${monthName(limit)}, iar ${sale} abia în ${monthName(firstSale(after, late[0].id)!)}. Se schimbă ce arată Prognoza.`;
       } else if (now === 0) why = `Banii nu ajung până în ${monthName(limit)}.`;
@@ -139,7 +153,7 @@ export default function DatePlan() {
       setSaving(false);
     }
   }
-  const setFig = (id: string, patch: Partial<{ y: string; p: string }>) => setFigures((f) => ({ ...f, [id]: { ...f[id], ...patch } }));
+  const setFig = (id: string, patch: Partial<{ y: string; p: string; c: string }>) => setFigures((f) => ({ ...f, [id]: { ...f[id], ...patch } }));
 
   return (
     <>
@@ -211,10 +225,10 @@ export default function DatePlan() {
             )}
           </section>
           <section className="card s12">
-            <h2>Recolta, într-un an normal</h2>
-            <p className="note">Anul slab și anul bun se schimbă odată cu aceste cifre. Costurile rămân cele medii.</p>
+            <h2>Recolta și costurile, într-un an normal</h2>
+            <p className="note">Anul slab și anul bun se schimbă odată cu aceste cifre. Costurile sunt pe tot sezonul și rămân aceleași în toți anii.</p>
             <div className="crop-figs">
-              {rows.map(({ c, bad, own, total }) => (
+              {rows.map(({ c, bad, costBad, costLei, costTotal, realLow, own, total }) => (
                 <fieldset className="crop-fig" key={c.id}>
                   <legend>
                     {c.name}, {decimal(c.area)} ha <span className="tag n">{own ? 'cifrele tale' : c.backWord}</span>
@@ -229,8 +243,24 @@ export default function DatePlan() {
                   </label>
                   <p className="note">{total}</p>
                   {bad && <ErrorLine>Scrie un număr mai mare ca 0, de exemplu 5,5.</ErrorLine>}
+                  <label className="ob-field crop-cost">
+                    Costuri pe tot sezonul, lei/ha
+                    <input inputMode="numeric" autoComplete="off" value={figures[c.id].c} onChange={(e) => setFig(c.id, { c: e.target.value })} />
+                  </label>
+                  <p className="note">{costTotal}</p>
+                  {costBad && <ErrorLine>Scrie costul în lei întregi pe hectar, de exemplu {group(c.backCost)}.</ErrorLine>}
+                  {c.real && (
+                    <p className="note">
+                      Din cheltuielile tale, Recolta {c.real.year}: {group(c.real.leiPerHa)} lei/ha.{realLow && ' Poate lipsesc cheltuieli.'}
+                    </p>
+                  )}
+                  {c.real && costLei !== c.real.leiPerHa && (
+                    <button type="button" className="btn btn-line crop-reset" onClick={() => setFig(c.id, { c: group(c.real!.leiPerHa) })}>
+                      Folosește cifra asta
+                    </button>
+                  )}
                   {own && (
-                    <button type="button" className="btn btn-line crop-reset" onClick={() => setFig(c.id, { y: c.backYield, p: c.backPrice })}>
+                    <button type="button" className="btn btn-line crop-reset" onClick={() => setFig(c.id, { y: c.backYield, p: c.backPrice, c: group(c.backCost) })}>
                       Înapoi la {c.backWord}
                     </button>
                   )}

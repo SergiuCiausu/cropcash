@@ -3,11 +3,19 @@ import {
   ApiaDecisionSchema,
   HarvestsInputSchema,
   OnboardingInputSchema,
+  SetCropCostInputSchema,
   UpdateFarmInputSchema,
   birthYearFromAge,
   computeSubsidies,
   farmInputFromStored,
   farmSubsidies,
+  farmToday,
+  finishedCost,
+  harvestYear,
+  isOwnCrop,
+  storedHarvestCosts,
+  todayInRomania,
+  withCropCost,
   withOwnCrops,
   haToAri,
   leiToBani,
@@ -19,7 +27,7 @@ import {
 } from '@cropcash/shared';
 import { RepoError, type Repo } from '../db/repo';
 
-export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams): Router {
+export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams, now: () => Date): Router {
   const r = Router();
   const year = data.subsidies.meta.campaign_year;
   const storedParcel = (p: OnboardingParsed['parcels'][number]) => ({
@@ -143,6 +151,57 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams):
         return;
       }
       throw err;
+    }
+  });
+
+  /**
+   * Changes one crop's cost and nothing else, for the assistant's card, which has no copy of the
+   * whole document to send. A figure "from the expenses" is worked out here, never taken from the
+   * phone or the model. It doesn't touch a fixed salary: a higher cost lowers what's paid through
+   * the plan when the money wouldn't last, and an estimate doesn't raise real payouts.
+   */
+  r.put('/farmers/me/crop-cost', async (req, res) => {
+    const parsed = SetCropCostInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid_input' });
+      return;
+    }
+    const { cropId, costLeiPerHa, fromHarvestYear } = parsed.data;
+    const { token } = res.locals.auth;
+    // Saved on the version just read, so a change made meanwhile on another phone isn't overwritten.
+    for (let attempt = 0; ; attempt++) {
+      const farm = await repo.getMyFarm(token);
+      if (!farm) {
+        res.status(404).json({ error: 'no_farm' });
+        return;
+      }
+      const onFarm = farm.parcels.some((p) => p.crop_id === cropId) || !!farm.harvests?.years.some((y) => y.parcels.some((p) => p.cropId === cropId));
+      if (!data.crops.crops.some((c) => c.id === cropId) || !onFarm) {
+        res.status(400).json({ error: 'invalid_input', issues: [isOwnCrop(cropId) ? 'own_crop' : 'unknown_crop'] });
+        return;
+      }
+      const today = farmToday(farm, todayInRomania(now()));
+      const cost = fromHarvestYear === undefined ? costLeiPerHa! : finishedCost(storedHarvestCosts(farm, data, today), cropId, fromHarvestYear);
+      if (fromHarvestYear !== undefined && cost === null) {
+        res.status(409).json({ error: 'cost_not_ready' });
+        return;
+      }
+      const doc = farm.harvests ?? {
+        years: [{ year: harvestYear(today), status: 'open' as const, openingBani: farm.start_balance_bani ?? 0, parcels: farm.parcels.map((p) => ({ cropId: p.crop_id, areaHa: p.area_ari / 100 })) }],
+        gathered: [],
+      };
+      const next = withCropCost(doc, cropId, cost);
+      try {
+        const version = await repo.setHarvests(token, farm.id, next, farm.harvests_version ?? 0);
+        res.json({ costLeiPerHa: cost, version });
+        return;
+      } catch (err) {
+        if (!(err instanceof RepoError && err.code === 'conflict')) throw err;
+        if (attempt > 0) {
+          res.status(409).json({ error: 'changed_elsewhere', version: farm.harvests_version ?? 0 });
+          return;
+        }
+      }
     }
   });
 

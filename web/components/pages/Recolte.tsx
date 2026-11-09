@@ -15,6 +15,7 @@ import { newIntentKey } from '../../lib/live/intent';
 import { decimalText, gatheredHint, isSown, isUsualMonth, monthLabel, plantedHint, readGathered, sowingChoices, usualPlanting, usualTonnes, type Crop, type GatheredText } from '../../lib/ui/seasons';
 import { AmountEcho, ErrorLine, OfflineNote, Sheet } from '../app/bits';
 import { FrameContext } from '../app/context';
+import { CostPerHa } from '../app/CostPerHa';
 import { useSaved } from '../app/useSaved';
 import { CompareTable, FutureNote } from '../app/PageNotes';
 import { PaperButton, usePapers } from '../app/Papers';
@@ -485,6 +486,7 @@ function RecoltePage() {
             )}
           </div>
         </section>
+        {(started || h.records.length > 0) && <CostPerHa view={view} harvest={h} records={h.records.filter((r) => !hidden.has(r.id))} cropId={cropId} categories={CATEGORIES} />}
       </div>
       {/* Closing comes last on the page, as the last thing done with a project. */}
       {isOpen && (

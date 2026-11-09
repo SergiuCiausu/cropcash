@@ -60,10 +60,32 @@ export interface Action {
   input: Record<string, unknown>;
 }
 
+/** What the cost card shows beside the change. The phone works these out the way the server will. */
+export interface CropCostLookup {
+  current(cropId: string): number | null;
+  fromHarvest(cropId: string, year: number): number | null;
+}
+
 /** What a card says: the exact values that will be saved. `task` is a task id whose title can be looked up. */
-export function card(action: Action, cropName: (id: string) => string): { title: string; rows: [string, string][]; task?: string } {
+export function card(action: Action, cropName: (id: string) => string, costs?: CropCostLookup): { title: string; rows: [string, string][]; task?: string } {
   const i = action.input as Record<string, string & number>;
   switch (action.function) {
+    case 'set_crop_cost': {
+      const perHa = (n: number) => `${lei(n)}/ha`;
+      const year = action.input.fromHarvestYear as number | undefined;
+      const now = costs?.current(i.cropId) ?? null;
+      const fromRecords = year === undefined ? null : (costs?.fromHarvest(i.cropId, year) ?? null);
+      const next = year !== undefined ? (fromRecords === null ? 'Din cheltuielile notate' : perHa(fromRecords)) : action.input.costLeiPerHa === null ? 'Media noastră' : perHa(i.costLeiPerHa);
+      return {
+        title: 'Schimb costul unei culturi',
+        rows: [
+          ['Cultura', cropName(i.cropId)],
+          ...(now === null ? [] : [['Costul din plan', perHa(now)] as [string, string]]),
+          ['Costul nou, pe tot sezonul', next],
+          ...(year === undefined ? [] : [['Calculat din', `Recolta ${year}`] as [string, string]]),
+        ],
+      };
+    }
     case 'add_expense':
       return { title: 'Notez o cheltuială', rows: [['Pe ce', CATEGORIES[i.category] || i.category], ['Suma', lei(i.amountLei)], ['Data', day(i.date)], ...(i.cropId ? [['Cultura', cropName(i.cropId)] as [string, string]] : []), ...(i.note ? [['Notă', i.note] as [string, string]] : [])] };
     case 'record_sale':

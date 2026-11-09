@@ -6,6 +6,8 @@
    demo, everything stays on the phone under cropcash-demo-harvests. */
 import type { AppData } from '../../../packages/shared/src/data/index';
 import type { HarvestsInput, OwnCrop } from '../../../packages/shared/src/farm/index';
+
+export { areaShare } from '../../../packages/shared/src/farm/index';
 import { harvestsFromServer, type PageRecord } from '../live/farm';
 import type { MeFarm, PageFarm } from './farm';
 import { farmKeys, readJson, writeJson, type KeyStore, type Mode } from './storage';
@@ -148,15 +150,6 @@ export const toParcel = (p: HarvestParcel) => ({
   is_arable: true,
   ...(p.plantedMonth ? { planted_month: p.plantedMonth } : {}),
 });
-
-/** APIA pays one amount per farm, so a crop's part goes by hectares, and the parts add up exactly. */
-export function areaShare(bani: number, parcels: { cropId: string; areaHa: number }[], cropId: string): number {
-  const ari = parcels.map((p) => Math.round(p.areaHa * 100));
-  const total = ari.reduce((s, a) => s + a, 0) || 1;
-  const shares = ari.map((a) => Math.floor((bani * a) / total));
-  shares[0] += bani - shares.reduce((s, v) => s + v, 0);
-  return shares[parcels.findIndex((p) => p.cropId === cropId)] ?? 0;
-}
 
 export interface CropTab {
   /** Null is the whole farm. */

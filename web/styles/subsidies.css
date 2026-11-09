@@ -326,6 +326,10 @@ main a.btn-dark { color: var(--surface); }
 .crop-fig .ob-field { margin-top: 4px; }
 .crop-fig .note, .crop-fig .ob-err { grid-column: 1 / -1; margin-top: 8px; }
 .crop-reset { grid-column: 1 / -1; justify-self: start; margin-top: 8px; }
+.crop-fig .crop-cost { grid-column: 1 / -1; margin-top: 12px; }
+.cost-crop { margin-top: 16px; }
+.cost-crop-h { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.cost-crop-h h3 { font-size: 15px; font-weight: 600; }
 .crop-fig [hidden], .card [hidden] { display: none; }
 .plan-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .plan-again { display: none; margin-top: 16px; font-size: 14.5px; font-weight: 500; }

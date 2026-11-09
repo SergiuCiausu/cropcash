@@ -64,6 +64,8 @@ export interface HarvestFigures {
   cropId: string;
   yieldTPerHa: number | null;
   priceLeiPerKg: number | null;
+  /** Only ever the farmer's own expectation: a gathered harvest says nothing about costs. */
+  costLeiPerHa?: number | null;
 }
 
 /** What the farmer got per crop: yield weighted by area, price weighted by tonnes. */
@@ -96,6 +98,7 @@ export function plannedFigures(gathered: GatheredHarvest[], expected: HarvestFig
       cropId,
       yieldTPerHa: wanted?.yieldTPerHa ?? own?.yieldTPerHa ?? null,
       priceLeiPerKg: wanted?.priceLeiPerKg ?? own?.priceLeiPerKg ?? null,
+      ...(wanted?.costLeiPerHa != null ? { costLeiPerHa: wanted.costLeiPerHa } : {}),
     };
   });
 }
@@ -107,8 +110,9 @@ function scaled<T extends { min: number; mean: number; max: number }>(range: T, 
 }
 
 /**
- * The same data, with the farmer's own yield and price as the crop's normal year (P26).
- * A good and a bad year keep their distance from normal. Costs stay the averages.
+ * The same data, with the farmer's own yield, price and cost as the crop's normal year (P26).
+ * A good and a bad year keep their distance from normal. The plan reads every cost from here, so
+ * the monthly costs, the crop table, the break-even price and the salary all follow it.
  */
 export function withFarmerHarvest(data: AppData, figures: HarvestFigures[]): AppData {
   const crops = data.crops.crops.map((crop) => {
@@ -118,6 +122,7 @@ export function withFarmerHarvest(data: AppData, figures: HarvestFigures[]): App
       ...crop,
       yield_t_per_ha: scaled(crop.yield_t_per_ha, own.yieldTPerHa),
       price_lei_per_kg: scaled(crop.price_lei_per_kg, own.priceLeiPerKg),
+      cost_lei_per_ha: scaled(crop.cost_lei_per_ha, own.costLeiPerHa ?? null),
     };
   });
   return { ...data, crops: { ...data.crops, crops } };

@@ -34,6 +34,9 @@ const HarvestSchema = z.strictObject({
   planned: Planned.optional(),
 });
 
+/** Whole lei, at least 1: nothing costs 0 by accident, and null is how a figure goes back to the average. */
+export const CostLeiPerHa = z.number().int().min(1).max(1_000_000);
+
 /** A blank figure stays null: the crop's average is used instead. */
 const GatheredSchema = z.strictObject({
   cropId: CropId,
@@ -50,6 +53,8 @@ const ExpectedSchema = z.strictObject({
   cropId: CropId,
   yieldTPerHa: z.number().positive().max(MAX_TONNES_PER_HA).nullable(),
   priceLeiPerKg: z.number().positive().max(MAX_LEI_PER_KG).nullable(),
+  /** The whole season's cost per hectare. Left out or null, the crop's average stays. */
+  costLeiPerHa: CostLeiPerHa.nullable().optional(),
 });
 
 const Month = z.number().int().min(1).max(12);
@@ -108,7 +113,21 @@ export function harvestYear(date: string): number {
   return Number(date.slice(5, 7)) >= FIRST_MONTH_OF_HARVEST_YEAR ? year + 1 : year;
 }
 
-/** The harvest a record belongs to: the one the farmer chose, otherwise the one its date falls in. */
-export function recordHarvestYear(record: { harvest_year?: number | null; occurred_at: string }): number {
-  return record.harvest_year ?? harvestYear(record.occurred_at);
+/** A crop's cost belongs to its next harvest: wheat sown in October 2026 is Recolta 2027 (cut in July 2027). */
+function cropCostHarvestYear(date: string, harvestMonth: number): number {
+  const year = Number(date.slice(0, 4));
+  return Number(date.slice(5, 7)) <= harvestMonth ? year : year + 1;
+}
+
+/**
+ * The harvest a record belongs to: the one the farmer chose, otherwise the next harvest of the crop
+ * an expense is for, otherwise the one its date falls in.
+ */
+export function recordHarvestYear(
+  record: { harvest_year?: number | null; occurred_at: string; kind?: string | null; crop_id?: string | null },
+  crops: readonly { id: string; harvest_month: number }[] = [],
+): number {
+  if (record.harvest_year != null) return record.harvest_year;
+  const crop = record.kind === 'expense' && record.crop_id ? crops.find((c) => c.id === record.crop_id) : undefined;
+  return crop ? cropCostHarvestYear(record.occurred_at, crop.harvest_month) : harvestYear(record.occurred_at);
 }
