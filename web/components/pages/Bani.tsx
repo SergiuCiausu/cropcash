@@ -20,6 +20,7 @@ import { PageLink } from '../app/Frame';
 const NEEDS_NET = 'Pornește internetul ca să muți banii.';
 const KINDS = [
   ['salary', 'Salariu'],
+  ['payroll', 'Salariile oamenilor'],
   ['spring_inputs', 'Cheltuieli fermă'],
   ['debts', 'Datorii'],
   ['pension', 'Pensie'],
@@ -36,10 +37,12 @@ type Tools = Parameters<Parameters<NonNullable<ReturnType<typeof useStore>>['sen
 type Slot = 'setup' | 'demo' | 'split';
 
 function Bars({ env, lei }: { env: Pots; lei: (b: number) => string }) {
-  const max = Math.max(...KINDS.map(([k]) => env[k]), 1);
+  /* A farm without people has nothing for their pay: that bar shows only when it holds money. */
+  const shown = KINDS.filter(([k]) => k !== 'payroll' || (env[k] ?? 0) > 0);
+  const max = Math.max(...shown.map(([k]) => env[k]), 1);
   return (
     <>
-      {KINDS.map(([k, name]) => (
+      {shown.map(([k, name]) => (
         <li className="ac-env" key={k}>
           <span className="ac-env-l">
             <b>{name}</b>

@@ -3,11 +3,11 @@
    writes storage the same way, then reads it again and tells React. So a React page and a legacy
    page always agree, and nothing reloads.
    Plain TypeScript with no React and no DOM, so it's tested in Node (store.test.ts). */
-import type { AppData } from '../../../packages/shared/src/data/index';
+import type { AppData, Override } from '../../../packages/shared/src/data/index';
 import type { CurrencyCode, ExchangeRates } from '../../../packages/shared/src/currency/index';
 import { farmChange, farmEdit, harvestsDocument } from '../live/farm';
 import { newIntentKey } from '../live/intent';
-import { afterFailedSend, classifyFlushError, enqueue, isOutboxId, isQueueable, msUntilNextTry, readSent, rememberSent, sameDocument, takeBack, withClientIds, withOutboxLock, type OutboxItem } from '../live/outbox';
+import { afterFailedSend, classifyFlushError, enqueue, isOutboxId, isQueueable, msUntilNextTry, patchQueued, readSent, rememberSent, sameDocument, takeBack, withClientIds, withOutboxLock, type OutboxItem } from '../live/outbox';
 import { isMoneyMove, moneyOutcome, type MoneyMove } from '../live/money-check';
 import type { ApiInit } from '../live/client';
 import type { WriteOptions } from '../live/functions';
@@ -16,9 +16,12 @@ import { readFarmState, type FarmState, type MeFarm } from './farm';
 import { currentHarvest, saveHarvests, type HarvestState } from './harvests';
 import { EMPTY_SNAPSHOT, fetchMonitor, isFresh, monitorChanged, monitorView, type MonitorSnapshot, type MonitorView } from './monitor';
 import { createNet, type NetDeps } from './net';
+import { parsePredictionData, readPredictions, savePredictions, withPredictions } from './predictions';
 import { DEMO_KEY_PREFIX } from '../paths';
+import { applyEventWrite, type EventWriteName } from '../../../packages/shared/src/calendar/events';
+import { findFunction } from '../../../packages/shared/src/functions/registry';
 import type { DocumentReading } from '../../../packages/shared/src/documents/index';
-import { farmKeys, forgetSession, KEYS, readJson, remove, writeJson, writeText, type KeyStore, type Mode } from './storage';
+import { farmKeys, forgetSession, KEYS, memoryStore, readJson, remove, writeJson, writeText, type KeyStore, type Mode } from './storage';
 
 /** The part of web/lib/live the store calls. Tests pass fakes. */
 export interface LiveCalls {
@@ -53,6 +56,11 @@ export interface StoreState {
   version: number;
   farm: FarmState | null;
   monitor: MonitorView;
+  /**
+   * The admin panel's published version the figures use (0 = docs/data as built in), and whether this
+   * account may open the panel. Always 0 and false on Ion's farm.
+   */
+  predictions: { version: number; admin: boolean; overrides: Override[] };
 }
 
 /** What a page's change gets: the same write as Live, the API, and nothing when offline. */
@@ -61,6 +69,9 @@ export interface SendTools {
   api<T = unknown>(path: string, init?: ApiInit): Promise<T>;
   read: LiveCalls['read'];
 }
+
+/** docs/data as built in, no admin: Ion's farm, and a phone that never read the published changes. */
+export const NO_PREDICTIONS: StoreState['predictions'] = { version: 0, admin: false, overrides: [] };
 
 const offlineError = () => Object.assign(new Error('offline'), { code: 'offline' });
 const demoError = () => Object.assign(new Error('demo'), { code: 'demo' });
@@ -74,22 +85,44 @@ export function createStore(deps: StoreDeps) {
   const snapshot = deps.snapshot ?? EMPTY_SNAPSHOT;
   const listeners = new Set<() => void>();
 
-  let state: StoreState = { ready: false, online: deps.net.browserOnline(), version: 0, farm: null, monitor: monitorView(null, snapshot) };
+  let state: StoreState = {
+    ready: false,
+    online: deps.net.browserOnline(),
+    version: 0,
+    farm: null,
+    monitor: monitorView(null, snapshot),
+    predictions: NO_PREDICTIONS,
+  };
 
   const set = (patch: Partial<StoreState>) => {
     state = { ...state, ...patch };
     listeners.forEach((l) => l());
   };
 
+  /* docs/data with the published changes, rebuilt only when the version on the phone changes
+     (another tab may have saved a newer one). Ion's farm stays on the files. */
+  let predicted = { version: 0, data };
+  function currentData(): { data: AppData; predictions: StoreState['predictions'] } {
+    if (mode === 'demo') return { data, predictions: NO_PREDICTIONS };
+    const copy = readPredictions(store);
+    const version = copy?.version ?? 0;
+    if (version !== predicted.version) predicted = { version, data: withPredictions(data, copy) };
+    return { data: predicted.data, predictions: copy ? { version, admin: copy.admin, overrides: copy.overrides } : NO_PREDICTIONS };
+  }
+
   /** Reads storage again: what location.reload() did in app.js. */
   function reload() {
-    const farm = readFarmState(mode, store, data, now());
-    set({ ready: true, farm, version: state.version + 1, monitor: monitorView(farm.monitor, snapshot) });
+    const { data: base, predictions } = currentData();
+    const farm = readFarmState(mode, store, base, now());
+    set({ ready: true, farm, version: state.version + 1, monitor: monitorView(farm.monitor, snapshot), predictions });
   }
 
   const net = createNet(deps.net, (online) => {
     set({ online });
-    if (online) void flushOutbox();
+    if (online) {
+      void flushOutbox();
+      void refreshPredictions();
+    }
   });
 
   const farmOrThrow = () => {
@@ -134,6 +167,26 @@ export function createStore(deps: StoreDeps) {
         forgetSession(store);
         reload();
       }
+    }
+  }
+
+  /**
+   * Reads the published changes to docs/data. Saved on the phone, so the figures stay the same
+   * offline; the plan is worked out again only when the version (or the admin flag) changed.
+   * A failed read keeps the copy the phone has. Never on Ion's farm.
+   */
+  async function refreshPredictions(): Promise<void> {
+    if (mode === 'demo' || !state.farm?.signedIn || !deps.net.browserOnline()) return;
+    try {
+      const body = await withFreshSession(() => live.api<unknown>('/api/prediction-data'));
+      const fresh = parsePredictionData(body);
+      if (!fresh) return;
+      const saved = readPredictions(store);
+      if (saved && saved.version === fresh.version && saved.admin === fresh.admin) return;
+      savePredictions(store, fresh, now());
+      reload();
+    } catch {
+      /* Offline, an old API or a 401: the copy on the phone stays in force. */
     }
   }
 
@@ -187,7 +240,7 @@ export function createStore(deps: StoreDeps) {
     const write: SendTools['write'] = async (name, input = {}, options = {}) => {
       /* One id per sale or expense. A form sets it when the farmer starts the record and keeps it on
          a retry; this is the fallback for a caller that didn't. The queue sends it as it is. */
-      if ((name === 'record_sale' || name === 'add_expense') && !input.clientId) input = { ...input, clientId: randomId() };
+      if ((name === 'record_sale' || name === 'add_expense' || name === 'add_event' || name === 'confirm_occurrence' || name === 'add_operation') && !input.clientId) input = { ...input, clientId: randomId() };
       /* A record still in the queue is taken back on the phone, with or without internet. */
       if (name === 'undo_transaction' && isOutboxId(input.id)) {
         const id = input.id;
@@ -198,6 +251,17 @@ export function createStore(deps: StoreDeps) {
         });
         /* Another tab sent it meanwhile, so it is taken back from the server. */
         if (!serverId) return {} as never;
+        input = { ...input, id: serverId };
+      }
+      /* Work still in the queue is changed there; sent meanwhile, the change goes to the server's id. */
+      if (name === 'update_operation' && isOutboxId(input.id)) {
+        const { id, ...patch } = input as { id: string } & Record<string, unknown>;
+        const serverId = await withOutboxLock(() => {
+          const r = patchQueued(queued(), sentItems(), id, patch);
+          writeOutbox(r.items);
+          return r.serverId;
+        });
+        if (!serverId) return { queued: true } as never;
         input = { ...input, id: serverId };
       }
       if (!online) {
@@ -396,6 +460,36 @@ export function createStore(deps: StoreDeps) {
     reload();
   }
 
+  /**
+   * The farmer's own calendar (docs/calendar-events-plan.md). Signed in it is sent, or waits in the
+   * queue without internet. Off the server (Ion's farm) it stays on the phone, and „Da, am plătit”
+   * notes the sale or expense in the harvest, as the Recolte form does there.
+   */
+  async function eventWrite(name: EventWriteName, input: Record<string, unknown>) {
+    const farm = farmOrThrow();
+    if ((name === 'add_event' || name === 'confirm_occurrence') && !input.clientId) input = { ...input, clientId: randomId() };
+    if (farm.me) return send(({ write }) => write(name, input));
+    /* On the phone nothing else checks the input, so a bad one fails here instead of vanishing. */
+    if (!findFunction(name)?.input.safeParse(input).success) throw new Error('invalid_input');
+    const before = farm.events;
+    writeJson(store, farmKeys(mode).events, applyEventWrite(before, name, input, now()));
+    const ev = name === 'confirm_occurrence' ? before.find((e) => e.id === input.eventId) : undefined;
+    if (ev?.direction) {
+      const i = input as { amountLei: number; date: string; clientId: string };
+      const bani = Math.round(i.amountLei * 100);
+      return updateHarvests((draft) => {
+        const h = currentHarvest(draft, farm.baseYear);
+        const base = { id: `n${i.clientId}`, date: i.date };
+        h.records.push(
+          (ev.direction === 'out'
+            ? { ...base, kind: 'expense', category: ev.expense_category ?? 'other', amountBani: -bani, ...(ev.crop_id ? { cropId: ev.crop_id } : {}) }
+            : { ...base, kind: 'sale', cropId: ev.crop_id ?? '', amountBani: bani }) as (typeof h.records)[number],
+        );
+      });
+    }
+    reload();
+  }
+
   /** Follows calls. Signed in it's saved on the farm and needs internet (never queued). */
   async function setFollow(keys: string[], on: boolean) {
     if (farmOrThrow().me) {
@@ -448,7 +542,7 @@ export function createStore(deps: StoreDeps) {
     if (state.ready) return Promise.resolve();
     reload();
     if (mode === 'demo' || !state.farm?.signedIn) return Promise.resolve();
-    return Promise.all([net.ping().then(() => flushOutbox()), refreshFarm()]).then(() => undefined);
+    return Promise.all([net.ping().then(() => flushOutbox()), refreshFarm(), refreshPredictions()]).then(() => undefined);
   }
 
   return {
@@ -470,9 +564,25 @@ export function createStore(deps: StoreDeps) {
     /** The phone came back from the pocket: no "online" event fires, though the signal may have returned. */
     phoneBack() {
       if (mode === 'demo' || !state.farm?.signedIn) return Promise.resolve();
-      return net.ping().then(() => flushOutbox());
+      return Promise.all([net.ping().then(() => flushOutbox()), refreshPredictions()]).then(() => undefined);
     },
     refreshFarm,
+    refreshPredictions,
+    /** docs/data with the published version on top: what every figure on this phone uses. */
+    publishedData: () => currentData().data,
+    /**
+     * The farm worked out again on other data, saving nothing: the admin panel's preview. `ion` gives
+     * Ion's example farm as it starts, without what a visitor changed on this device.
+     */
+    previewState: (on: AppData, ion = false): FarmState => (ion ? readFarmState('demo', memoryStore(), on, now()) : readFarmState(mode, store, on, now())),
+    /** The admin panel's draft lives with the farm's keys, so sign-out clears it too. */
+    keyStore: store,
+    /** The admin panel's calls (/api/admin/*). Never queued: without internet they fail at once. */
+    adminCall<T = unknown>(path: string, init?: ApiInit): Promise<T> {
+      if (mode === 'demo') return Promise.reject(demoError());
+      if (!net.isOnline()) return Promise.reject(offlineError());
+      return withFreshSession(() => live.api<T>(path, init));
+    },
     refreshMonitor,
     send,
     flushOutbox,
@@ -482,6 +592,7 @@ export function createStore(deps: StoreDeps) {
     savePlanFigures,
     setOwnPension,
     setTaskDone,
+    eventWrite,
     setFollow,
     setCurrency,
     setRates,

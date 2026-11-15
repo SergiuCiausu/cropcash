@@ -161,24 +161,65 @@ export interface MatchFarm {
   dairy_cows?: number | null;
   beef_cattle?: number | null;
   parcels?: { crop_id: string }[];
+  /** The farmer's own crops (P30), with the APIA line they picked, when there is one. */
+  ownCrops?: OwnCropLine[];
+  /** Where a stored farm keeps them. */
+  harvests?: { ownCrops?: OwnCropLine[] } | null;
 }
 
-/** Sectors a call can be limited to, and the crops that belong to each one. */
-const SECTORS: { name: RegExp; crops: RegExp; animals?: boolean }[] = [
-  { name: /sector zootehnic|zootehni/, crops: /$^/, animals: true },
-  { name: /legumicul/, crops: /legum|tomat|cartof|ardei|ceap/ },
-  { name: /pomicol/, crops: /pomi|mar|prun|cires|nuc/ },
-  { name: /viticol/, crops: /vie|strugur/ },
-  { name: /floricult|plante medicinale/, crops: /flori(?!a-soarelui)|medicinal/ },
-  { name: /apicol/, crops: /$^/ },
-  { name: /acvacultur|piscicol|pescuit/, crops: /$^/ },
+type OwnCropLine = { id: string; name: string; apiaCode?: number };
+type Sector = 'animals' | 'vegetables' | 'orchards' | 'vineyards' | 'flowers_medicinal' | 'bees' | 'fish';
+
+/**
+ * Sectors a call can be limited to. `crops` reads a crop's name only when it has no APIA line
+ * (an own crop the farmer typed in): a crop with a line gets its sector from the line itself.
+ */
+const SECTORS: { key: Sector; name: RegExp; crops: RegExp }[] = [
+  { key: 'animals', name: /sector zootehnic|zootehni/, crops: /$^/ },
+  { key: 'vegetables', name: /legumicul/, crops: /legum(?!inoase)|tomat|cartof|ardei|ceap|castrav|vinet|varz|morcov|usturoi|pepen/ },
+  { key: 'orchards', name: /pomicol/, crops: /pomi|livad|\bmeri?\b|prun|cires|visin|cais|piersic|\bnuc|alun|gutui|zmeur|coacaz|afin|catina/ },
+  { key: 'vineyards', name: /viticol/, crops: /\bvi[ei]\b|strugur/ },
+  { key: 'flowers_medicinal', name: /floricult|plante medicinale/, crops: /flori(?!a-soarelui)|medicinal|aromatic|levantic|ment[ae]\b/ },
+  { key: 'bees', name: /apicol/, crops: /$^/ },
+  { key: 'fish', name: /acvacultur|piscicol|pescuit/, crops: /$^/ },
 ];
 
-const isOtherSector = (title: string, farm: MatchFarm) => {
+/**
+ * The sector of one line of the APIA list (Tabel 1): from its heading, and from its name where a heading
+ * mixes sectors (industrial and medicinal plants, nurseries, land being prepared). Null: none of these.
+ */
+export function apiaSector(row: { name: string; heading: string | null }): Sector | null {
+  const heading = plainText(row.heading ?? '');
+  const name = plainText(row.name);
+  if (/^legume|^plante tuberculifere/.test(heading)) return 'vegetables';
+  if (/^pomi fructiferi|^castani|^arbusti fructiferi|^liane fructifere/.test(heading)) return 'orchards';
+  if (/^vii$/.test(heading)) return 'vineyards';
+  if (/pepiniere pomicole|fructe de padure|pregatire pentru livezi/.test(name)) return 'orchards';
+  if (/pepiniere viticole|pregatire pentru vii/.test(name)) return 'vineyards';
+  if (/^flori|ornamental|trandafiri/.test(name)) return 'flowers_medicinal';
+  if (/medicinal/.test(heading) && /medicinal|aromatic|fenicul|levantica|menta|anason|sofranel|coriandru|mataciune/.test(name)) return 'flowers_medicinal';
+  return null;
+}
+
+/** The sectors the farm's crops put it in. A crop's APIA line decides; without one, its name. */
+function farmSectors(farm: MatchFarm, data: AppData): Set<Sector> {
+  const own = new Map((farm.ownCrops ?? farm.harvests?.ownCrops ?? []).map((c) => [c.id, c]));
+  const rows = new Map(data.apiaTable.rows.map((r) => [r.code, r]));
+  const sectors = new Set<Sector>();
+  for (const { crop_id } of farm.parcels ?? []) {
+    const crop = data.crops.crops.find((c) => c.id === crop_id);
+    const code = own.get(crop_id)?.apiaCode ?? crop?.apia_codes?.[0] ?? Number(/^apia-(\d+)$/.exec(crop_id)?.[1] ?? NaN);
+    const row = rows.get(code);
+    const sector = row ? apiaSector(row) : SECTORS.find((s) => s.crops.test(plainText(`${own.get(crop_id)?.name ?? crop?.name_ro ?? ''} ${crop_id}`)))?.key;
+    if (sector) sectors.add(sector);
+  }
+  if ((farm.dairy_cows ?? 0) + (farm.beef_cattle ?? 0) > 0) sectors.add('animals');
+  return sectors;
+}
+
+const isOtherSector = (title: string, farm: MatchFarm, data: AppData) => {
   const sector = SECTORS.find((s) => s.name.test(title));
-  if (!sector) return false;
-  if (sector.animals && (farm.dairy_cows ?? 0) + (farm.beef_cattle ?? 0) > 0) return false;
-  return !(farm.parcels ?? []).some((p) => sector.crops.test(plainText(p.crop_id)));
+  return !!sector && !farmSectors(farm, data).has(sector.key);
 };
 
 const isOtherRegion = (o: StoredOpportunity, farmRegion: string | null, regions: string[]) => {
@@ -215,7 +256,7 @@ function reasonsFor(
   const limit = /maximum (\d+) de ani/.exec(title);
   if (limit && ctx.age > Number(limit[1])) doubts.push({ code: 'age_limit', vars: { limit: Number(limit[1]) } });
   else if (!limit && /tiner\w* fermier/.test(title)) doubts.push({ code: 'young_farmers' });
-  if (isOtherSector(title, ctx.farm)) doubts.push({ code: 'other_sector' });
+  if (isOtherSector(title, ctx.farm, ctx.data)) doubts.push({ code: 'other_sector' });
   if (/^trenul|autorit/.test(title) || /autorit|asociatie de dezvoltare/.test(who)) doubts.push({ code: 'institutions_only' });
   // The farm has no legal form on file, so it's taken to be a person, as most small farms are.
   const guide = ctx.data.fundingGuides.guides.find((g) => g.code === callCode(o.title));

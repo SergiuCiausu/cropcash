@@ -52,7 +52,10 @@ cropcash/
 | Entitate | Câmpuri principale | Relații |
 |---|---|---|
 | `Farmer` | id, user_id (auth), name, birth_year, county, stripe_account_id, stripe_customer_id, test_clock_id, start_balance_bani, created_at | 1–N Parcel, ExpectedPayment, Envelope, Transaction, Payout, FuelLog; 0–1 PensionPlan |
-| `Parcel` | id, farmer_id, crop_id, area_ari (sutimi de ha), is_arable, unproductive_ari | N–1 Farmer, N–1 Crop |
+| `Parcel` | id, farmer_id, crop_id, area_ari (sutimi de ha), is_arable, unproductive_ari | N–1 Farmer, N–1 Crop. De la migrarea 020 e **totalul pe cultură** din anul de recoltă al planului: e mereu suma `PlotSeason` din anul ăla (vezi mai jos) |
+| `Plot` (parcelă = o bucată de pământ, 020) | id, farmer_id, name?, county, siruta?, village_siruta?, bloc_fizic?, parcel_no?, lpis_fbid?, land_use?, geometry (GeoJSON)?, shape (desenul)?, centroid, geometry_source (lpis/drawn/coords/approx/none), auto_crop_id?, archived_at? | N–1 Farmer, 1–N PlotSeason, PlotOperation, Transaction |
+| `PlotSeason` (020) | plot_id, harvest_year (= anul campaniei APIA), crop_id?, apia_crop_code?, area_ari, sown_on?, harvested_on?, second_crop_id? | N–1 Plot. Istoricul pe ani al aceleiași bucăți de pământ |
+| `PlotOperation` (020) | id, plot_id, harvest_year, kind (soil_work, sowing, fertilizing, herbicide, fungicide, insecticide, irrigation, harvest, other), status (done/planned), on_date?, product?, dose?, transaction_id?, template_id? | N–1 Plot, 0–1 Transaction |
 | `Crop` | id ('grau', 'porumb', 'floarea-soarelui'), name_ro | date de referință din `crops-reference.json` (nu se ține în DB) |
 | `SubsidyScheme` | code, name_ro, unit, amount_eur, fund, ... | din `subsidies-2026.json` (nu se ține în DB) |
 | `ExpectedPayment` | id, farmer_id, kind (apia_advance, apia_balance, crop_sale, fuel_refund, credit, other_in, input_cost, rent, loan_repayment, tax, other_out), direction (in/out), amount_min_bani, amount_probable_bani, amount_max_bani, window_start, window_end, scheme_code?, status (planned/received/cancelled) | N–1 Farmer |
@@ -66,6 +69,10 @@ cropcash/
 | `opportunities` (monitorul) | stable_key, kind (afir/mipe/ec), programme, title, status, open_date, deadline, budget_eur, applicants, relevance, confidence, url | scrise doar de `subventii-monitor` cu cheia secretă. Tabelul vechi `funding_opportunities` a fost scos (migrarea 008). |
 
 Banii se țin în **bani, ca numere întregi** (`bigint`), niciodată ca float.
+
+**Parcele și culturi (020, `docs/harta-plan.md`).** Fermierul se gândește pe bucăți de pământ, planul de bani pe culturi. Hectarele unei culturi care nu sunt încă pe hartă stau pe o singură parcelă „fără loc” a culturii (`auto_crop_id`). Când fermierul schimbă hectarele pe cultură (onboarding, „Date plan”), se mută doar hectarele fără loc; un total mai mic decât ce e deja pe hartă e refuzat. Când pune o parcelă pe hartă (`save_plots`), hectarele ei se iau întâi din cele fără loc, iar `parcels` se rescrie din sezoane. Aceleași reguli sunt în `packages/shared/src/plots/totals.ts`, pentru ferma lui Ion și offline. O cheltuială sau o vânzare poate avea `plot_id`; fără el, se împarte pe suprafață între parcelele culturii (sau ale fermei). Cheia `(plot_id, farmer_id)` refuză parcela altei ferme. Parcelele, sezoanele și lucrările nu sunt în `/api/me`: vin din `GET /api/plots`, iar telefonul ține ultimul răspuns (`cropcash-plots`). Ferma lui Ion își face parcelele pe telefon, pe blocurile ei reale din LPIS, cu lucrările de demo din `demo-ion.json` (`plot_work`); `seed:demo` le pune la fel în contul de demo.
+
+**Locuri și blocuri de referință (034, `docs/harta-plan.md` pasul 1b).** Satele și comunele din Teleorman și Constanța (SIRUTA s1 2026 de la INS, punctele satelor din OpenStreetMap) stau în `docs/data/siruta-tr-ct.json`, care vine cu aplicația: fișa parcelei spune „satul Măldăeni, comuna Măldăeni” și fără net. Copia blocurilor din LPIS (`lpis_blocs`, `siruta_units`, PostGIS) e citită de API înaintea APIA (`apps/api/src/lpis/db.ts`); cât timp copia e goală sau migrația nu e aplicată, răspunde APIA. Copia se umple doar cu `npm run geo:import`, deocamdată numai într-o bază de test (întrebarea 1 din plan, condițiile APIA).
 
 **Plățile planificate se calculează, nu se salvează** (decizie la pasul 4). Calendarul (`buildTimeline` din `packages/shared/src/cashflow`) se generează din fermă, subvenții și `docs/data`, direct pe telefon. Așa merge și offline și nu rămâne nimic învechit în baza de date când se schimbă JSON-urile. În `expected_payments` intră doar ce nu se poate calcula: creditul declarat de fermier (pasul 5) și plățile primite efectiv (pasul 6, din webhooks).
 
@@ -287,6 +294,8 @@ Complexitate O(H). E o funcție pură, deci testabilă cu tabele de date.
 
 Un fel de an e definit de recoltă, din istoricul INS al județului (AGR110A, `cashflow/county-yields.ts`, parametrii în `plan-params.json` → `yield_history`). Un județ cu prea puține recolte raportate folosește media pe țară, iar producția notată de fermier devine anul normal, cu același raport pentru anul slab și cel bun. Prețul și costurile nu se schimbă de la un fel de an la altul (P4). Un an slab se simte în primăvara de după: `afterBadHarvest` (24 de luni) arată punctul cel mai de jos și salariul care ține.
 
+**Ce nu ajunge la recoltă** (`docs/crop-loss-plan.md`). Fermierul spune, pe cultură și pe recoltă, câte hectare n-a putut strânge (`harvests.years[].parcels[].lost`, cu motivul și luna). Un răspuns lipsă înseamnă „nu știm”, iar 0 e un răspuns. Vânzarea se socotește pe hectarele recoltate (`semănate × (1 − cota)`), iar costurile rămân pe tot ce s-a semănat. Cota vine, în ordine, din pierderea deja spusă pentru recolta aceea, din procentul scris de fermier în Datele planului (`expected.lossPct`) și din istoric: Σ pierdute ÷ Σ semănate pe ultimele `window_years` recolte cu răspuns, de la `min_years` în sus (`plan-params.json` → `crop_loss`, alegeri de produs). E aceeași în anul slab, normal și bun, pentru că anul slab din INS e deja un an de secetă. Procentul fermierului și istoricul se scad doar când producția e a fermierului: media județului poate număra deja câmpurile pierdute (P33). Producția notată în Recolte e pe hectarul recoltat. Totul e socotit pe telefon (`farm/crop-loss.ts`, `farmLoss` în `cashflow/farm-plan.ts`), deci merge offline.
+
 **Venitul pe cultură** = `ha × producție × 1000 × preț`. Pentru Ion (8 ha grâu, 7 ha porumb):
 
 | | Bun | Mediu | Secetă |
@@ -322,10 +331,17 @@ Fondul pentru ani proști a fost scos pe 7 nov 2026, la cererea echipei. Anul sl
 | GET | `/api/weather` | prognoza pe 7 zile pentru județul fermei, din Open-Meteo, păstrată 3 ore pe județ |
 | POST | `/api/assistant` | conversația (doar text) către asistent; întoarce răspunsul, sursele, cifrele neconfirmate și acțiunile de confirmat. Confirmarea e apăsarea fermierului, care trimite ruta obișnuită a funcției (§11) |
 | POST | `/api/functions/:name` | rulează o funcție `read` din registru pe ferma fermierului |
+| POST | `/api/documents/read` | citește o hârtie (poze sau PDF) cu Claude și întoarce câmpurile verificate, fără să salveze nimic. Merge și fără fermă, pentru onboarding |
 | POST | `/api/notifications/subscriptions` | (pasul 9f, nefăcut) salvează abonamentul Web Push al telefonului |
 | POST | `/api/webhooks/stripe` | webhooks (platformă și Connect) |
 
 Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Supabase>`. API-ul verifică token-ul și scoate `user_id` din el.
+
+**Hârtiile și datele personale (din 14 nov 2026).** AI-ul copiază doar ce e tipărit, iar codul face restul (`packages/shared/src/documents`). Dintr-o factură, o hârtie de vânzare sau o decizie nu se citesc nume, CNP, cont sau adresă. Din **cererea de plată** se citesc numele (câmpurile 01–02, sau 09–10 la PFA/II/firmă), CNP-ul (03 sau 11) și județul (26, altfel 15). Reguli:
+- CNP-ul nu iese din API. `normalizeReading` verifică cifra de control, scoate din el vârsta la ziua citirii (P32) și îl aruncă. `DocumentReading` nu are câmp pentru CNP, iar testele verifică că nu apare în răspuns, în reluarea din `ReplayCache` sau în log.
+- IBAN-ul, adresa, telefonul, e-mailul și împuternicitul nu se citesc deloc.
+- Culturile se potrivesc după codul APIA din `crops-reference.json` (`apia_codes`). Doar un rând fără cod trece pe potrivirea AI-ului după nume.
+- Telefonul primește numele, vârsta și județul și le pune în formular. Ce ajunge pe server e doar ce salvează fermierul, ca la scrisul de mână.
 
 ## 8. Offline
 
@@ -343,6 +359,7 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 3. **Calculele rulează pe telefon:** motorul de subvenții, netezirea, scenariile și pensia sunt în `packages/shared`, adică funcții pure importate și în frontend. Offline poți schimba scenariul sau slider-ul de pensie și vezi rezultatul imediat.
 4. **Scrierile mărunte** (sarcină „Am făcut”, o intrare la motorină) intră într-o **outbox** în IndexedDB și se trimit automat când revine netul. Există un singur utilizator pe cont, deci nu apar conflicte reale. Regula: câștigă ultima scriere.
 5. **Tot ce mișcă bani** (confirmarea plicurilor, pornirea pensiei, simularea avansului, avansarea timpului) **cere net**. Nu punem bani în coadă. Înregistrarea unei vânzări sau cheltuieli nu mută bani, doar notează ce s-a întâmplat, așa că intră în outbox (`docs/f4-screens.md`).
+6. **Harta** (`docs/harta-plan.md`, pasul 11). Parcelele vin din copia de pe telefon (`cropcash-plots`), deci lista, cele două vederi, filtrele și cardurile merg fără net. Lucrările pe parcele (`add_operation`, `update_operation`) și desenul unei parcele (`update_plot`) intră în outbox, pentru că doar notează ce s-a făcut pe pământ. Pagina le arată imediat (`withPendingPlotWrites`), cu „se trimite când ai internet”, iar după trimitere parcelele se cer din nou. O lucrare încă în coadă, marcată apoi „făcut”, se schimbă direct în coadă. O lucrare notată offline odată cu o cheltuială nu e legată de ea, pentru că cheltuiala nu are încă id. Service worker-ul ține ultimele ~300 de bucăți din harta de bază (OpenFreeMap și relieful, cache-first, cele mai vechi pleacă primele; `plots-params.json` → `map_tile_cache_max`), deci zona fermei se vede de obicei și fără net. Stilul hărții vine întâi din rețea, apoi din copie. Satelitul nu se păstrează, ca să nu consume cota MapTiler. Fără bucăți de hartă, parcelele se desenează pe fundal gol, cu „Harta are nevoie de internet”.
 
 ### Când rețeaua merge prost
 
@@ -364,8 +381,14 @@ Detaliile, pe fiecare caz, sunt în `docs/failure-handling-plan.md`.
 | Subvenția recalculată după o schimbare de hectare | ✅ calculată local; salvarea merge în outbox | — |
 | Sarcini „Am făcut”, intrări la motorină | ✅ prin outbox | „Se trimite când ai internet.” |
 | Vânzări și cheltuieli înregistrate, schimbarea datelor fermei și a planului | ✅ prin outbox; salariul apare „provizoriu” până se trimit | „Se trimite când ai internet.” |
+| Harta (`/harta`, mini-harta): lista, vederile, filtrele, cardurile | ✅ din copia parcelelor de pe telefon; harta de bază din bucățile păstrate, altfel fundal gol | „Fără internet. Arătăm parcelele așa cum erau pe {data}.” / „Harta are nevoie de internet.” |
+| Lucrări pe parcelă („Marchează făcut”, „Adaugă lucrare”, tratamentul de la o cheltuială) și desenul unei parcele | ✅ prin outbox, arătate imediat pe card | „se trimite când ai internet” |
+| Satelitul, blocurile APIA pe hartă, căutarea blocului, citirea cererii APIA, salvarea parcelelor din cerere | ❌ (`NetButton`) | „Satelitul are nevoie de internet.” / „Blocurile APIA au nevoie de internet.” / „Fără internet nu putem căuta blocul…” |
 | Login (prima dată) | ❌ | „Pornește internetul ca să intri în cont.” |
 | O pagină a fermei, cu sesiune dar fără copia fermei pe telefon | ❌ | „Pornește internetul o dată.” Pagina pornește singură când revine netul. |
+| Rapoartele PDF (`/rapoarte`) | ✅ făcute pe telefon din copia fermei; codul PDF și fontul sunt în service worker | — |
+| Invitațiile (`/rapoarte` → „Cine mai vede rapoartele”, `/invitatie`) | ❌ cer internet (`NetButton`); nimic nu intră în coadă | — |
+| Rapoartele contabilului (`/contabil`) | ✅ din ultima copie a fermei adusă pe telefonul lui (`cropcash-member-farm-<id>`) | lista fermelor și copia nouă cer internet |
 | Ferma lui Ion (`/ferma-lui-ion/*`) | ✅ toată, calculată pe telefon. Ce schimbi rămâne doar pe acest dispozitiv | — |
 | Skeletonul de încărcare | ✅ e în HTML-ul static, salvat de service worker | — |
 | Confirmarea împărțirii pe plicuri | ❌ | „Pornește internetul ca să muți banii.” |
@@ -457,3 +480,42 @@ Asistentul (pașii 9c–9d) e făcut. Vocea (9e) a fost scoasă pe 8 noiembrie 2
 - Job-urile rulează pe VPS, lângă `payoutScheduler`.
 - Fiecare mesaj ajunge și în cardul „Mesaje”, ca să nu se piardă dacă Web Push e refuzat sau nu merge pe telefon.
 - Sumele exacte nu apar pe ecranul blocat.
+
+## 12. Panoul de administrare (`/admin`)
+
+Planul și starea pașilor sunt în `docs/admin-panel-plan.md`. Pe scurt:
+
+**Ce se poate schimba.**
+- Doar cifrele din `EDITABLE_FACTORS` (`packages/shared/src/data/factors.ts`), cam 160:
+  - costuri, producții și prețuri pe culturi;
+  - cuantumuri și condiții APIA, cursul și istoricul subvențiilor;
+  - anul slab/normal/bun și cât de departe se uită planul;
+  - rotunjiri, credit, pensie, calendar și pragul de îngheț.
+- Legile, datele oficiale și ce ține de fermier (suprafețe, vânzări) nu se schimbă de aici.
+- Fiecare cifră se alege printr-o cale, de exemplu `crops.crops[id=grau].price_lei_per_kg.mean`. `[cheie=valoare]` alege elementul după câmpurile lui, nu după poziție, așa că o reordonare a JSON-ului nu mută schimbările.
+
+**Excepție de la „cifrele vin doar din `docs/data`”.** Fișierele rămân sursa și baza.
+- Peste ele se pune versiunea publicată din Supabase:
+  - `prediction_versions`: istoricul;
+  - `prediction_overrides`: cifra, valoarea și motivul, obligatoriu;
+  - migrația `025`.
+- O versiune e setul întreg de schimbări, nu o diferență, și se publică atomic prin `publish_prediction_version`.
+- Versiunile nu se rescriu: „Înapoi la asta” publică o versiune nouă cu setul vechi.
+- `applyOverrides` validează setul cu Zod și cu verificări între cifre (min ≤ medie ≤ max, cheltuielile pe luni adună 100% etc.) înainte de orice publicare.
+
+**Cine vede ce.**
+- **Fermele cu cont:**
+  - API-ul ține versiunea în vigoare în memorie (`predictions/source.ts`) și o dă tuturor rutelor prin `liveData`, deci și salariului plătit prin Stripe și asistentului.
+  - Telefonul o citește din `/api/prediction-data` și păstrează o copie (`cropcash-prediction-data`), deci ecranele dau aceleași cifre ca API-ul și offline.
+  - Fără copie, telefonul folosește fișierele.
+- **Ferma lui Ion fără cont (`/ferma-lui-ion`):** rămâne mereu pe fișiere și nu cheamă API-ul.
+
+**Cine e administrator.**
+- Emailurile din `ADMIN_EMAILS`, sau `DEMO_EMAIL` dacă lista e goală. API-ul verifică token-ul la fiecare apel (`requireAdmin`).
+- Telefonul arată linkul „Administrare” doar când `/api/prediction-data` spune `admin: true`.
+- Administratorii pot adăuga și îngrășăminte în catalog. `CATALOGUE_EDITORS` adaugă oameni care pot edita catalogul fără să fie administratori.
+
+**Offline.**
+- Cifrele și ciorna (`cropcash-admin-draft`) merg fără net. Previzualizarea „Acum / Cu ciorna”, pe ferma ta sau a lui Ion, se calculează pe telefon cu aceeași funcție ca API-ul.
+- Publicarea și istoricul cer net (`NetButton`) și nu intră niciodată în coadă.
+- Dacă altcineva a publicat între timp, API-ul răspunde 409. Ciorna rămâne, iar cifrele se reîncarcă.

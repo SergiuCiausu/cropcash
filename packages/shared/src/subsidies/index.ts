@@ -15,6 +15,7 @@ import {
   type Range,
 } from '../money';
 import { buildProfile, type FarmInput, type FarmProfile } from './profile';
+import { diversificationKeyOf } from '../data/catalogue';
 import { checkEligibility, type FailedCondition, type UnverifiedRule } from './rules';
 import { computeRangeFactors, type RangeFactors } from './range';
 
@@ -46,6 +47,8 @@ export interface SchemeResult {
   factors: RangeFactors;
   schemeStatus: Scheme['status'];
   unverified: UnverifiedRule[];
+  /** Set on an estimated scheme: the amount is a past year's, not this campaign's. */
+  estimate?: { basisYear: number; status: Scheme['status']; sourceUrl: string | null; note?: string };
 }
 
 export interface NotEligible {
@@ -65,8 +68,13 @@ export interface SubsidyResult {
   decision?: ApiaDecision;
   schemes: SchemeResult[];
   notEligible: NotEligible[];
-  /** Eligible but not counted (e.g. PD-28 without a 2026 amount). */
+  /** Eligible but not counted, with no amount at all to estimate from. */
   excluded: Excluded[];
+  /**
+   * Eligible, no amount for this campaign yet, priced at a past year's amount. Never in the totals,
+   * so the salary and pension don't plan on money nobody has announced.
+   */
+  estimated: SchemeResult[];
   /** confirmed = an official rate from docs/data; overrides and defaults are not confirmed. */
   rates: Record<Fund, { value: number; confirmed: boolean }>;
   totals: {
@@ -144,9 +152,9 @@ function computeScheme(
  * split into advance and balance. Pure: all figures come from `data`.
  */
 /** The farm as one scheme sees it: some schemes ignore parcels under a minimum size. */
-export function profileForScheme(farm: FarmInput, scheme: Scheme): FarmProfile {
+export function profileForScheme(farm: FarmInput, scheme: Scheme, data?: Pick<AppData, 'crops' | 'catalogue'>): FarmProfile {
   const minParcel = scheme.eligibility.parcel_min_ha;
-  return buildProfile(farm, minParcel ? haToAri(minParcel.value) : 0);
+  return buildProfile(farm, minParcel ? haToAri(minParcel.value) : 0, data ? diversificationKeyOf(data) : undefined);
 }
 
 export function computeSubsidies(farm: FarmInput, data: AppData, params: SubsidyParams = {}): SubsidyResult {
@@ -154,10 +162,11 @@ export function computeSubsidies(farm: FarmInput, data: AppData, params: Subsidy
   const schemes: SchemeResult[] = [];
   const notEligible: NotEligible[] = [];
   const excluded: Excluded[] = [];
+  const estimated: SchemeResult[] = [];
 
   for (const scheme of data.subsidies.schemes) {
     if (!scheme.enabled) continue;
-    const profile = profileForScheme(farm, scheme);
+    const profile = profileForScheme(farm, scheme, data);
     const check = checkEligibility(scheme, profile);
 
     if (!check.eligible) {
@@ -165,7 +174,22 @@ export function computeSubsidies(farm: FarmInput, data: AppData, params: Subsidy
       continue;
     }
     if (scheme.amount_eur === null) {
-      excluded.push({ code: scheme.code, nameRo: scheme.name_ro, reason: 'amount_unknown' });
+      const guess = scheme.estimate;
+      if (!guess) {
+        excluded.push({ code: scheme.code, nameRo: scheme.name_ro, reason: 'amount_unknown' });
+        continue;
+      }
+      const result = computeScheme(
+        { ...scheme, amount_eur: guess.amount_eur },
+        profile,
+        computeRangeFactors(data.history, scheme.code),
+        rates[scheme.fund].value,
+        check.unverified,
+      );
+      estimated.push({
+        ...result,
+        estimate: { basisYear: guess.basis_year, status: guess.status, sourceUrl: guess.source_url, ...(guess.note ? { note: guess.note } : {}) },
+      });
       continue;
     }
     const factors = computeRangeFactors(data.history, scheme.code);
@@ -214,6 +238,7 @@ export function computeSubsidies(farm: FarmInput, data: AppData, params: Subsidy
     schemes,
     notEligible,
     excluded,
+    estimated,
     rates,
     totals: { eur, lei, advanceEur, advanceLei, balanceEur, balanceLei },
   };

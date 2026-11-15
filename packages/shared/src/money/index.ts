@@ -107,3 +107,40 @@ export function addRanges(a: Range, b: Range): Range {
 }
 
 export const ZERO_RANGE: Range = Object.freeze({ min: 0, probable: 0, max: 0 });
+
+/* ---- Per hectare or total ----
+   A figure can be typed or read for the whole area or per hectare. What is saved never changes;
+   these convert at the edges. Areas are integer ari, so lei/ha × ari is exact in bani. */
+
+/** Whole lei per hectare over an area -> bani for the whole area. Exact. */
+export function perHaToBani(leiPerHa: number, ari: Ari): Bani {
+  assertInt(leiPerHa, 'leiPerHa');
+  assertInt(ari, 'ari');
+  return leiPerHa * ari;
+}
+
+/** Bani for a whole area -> whole lei per hectare, rounded half-up. Null without hectares. */
+export function baniToPerHaLei(bani: Bani, ari: Ari): number | null {
+  assertInt(bani, 'bani');
+  assertInt(ari, 'ari');
+  return ari > 0 ? Math.round(bani / ari) : null;
+}
+
+/** Bani for a whole area -> bani per hectare, for display. Null without hectares. */
+export function perHaBani(bani: Bani, ari: Ari): Bani | null {
+  assertInt(bani, 'bani');
+  assertInt(ari, 'ari');
+  return ari > 0 ? Math.round((bani * 100) / ari) : null;
+}
+
+/** Tonnes for a whole area -> tonnes per hectare, to 2 decimals. Null without hectares. */
+export function tonnesToPerHa(tonnes: number, ari: Ari): number | null {
+  assertInt(ari, 'ari');
+  return ari > 0 ? Math.round((tonnes * 10_000) / ari) / 100 : null;
+}
+
+/** Tonnes per hectare over an area -> tonnes, to 2 decimals. */
+export function perHaToTonnes(tPerHa: number, ari: Ari): number {
+  assertInt(ari, 'ari');
+  return Math.round(tPerHa * ari) / 100;
+}

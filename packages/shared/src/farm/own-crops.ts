@@ -1,4 +1,4 @@
-import type { AppData, Crop } from '../data';
+import type { AppData, CatalogueCrop, Crop } from '../data';
 import type { OwnCrop } from './harvests';
 
 /** Ids of the farmer's own crops start with this, so they can never clash with docs/data. */
@@ -18,7 +18,7 @@ function monthsBetween(from: number, to: number): number[] {
  * uses the bad yield when given, otherwise it is the normal one too. Care costs are split evenly over
  * the months the crop grows, and the crop sells in the month it is harvested.
  */
-export function ownCropToCrop(own: OwnCrop): Crop {
+export function ownCropToCrop(own: OwnCrop, line?: Pick<CatalogueCrop, 'code' | 'apia_name' | 'genus'>): Crop {
   const { sowingLeiPerHa, careLeiPerHa, harvestLeiPerHa } = own.costs;
   const total = sowingLeiPerHa + careLeiPerHa + harvestLeiPerHa;
   const growing = monthsBetween(own.sowingMonth, own.harvestMonth);
@@ -39,12 +39,14 @@ export function ownCropToCrop(own: OwnCrop): Crop {
     harvest_month: own.harvestMonth,
     sale_month_default: own.harvestMonth,
     status: 'de-la-fermier',
+    ...(line ? { apia_name: line.apia_name, genus: line.genus } : {}),
   };
 }
 
 /** docs/data with the farm's own crops added. A crop already there is left as it is. */
 export function withOwnCrops(data: AppData, own: OwnCrop[] | null | undefined): AppData {
   const known = new Set(data.crops.crops.map((c) => c.id));
-  const extra = (own ?? []).filter((c) => !known.has(c.id)).map(ownCropToCrop);
+  const lines = new Map((data.catalogue ?? []).map((c) => [c.code, c]));
+  const extra = (own ?? []).filter((c) => !known.has(c.id)).map((c) => ownCropToCrop(c, c.apiaCode ? lines.get(c.apiaCode) : undefined));
   return extra.length ? { ...data, crops: { ...data.crops, crops: [...data.crops.crops, ...extra] } } : data;
 }

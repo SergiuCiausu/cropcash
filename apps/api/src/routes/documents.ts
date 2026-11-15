@@ -68,7 +68,7 @@ export function documentsRouter({ verifyToken, read, data, now }: DocumentsDeps)
       const outcome = await (kept ??
         readings.run(key, async (): Promise<Outcome> => {
           const raw = await read(parsed.data.files);
-          return raw ? { reading: normalizeReading(raw, data) } : { unreadable: true };
+          return raw ? { reading: normalizeReading(raw, data, todayInRomania(now())) } : { unreadable: true };
         }));
       if ('unreadable' in outcome) {
         res.status(422).json({ error: 'unreadable' });

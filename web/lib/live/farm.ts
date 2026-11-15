@@ -1,5 +1,5 @@
 import type { AppData } from '../../../packages/shared/src/data/index';
-import { ageFromBirthYear, recordHarvestYear, withOwnCrops, type HarvestsInput, type MovedMoney } from '../../../packages/shared/src/farm/index';
+import { ageFromBirthYear, recordHarvestYear, withOwnCrops, type CropLoss, type HarvestsInput, type MovedMoney, type Sowing } from '../../../packages/shared/src/farm/index';
 
 /** The part of `/api/me` the pages read. The saved copy holds all of it. */
 export interface MeFarm {
@@ -22,6 +22,20 @@ export interface MeFarm {
   stripe_account_id?: string | null;
   pension_fund_id?: string | null;
   payouts?: { id: string; status: string }[];
+  /** The farmer's own calendar events (migration 023). */
+  farm_events?: import('../../../packages/shared/src/calendar/events').StoredEvent[];
+  /** The farm's people (migration 026), archived ones too. */
+  employees?: import('../../../packages/shared/src/payroll/index').StoredEmployee[];
+  /** „Lucrările pe câmp le fac oamenii tăi?” Null: not asked yet. */
+  own_field_work?: boolean | null;
+  /** „Cum lucrezi pământul?” and the arendă hectares, in ari (migration 032). */
+  farm_mode?: 'own' | 'arendas';
+  leased_in_ari?: number | null;
+  leased_out_ari?: number | null;
+  /** Landowners and arendă contracts, archived ones too, and „Câți proprietari ai?” (migration 033). */
+  landowners?: import('../../../packages/shared/src/arenda/contracts').StoredLandowner[];
+  lease_contracts?: import('../../../packages/shared/src/arenda/contracts').StoredContract[];
+  landowner_count?: number | null;
 }
 
 const list = (names: string[]) =>
@@ -90,9 +104,16 @@ export interface PageRecord {
   category?: string;
   /** Money that arrived through Stripe: it shows on the page, but the farmer can't remove it. */
   fixed?: true;
+  /** For the accountant and the diesel refund (migration 027). Litres in hundredths. */
+  docNo?: string;
+  counterparty?: string;
+  fuelLitersCl?: number;
+  /** A salary expense: whose pay it was, and their name (migration 026). */
+  employeeId?: string;
+  who?: string;
 }
 
-const pageRecord = (t: MeFarm['transactions'] extends (infer R)[] | undefined ? R : never): PageRecord | null => {
+const pageRecord = (t: MeFarm['transactions'] extends (infer R)[] | undefined ? R : never, names: Map<string, string>): PageRecord | null => {
   const own = t.kind === 'sale' || t.kind === 'expense';
   if (!own && t.kind !== 'crop_sale' && t.kind !== 'apia_advance' && t.kind !== 'apia_balance') return null;
   return {
@@ -103,6 +124,10 @@ const pageRecord = (t: MeFarm['transactions'] extends (infer R)[] | undefined ? 
     ...(t.crop_id ? { cropId: t.crop_id } : {}),
     ...(t.category ? { category: t.category } : {}),
     ...(own ? {} : { fixed: true as const }),
+    ...(t.doc_no ? { docNo: t.doc_no } : {}),
+    ...(t.counterparty ? { counterparty: t.counterparty } : {}),
+    ...(t.fuel_liters_cl ? { fuelLitersCl: t.fuel_liters_cl } : {}),
+    ...(t.employee_id ? { employeeId: t.employee_id, ...(names.has(t.employee_id) ? { who: names.get(t.employee_id)! } : {}) } : {}),
   };
 };
 
@@ -120,18 +145,25 @@ export function harvestsFromServer(me: MeFarm, year: number, data: AppData, view
     openingBani: me.start_balance_bani,
     parcels: [...me.parcels]
       .sort((a, b) => b.area_ari - a.area_ari)
-      .map((p) => ({
-        ...before?.parcels.find((x) => x.cropId === p.crop_id),
-        cropId: p.crop_id,
-        areaHa: p.area_ari / 100,
-        ...(p.planted_month ? { plantedMonth: p.planted_month } : {}),
-      })),
+      .map((p) => {
+        const { lost, ...saved } = before?.parcels.find((x) => x.cropId === p.crop_id) ?? {};
+        const areaHa = p.area_ari / 100;
+        return {
+          ...saved,
+          cropId: p.crop_id,
+          areaHa,
+          ...(p.planted_month ? { plantedMonth: p.planted_month } : {}),
+          // A loss larger than the crop's hectares now would make every save fail, so it goes.
+          ...(lost && lost.ha <= areaHa ? { lost } : {}),
+        };
+      }),
   };
   const years = [...saved.filter((y) => y.year !== year), current].sort((a, b) => a.year - b.year);
   const known = new Set(years.map((y) => y.year));
   const crops = withOwnCrops(data, me.harvests?.ownCrops).crops.crops;
+  const names = new Map((me.employees ?? []).map((e) => [e.id, e.name]));
   const rows = (me.transactions ?? []).flatMap((t) => {
-    const record = pageRecord(t);
+    const record = pageRecord(t, names);
     return record ? [{ record, year: recordHarvestYear(t, crops) }] : [];
   });
   const items = years.map((y) => ({
@@ -182,7 +214,7 @@ interface PageHarvest {
   openingBani: number;
   illustrative?: boolean;
   planned?: Planned;
-  parcels: { cropId: string; areaHa: number; plantedMonth?: string; status?: 'open' | 'closed'; planned?: Planned }[];
+  parcels: { cropId: string; areaHa: number; plantedMonth?: string; sowing?: Sowing; status?: 'open' | 'closed'; planned?: Planned; lost?: CropLoss }[];
 }
 
 /** What gets saved from Recolte's state. Records live in transactions, so they stay out. */
@@ -203,8 +235,10 @@ export function harvestsDocument(state: {
           cropId: p.cropId,
           areaHa: p.areaHa,
           ...(p.plantedMonth ? { plantedMonth: p.plantedMonth } : {}),
+          ...(p.sowing ? { sowing: p.sowing } : {}),
           ...(p.status ? { status: p.status } : {}),
           ...(p.planned ? { planned: wholePlanned(p.planned) } : {}),
+          ...(p.lost ? { lost: p.lost } : {}),
         })),
         ...(h.planned ? { planned: wholePlanned(h.planned) } : {}),
       })),
@@ -223,7 +257,15 @@ export function onboardingHarvests(input: {
   before?: HarvestsInput | null;
 }): HarvestsInput {
   const others = (input.before?.years ?? []).filter((y) => y.year !== input.year);
-  const year = { year: input.year, status: 'open' as const, openingBani: input.openingBani, parcels: input.parcels };
+  // Onboarding doesn't ask how a crop was sown or what was lost, so what Recolte saved for it stays.
+  const saved = new Map((input.before?.years.find((y) => y.year === input.year)?.parcels ?? []).map((p) => [p.cropId, p]));
+  const parcels = input.parcels.map((p) => {
+    const sowing = p.sowing ?? saved.get(p.cropId)?.sowing;
+    const lost = p.lost ?? saved.get(p.cropId)?.lost;
+    // A loss larger than the hectares onboarding now gives the crop no longer means anything.
+    return { ...p, ...(sowing ? { sowing } : {}), ...(lost && lost.ha <= p.areaHa ? { lost } : {}) };
+  });
+  const year = { year: input.year, status: 'open' as const, openingBani: input.openingBani, parcels };
   const { expected, ownCrops } = input.before ?? {};
   return {
     years: [...others, year].sort((a, b) => a.year - b.year),

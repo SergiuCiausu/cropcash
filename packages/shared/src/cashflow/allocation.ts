@@ -3,8 +3,9 @@ import { applyPct } from '../money';
 import type { Timeline } from './timeline';
 
 /** The database enum still has 'risk_fund', from the bad-year fund that was removed. It is never used. */
-export type EnvelopeKind = 'spring_inputs' | 'debts' | 'salary' | 'pension';
-export const ENVELOPE_KINDS: EnvelopeKind[] = ['salary', 'spring_inputs', 'debts', 'pension'];
+export type EnvelopeKind = 'spring_inputs' | 'debts' | 'salary' | 'pension' | 'payroll';
+/** 'payroll' ("Salariile oamenilor") came with migrations 030–031: the pay of the farm's people. */
+export const ENVELOPE_KINDS: EnvelopeKind[] = ['salary', 'payroll', 'spring_inputs', 'debts', 'pension'];
 
 export type Envelopes = Record<EnvelopeKind, Bani>;
 
@@ -19,10 +20,12 @@ export interface AllocationInput {
   monthsCovered: number;
   /** Declared credit repayments due before the next income (bani). */
   debtsDue: Bani;
+  /** The people's pay due before the next income (bani). Left out: none. */
+  payrollDue?: Bani;
 }
 
 /**
- * Proposes how to split money into envelopes. Order: debts,
+ * Proposes how to split money into envelopes. Order: debts, the people's pay,
  * pension and salary for the months covered, and the rest for farm costs.
  * Nothing is lost: the parts always add up to `amount`.
  */
@@ -34,10 +37,11 @@ export function proposeAllocation(a: AllocationInput): Envelopes {
     return v;
   };
   const debts = take(a.debtsDue);
+  const payroll = take(a.payrollDue ?? 0);
   const pension = take(a.pensionMonthly * a.monthsCovered);
   const salary = take(a.salary * a.monthsCovered);
   const spring_inputs = left;
-  return { salary, spring_inputs, debts, pension };
+  return { salary, payroll, spring_inputs, debts, pension };
 }
 
 /**

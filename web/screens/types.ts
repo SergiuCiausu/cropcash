@@ -3,8 +3,9 @@
 import type { ComponentType } from 'react';
 import type { DEMO_PAGES } from '../lib/paths';
 
-/** "acasa", "date-plan", …: the pages in lib/paths.ts, without the slash. */
-export type ScreenName = (typeof DEMO_PAGES)[number] extends `/${infer N}` ? N : never;
+/** "acasa", "date-plan", …: the pages in lib/paths.ts, without the slash, plus "admin" (signed-in only:
+    it has no copy on Ion's farm, which always shows the files' figures). */
+export type ScreenName = ((typeof DEMO_PAGES)[number] extends `/${infer N}` ? N : never) | 'admin';
 
 /** A screen: its title, and its content inside the store and the frame (components/app). */
 export interface ScreenDef {

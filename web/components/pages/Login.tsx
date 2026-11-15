@@ -3,7 +3,7 @@
    Needs internet, and says so. A farmer already signed in never stops here, online or not. */
 import { useEffect, useRef, useState } from 'react';
 import * as Live from '../../lib/live/index';
-import { AUTH_TEXT as TEXT } from '../../lib/live/auth';
+import { AUTH_TEXT as TEXT, isAccountPage } from '../../lib/live/auth';
 import { ErrorLine, Icon } from '../app/bits';
 
 type Mode = 'login' | 'register' | 'forgot' | 'new-password';
@@ -37,6 +37,8 @@ export default function Login() {
     setCanResend(false);
   };
   const enterApp = async () => location.replace(await Live.landingPage(next.current));
+  /* The email link brings an invited accountant back to their invitation (migration 028). */
+  const backHere = () => hereUrl(isAccountPage(next.current) ? `/login?next=${encodeURIComponent(next.current!)}` : '/login');
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -84,7 +86,7 @@ export default function Login() {
         await auth.setNewPassword(password);
         return await enterApp();
       } else {
-        const ready = await auth.signUp(email.trim(), password, hereUrl('/login'));
+        const ready = await auth.signUp(email.trim(), password, backHere());
         if (ready) return await enterApp();
         setMode('login');
         setInfo(TEXT.checkEmail);
@@ -104,7 +106,7 @@ export default function Login() {
     if (!navigator.onLine) return setError(TEXT.errors.offline);
     setBusy(true);
     try {
-      await Live.auth().resendConfirmation(email.trim(), hereUrl('/login'));
+      await Live.auth().resendConfirmation(email.trim(), backHere());
       setInfo(TEXT.resent);
     } catch (e) {
       setError(TEXT.errors[Live.authErrorKey(e, navigator.onLine)]);

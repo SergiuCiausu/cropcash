@@ -2,7 +2,7 @@ import type { AppData, Crop } from '../data';
 import type { Bani } from '../money';
 import type { MonthKey } from './dates';
 import { maxSafeSalary, type SalaryResult, type SmoothingOptions } from './smoothing';
-import type { AmountScenario, Timeline } from './timeline';
+import { harvestedAri, type AmountScenario, type Timeline } from './timeline';
 
 /**
  * Scenario views (docs/07 §5, screens Î1 and Î4). Pure: the phone recomputes them
@@ -117,11 +117,13 @@ export function saleRanges(crop: Crop) {
   };
 }
 
-export function saleForecast(crop: Crop, areaAri: number, input: SaleForecastInput): SaleForecast {
+/** `lossShare` (0–1) of the sown hectares doesn't reach harvest: production shrinks, the cost doesn't. */
+export function saleForecast(crop: Crop, areaAri: number, input: SaleForecastInput, lossShare = 0): SaleForecast {
   for (const [k, v] of Object.entries(input)) {
     if (!Number.isSafeInteger(v) || v < 0) throw new Error(`${k} must be a non-negative integer, got ${v}`);
   }
-  const productionKg = Math.round((areaAri * input.yieldKgPerHa) / 100);
+  if (!(lossShare >= 0 && lossShare <= 1)) throw new Error(`lossShare must be between 0 and 1, got ${lossShare}`);
+  const productionKg = Math.round((harvestedAri(areaAri, lossShare) * input.yieldKgPerHa) / 100);
   const income = productionKg * input.priceBaniPerKg;
   const cost = Math.round(areaAri * crop.cost_lei_per_ha.mean);
   return {

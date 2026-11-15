@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "description": "Pragurile hărții de parcele (docs/harta-plan.md). Nu sunt cifre oficiale: sunt alegeri de produs, citite de packages/shared/src/plots."
+  },
+  "match_overlap_min": {
+    "value": 0.6,
+    "status": "presupunere",
+    "note": "O parcelă nouă din cerere e propusă ca „aceeași cu anul trecut” când acoperă cel puțin 60% dintr-o parcelă existentă, chiar dacă numerele diferă. Fermierul confirmă."
+  },
+  "area_warning_pct": {
+    "value": 10,
+    "status": "presupunere",
+    "note": "La desen, avertizăm când suprafața desenată diferă cu peste 10% de cea declarată."
+  },
+  "todo_soon_days": {
+    "value": 30,
+    "status": "presupunere",
+    "note": "Filtrul „de făcut curând”: o lucrare cu termen în următoarele 30 de zile."
+  },
+  "curve_segments": {
+    "value": 16,
+    "status": "presupunere",
+    "note": "Câte puncte primește o latură curbă sau un colț rotunjit când desenul devine poligon. Nu e o cifră de bani, doar de desen."
+  },
+  "map_tile_cache_max": {
+    "value": 300,
+    "status": "presupunere",
+    "note": "Câte bucăți de hartă (tile-uri) ține telefonul de la ultimele vizite, ca harta din jurul fermei să se vadă și fără internet (docs/harta-plan.md, pasul 11). Cele mai vechi pleacă primele. Satelitul nu se păstrează. Nu e o cifră de bani, doar de spațiu pe telefon."
+  }
+}

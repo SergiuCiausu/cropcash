@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SowingSchema } from './sowing';
 import type { AppData } from '../data';
 
 const MAX_HA = 100_000;
@@ -18,13 +19,34 @@ const Tonnes = z.number().min(0).max(MAX_TONNES).nullable();
 /** What was planned when a crop or a year was closed, kept so the plan can't change afterwards. */
 const Planned = z.strictObject({ inBani: Bani, outBani: Bani, endBani: Bani.optional() });
 
-const HarvestCropSchema = z.strictObject({
-  cropId: CropId,
-  areaHa: Hectares,
-  plantedMonth: MonthKeySchema.optional(),
-  status: Status.optional(),
-  planned: Planned.optional(),
+/** Why part of a crop wasn't harvested. The Romanian labels live in web/. */
+export const LOSS_REASONS = ['drought', 'hail', 'flood', 'frost', 'pests', 'other'] as const;
+
+/**
+ * Hectares of a crop that weren't harvested at all (docs/crop-loss-plan.md). A thin crop that was
+ * still harvested is low yield, not loss. Left out means the farmer didn't say; 0 is an answer.
+ */
+export const CropLossSchema = z.strictObject({
+  ha: z.number().min(0).max(MAX_HA),
+  reason: z.enum(LOSS_REASONS).optional(),
+  /** When it happened. */
+  month: MonthKeySchema.optional(),
 });
+export type CropLoss = z.infer<typeof CropLossSchema>;
+
+const HarvestCropSchema = z
+  .strictObject({
+    cropId: CropId,
+    areaHa: Hectares,
+    plantedMonth: MonthKeySchema.optional(),
+    /** How deep and how far apart it was sown. Optional, so older documents stay valid. */
+    sowing: SowingSchema.optional(),
+    status: Status.optional(),
+    planned: Planned.optional(),
+    /** What didn't make it to harvest this year. Optional, so older documents stay valid. */
+    lost: CropLossSchema.optional(),
+  })
+  .refine((c) => !c.lost || c.lost.ha <= c.areaHa, { path: ['lost', 'ha'], message: 'lost_over_area' });
 
 const HarvestSchema = z.strictObject({
   year: HarvestYearSchema,
@@ -55,6 +77,8 @@ const ExpectedSchema = z.strictObject({
   priceLeiPerKg: z.number().positive().max(MAX_LEI_PER_KG).nullable(),
   /** The whole season's cost per hectare. Left out or null, the crop's average stays. */
   costLeiPerHa: CostLeiPerHa.nullable().optional(),
+  /** Share of the sown hectares that usually doesn't make it to harvest. Left out or null, the farm's history stays. */
+  lossPct: z.number().min(0).max(100).nullable().optional(),
 });
 
 const Month = z.number().int().min(1).max(12);
@@ -64,7 +88,9 @@ const LeiPerHa = z.number().int().min(0).max(1_000_000);
 export const OwnCropSchema = z
   .strictObject({
     id: z.string().regex(/^own-[a-z0-9-]{1,40}$/),
-    name: z.string().trim().min(1).max(40),
+    name: z.string().trim().min(1).max(120),
+    /** The APIA line (Tabel 1 code) the farmer picked for it, when there is one: names it and gives its genus. */
+    apiaCode: z.number().int().positive().optional(),
     yieldTPerHa: z.number().positive().max(MAX_TONNES_PER_HA),
     /** Null when the farmer doesn't know: a bad year is then the normal one. */
     badYieldTPerHa: z.number().positive().max(MAX_TONNES_PER_HA).nullable(),

@@ -66,6 +66,43 @@
     "status": "presupunere",
     "note": "La ce oră sună alarma, ca să nu sune la miezul nopții (P31)."
   },
+  "farmer_events": {
+    "carry_days": {
+      "value": 45,
+      "status": "presupunere",
+      "note": "O sumă din calendarul fermierului a cărei zi a trecut fără răspuns („Ai plătit?”) rămâne în plan, în luna curentă, cel mult atâtea zile. Apoi iese din plan."
+    },
+    "whole_harvest_window_months": {
+      "value": 6,
+      "status": "presupunere",
+      "note": "O vânzare marcată „E toată recolta” ia locul vânzării estimate a culturii, dacă sunt la cel mult atâtea luni una de alta."
+    },
+    "whole_harvest_match_pct": {
+      "value": 30,
+      "status": "presupunere",
+      "note": "„E toată recolta” e bifat de la început când suma scrisă e la cel mult atâtea procente de estimarea planului pentru cultura aceea."
+    },
+    "remind_options_days": {
+      "values": [0, 1, 3, 7],
+      "status": "presupunere",
+      "note": "Variantele pentru „Să-mi amintești”: în ziua aceea, cu 1, 3 sau 7 zile înainte."
+    },
+    "drivers_first_rows": {
+      "value": 5,
+      "status": "presupunere",
+      "note": "Câte rânduri arată „Ce schimbă cel mai mult prognoza” înainte de „Arată toate”."
+    },
+    "drivers_unsure_pct": {
+      "value": 25,
+      "status": "presupunere",
+      "note": "O sumă e „nesigură” când diferența dintre anul slab și anul bun e cel puțin atâtea procente din suma probabilă."
+    },
+    "drivers_small_lei": {
+      "value": 50,
+      "status": "presupunere",
+      "note": "Sub atâția lei pe lună, efectul asupra salariului e prea mic ca să-l spunem; rândul spune „schimbă puțin salariul”. E pasul de rotunjire al salariului (P8)."
+    }
+  },
   "opportunities_closing_soon_days": {
     "value": 14,
     "status": "presupunere",
@@ -78,9 +115,9 @@
       "note": "Cât poate avea o hârtie încărcată, cu toate paginile. Alegere a noastră."
     },
     "max_pages": {
-      "value": 6,
+      "value": 12,
       "status": "presupunere",
-      "note": "Câte poze pot fi pentru o singură hârtie. Alegere a noastră."
+      "note": "Câte poze pot fi pentru o singură hârtie. Alegere a noastră. Era 6. E 12 din 14 nov 2026, pentru că o cerere de plată are prima pagină și mai multe pagini cu parcele (II.A)."
     },
     "photo_long_side_px": {
       "value": 1600,
@@ -215,6 +252,10 @@
     "extreme_years": { "value": 3, "status": "presupunere", "note": "Anul slab e media celor mai slabi ani, anul bun a celor mai buni. 3 din 15 = un an din cinci." },
     "min_years": { "value": 12, "status": "presupunere", "note": "Cu mai puține recolte raportate în județ, folosim media pe țară." }
   },
+  "crop_loss": {
+    "window_years": { "value": 5, "status": "presupunere", "note": "Câte recolte ale fermei intră în media hectarelor pierdute la o cultură (docs/crop-loss-plan.md)." },
+    "min_years": { "value": 2, "status": "presupunere", "note": "Cu mai puține recolte în care fermierul a spus ce a pierdut, prognoza nu scade nimic: un singur an rău nu decide toate prognozele." }
+  },
   "long_forecast": {
     "max_years": {
       "value": 10,
@@ -223,6 +264,25 @@
     "subsidy_rules_until_year": {
       "value": 2027,
       "note": "PS PAC 2023–2027. După acest an subvențiile nu sunt stabilite, așa că prognoza le ține la fel (P25)."
+    }
+  },
+  "forecast": {
+    "plan_months": { "value": 12, "status": "presupunere", "note": "Câte luni înainte ține planul din care ies salariul, lunile grele și calendarul (P13)." },
+    "after_bad_harvest_months": { "value": 24, "status": "presupunere", "note": "Cât rulează „An slab”: destul cât să ajungă la primăvara de după următoarea recoltă, oricare ar fi luna de start." },
+    "projection_years": { "value": 3, "status": "presupunere", "note": "Proiecția pe trimestre: anul acesta și încă 2 (docs/06 Should #6)." },
+    "entry_day": { "value": 15, "status": "presupunere", "note": "Ziua din lună în care planul pune cheltuielile și vânzările (mijlocul lunii)." },
+    "apia_day": {
+      "plan": "late",
+      "demo_clock": "mid",
+      "status": "presupunere",
+      "note": "Ce zi din fereastra de plată APIA folosește planul: early = prima, mid = mijlocul, late = ultima. Planul ia ultima zi, ca să țină și dacă banii vin târziu (P13). Ceasul demo ia mijlocul, ca soldul să vină în martie, ca în pitch."
+    },
+    "years": {
+      "status": "presupunere",
+      "note": "Ce înseamnă anul slab, normal și bun: ce capăt din min / mean / max se ia pentru producție, preț și cost (crops-reference.json) și pentru soldul APIA (min = cel mai mic, mean = probabil, max = cel mai mare). Un fel de an e definit de recoltă; prețul și costurile rămân medii (P4). Avansul APIA e același în toți anii.",
+      "bad": { "yield": "min", "price": "mean", "cost": "mean", "apia_balance": "min" },
+      "medium": { "yield": "mean", "price": "mean", "cost": "mean", "apia_balance": "mean" },
+      "good": { "yield": "max", "price": "mean", "cost": "mean", "apia_balance": "max" }
     }
   },
   "weather": {

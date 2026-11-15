@@ -30,7 +30,25 @@ export interface Env {
   contactEmail?: string;
   /** Enables /api/demo/* (simulated APIA payment, advancing the demo clock). */
   demoMode: boolean;
+  /** Sign-in emails that may add fertilizers: every admin, plus CATALOGUE_EDITORS. Lower case. */
+  catalogueEditors: string[];
+  /** Sign-in emails that may open the admin panel and publish changes (ADMIN_EMAILS, else DEMO_EMAIL). Lower case. */
+  adminEmails: string[];
+  /** How often the API rereads the published changes, for other API processes' publishes (PREDICTIONS_REFRESH_S). */
+  predictionsRefreshMs: number;
 }
+
+const emails = (list: string | undefined) =>
+  (list ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+type Vars = Record<string, string | undefined>;
+/** Who may open the admin panel: ADMIN_EMAILS, or DEMO_EMAIL when that is unset. */
+export const adminEmails = (vars: Vars) => emails(vars.ADMIN_EMAILS || vars.DEMO_EMAIL);
+/** Who may add fertilizers: the admins, plus anyone in CATALOGUE_EDITORS (e.g. an agronomist who isn't an admin). */
+export const catalogueEditors = (vars: Vars) => [...new Set([...adminEmails(vars), ...emails(vars.CATALOGUE_EDITORS)])];
 
 export function loadEnv(): Env {
   return {
@@ -51,5 +69,8 @@ export function loadEnv(): Env {
     assistantDailyLimit: Number(process.env.ASSISTANT_DAILY_LIMIT) > 0 ? Number(process.env.ASSISTANT_DAILY_LIMIT) : 5,
     contactEmail: process.env.CONTACT_EMAIL?.trim() || undefined,
     demoMode: process.env.DEMO_MODE === 'true',
+    catalogueEditors: catalogueEditors(process.env),
+    adminEmails: adminEmails(process.env),
+    predictionsRefreshMs: (Number(process.env.PREDICTIONS_REFRESH_S) > 0 ? Number(process.env.PREDICTIONS_REFRESH_S) : 300) * 1000,
   };
 }

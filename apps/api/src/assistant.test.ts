@@ -2,10 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import type Anthropic from '@anthropic-ai/sdk';
 import { buildFarmPlan, loadData, type ReadFunction, type StoredFarm } from '@cropcash/shared';
-import { MAX_CARDS, SHOW_CARD, assistantTools, createAssistant, type Assistant, type MessagesClient } from './ai/assistant';
+import { MAX_CARDS, SHOW_CARD, assistantTools, createAssistant, withCropId, type Assistant, type MessagesClient } from './ai/assistant';
 import { createApp } from './app';
 import type { FarmRow, Repo } from './db/repo';
 import type { ReadOutcome } from './routes/functions';
+import { farmCropIds } from './routes/assistant';
 
 const data = loadData();
 
@@ -72,6 +73,14 @@ describe('the assistant loop', () => {
     expect(runRead).not.toHaveBeenCalled();
   });
 
+  it('offers add_event as a card and explain_drivers, but not the other calendar changes', () => {
+    const names = assistantTools().tools.map((t) => t.name);
+    expect(names).toEqual(expect.arrayContaining(['add_event', 'explain_drivers', 'list_upcoming']));
+    for (const hidden of ['update_event', 'delete_event', 'set_occurrence', 'confirm_occurrence']) expect(names).not.toContain(hidden);
+    const add = assistantTools().tools.find((t) => t.name === 'add_event')!;
+    expect(Object.keys((add.input_schema as { properties: object }).properties)).not.toContain('clientId');
+  });
+
   it('offers the cost tools, and refuses a figure and a harvest together', async () => {
     const names = assistantTools().tools.map((t) => t.name);
     expect(names).toEqual(expect.arrayContaining(['get_crop_costs', 'get_cost_per_hectare', 'set_crop_cost']));
@@ -120,6 +129,48 @@ describe('the assistant loop', () => {
     const crops = [{ id: 'grau', name_ro: 'Grâu' }];
     const out = await createAssistant({ client, model: 'm', crops })({ turns: [{ role: 'user', text: 'Am vândut grâu de 500 lei' }], today: '2026-11-07', runRead: vi.fn() });
     expect(out.actions).toEqual([{ function: 'record_sale', input: { cropId: 'grau', date: '2026-11-07', totalLei: 500 } }]);
+  });
+
+  describe('a short crop name on a farm with several of that crop (docs/crops-catalog-plan.md, step 9)', () => {
+    const wheats = data.crops.crops.filter((c) => (c.family ?? c.id) === 'grau');
+    const spring = wheats.find((c) => c.id !== 'grau')!;
+    const sale = { cropId: 'grâu', date: '2026-11-07', totalLei: 500 };
+
+    it('there is more than one wheat in the catalogue', () => {
+      expect(wheats.length).toBeGreaterThan(1);
+    });
+
+    it('takes the one wheat the farm has, even when it is not the usual one', () => {
+      expect(withCropId(sale, data.crops.crops, [spring.id, 'porumb'])).toEqual({ ...sale, cropId: spring.id });
+      expect(withCropId(sale, data.crops.crops, ['grau'])).toEqual({ ...sale, cropId: 'grau' });
+      // Without the farm, or with no wheat on it, the usual wheat as before.
+      expect(withCropId(sale, data.crops.crops)).toEqual({ ...sale, cropId: 'grau' });
+      expect(withCropId(sale, data.crops.crops, ['porumb'])).toEqual({ ...sale, cropId: 'grau' });
+    });
+
+    it('a full name or an id is never ambiguous', () => {
+      expect(withCropId({ ...sale, cropId: spring.name_ro }, data.crops.crops, ['grau', spring.id])).toEqual({ ...sale, cropId: spring.id });
+      expect(withCropId({ ...sale, cropId: 'grau' }, data.crops.crops, ['grau', spring.id])).toEqual({ ...sale, cropId: 'grau' });
+    });
+
+    it('with two wheats, sends the model back to ask instead of preparing a card', async () => {
+      const { client, sent } = scripted(
+        { stop_reason: 'tool_use', content: [toolUse('t1', 'record_sale', sale)] },
+        { content: [text('Ce grâu ai vândut?')] },
+      );
+      const out = await createAssistant({ client, model: 'm', crops: data.crops.crops })({ turns: [{ role: 'user', text: 'Am vândut grâu de 500 lei' }], today: '2026-11-07', runRead: vi.fn(), farmCropIds: ['grau', spring.id] });
+      expect(out.actions).toEqual([]);
+      const result = (sent[1]!.messages.at(-1)!.content as Anthropic.Beta.BetaToolResultBlockParam[])[0]!;
+      expect(result.is_error).toBe(true);
+      expect(result.content).toContain(`grau = ${wheats.find((c) => c.id === 'grau')!.name_ro}`);
+      expect(result.content).toContain(`${spring.id} = ${spring.name_ro}`);
+      expect(result.content).toContain('Ask the farmer which one');
+    });
+  });
+
+  it("lists the farm's crops from its parcels and its harvest years", () => {
+    expect(farmCropIds(null)).toBeUndefined();
+    expect(farmCropIds({ parcels: [{ crop_id: 'grau' }, { crop_id: 'porumb' }], harvests: { years: [{ parcels: [{ cropId: 'grau' }, { cropId: 'apia-102' }] }] } })).toEqual(['grau', 'porumb', 'apia-102']);
   });
 
   it('sends a bad write back as an error instead of a card', async () => {

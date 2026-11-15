@@ -1,7 +1,8 @@
 /*
  * npm run seed:demo — puts Ion's demo account back at the start of the pitch (docs/09 §3):
  * farm onboarded, Stripe account + Test Clock at demo_start, APIA advance NOT yet paid,
- * no pension. Safe to run again and again: the old account, its Stripe objects and all
+ * no pension. His crops sit on his two real blocs in Măldăeni, with the demo work from
+ * demo-ion.json (plot_work, docs/harta-plan.md step 11). Safe to run again and again: the old account, its Stripe objects and all
  * its rows (cascade) are removed first.
  *
  * Needs in .env: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
@@ -18,6 +19,10 @@ import { supabaseAdminRepo } from '../apps/api/src/db/admin';
 import { supabaseFactory } from '../apps/api/src/db/supabase';
 import { supabaseTokenVerifier } from '../apps/api/src/middleware/auth';
 import { createStripe, MoneyService } from '../apps/api/src/stripe/money';
+import { parseBlocs } from '../packages/shared/src/plots/index';
+import { harvestYear } from '../packages/shared/src/farm/harvests';
+import bloc286 from '../packages/shared/src/plots/__fixtures__/lpis-bloc-153277-286.json';
+import bloc293 from '../packages/shared/src/plots/__fixtures__/lpis-bloc-153277-293.json';
 
 const t0 = Date.now();
 const need = (k: string) => {
@@ -78,22 +83,24 @@ const app = createApp({
   data,
 });
 const server = app.listen(0);
-try {
-  const port = (server.address() as AddressInfo).port;
-  const res = await fetch(`http://127.0.0.1:${port}/api/farmers`, {
-    method: 'POST',
+const call = (method: string, path: string, body: unknown) =>
+  fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}${path}`, {
+    method,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.session!.access_token}` },
-    body: JSON.stringify({
+    body: JSON.stringify(body),
+  });
+try {
+  const res = await call('POST', '/api/farmers', {
       name: ion.name,
       county: ion.county,
       age: ion.age,
       startBalanceLei: ion.start_balance_lei,
       parcels: ion.parcels.map((p: { crop_id: string; area_ha: number }) => ({ cropId: p.crop_id, areaHa: p.area_ha })),
-    }),
   });
   if (res.status !== 201) throw new Error(`onboarding failed: ${res.status} ${await res.text()}`);
-} finally {
+} catch (e) {
   server.close();
+  throw e;
 }
 step('onboarded the farm');
 
@@ -103,5 +110,38 @@ if (!farm) throw new Error('farm not found after onboarding');
 const startAt = Math.floor(Date.parse(`${ion.demo_start.value}T09:00:00Z`) / 1000);
 const ready = await money.setup(farm, env.email, '127.0.0.1', startAt);
 step(`Stripe ready: ${ready.stripe_account_id}, clock ${ready.test_clock_id} at ${ready.demo_now}`);
+
+// 5. His crops on his real blocs (wheat on 286, maize on 293, as /ferma-lui-ion shows), then his demo work.
+try {
+  const year = harvestYear(ion.demo_start.value);
+  const work = ion.plot_work as { sown_on: Record<string, string>; operations: { crop_id: string; kind: string; status: string; on_date: string }[] };
+  const blocs = [bloc286, bloc293].map((b) => parseBlocs(b)[0]!);
+  const crops = ion.parcels as { crop_id: string; area_ha: number }[];
+  const plots = crops.map((p, i) => {
+    const b = blocs[i]!;
+    return {
+      county: ion.county,
+      siruta: b.siruta,
+      blocFizic: b.bloc,
+      lpisFbid: b.fbid,
+      landUse: b.landUse,
+      geometry: b.geometry,
+      geometrySource: 'lpis',
+      season: { cropId: p.crop_id, areaAri: Math.round(p.area_ha * 100), sownOn: work.sown_on[p.crop_id] ?? null },
+    };
+  });
+  const saved = await call('PUT', '/api/plots', { harvestYear: year, plots });
+  if (!saved.ok) throw new Error(`parcels failed: ${saved.status} ${await saved.text()}`);
+  const { ids } = (await saved.json()) as { ids: string[] };
+  for (const o of work.operations) {
+    const plotId = ids[crops.findIndex((p) => p.crop_id === o.crop_id)];
+    if (!plotId) continue;
+    const r = await call('POST', '/api/plots/operations', { plotId, harvestYear: year, kind: o.kind, status: o.status, onDate: o.on_date });
+    if (r.status !== 201) throw new Error(`work failed: ${r.status} ${await r.text()}`);
+  }
+  step(`parcels on blocs ${blocs.map((b) => b.bloc).join(' and ')}, ${work.operations.length} pieces of demo work`);
+} finally {
+  server.close();
+}
 
 console.log(`\nDone in ${((Date.now() - t0) / 1000).toFixed(1)}s. Log in as ${env.email}.`);

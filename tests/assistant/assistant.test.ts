@@ -68,6 +68,8 @@ const CASES: Case[] = [
   { q: 'Pot să-mi cumpăr un tractor second-hand de 60.000 de lei în decembrie?', tools: ['check_purchase'], noVerdict: true, actions: [] },
   { q: 'Să vând porumbul acum sau să aștept?', noVerdict: true, actions: [] },
   { q: 'Ce bancă îmi dă cel mai ieftin credit?', actions: [] },
+  { q: 'Îmi permit încă un tractorist din martie, cu 6.000 de lei pe lună tot cu taxe?', tools: ['what_if_hire'], noVerdict: true, actions: [] },
+  { q: 'Cât mă costă oamenii pe an?', tools: ['get_people_cost'], actions: [] },
   { q: 'Ce-ar fi dacă iau un credit de 20.000 de lei în februarie și îl dau înapoi în octombrie?', cards: ['credit'], tools: ['what_if_credit'], noVerdict: true, actions: [] },
   { q: 'Dacă pun 200 de lei pe lună la pensie, cât am la 65 de ani?', cards: ['pension', 'pension_change'], tools: ['simulate_pension', 'what_if_pension', 'suggest_pension'], actions: [] },
   { q: 'Ce termene am în următoarele două luni?', cards: ['upcoming'], tools: ['list_tasks', 'list_upcoming'], actions: [] },

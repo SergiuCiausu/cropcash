@@ -4,7 +4,7 @@ import type { Bani } from '../money';
 import { CostLeiPerHa, HarvestYearSchema, harvestYear, recordHarvestYear, type HarvestsInput } from './harvests';
 import type { StoredFarm } from './index';
 import { withOwnCrops } from './own-crops';
-import { EXPENSE_CATEGORIES, PLANNED_CATEGORIES } from './plan-inputs';
+import { EXPENSE_CATEGORIES, expenseCategory, PLANNED_CATEGORIES } from './plan-inputs';
 
 /**
  * What a crop really cost per hectare, worked out only from the expenses the farmer recorded.
@@ -44,7 +44,7 @@ export interface CropCost {
   shared: Bani;
   total: Bani;
   perHa: Bani;
-  /** Only what the plan's crop cost stands for: rent and repairs are left out, or they'd count twice. */
+  /** Only what the plan's crop cost stands for: rent, constructions and machine service are left out, or they'd count twice. */
   planCost: Bani;
   planPerHa: Bani;
 }
@@ -83,10 +83,11 @@ export function cropCostsPerHa(parcels: CostParcel[], records: CostRecord[]): { 
   const key = (cropId: string, category: string) => `${cropId}|${category}`;
   let elsewhere = 0;
   for (const r of records) {
-    if (!r.category || !CATEGORIES.includes(r.category)) continue;
+    const category = expenseCategory(r.category);
+    if (!category || !CATEGORIES.includes(category)) continue;
     const bani = Math.abs(r.amountBani);
-    if (!r.cropId) add(shared, r.category, bani);
-    else if (ids.has(r.cropId)) add(direct, key(r.cropId, r.category), bani);
+    if (!r.cropId) add(shared, category, bani);
+    else if (ids.has(r.cropId)) add(direct, key(r.cropId, category), bani);
     else elsewhere += bani;
   }
 

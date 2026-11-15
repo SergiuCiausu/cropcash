@@ -96,6 +96,8 @@ export interface PageFarm {
   /** The county's name, as the pages show it, or its code. */
   county: string;
   parcels: { cropId: string }[];
+  /** The farmer's own crops: the APIA line they picked puts them in a sector (orchards, vegetables…). */
+  ownCrops?: { id: string; name: string; apiaCode?: number }[];
 }
 export interface PageFit {
   level: MatchLevel;
@@ -111,7 +113,7 @@ export function pageFits(calls: PageCall[], farm: PageFarm, data: AppData, today
   const county = data.counties.counties.find((c) => c.name_ro === farm.county || c.code === farm.county)?.code ?? null;
   const match = matchOpportunityRows(
     calls.map(storedCall),
-    { birth_year: Number(today.slice(0, 4)) - farm.age, county, parcels: farm.parcels.map((p) => ({ crop_id: p.cropId })) },
+    { birth_year: Number(today.slice(0, 4)) - farm.age, county, parcels: farm.parcels.map((p) => ({ crop_id: p.cropId })), ownCrops: farm.ownCrops },
     data,
     today,
   );

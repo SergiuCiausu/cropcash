@@ -111,12 +111,30 @@ describe('scenarios', () => {
 
   it('corn sale range: only the yield moves, at the mean price', () => {
     const corn = data.crops.crops.find((c) => c.id === 'porumb')!;
-    const r = cropSaleRange(corn, 700);
+    const r = cropSaleRange(corn, 700, data.params.forecast.years);
     expect([r.min, r.probable, r.max].map(lei)).toEqual([33250, 43225, 53200]);
+  });
+
+  it('corn sale range follows what plan-params says a bad year is', () => {
+    const corn = data.crops.crops.find((c) => c.id === 'porumb')!;
+    const years = data.params.forecast.years;
+    const r = cropSaleRange(corn, 700, { ...years, bad: { ...years.bad, price: 'min' } });
+    // 7 ha × 5 t × 0,80 lei/kg = 28.000 lei; normal and good unchanged.
+    expect([r.min, r.probable, r.max].map(lei)).toEqual([28000, 43225, 53200]);
   });
 
   it('a farm with no money going out has no hard months', () => {
     const t = buildTimeline({ ...input, parcels: [] }, data, opts);
     expect(t.hardMonths).toEqual([]);
+  });
+});
+
+describe('buildTimeline — teren necultivat', () => {
+  it('fallow land adds no cost or sale, only subsidy', () => {
+    const farm: FarmInput = { ...ion, parcels: [...ion.parcels, { cropId: 'teren-necultivat', areaHa: 1, plantedMonth: '2026-10' }] };
+    const withFallow = buildTimeline({ ...input, parcels: normalizeParcels(farm.parcels) }, data, opts);
+    const entries = withFallow.months.flatMap((m) => m.entries);
+    expect(entries.filter((e) => e.cropId === 'teren-necultivat')).toEqual([]);
+    expect(withFallow.months.map((m) => m.out)).toEqual(tl.months.map((m) => m.out));
   });
 });

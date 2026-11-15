@@ -7,6 +7,12 @@ import { ReplayCache, requestKey } from '../replay-cache';
 /** How long an answer is kept for the same question on the same farm (IDEM-13). */
 const REPLAY_MS = 10 * 60 * 1000;
 
+/** Every crop the farm has, this year or in a harvest year, so a short crop name can be told apart. */
+export function farmCropIds(farm: { parcels?: { crop_id: string }[]; harvests?: { years?: { parcels: { cropId: string }[] }[] } | null } | null): string[] | undefined {
+  if (!farm) return undefined;
+  return [...new Set([...(farm.parcels ?? []).map((p) => p.crop_id), ...(farm.harvests?.years ?? []).flatMap((y) => y.parcels.map((p) => p.cropId))])];
+}
+
 /** The conversation lives in the browser, so each request carries it, as text only. */
 const AskSchema = z.strictObject({
   messages: z
@@ -54,14 +60,15 @@ export function assistantRouter(deps: ReadDeps, assistant: Assistant | undefined
     }
     /* The same question again (a tap after a 502, a second tab) gets the answer already paid for, and
        doesn't count against the day. The farm is in the key: after a save, it is a new question. */
-    const key = requestKey(res.locals.auth.userId, today, parsed.data.messages, await reads.farm());
+    const farm = await reads.farm();
+    const key = requestKey(res.locals.auth.userId, today, parsed.data.messages, farm);
     const kept = answers.get(key);
     if (!kept && !allow(res.locals.auth.userId)) {
       res.status(429).json({ error: 'daily_limit' });
       return;
     }
     try {
-      res.json(await (kept ?? answers.run(key, () => assistant({ turns: parsed.data.messages, today, runRead: (fn, input) => reads.run(fn, input) }))));
+      res.json(await (kept ?? answers.run(key, () => assistant({ turns: parsed.data.messages, today, runRead: (fn, input) => reads.run(fn, input), farmCropIds: farmCropIds(farm) }))));
     } catch (err) {
       console.error('[assistant]', err);
       res.status(502).json({ error: 'assistant_failed' });

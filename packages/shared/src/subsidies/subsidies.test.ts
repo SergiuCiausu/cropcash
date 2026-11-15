@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadData } from '../data';
+import { CropsFileSchema, FALLOW_CROP_ID, isFallow, loadData } from '../data';
 import { computeRangeFactors, computeSubsidies, type FarmInput } from './index';
 
 const data = loadData();
@@ -21,11 +21,11 @@ describe('data files', () => {
   it('all docs/data JSON files validate', () => {
     expect(data.subsidies.schemes.length).toBeGreaterThan(0);
     expect(data.calendar.events.length).toBeGreaterThan(0);
-    expect(data.crops.crops.map((c) => c.id)).toEqual(['grau', 'porumb', 'floarea-soarelui']);
+    expect(data.crops.crops.filter((c) => !c.family).map((c) => c.id)).toEqual(['grau', 'porumb', 'floarea-soarelui', 'teren-necultivat']);
   });
 
   it('crop expense shares sum to 100%', () => {
-    for (const crop of data.crops.crops) {
+    for (const crop of data.crops.crops.filter((c) => !isFallow(c))) {
       expect(crop.expense_months.reduce((s, m) => s + m.share_pct, 0)).toBe(100);
     }
   });
@@ -204,13 +204,68 @@ describe('eligibility boundaries', () => {
     expect(r.totals.eur.probable).toBe(319500);
   });
 
-  it('PD-28 is eligible with unproductive land but excluded (no 2026 amount)', () => {
+  it('PD-28 is estimated at the 2025 amount, on all arable land, and stays out of the totals', () => {
     const r = computeSubsidies({ ...ion, unproductiveHa: 1 }, data, RATE);
-    expect(r.excluded).toEqual([{ code: 'PD-28', nameRo: expect.any(String), reason: 'amount_unknown' }]);
+    expect(r.excluded).toEqual([]);
+    expect(r.estimated).toHaveLength(1);
+    const pd28 = r.estimated[0]!;
+    expect(pd28).toMatchObject({ code: 'PD-28', units: 1500, amountEurPerUnit: 32.9366, advanceEur: 0 });
+    expect(pd28.estimate).toMatchObject({ basisYear: 2025, status: 'din-2025' });
     expect(r.totals.eur.probable).toBe(319500);
   });
 
   it('rejects non-positive parcel areas', () => {
     expect(() => computeSubsidies({ parcels: [{ cropId: 'grau', areaHa: 0 }], age: 50 }, data)).toThrow();
+  });
+});
+
+describe('teren necultivat (fallow land)', () => {
+  const pd28 = (farm: FarmInput) => computeSubsidies(farm, data, RATE).estimated.find((x) => x.code === 'PD-28');
+  const fallow = (areaHa: number) => ({ cropId: FALLOW_CROP_ID, areaHa });
+
+  it('is in docs/data as the one fallow crop', () => {
+    const crop = data.crops.crops.find((c) => c.id === FALLOW_CROP_ID)!;
+    expect(crop.kind).toBe('fallow');
+    expect(data.crops.crops.filter((c) => c.kind === 'fallow')).toHaveLength(1);
+  });
+
+  it('the data check refuses a fallow crop with costs or a second fallow crop', () => {
+    const raw: typeof data.crops = JSON.parse(JSON.stringify(data.crops));
+    const withCost = { ...raw, crops: raw.crops.map((c) => (isFallow(c) ? { ...c, cost_lei_per_ha: { min: 1, mean: 1, max: 1 } } : c)) };
+    expect(CropsFileSchema.safeParse(withCost).success).toBe(false);
+    const twice = { ...raw, crops: raw.crops.map((c) => (c.id === 'grau' ? { ...c, kind: 'fallow' as const } : c)) };
+    expect(CropsFileSchema.safeParse(twice).success).toBe(false);
+  });
+
+  it('counts as arable land and as a crop of its own for PD-04', () => {
+    const oneCrop: FarmInput = { age: 55, parcels: [{ cropId: 'grau', areaHa: 15 }] };
+    expect(eligibleCodes(oneCrop)).not.toContain('PD-04');
+    const withFallow: FarmInput = { ...oneCrop, parcels: [...oneCrop.parcels, fallow(1)] };
+    expect(eligibleCodes(withFallow)).toContain('PD-04');
+    const pd01 = computeSubsidies(withFallow, data, RATE).schemes.find((x) => x.code === 'PD-01')!;
+    expect(pd01.units).toBe(1600);
+  });
+
+  it('PD-28 needs at least 2% of the arable land uncultivated', () => {
+    // 0.3 of 15.3 ha is 1.96%: not enough.
+    expect(pd28({ ...ion, parcels: [...ion.parcels, fallow(0.3)] })).toBeUndefined();
+    // 1 of 16 ha is 6.25%: paid on all 16 ha.
+    expect(pd28({ ...ion, parcels: [...ion.parcels, fallow(1)] })?.units).toBe(1600);
+  });
+
+  it('field margins without a parcel count too, exactly at the threshold', () => {
+    expect(pd28({ ...ion, unproductiveHa: 0.3 })?.units).toBe(1500); // 0.3 / 15 = 2.00%
+    expect(pd28({ ...ion, unproductiveHa: 0.29 })).toBeUndefined();
+  });
+
+  it('a failed share reads back in %', () => {
+    const r = computeSubsidies({ ...ion, parcels: [...ion.parcels, fallow(0.3)] }, data, RATE);
+    expect(r.notEligible.find((n) => n.code === 'PD-28')?.failed).toEqual([{ field: 'unproductive_pct', op: '>=', expected: 2, actual: 1.96 }]);
+  });
+
+  it('the totals are the counted schemes alone', () => {
+    const r = computeSubsidies({ ...ion, parcels: [...ion.parcels, fallow(1)] }, data, RATE);
+    expect(r.estimated.map((x) => x.code)).toEqual(['PD-28']);
+    expect(r.totals.eur.probable).toBe(r.schemes.reduce((sum, x) => sum + x.eur.probable, 0));
   });
 });

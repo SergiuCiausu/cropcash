@@ -109,7 +109,7 @@ export default function Oportunitati() {
   const follows = monitor.follows;
 
   const rows = useMemo(() => {
-    const fits = pageFits(CALLS, farmView.farm, data, today);
+    const fits = pageFits(CALLS, { ...farmView.farm, ownCrops: farmView.harvests.ownCrops }, data, today);
     const fitOf = (c: PageCall): Fit => {
       const fit = fits[c.key];
       if (!fit) return { level: 'no', why: 'Apelul s-a închis.', good: [], doubts: [] } as Fit;

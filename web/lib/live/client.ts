@@ -9,6 +9,8 @@ export class ApiError extends Error {
     public code: string,
     /** From Retry-After on a 429 or 503: how long the server asked us to wait. */
     public retryAfterMs: number | null = null,
+    /** The answer's whole JSON body, for errors that say more than their code (e.g. which figure). */
+    public body: Record<string, unknown> = {},
   ) {
     super(`API ${status}: ${code}`);
   }
@@ -91,9 +93,9 @@ export function createApi({ apiUrl, getToken, isOnline, fetchFn = fetch, timeout
         throw failed();
       }
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        const body = (await res.json().catch(() => ({}))) as { error?: string } & Record<string, unknown>;
         if (timedOut) throw failed();
-        throw new ApiError(res.status, body.error ?? 'unknown', parseRetryAfter(res.headers.get('Retry-After')));
+        throw new ApiError(res.status, body.error ?? 'unknown', parseRetryAfter(res.headers.get('Retry-After')), body ?? {});
       }
       if (res.status === 204) return undefined as T;
       try {

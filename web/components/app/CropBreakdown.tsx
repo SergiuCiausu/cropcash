@@ -5,19 +5,24 @@
 import { ha } from '../../lib/cc/format';
 import { harvestName } from '../../lib/cc/harvests';
 import type { FarmPlan, FarmView } from '../../lib/cc/plan';
-import { useMoney, useStore } from '../../lib/cc/react';
+import { useStore } from '../../lib/cc/react';
+import { ResultsBasisSwitch, useResultsBasis } from './Basis';
 
 export function CropBreakdown({ view, year = 'medium', className }: { view: FarmView; year?: keyof FarmPlan['timelines']; className?: string }) {
   const store = useStore();
-  const { signed, lei } = useMoney();
   const { rows, shared, total } = view.cropBreakdown(year);
   const hasShared = shared.inBani !== 0 || shared.outBani !== 0;
   const totalAri = rows.reduce((s, r) => s + r.areaAri, 0);
+  /* Per hectare, a crop goes by its own hectares; what's shared and the total by the whole harvest's. */
+  const { show } = useResultsBasis();
+  const lei = (bani: number, ari: number) => show(bani, ari);
+  const signed = (bani: number, ari: number) => show(bani, ari, 'signed');
   return (
     <section className={`card ${className ?? ''}`}>
       <div className="card-h">
         <h2>Pe culturi</h2>
         <span>{harvestName(view.scoped)}, estimat</span>
+        <ResultsBasisSwitch />
       </div>
       <table className="crop-table">
         <thead>
@@ -38,26 +43,26 @@ export function CropBreakdown({ view, year = 'medium', className }: { view: Farm
                 </button>
               </th>
               <td data-l="Hectare">{ha(r.areaAri)}</td>
-              <td data-l="Intră">{lei(r.inBani)}</td>
-              <td data-l="Ies">{lei(r.outBani)}</td>
-              <td data-l="Rămâne">{signed(r.leftBani)}</td>
+              <td data-l="Intră">{lei(r.inBani, r.areaAri)}</td>
+              <td data-l="Ies">{lei(r.outBani, r.areaAri)}</td>
+              <td data-l="Rămâne">{signed(r.leftBani, r.areaAri)}</td>
             </tr>
           ))}
           {hasShared && (
             <tr>
               <th scope="row">Comune și credite</th>
               <td data-l="Hectare"></td>
-              <td data-l="Intră">{lei(shared.inBani)}</td>
-              <td data-l="Ies">{lei(shared.outBani)}</td>
-              <td data-l="Rămâne">{signed(shared.inBani - shared.outBani)}</td>
+              <td data-l="Intră">{lei(shared.inBani, totalAri)}</td>
+              <td data-l="Ies">{lei(shared.outBani, totalAri)}</td>
+              <td data-l="Rămâne">{signed(shared.inBani - shared.outBani, totalAri)}</td>
             </tr>
           )}
           <tr className="crop-total">
             <th scope="row">Total</th>
             <td data-l="Hectare">{ha(totalAri)}</td>
-            <td data-l="Intră">{lei(total.inBani)}</td>
-            <td data-l="Ies">{lei(total.outBani)}</td>
-            <td data-l="Rămâne">{signed(total.leftBani)}</td>
+            <td data-l="Intră">{lei(total.inBani, totalAri)}</td>
+            <td data-l="Ies">{lei(total.outBani, totalAri)}</td>
+            <td data-l="Rămâne">{signed(total.leftBani, totalAri)}</td>
           </tr>
         </tbody>
       </table>

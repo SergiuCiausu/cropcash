@@ -130,15 +130,16 @@ describe('explain_subsidy', () => {
     expect(r.sources).toHaveLength(1);
   });
 
-  it('keeps an unknown rate null and says why it is left out', () => {
-    // PD-28 needs unproductive land, which saved farms don't record, so the farm here
-    // is one it accepts: eligible, but with no 2026 rate to pay it at.
-    const subsidies = computeSubsidies({ age: 55, unproductiveHa: 1, parcels: [{ cropId: 'grau', areaHa: 8 }] }, data);
+  it('prices a scheme with no 2026 amount at the 2025 one, and says it is left out', () => {
+    // 1 ha of fallow land on 9 ha of arable land is over 2%, so PD-28 applies, on all 9 ha.
+    const subsidies = computeSubsidies({ age: 55, parcels: [{ cropId: 'grau', areaHa: 8 }, { cropId: 'teren-necultivat', areaHa: 1 }] }, data);
     const c = { ...ctx, plan: { ...plan, subsidies } };
     expect(explainSubsidyFn.execute({ code: 'PD-28' }, c).data).toMatchObject({
       counted: false,
-      reason: 'amount_unknown',
-      amountEurPerUnit: null,
+      reason: 'estimate',
+      units: 900,
+      amountEurPerUnit: 32.9366,
+      estimate: { basisYear: 2025 },
     });
     expect(explainSubsidyFn.execute({ code: 'PD-28' }, ctx).data).toMatchObject({ reason: 'not_eligible' });
   });

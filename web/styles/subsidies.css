@@ -427,6 +427,8 @@ dialog.h-sheet .ob-crop:first-of-type { margin-top: 8px; }
 .ob-field { display: block; margin-top: 16px; font-size: 14px; font-weight: 500; }
 .ob-field input { display: block; width: 100%; min-height: 52px; margin-top: 4px; padding: 0 14px; border: 1px solid var(--hair-2); border-radius: 14px; background: var(--surface); font: inherit; font-size: 18px; color: var(--text-1); }
 .ob-err { margin-top: 12px; font-size: 14.5px; color: var(--loss); }
+.ob-field .tag { margin-left: 6px; vertical-align: 1px; }
+.ob-names { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .ob-crop { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--hair); }
 .lead + .ob-crop { margin-top: 12px; }
 .ob-crop b { font-size: 17px; font-weight: 600; }
@@ -517,6 +519,13 @@ dialog.h-sheet .ob-crop:first-of-type { margin-top: 8px; }
 /* Seasons: what was gathered and what's in the ground */
 .ob-season { min-width: 0; margin-top: 14px; padding: 14px; border: 1px solid var(--hair); border-radius: 14px; }
 .ob-season legend { padding: 0 6px; font-weight: 600; }
+.loss { margin-top: 12px; }
+.loss label { display: block; font-size: 14px; font-weight: 500; }
+.loss input { display: block; width: 100%; min-height: 48px; margin-top: 4px; padding: 0 14px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--surface); font: inherit; font-size: 17px; color: var(--text-1); }
+.loss .note { margin-top: 6px; }
+.loss-why { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.loss-why .chipb { min-width: 0; }
+.loss-ask { display: flex; gap: 8px; margin-top: 8px; }
 .ob-season .hint { margin-top: 2px; font-size: 13.5px; color: var(--text-2); }
 .ob-season label { display: grid; gap: 4px; font-size: 13.5px; color: var(--text-2); }
 .ob-season input, .ob-season select { width: 100%; min-height: 44px; padding: 0 10px; border: 1px solid var(--hair-2); border-radius: 10px; font: inherit; font-size: 16px; color: var(--text-1); background: var(--surface); }
@@ -826,3 +835,54 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
 .auth-look { font-size: 14.5px; color: var(--text-2); text-align: center; }
 .auth-look a { color: var(--text-1); font-weight: 600; }
 @media (max-width: 480px) { .auth-card { padding: 20px; border-radius: 20px; } }
+
+/* "Total | Pe hectar" (docs/per-ha-total-plan.md) */
+.basis-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.basis-switch .chips { margin-top: 0; gap: 4px; }
+.basis-switch .chip { min-height: 36px; padding: 0 10px; font-size: 13px; }
+.basis-switch .chip:disabled { color: var(--text-3); }
+.basis-why { font-size: 12.5px; color: var(--text-2); }
+.card-h .basis-switch { flex: none; }
+.basis-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; }
+.basis-row > p { margin: 0; }
+.crop-fig .basis-row { grid-column: 1 / -1; }
+.h-record .basis-switch { flex: 1 0 100%; }
+.card-h:has(.basis-switch) { flex-wrap: wrap; align-items: center; }
+.card-h:has(.basis-switch) > span { margin-right: auto; }
+.hero-basis { margin-top: 0; }
+
+/* How a crop was sown: a number and its unit side by side, under the sowing month. */
+.ob-season .sow-fields { display: grid; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair); }
+.ob-season .sow-row { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 4px 8px; align-items: center; }
+.ob-season .sow-row label { grid-column: 1 / -1; }
+
+/* Crop search over the APIA list (CropSearch.tsx) */
+.ob-crop small { display: block; margin-top: 2px; color: var(--text-3); font-size: 13px; font-weight: 400; }
+.crop-search { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair); }
+.crop-search label { display: block; font-weight: 600; margin-bottom: 6px; }
+.crop-search input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--hair-2); border-radius: var(--pal-radius); background: var(--surface); color: var(--text-1); font: inherit; }
+.crop-search ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.crop-search li + li { border-top: 1px solid var(--hair); }
+.crop-search li button { width: 100%; min-height: 44px; padding: 10px 4px; display: grid; gap: 2px; text-align: left; background: none; border: 0; color: var(--text-1); font: inherit; cursor: pointer; }
+.crop-search li button span { color: var(--text-3); font-size: 13px; }
+.crop-search-none { padding: 10px 4px; color: var(--text-2); }
+
+/* "Mai multe detalii" on a record: the invoice number, the partner, the diesel litres (migration 027). */
+.h-record .h-more { flex: 1 1 100%; }
+.h-more summary { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--text-2); text-decoration: underline; cursor: pointer; }
+.h-more[open] { display: flex; flex-wrap: wrap; gap: 8px; }
+.h-more[open] summary, .h-more .note { flex: 1 1 100%; margin: 0; }
+.h-more .note { font-size: 13px; color: var(--text-2); }
+.h-more label .note { display: block; margin-top: 4px; }
+.crop-loss { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair); }
+.loss-years { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--text-2); }
+
+/* A treatment on a parcel can also note the work (components/plots/TreatmentWork.tsx, harta-plan step 10). */
+.tw { flex: 1 1 100%; display: grid; gap: 10px; margin: 12px 0 0; padding: 12px; border: 1px solid var(--hair-2); border-radius: 14px; }
+.h-record .tw { margin: 0; }
+.tw .tw-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; color: var(--text-1); }
+.tw .tw-check input { width: 22px; height: 22px; min-height: 0; margin: 0; padding: 0; flex: none; accent-color: var(--ink-a, #2B3550); }
+.h-record .tw-note { flex: 1 1 100%; }
+.own-match-lines { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.own-match-lines .chipb { min-width: 0; text-align: left; }
+.own-match-lines .btn { margin-top: 0; }

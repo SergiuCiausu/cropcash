@@ -11,6 +11,19 @@ Traced from the code and `docs/data/*.json` on 2026-11-08. If a value here ever 
 | Our assumption | A product choice we made (`presupunere`, the P-list in `docs/11-open-questions.md`). |
 | Unverified | `DE-VERIFICAT`: no good source yet. |
 | Farmer | Typed in, or recorded, by the farmer. |
+| Admin | Changed from the admin panel (`/admin`), with a required reason. It replaces the file's value for every farm with an account, Stripe salary included. |
+
+**A panel change can replace any editable value.** The labels on this page describe the values in `docs/data/`. About 160 of them can be replaced from the admin panel. The list is `EDITABLE_FACTORS` in `packages/shared/src/data/factors.ts`, and it covers:
+- crop costs, yields and prices;
+- APIA rates and conditions;
+- the subsidy history;
+- the table of kinds of year;
+- the horizons (12 and 24 months, 3 years, the day of the month, the day of the APIA window);
+- rounding, credit, pension, calendar and frost settings.
+
+The horizons and the kinds of year used to be in the code. They're now in `plan-params.json` → `forecast`.
+
+Values from the farmer, laws and official dates can't be replaced from the panel. The panel shows each replaced value next to its file value and reason, and keeps every published version. Ion's example farm without an account always uses the file values. See `docs/admin-panel-plan.md` and `docs/07-architecture.md` §12.
 
 ## At a glance
 
@@ -47,6 +60,7 @@ Every money forecast comes from one calculation, `buildFarmPlan` (`packages/shar
 | Declared credits | `expected_payments` | Farmer |
 | Grain in the barn | `harvests.gathered`, minus later sales; counted as sold in the plan's first month (P28) | Farmer + our assumption |
 | Sowing month | `planted_month`; only sets the first sale | Farmer |
+| Hectares not harvested | `harvests.years[].parcels[].lost` (Recolte), the usual % in `expected.lossPct` (Datele planului) | Farmer |
 | Ion's whole farm | `docs/data/demo-ion.json` | Our assumption (P9) |
 
 ### Crop figures (`docs/data/crops-reference.json`)
@@ -67,6 +81,17 @@ The farmer's own figures replace these, in this order (`plannedFigures`, `withFa
 4. The national INS row, and only then the table above.
 
 Their figure becomes the normal year, and the bad and good years keep the same ratio to it. Costs always stay the table's, unless it's a crop the farmer added, which uses only their numbers (P30).
+
+### Hectares that don't reach harvest (`farm/crop-loss.ts`, `docs/crop-loss-plan.md`)
+
+The sale is counted on sown × (1 − share); costs stay on everything sown. The share, highest first:
+
+1. The loss the farmer already reported for that harvest (`this_year`).
+2. Their usual % from "Datele planului" (`farmer`).
+3. Their history: Σ lost ÷ Σ sown over the last 5 answered harvests, from 2 up (`plan-params.json` → `crop_loss`, label Our assumption).
+4. Nothing.
+
+The same share is used in the bad, normal and good year. Items 2 and 3 are subtracted only when the yield is the farmer's own; on the county's INS yield they're shown but not subtracted (P33). Prognoză and `get_forecast` (`cropLoss`) say which one was used.
 
 ### County yields (`crops-reference.json` → `county_history`)
 
@@ -244,7 +269,8 @@ The frost warning triggers at 0 °C or below (Our assumption). The wind warning 
 6. **Credit what-ifs understate the cost**, because interest is missing.
 7. **The multi-year view is a repeat, not a forecast.** It repeats today's figures for up to 10 years.
 8. **Screens and the assistant calculate the pension's monthly figure differently.** They match for Ion, who has exactly 10 years left, and differ for everyone else.
-9. **Two inputs may be labelled too firmly:** PD-02's source is a general guide site, and the FEGA rate counts as confirmed although APIA's own announcement wasn't checked.
+9. **We don't know if INS yields already count lost fields (P33).** Until that's checked, a farmer on the county yield gets no loss subtracted from their history, which may overstate their sale.
+10. **Two inputs may be labelled too firmly:** PD-02's source is a general guide site, and the FEGA rate counts as confirmed although APIA's own announcement wasn't checked.
 
 ## Where the docs and code disagree
 

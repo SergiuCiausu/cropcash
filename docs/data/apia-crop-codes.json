@@ -1,0 +1,2572 @@
+{
+  "meta": {
+    "description": "Tabelul nr. 1 – Culturi, coduri de culturi, intervenții de sprijin aplicabile, din Anexa 1 la Instrucțiunile de completare a cererii de plată 2026. Fiecare rând: codul, genul botanic și denumirea culturii exact cum sunt tipărite (spațiile multiple strânse într-unul), secțiunea (I–IV) și titlul de grupă sub care stă. Coloana cu intervențiile de sprijin nu e preluată.",
+    "source": "Monitorul Oficial al României, Partea I, nr. 193 bis/12.III.2026, Anexa 1 la Instrucțiuni, Tabel nr. 1, p. 186–223",
+    "source_url": "https://alba24.ro/wp-content/uploads/2026/03/Monitorul-Oficial-cere-de-plata-agricultori.pdf",
+    "read_on": "2026-11-14",
+    "status": "confirmat",
+    "notes": [
+      "Codurile terminate în 7 (1117, 1317, 2077, 2207, 2557, 3017, 7507 etc.) au aceeași denumire ca rândul de bază și sunt declarate pentru sprijinul cuplat sau pentru sămânță certificată; denumirea e cea tipărită.",
+      "La MUŞTAR (977) tabelul are și textul „P5 daca se cultiva ca planta aromatica pentru condimente”, care ține de intervenții, nu de denumire.",
+      "La 671 rândul continuă cu „an de angajament”, din coloana intervențiilor.",
+      "Rândurile 400, 401, 450–453, 500–505, 550, 551, 970–988, 803, 8033, 805 nu au un titlu de grupă propriu în tabel: heading este null."
+    ]
+  },
+  "rows": [
+    {
+      "code": 101,
+      "genus": "Triticum",
+      "name": "GRÂU COMUN de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1010,
+      "genus": "Triticum",
+      "name": "GRÂU COMUN de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 102,
+      "genus": "Triticum",
+      "name": "GRÂU DUR de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1020,
+      "genus": "Triticum",
+      "name": "GRÂU DUR de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 132,
+      "genus": "Triticum",
+      "name": "GRÂU SPELTA (alac)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 103,
+      "genus": "Triticosecale",
+      "name": "TRITICALE de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1030,
+      "genus": "Triticosecale",
+      "name": "TRITICALE de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 104,
+      "genus": "Secale",
+      "name": "SECARĂ de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1040,
+      "genus": "Secale",
+      "name": "SECARĂ de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 105,
+      "genus": "Hordeum",
+      "name": "ORZ de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1050,
+      "genus": "Hordeum",
+      "name": "ORZ de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1052,
+      "genus": "Hordeum",
+      "name": "ORZ de bere de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 10502,
+      "genus": "Hordeum",
+      "name": "ORZ de bere de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 106,
+      "genus": "Hordeum",
+      "name": "ORZOAICĂ de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1060,
+      "genus": "Hordeum",
+      "name": "ORZOAICĂ de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1062,
+      "genus": "Hordeum",
+      "name": "ORZOAICĂ de bere de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 10602,
+      "genus": "Hordeum",
+      "name": "ORZOAICĂ de bere de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 107,
+      "genus": "Avena",
+      "name": "OVĂZ de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1070,
+      "genus": "Avena",
+      "name": "OVĂZ de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 108,
+      "genus": "Zea",
+      "name": "PORUMB",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 109,
+      "genus": "Zea",
+      "name": "PORUMB ZAHARAT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 110,
+      "genus": "Sorghum",
+      "name": "SORG",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 115,
+      "genus": "Zea",
+      "name": "PORUMB-HIBRID/SOI TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 116,
+      "genus": "Zea",
+      "name": "PORUMB-HIBRID/SOI SEMI-TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 117,
+      "genus": "Zea",
+      "name": "PORUMB-HIBRID/SOI TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 118,
+      "genus": "Zea",
+      "name": "PORUMB-HIBRID/SOI SEMI-TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 131,
+      "genus": "Zea",
+      "name": "PORUMB SILOZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1317,
+      "genus": "Zea",
+      "name": "PORUMB SILOZ (sămânță certificată)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 133,
+      "genus": "Zea",
+      "name": "PORUMB FURAJER",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 119,
+      "genus": "Sorghum",
+      "name": "SORG-HIBRID/SOI TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 120,
+      "genus": "Sorghum",
+      "name": "SORG-HIBRID/SOI SEMI-TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 121,
+      "genus": "Sorghum",
+      "name": "SORG-HIBRID/SOI TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 122,
+      "genus": "Sorghum",
+      "name": "SORG-HIBRID/SOI SEMI-TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 123,
+      "genus": "Helianthus",
+      "name": "FLOAREA SOARELUI-HIBRID/SOI TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 124,
+      "genus": "Helianthus",
+      "name": "FLOAREA SOARELUI HIBRID/SOI SEMI TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 125,
+      "genus": "Helianthus",
+      "name": "FLOAREA SOARELUI-HIBRID/SOI TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 126,
+      "genus": "Helianthus",
+      "name": "FLOAREA SOARELUI HIBRID/SOI SEMI-TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 127,
+      "genus": "Glycine",
+      "name": "SOIA-HIBRID/SOI TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 128,
+      "genus": "Glycine",
+      "name": "SOIA – HIBRID/SOI SEMI-TIMPURIU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 129,
+      "genus": "Glycine",
+      "name": "SOIA – HIBRID/SOI TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 130,
+      "genus": "Glycine",
+      "name": "SOIA – HIBRID/SOI SEMI-TARDIV",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 111,
+      "genus": "Oryza",
+      "name": "OREZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 1117,
+      "genus": "Oryza",
+      "name": "OREZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 112,
+      "genus": "Panicum",
+      "name": "MEI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 113,
+      "genus": "Fagopyrum",
+      "name": "HRIŞCĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 114,
+      "genus": null,
+      "name": "ALTE CEREALE PENTRU BOABE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "CEREALE PENTRU BOABE"
+    },
+    {
+      "code": 151,
+      "genus": "Pisum",
+      "name": "MAZĂRE BOABE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1517,
+      "genus": "Pisum",
+      "name": "MAZĂRE DE GRĂDINĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1515,
+      "genus": "Pisum",
+      "name": "MAZĂRE (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 152,
+      "genus": "Phaseolus",
+      "name": "FASOLE BOABE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1527,
+      "genus": "Phaseolus",
+      "name": "FASOLE BOABE INDUSTRIALIZARE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1528,
+      "genus": "Phaseolus",
+      "name": "FASOLE PĂSTĂI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1525,
+      "genus": "Phaseolus",
+      "name": "FASOLE (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 153,
+      "genus": "Lens",
+      "name": "LINTE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1535,
+      "genus": "Lens",
+      "name": "LINTE (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 154,
+      "genus": "Vicia",
+      "name": "BOB",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1545,
+      "genus": "Vicia",
+      "name": "BOB (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 155,
+      "genus": "Lupinus",
+      "name": "LUPIN",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1555,
+      "genus": "Lupinus",
+      "name": "LUPIN (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 156,
+      "genus": "Vigna",
+      "name": "FASOLIŢĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1565,
+      "genus": "Vigna",
+      "name": "FASOLIŢĂ (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 157,
+      "genus": "Cicer",
+      "name": "NĂUT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1575,
+      "genus": "Cicer",
+      "name": "NĂUT (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 158,
+      "genus": "Vicia",
+      "name": "MĂZĂRICHE DE TOAMNĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1587,
+      "genus": "Vicia",
+      "name": "MĂZĂRICHE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1585,
+      "genus": "Vicia",
+      "name": "MĂZĂRICHE (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 159,
+      "genus": "Pisum",
+      "name": "MAZĂRE FURAJERĂ DE TOAMNĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1597,
+      "genus": "Pisum",
+      "name": "MAZĂRE FURAJERĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 1595,
+      "genus": "Pisum",
+      "name": "MAZĂRE FURAJERĂ (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 160,
+      "genus": null,
+      "name": "ALTE LEGUMINOASE PENTRU BOABE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 161,
+      "genus": "Trigonella",
+      "name": "SCHINDUF",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 162,
+      "genus": "Galega",
+      "name": "GALEGA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 163,
+      "genus": "Melilotus",
+      "name": "SULFINĂ ALBĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"
+    },
+    {
+      "code": 201,
+      "genus": "Helianthus",
+      "name": "FLOAREA SOARELUI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 202,
+      "genus": "Brassica",
+      "name": "RAPIŢĂ de toamnă",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2020,
+      "genus": "Brassica",
+      "name": "RAPIŢĂ de primăvară",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 203,
+      "genus": "Glycine",
+      "name": "SOIA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2037,
+      "genus": "Glycine",
+      "name": "SOIA (sămânță certificată)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2038,
+      "genus": "Glycine",
+      "name": "SOIA PENTRU SĂMÂNŢĂ (soia lot semincer)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2035,
+      "genus": "Glycine",
+      "name": "SOIA (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 204,
+      "genus": "Linum",
+      "name": "IN PENTRU ULEI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 205,
+      "genus": null,
+      "name": "ALTE OLEAGINOASE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 206,
+      "genus": "Linum",
+      "name": "IN PENTRU FIBRĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 207,
+      "genus": "Cannabis",
+      "name": "CÂNEPĂ PENTRU FIBRĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2077,
+      "genus": "Cannabis",
+      "name": "CÂNEPĂ PENTRU FIBRĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 208,
+      "genus": "Nicotiana",
+      "name": "TUTUN",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 209,
+      "genus": "Foeniculum",
+      "name": "FENICUL",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 210,
+      "genus": "Lavandula",
+      "name": "LEVĂNŢICA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 211,
+      "genus": "Mentha",
+      "name": "MENTA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 212,
+      "genus": "Pimpinella",
+      "name": "ANASON",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 213,
+      "genus": null,
+      "name": "ALTE PLANTE MEDICINALE ŞI AROMATICE (anuale) în câmp şi spaţii protejate",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2013,
+      "genus": null,
+      "name": "ALTE PLANTE MEDICINALE ŞI AROMATICE (perene) în câmp şi spaţii protejate",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 214,
+      "genus": null,
+      "name": "ALTE PLANTE INDUSTRIALE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 215,
+      "genus": "Arachis",
+      "name": "ARAHIDE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2155,
+      "genus": "Arachis",
+      "name": "ARAHIDE (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 216,
+      "genus": "Papaver",
+      "name": "MAC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 217,
+      "genus": "Ricinus",
+      "name": "RICIN",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 218,
+      "genus": "Sesanum",
+      "name": "SUSAN",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 219,
+      "genus": "Carthamus",
+      "name": "ŞOFRĂNELUL",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 220,
+      "genus": "Cannabis",
+      "name": "CÂNEPĂ PENTRU ULEI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 2207,
+      "genus": "Cannabis",
+      "name": "CÂNEPĂ PENTRU ULEI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 221,
+      "genus": "Chenopodium",
+      "name": "QUINOA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 222,
+      "genus": "Amaranthus",
+      "name": "AMARANTH",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 224,
+      "genus": "Coriandrum",
+      "name": "CORIANDRU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 225,
+      "genus": "Dracocephalum",
+      "name": "MĂTĂCIUNE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 226,
+      "genus": "Camelina",
+      "name": "CAMELINĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE INDUSTRIALE şi MEDICINALE"
+    },
+    {
+      "code": 251,
+      "genus": "Solanum",
+      "name": "CARTOFI TIMPURII (include cartoful semitimpuriu şi de vară)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE TUBERCULIFERE"
+    },
+    {
+      "code": 253,
+      "genus": "Solanum",
+      "name": "CARTOFI TÂRZII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE TUBERCULIFERE"
+    },
+    {
+      "code": 254,
+      "genus": "Solanum",
+      "name": "ALTE CULTURI DE CARTOFI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE TUBERCULIFERE"
+    },
+    {
+      "code": 255,
+      "genus": "Solanum",
+      "name": "CARTOFI PENTRU SĂMÂNŢĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE TUBERCULIFERE"
+    },
+    {
+      "code": 2557,
+      "genus": "Solanum",
+      "name": "CARTOFI PENTRU SĂMÂNŢĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE TUBERCULIFERE"
+    },
+    {
+      "code": 301,
+      "genus": "Beta",
+      "name": "SFECLĂ DE ZAHĂR",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE RADĂCINOASE"
+    },
+    {
+      "code": 3017,
+      "genus": "Beta",
+      "name": "SFECLĂ DE ZAHĂR",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE RADĂCINOASE"
+    },
+    {
+      "code": 302,
+      "genus": "Beta",
+      "name": "SFECLĂ FURAJERĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE RADĂCINOASE"
+    },
+    {
+      "code": 303,
+      "genus": "Brassica",
+      "name": "GULIE FURAJERĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE RADĂCINOASE"
+    },
+    {
+      "code": 304,
+      "genus": "Raphanus",
+      "name": "RIDICHE SĂLBATICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE RADĂCINOASE"
+    },
+    {
+      "code": 9535,
+      "genus": "Helianthus",
+      "name": "NAP",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "PLANTE RADĂCINOASE"
+    },
+    {
+      "code": 351,
+      "genus": null,
+      "name": "LEGUME PROASPETE anuale",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 3510,
+      "genus": null,
+      "name": "LEGUME PROASPETE perene (sparanghel, etc)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 352,
+      "genus": "Citrullus",
+      "name": "PEPENI VERZI ŞI GALBENI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 353,
+      "genus": "Solanum",
+      "name": "TOMATE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 3537,
+      "genus": "Solanum",
+      "name": "TOMATE ÎN CÂMP",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 354,
+      "genus": "Cucumis",
+      "name": "CASTRAVEŢI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 3547,
+      "genus": "Cucumis",
+      "name": "CASTRAVEŢI ÎN CÂMP",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 3507,
+      "genus": "Capsicum",
+      "name": "ARDEI ÎN CÂMP",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 3597,
+      "genus": "Solanum",
+      "name": "VINETE ÎN CÂMP",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME PROASPETE, PEPENI"
+    },
+    {
+      "code": 359,
+      "genus": "Solanum",
+      "name": "TOMATE ÎN SOLARII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SOLARII"
+    },
+    {
+      "code": 360,
+      "genus": "Cucumis",
+      "name": "CASTRAVETI ÎN SOLARII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SOLARII"
+    },
+    {
+      "code": 361,
+      "genus": "Capsicum",
+      "name": "ARDEI ÎN SOLARII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SOLARII"
+    },
+    {
+      "code": 362,
+      "genus": "Brassica",
+      "name": "VARZA ÎN SOLARII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SOLARII"
+    },
+    {
+      "code": 363,
+      "genus": "Solanum",
+      "name": "VINETE ÎN SOLARII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SOLARII"
+    },
+    {
+      "code": 355,
+      "genus": "Solanum",
+      "name": "TOMATE ÎN SERE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SERE"
+    },
+    {
+      "code": 356,
+      "genus": "Cucumis",
+      "name": "CASTRAVEŢI ÎN SERE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SERE"
+    },
+    {
+      "code": 357,
+      "genus": "Capsicum",
+      "name": "ARDEI ÎN SERE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SERE"
+    },
+    {
+      "code": 358,
+      "genus": "Brassica",
+      "name": "VARZĂ ÎN SERE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SERE"
+    },
+    {
+      "code": 364,
+      "genus": "Solanum",
+      "name": "VINETE ÎN SERE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LEGUME DIN SERE"
+    },
+    {
+      "code": 400,
+      "genus": null,
+      "name": "FLORI ŞI PLANTE ORNAMENTALE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 401,
+      "genus": null,
+      "name": "FLORI SI PLANTE ORNAMENTALE IN SERE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 450,
+      "genus": null,
+      "name": "PAJIŞTI TEMPORARE (artificiale, însămânţate pe TA <de 5 ani)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 451,
+      "genus": null,
+      "name": "PLANTE DE NUTREŢ (anuale)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 452,
+      "genus": null,
+      "name": "MIXTURI DE LEGUMINOASE FURAJERE PERENE CU GRAMINEE PERENE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 453,
+      "genus": null,
+      "name": "MIXTURI DE LEGUMINOASE FIXATOARE DE AZOT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 460,
+      "genus": null,
+      "name": "MUŞTAR + OVĂZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 461,
+      "genus": null,
+      "name": "MUŞTAR+ PHACELIA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 462,
+      "genus": null,
+      "name": "MUŞTAR + RAPIŢĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 463,
+      "genus": null,
+      "name": "LATIR + MĂZĂRICHE DE TOAMNĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 464,
+      "genus": null,
+      "name": "LATIR + OVĂZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 465,
+      "genus": null,
+      "name": "MAZĂRE + OVĂZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 466,
+      "genus": null,
+      "name": "MĂZĂRICHE DE TOAMNĂ + OVĂZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 467,
+      "genus": null,
+      "name": "MĂZĂRICHE DE TOAMNĂ+SECARĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 468,
+      "genus": null,
+      "name": "MĂZĂRICHE DE TOAMNĂ+TRITICALE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 469,
+      "genus": null,
+      "name": "LUPIN+ TRIFOI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 470,
+      "genus": null,
+      "name": "RAPIŢĂ + TRITICALE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 471,
+      "genus": null,
+      "name": "RAPIŢĂ +SECARĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 472,
+      "genus": null,
+      "name": "BOB + OVĂZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 473,
+      "genus": null,
+      "name": "SECARĂ + TRIFOI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 474,
+      "genus": null,
+      "name": "TRIFOI + PHACELIA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 475,
+      "genus": null,
+      "name": "MAZĂRE + MUȘTAR",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 476,
+      "genus": null,
+      "name": "MĂZĂRICHE DE TOAMNĂ + CAMELINĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 477,
+      "genus": null,
+      "name": "MUȘTAR + RAPIȚĂ DE PRIMĂVARĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 478,
+      "genus": null,
+      "name": "MAZĂRE + TRITICALE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 479,
+      "genus": null,
+      "name": "MUȘTAR + OVĂZ + SECARĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 483,
+      "genus": null,
+      "name": "SPARCETĂ + OVĂZ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "LISTA AMESTECURILOR DE SPECII DE CULTURI SECUNDARE"
+    },
+    {
+      "code": 500,
+      "genus": null,
+      "name": "LOT SEMINCER pentru culturi anuale",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 501,
+      "genus": null,
+      "name": "LOT SEMINCER pentru culturi perene",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 502,
+      "genus": null,
+      "name": "LOT SEMINCER porumb",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 503,
+      "genus": null,
+      "name": "LOT SEMINCER orz",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 504,
+      "genus": null,
+      "name": "LOT SEMINCER rapiță",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 505,
+      "genus": null,
+      "name": "LOT SEMINCER floarea soarelui",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 550,
+      "genus": null,
+      "name": "ALTE CULTURI ÎN TEREN ARABIL (anuale)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 551,
+      "genus": null,
+      "name": "ALTE CULTURI ÎN TEREN ARABIL (perene) ex. trandafir pentru dulceață etc",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 970,
+      "genus": null,
+      "name": "TEREN NECULTIVAT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 971,
+      "genus": null,
+      "name": "TEREN SUB SERE ŞI–SOLARII – CULTIVAT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 972,
+      "genus": null,
+      "name": "TEREN SUB SERE ŞI–SOLARII – NECULTIVAT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 973,
+      "genus": "Trifolium",
+      "name": "TRIFOI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9737,
+      "genus": "Trifolium",
+      "name": "TRIFOI ROȘU",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9735,
+      "genus": "Trifolium",
+      "name": "TRIFOI (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 974,
+      "genus": "Medicago",
+      "name": "LUCERNĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9748,
+      "genus": "Medicago",
+      "name": "LUCERNĂ (sămânță certificată)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9749,
+      "genus": "Medicago",
+      "name": "LUCERNĂ PENTRU SĂMÂNŢĂ (lucernă lot semincer)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9745,
+      "genus": "Medicago",
+      "name": "LUCERNĂ (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 975,
+      "genus": "Onobrychis",
+      "name": "SPARCETĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9757,
+      "genus": "Onobrychis",
+      "name": "SPARCETĂ (sămânță certificată)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9755,
+      "genus": "Onobrychis",
+      "name": "SPARCETĂ (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 976,
+      "genus": "Phacelia",
+      "name": "FACELIA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9767,
+      "genus": "Phacelia",
+      "name": "FACELIA (sămânță certificată)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9765,
+      "genus": "Phacelia",
+      "name": "FACELIA (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 977,
+      "genus": "Sinapis",
+      "name": "MUŞTAR",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 978,
+      "genus": "Lotus",
+      "name": "GHIZDEI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9785,
+      "genus": "Lotus",
+      "name": "GHIZDEI (în amestec cu graminee perene)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 979,
+      "genus": "Agaricus",
+      "name": "CIUPERCI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 980,
+      "genus": "Dactylis",
+      "name": "GOLOMĂȚ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9807,
+      "genus": "Dactylis",
+      "name": "GOLOMĂȚ (sămânță certificată)",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 981,
+      "genus": "Crotalaria",
+      "name": "CROTALARIA",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 982,
+      "genus": "Lathyrus",
+      "name": "LATIR",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 983,
+      "genus": "Agropyron cristatum",
+      "name": "PIR CRISTAT",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 984,
+      "genus": "Bromus inermis",
+      "name": "OBSIGĂ NEARISTATĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 985,
+      "genus": "Festuca",
+      "name": "PĂIUȘ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 986,
+      "genus": "Phalaris",
+      "name": "IERBĂLUȚĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 987,
+      "genus": "Phleum",
+      "name": "TIMOFTICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 988,
+      "genus": "Poa pratensis",
+      "name": "FIRUȚĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 803,
+      "genus": "Fragaria",
+      "name": "CĂPŞUNI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 8033,
+      "genus": "Fragaria",
+      "name": "CĂPŞUNI ÎN SERE ȘI SOLARII",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 805,
+      "genus": "Cichorium",
+      "name": "CICOARE",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": null
+    },
+    {
+      "code": 9532,
+      "genus": "Miscanthus",
+      "name": "IARBA-ELEFANTULUI",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9534,
+      "genus": "Arundo",
+      "name": "STUF GIGANT ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9540,
+      "genus": "Brassica",
+      "name": "RAPIŢĂ ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9541,
+      "genus": "Zea",
+      "name": "PORUMB ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9542,
+      "genus": "Sorghum",
+      "name": "SORG ZAHARAT ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9543,
+      "genus": "Sorghum",
+      "name": "SORG X SUDAN ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9544,
+      "genus": "Cynara",
+      "name": "ANGHINARE ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9545,
+      "genus": "Panicum",
+      "name": "MEI ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9546,
+      "genus": "Euphorbia",
+      "name": "LAPTELE –CÂINELUI ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9547,
+      "genus": "Elytrigia",
+      "name": "IARBA ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9548,
+      "genus": "Triticosecale",
+      "name": "TRITICALE ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9549,
+      "genus": "Secale",
+      "name": "SECARĂ ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9550,
+      "genus": "Sorghum",
+      "name": "SORG ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9551,
+      "genus": "Beta",
+      "name": "SFECLĂ FURAJERĂ ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9552,
+      "genus": "Beta",
+      "name": "SFECLĂ DE ZAHĂR ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9553,
+      "genus": "Trifolium",
+      "name": "TRIFOI ROŞU ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9554,
+      "genus": "Trifolium",
+      "name": "TRIFOI ALB ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9555,
+      "genus": "Camelina",
+      "name": "CAMELINĂ ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9556,
+      "genus": "Medicago",
+      "name": "LUCERNĂ ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9557,
+      "genus": "Lolium",
+      "name": "RAIGRAS PEREN ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9558,
+      "genus": "Sorghum",
+      "name": "IARBĂ DE SUDAN ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9559,
+      "genus": "Lupinus",
+      "name": "LUPIN ENERGETIC",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 9560,
+      "genus": "Phacelia",
+      "name": "FACELIA ENERGETICĂ",
+      "section": "I. TEREN ARABIL – TA",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA"
+    },
+    {
+      "code": 603,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE ÎN COMUN, exploatate prin pășunat",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6031,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE ÎN COMUN, exploatate prin pășunat, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6032,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE ÎN COMUN, exploatate prin pășunat, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6033,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE ÎN COMUN, exploatate prin pășunat, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 604,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate mixt",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6041,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate mixt în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6042,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate mixt în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6043,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate mixt în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 605,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entităţi de drept public UTILIZATE INDIVIDUAL, exploatate prin pășunat",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6051,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE INDIVIDUAL, exploatate prin pășunat, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6052,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE INDIVIDUAL, exploatate prin pășunat, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6053,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entităţi de drept public UTILIZATE INDIVIDUAL, exploatate prin pășunat, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 606,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate mixt",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6061,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate mixt în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6062,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate mixt în sistem de paludicultură -papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6063,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate mixt în sistem de paludicultură -rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 607,
+      "genus": null,
+      "name": "FÂNEŢE UTILIZATE INDIVIDUAL, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 608,
+      "genus": null,
+      "name": "FÂNEŢE aparținând UAT sau ADS UTILIZATE INDIVIDUAL, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 609,
+      "genus": null,
+      "name": "PĂȘUNI UTILIZATE INDIVIDUAL, exploatate prin pășunat",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6091,
+      "genus": null,
+      "name": "PAJIȘTI UTILIZATE INDIVIDUAL, exploatate prin pășunat în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6092,
+      "genus": null,
+      "name": "PAJIȘTI UTILIZATE INDIVIDUAL, exploatate prin pășunat în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6093,
+      "genus": null,
+      "name": "PAJIȘTI UTILIZATE INDIVIDUAL, exploatate prin pășunat în sistem de paludicultură -rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 610,
+      "genus": null,
+      "name": "PĂȘUNI UTILIZATE ÎN COMUN, exploatate prin pășunat",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6101,
+      "genus": null,
+      "name": "PAJIȘTI UTILIZATE ÎN COMUN, exploatate prin pășunat, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6102,
+      "genus": null,
+      "name": "PAJIȘTI UTILIZATE ÎN COMUN, exploatate prin pășunat, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6103,
+      "genus": null,
+      "name": "PAJIȘTI UTILIZATE ÎN COMUN, exploatate prin pășunat, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 611,
+      "genus": null,
+      "name": "FÂNEŢE UTILIZATE ÎN COMUN, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 612,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate mixt",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6121,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate mixt, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6122,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate mixt, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6123,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate mixt, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 613,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6131,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate prin cosit, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6132,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate prin cosit, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6133,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE INDIVIDUAL, exploatate prin cosit, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 614,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6141,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate prin cosit, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6142,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate prin cosit, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6143,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate prin cosit, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 615,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6151,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate prin cosit, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6152,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate prin cosit, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6153,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE INDIVIDUAL, exploatate prin cosit, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 616,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate prin cosit",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6161,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate prin cosit, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6162,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate prin cosit, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6163,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE UTILIZATE ÎN COMUN, exploatate prin cosit, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 617,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate mixt",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6171,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT,ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate mixt, în sistem de paludicultură – stuf",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6172,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate mixt, în sistem de paludicultură – papură",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 6173,
+      "genus": null,
+      "name": "PAJIŞTI PERMANENTE aparținând UAT, ADS sau altor entități de drept public UTILIZATE ÎN COMUN, exploatate mixt, în sistem de paludicultură – rogoz",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 660,
+      "genus": null,
+      "name": "LIVADA TRADIŢIONALĂ UTILIZATĂ EXTENSIV MIXT",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 661,
+      "genus": null,
+      "name": "LIVADA TRADIŢIONALĂ UTILIZATĂ EXTENSIV CA FÂNEAŢĂ",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 662,
+      "genus": null,
+      "name": "FÂNEŢE NATURALE ENERGETICE",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 663,
+      "genus": null,
+      "name": "LIVADA TRADIŢIONALĂ UTILIZATĂ EXTENSIV PRIN PAŞUNAT",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 671,
+      "genus": null,
+      "name": "PAJIȘTI PERMANENTE SENSIBILE DIN PUNCT DE VEDERE AL MEDIULUI RECONVERTITE ÎN PP",
+      "section": "II. PAJIŞTE PERMANENTĂ – PP",
+      "heading": null
+    },
+    {
+      "code": 651,
+      "genus": "Malus",
+      "name": "MERI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6517,
+      "genus": "Malus",
+      "name": "MERI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 652,
+      "genus": "Pyrus",
+      "name": "PERI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6527,
+      "genus": "Pyrus",
+      "name": "PERI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 653,
+      "genus": "Prunus",
+      "name": "PRUNI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6537,
+      "genus": "Prunus",
+      "name": "PRUNI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 654,
+      "genus": "Prunus",
+      "name": "CAIŞI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6547,
+      "genus": "Prunus",
+      "name": "CAISI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 655,
+      "genus": "Prunus",
+      "name": "PIERSICI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6557,
+      "genus": "Prunus",
+      "name": "PIERSICI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 656,
+      "genus": "Prunus",
+      "name": "CIREŞI ŞI VIŞINI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6567,
+      "genus": "Prunus",
+      "name": "CIREŞI ŞI VIŞINI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 657,
+      "genus": "Cydonia",
+      "name": "GUTUI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 6577,
+      "genus": "Cydonia",
+      "name": "GUTUI PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 658,
+      "genus": "Morus",
+      "name": "DUZI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 659,
+      "genus": null,
+      "name": "ALŢI POMI FRUCTIFERI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "POMI FRUCTIFERI"
+    },
+    {
+      "code": 701,
+      "genus": "Castanea",
+      "name": "CASTANI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"
+    },
+    {
+      "code": 702,
+      "genus": "Juglans",
+      "name": "NUCI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"
+    },
+    {
+      "code": 705,
+      "genus": "Corylus",
+      "name": "ALUN DE PĂDURE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"
+    },
+    {
+      "code": 7057,
+      "genus": "Corylus",
+      "name": "ALUN DE PĂDURE PENTRU CONSUM ÎN STARE PROASPĂTĂ/ INDUSTRIALIZARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"
+    },
+    {
+      "code": 703,
+      "genus": null,
+      "name": "ALTE SPECII ÎNRUDITE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"
+    },
+    {
+      "code": 704,
+      "genus": null,
+      "name": "LIVEZI TINERE NEINTRATE PE ROD",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"
+    },
+    {
+      "code": 750,
+      "genus": "Humulus",
+      "name": "HAMEI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "HAMEI"
+    },
+    {
+      "code": 7507,
+      "genus": "Humulus",
+      "name": "HAMEI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "HAMEI"
+    },
+    {
+      "code": 760,
+      "genus": "Quercus",
+      "name": "STEJAR PEDUNCULAT",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 761,
+      "genus": "Quercus",
+      "name": "STEJAR PUFOS",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 762,
+      "genus": "Quercus",
+      "name": "STEJAR BRUMĂRIU",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 763,
+      "genus": "Malus",
+      "name": "MĂR SĂLBATIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 764,
+      "genus": "Prunus",
+      "name": "PIERSIC SĂLBATIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 765,
+      "genus": "Juglans",
+      "name": "NUC NEGRU",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 766,
+      "genus": "Ulmus",
+      "name": "ULM DE TURKESTAN",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 767,
+      "genus": "Tilia",
+      "name": "TEI ARGINTIU",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 768,
+      "genus": "Tilia",
+      "name": "TEI DE DEAL",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 769,
+      "genus": "Tilia",
+      "name": "TEI CU FRUNZA MARE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 770,
+      "genus": "Robinia",
+      "name": "SALCÂM",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 771,
+      "genus": "Gleditsia",
+      "name": "GLĂDIŢĂ",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 772,
+      "genus": "Acer",
+      "name": "PALTIN DE CÂMP",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 773,
+      "genus": "Acer",
+      "name": "PALTIN DE MUNTE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 774,
+      "genus": "Acer",
+      "name": "ARŢAR TĂTĂRESC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 775,
+      "genus": "Acer",
+      "name": "JUGASTRU",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 776,
+      "genus": "Pinus",
+      "name": "PIN NEGRU",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 777,
+      "genus": "Prunus",
+      "name": "VIŞIN TURCESC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 778,
+      "genus": "Prunus",
+      "name": "PRUN SĂLBATIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 779,
+      "genus": "Crataegus",
+      "name": "PĂDUCEL",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 780,
+      "genus": "Elaeagnus",
+      "name": "SĂLCIOARĂ",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 781,
+      "genus": "Aesculus",
+      "name": "CASTAN SĂLBATIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 782,
+      "genus": "Ulmus",
+      "name": "ULM",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 783,
+      "genus": "Pinus",
+      "name": "PIN",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 786,
+      "genus": "Acer",
+      "name": "ARȚAR",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 787,
+      "genus": "Picea",
+      "name": "MOLID",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 788,
+      "genus": "Prunus",
+      "name": "PORUMBAR",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 789,
+      "genus": "Rosa",
+      "name": "MĂCEȘ",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 790,
+      "genus": "Pyrus",
+      "name": "PĂR SĂLBATIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 791,
+      "genus": null,
+      "name": "MIXT AGROFORESTIERE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "SPECII AGROFORESTIERE (cu lățime de maxim 30 m, declarate în TA, PP,CP)"
+    },
+    {
+      "code": 801,
+      "genus": "Rubus",
+      "name": "ZMEUR",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ARBUŞTI FRUCTIFERI"
+    },
+    {
+      "code": 8013,
+      "genus": "Rubus",
+      "name": "ZMEUR ÎN SERE ȘI SOLARII",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ARBUŞTI FRUCTIFERI"
+    },
+    {
+      "code": 802,
+      "genus": "Ribes",
+      "name": "COACĂZ",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ARBUŞTI FRUCTIFERI"
+    },
+    {
+      "code": 8023,
+      "genus": "Ribes",
+      "name": "COACĂZ ÎN SERE ȘI SOLARII",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ARBUŞTI FRUCTIFERI"
+    },
+    {
+      "code": 804,
+      "genus": null,
+      "name": "ALŢI ARBUŞTI FRUCTIFERI (cătină, afin etc.)",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ARBUŞTI FRUCTIFERI"
+    },
+    {
+      "code": 8043,
+      "genus": null,
+      "name": "ALŢI ARBUŞTI/POMI FRUCTIFERI ÎN SERE ȘI SOLARII (cătină, afin, mur, cireș etc.)",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ARBUŞTI FRUCTIFERI"
+    },
+    {
+      "code": 806,
+      "genus": "Actinidia",
+      "name": "KIWI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "LIANE FRUCTIFERE"
+    },
+    {
+      "code": 8063,
+      "genus": "Actinidia",
+      "name": "KIWI ÎN SERE ȘI SOLARII",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "LIANE FRUCTIFERE"
+    },
+    {
+      "code": 901,
+      "genus": "Vitis",
+      "name": "PEPINIERE VITICOLE ŞI PLANTAŢII PORTALTOI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 902,
+      "genus": null,
+      "name": "PEPINIERE POMICOLE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 903,
+      "genus": null,
+      "name": "PEPINIERE FORESTIERE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 904,
+      "genus": null,
+      "name": "ALTE PEPINIERE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 905,
+      "genus": null,
+      "name": "PEPINIERE DE FRUCTE DE PĂDURE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 906,
+      "genus": null,
+      "name": "PEPINIERE DE PLANTE ORNAMENTALE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 907,
+      "genus": null,
+      "name": "PEPINIERE DE PLANTE PT. GARDURI VII ȘI PORTALTOI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 908,
+      "genus": null,
+      "name": "PEPINIERE DE TRANDAFIRI ȘI ALȚI ARBUȘTI ORNAMENTALI ȘI PORTALTOI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 909,
+      "genus": null,
+      "name": "PEPINIERE DE CONIFERE ORNAMENTALE ȘI PORTALTOI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "PEPINIERE"
+    },
+    {
+      "code": 950,
+      "genus": null,
+      "name": "TEREN ÎN PREGĂTIRE PENTRU LIVEZI",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ALTE CULTURI PERMANENTE"
+    },
+    {
+      "code": 951,
+      "genus": null,
+      "name": "TEREN ÎN PREGĂTIRE PENTRU VII",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ALTE CULTURI PERMANENTE"
+    },
+    {
+      "code": 952,
+      "genus": null,
+      "name": "TEREN ÎN PREGĂTIRE PENTRU ALTE CULTURI PERMANENTE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "ALTE CULTURI PERMANENTE"
+    },
+    {
+      "code": 9531,
+      "genus": "Salix",
+      "name": "SALCIE ENERGETICĂ (Salix spp)",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - CP"
+    },
+    {
+      "code": 9533,
+      "genus": "Populus",
+      "name": "PLOP HIBRID ENERGETIC (Populus spp)",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - CP"
+    },
+    {
+      "code": 9536,
+      "genus": "Paulownia",
+      "name": "ARBORELE-PRINŢESEI ENERGETIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - CP"
+    },
+    {
+      "code": 9537,
+      "genus": "Jatropha",
+      "name": "ARBUST DE PETROL ENERGETIC",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - CP"
+    },
+    {
+      "code": 961,
+      "genus": "Vitis",
+      "name": "VII CU STRUGURI PENTRU VIN",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "VII"
+    },
+    {
+      "code": 962,
+      "genus": "Vitis",
+      "name": "VII CU STRUGURI DE MASĂ",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "VII"
+    },
+    {
+      "code": 965,
+      "genus": "Vitis",
+      "name": "VII FINANŢATE PRIN PROGRAMUL RESTRUCTURARE / RECONVERSIE",
+      "section": "III. CULTURI PERMANENTE – CP",
+      "heading": "VII"
+    },
+    {
+      "code": 1006,
+      "genus": "PA",
+      "name": "Teren împădurit în conformitate cu art. 2 alin. 2 c) din H.G. nr. 1571/2022, cu modificări și completări",
+      "section": "IV. TEREN ÎMPĂDURIT în conformitate cu art. 2 alin. 2 c) din H.G. nr. 1571/2022, cu modificări și completări",
+      "heading": null
+    }
+  ]
+}

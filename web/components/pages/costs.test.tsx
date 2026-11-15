@@ -66,6 +66,31 @@ describe('Datele planului', () => {
     expect(text()).toContain('100 lei/ha. Poate lipsesc cheltuieli.');
   });
 
+  it('takes the cost for the whole crop and saves it per hectare', async () => {
+    const { me, saved } = farmWith([]);
+    const { live } = await showPage('date-plan', 'farm', saved, true, me);
+    const costs = screen.getByRole('group', { name: 'Costurile pentru grâu comun de toamnă: total sau pe hectar' });
+    fireEvent.click(costs.querySelector('button')!); // Total
+    const field = screen.getByLabelText('Costuri pe tot sezonul, în lei, pe 5 ha') as HTMLInputElement;
+    expect(field.value).toBe('21.250'); // the same 4.250 lei/ha, for 5 ha
+    fireEvent.change(field, { target: { value: '19.001' } });
+    expect(text()).toContain('Salvăm 3.800 lei/ha × 5 ha = 19.000 lei pe sezon.');
+    fireEvent.click(screen.getByRole('button', { name: 'Salvează' }));
+    await vi.waitFor(() => expect(live.write).toHaveBeenCalled());
+    expect((live.write as ReturnType<typeof vi.fn>).mock.calls[0]![1].expected).toEqual([{ cropId: 'grau', yieldTPerHa: null, priceLeiPerKg: null, costLeiPerHa: 3800 }]);
+  });
+
+  it('takes the yield in tonnes and saves it per hectare', async () => {
+    const { me, saved } = farmWith([]);
+    const { live } = await showPage('date-plan', 'farm', saved, true, me);
+    fireEvent.click(screen.getByRole('group', { name: 'Producția de grâu comun de toamnă: tone sau tone la hectar' }).querySelector('button')!); // Tone
+    fireEvent.change(screen.getByLabelText('Tone pe 5 ha'), { target: { value: '30' } });
+    expect(text()).toContain('Salvăm 6 t/ha × 5 ha = 30 t');
+    fireEvent.click(screen.getByRole('button', { name: 'Salvează' }));
+    await vi.waitFor(() => expect(live.write).toHaveBeenCalled());
+    expect((live.write as ReturnType<typeof vi.fn>).mock.calls[0]![1].expected[0]).toMatchObject({ cropId: 'grau', yieldTPerHa: 6 });
+  });
+
   it('offers nothing while the season still runs', async () => {
     const { me, saved } = farmWith([expense('grau', 'seeds', -2_000_000, 2027)]);
     await showPage('date-plan', 'farm', saved, true, me);
@@ -78,7 +103,7 @@ describe('Recolte', () => {
     const { me, saved } = farmWith([expense('grau', 'seeds', -500_000, 2027), expense(null, 'diesel', -160_000, 2027)]);
     await showPage('recolte', 'farm', saved, true, me);
     const card = [...document.querySelectorAll('section')].find((s) => s.querySelector('h2')?.textContent === 'Cheltuieli pe hectar')!;
-    expect(card.textContent).toContain('Grâu, 5 ha');
+    expect(card.textContent).toContain('Grâu comun de toamnă, 5 ha');
     expect(card.textContent).toContain('Până acum');
     expect(card.textContent).toContain('Sămânță');
     expect(card.textContent).toContain('1.000 lei'); // 5.000 lei of seed on 5 ha

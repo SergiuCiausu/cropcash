@@ -122,10 +122,11 @@ A `confirm` tool never executes during the AI's turn. It returns a pending actio
 | `get_plan` | Acasă, Prognoză | scenario | timeline, salary, tight months, spring need | `read` | `phone` | Built |
 | `get_salary` | Salary card | scenario | safe salary, the month limiting it, deficit | `read` | `phone` | Built |
 | `explain_salary` | "De ce atât?" | scenario | plain reason, limiting month, cumulative money | `read` | `phone` | Built |
+| `explain_drivers` | Prognoză, „Ce schimbă cel mai mult salariul”; assistant | order (`effect` or `unsure`), optional crop, limit | each income and cost of the next 12 months with its effect on the safe salary and the lowest point (leave-one-out), bad-to-good spread, `own` for the farmer's sums | `read` | `phone` | Built |
 | `get_forecast` | Prognoză, "An slab / normal / bun" | scenario | 12 months, key figures, where money goes | `read` | `phone` | Built |
 | `get_tight_months` | Tight-months card, Rezerve | scenario | months, lowest point, amount missing | `read` | `phone` | Built |
 | `get_after_bad_harvest` | Prognoză, "An slab"; assistant | none | lowest point before the next harvest, salary that holds, what bad, normal and good mean in t/ha | `read` | `phone` | Built |
-| `list_upcoming` | "Ce urmează", calendar tile | days | payments, deadlines and work | `read` | `phone` | Built |
+| `list_upcoming` | "Ce urmează", calendar tile | days | payments, deadlines and work, plus the farmer's own notes (`farmer_note`) and sums (`farmer_in`/`farmer_out`) | `read` | `phone` | Built |
 | `set_salary_target` | Target field | target in lei | new salary and credit need | `confirm` | `outbox` | New |
 | `check_purchase` | "Pot să-mi iau...?", assistant | amount, month, optional | salary after it, tightest month after it | `read` | `phone` | Built (step 9c) |
 
@@ -219,6 +220,18 @@ Until INS data exists, county results are labelled "date ilustrative".
 
 `get_weather` needs a new kind of read in the registry, one that runs on the API, before the AI can use it.
 
+### Parcels on the map (docs/harta-plan.md)
+
+| Function | Button or screen | Input | Returns | Access | Runs | Status |
+|---|---|---|---|---|---|---|
+| `save_plots` | „Parcelele din cerere” sheet, „Le pun pe hartă” | harvest year, 1 to 500 parcels (bloc, number, SIRUTA, outline, season) | parcel ids; the crop totals follow the parcels | `user` | `api` | Built (step 3); sheet not on a page yet |
+| `update_plot` | Parcel card on `/harta`: name, redraw, season | parcel id, harvest year, the fields that change | parcel id | `user` | `api` | Built (step 3) |
+| `add_operation` | Parcel card: „Notează o lucrare” | parcel, year, kind, done or planned, date, product, dose | operation id; sent again with the same client id, the same one | `user` | `api` | Built (step 3) |
+| `update_operation` | Parcel card: „Am făcut-o” on a planned one | operation id, the fields that change | none | `user` | `api` | Built (step 3) |
+| `remove_operation` | Parcel card, after a mistaken note | operation id | none; 404 counts as done | `user` | `api` | Built (step 3) |
+
+Reading the parcels is `GET /api/plots?year=`, outside the registry: a read function runs on the farm the phone already has, and parcels aren't part of it. These are `user` until the parcel card exists; giving the assistant `add_operation` („am stropit azi grâul”) is a later choice. None of them waits in the offline queue yet.
+
 ## 8. Risk fund and pension
 
 | Function | Button or screen | Input | Returns | Access | Runs | Status |
@@ -252,6 +265,18 @@ It's the farmer's money. The app shows the effect of taking money out of the fun
 | `add_recurring_cost` | Expense sheet, "Se repetă" | name, amount, how often, next date | recurring cost, new salary | `confirm` | `api` | New, step 11 |
 | `list_recurring_costs` | Rezerve | none | recurring costs | `read` | `phone` | New, step 11 |
 | `remove_recurring_cost` | Row in the list | id | none | `confirm` | `api` | New, step 11 |
+
+### The farmer's own events (docs/calendar-events-plan.md)
+
+| Function | Button or screen | Input | Returns | Access | Runs | Status |
+|---|---|---|---|---|---|---|
+| `add_event` | Calendar „Adaugă”, Recolte „Adaugă în calendar”, assistant card | category, title, day(s), hour, repeat and end, reminder, crop; for money direction, sum in whole lei, expense category, „în locul estimării” | event id (the card's `clientId`), new salary | `confirm` | `outbox` | Built |
+| `update_event` | „Schimbă”, scope „Toate” or „De acum înainte” | id, patch (`scope`, `from`, `newId` for a split) | lost one-day changes, new salary | `user` | `outbox` | Built |
+| `delete_event` | „Șterge” → „Toate” | id | none; a repeated 404 counts as done | `user` | `outbox` | Built |
+| `set_occurrence` | „Doar în ziua asta”, „Am făcut”, „Nu mai e cazul” | event id, original date, change | the date's row | `user` | `outbox` | Built |
+| `confirm_occurrence` | „Ai plătit?” → „Da” | event id, original date, sum, day, client id | the expense or sale it recorded, once | `user` | `outbox` | Built |
+
+They wait in the offline queue because they only note plans and what already happened; `confirm_occurrence` records money that already moved, like `add_expense`. A sum in the calendar is a planned entry in every scenario, so the salary counts it. The assistant may only propose `add_event`; changing or deleting stays on the farmer's own taps. Tables: `farm_events`, `farm_event_occurrences` (migration `023`). On Ion's farm all of it stays on the phone (`cropcash-demo-events`).
 
 `get_required_documents` reads a new `documents_ro` field in `calendar-2026.json`. Each list needs an official source, so until then it's `null` with `DE-VERIFICAT`.
 

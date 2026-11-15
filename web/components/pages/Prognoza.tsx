@@ -6,13 +6,16 @@ import { firstYearsTotal } from '../../../packages/shared/src/cashflow/scenarios
 import { cropSeason } from '../../../packages/shared/src/cashflow/seasons';
 import { about, cents, exact, ha } from '../../lib/cc/format';
 import { useMoney, useView } from '../../lib/cc/react';
+import { ResultsBasisSwitch, useResultsBasis } from '../app/Basis';
 import { chartRows, monthName, YEARS, yearEnds, yearName, type ChartRow, type Year } from '../../lib/ui/chart';
 import { monthLabel } from '../../lib/ui/seasons';
 import { OfflineNote, useHref } from '../app/bits';
 import { CropBreakdown } from '../app/CropBreakdown';
 import FarmChart from '../app/FarmChart';
 import { PageLink } from '../app/Frame';
+import { Drivers } from '../app/Drivers';
 import { CompareTable, FutureNote } from '../app/PageNotes';
+import { lossLine } from '../../lib/ui/loss';
 
 const KIND: Record<Year, string> = { bad: 'Ani slabi', medium: 'Ani normali', good: 'Ani buni' };
 const anii = (n: number) => (n === 1 ? '1 an' : `${n} ${n >= 20 ? 'de ' : ''}ani`);
@@ -46,6 +49,10 @@ export default function Prognoza() {
   const view = useView('picked')!;
   const money = useMoney();
   const { text: t, signed: lei } = money;
+  /* "Total | Pe hectar" (docs/per-ha-total-plan.md): what comes in, goes out and is left follows it;
+     balances never do. A crop goes by its hectares, the farm by all of them. */
+  const { show, perHa } = useResultsBasis();
+  const each = (bani: number, ari: number) => show(bani, ari, 'signed');
   const href = useHref();
   const data = view.data();
   const plan = useMemo(() => view.farmPlan(), [view]);
@@ -175,6 +182,7 @@ export default function Prognoza() {
           <div className="card-h">
             <h2>{crop ? `${name}: ${view.projectName(h, crop.id)}` : `${name}: banii tăi, lună de lună`}</h2>
             {!crop && <span>Cel mai jos: {lei(t12.lowest.balance)}, în {shortMonth(t12.lowest.key)}</span>}
+            <ResultsBasisSwitch />
           </div>
           {!crop && (
             <>
@@ -185,15 +193,16 @@ export default function Prognoza() {
           <div className="fc-keys">
             {crop ? (
               <>
-                <Tile label="Intră" value={lei(inSum)} />
-                <Tile label="Costă" value={lei(outSum)} />
-                <Tile label="Rămâne" value={lei(left)} />
-                <Tile label="Rămâne pe hectar" value={lei(Math.round((left * 100) / crop.ari))} />
+                <Tile label="Intră" value={each(inSum, crop.ari)} />
+                <Tile label="Costă" value={each(outSum, crop.ari)} />
+                <Tile label="Rămâne" value={each(left, crop.ari)} />
+                {/* The other unit, so both are always in sight. */}
+                <Tile label={perHa ? 'Rămâne în total' : 'Rămâne pe hectar'} value={perHa ? lei(left) : `${lei(Math.round((left * 100) / crop.ari))}/ha`} />
               </>
             ) : (
               <>
-                <Tile label="Intră" value={lei(inSum)} />
-                <Tile label="Ies" value={lei(outSum)} />
+                <Tile label="Intră" value={each(inSum, view.areaAri())} />
+                <Tile label="Ies" value={each(outSum, view.areaAri())} />
                 <Tile label="Cel mai jos" value={lei(t12.lowest.balance)} sub={monthName(t12.lowest.key)} />
                 <Tile label="Rămân la final" value={lei(last.balanceEnd)} sub={monthName(last.key)} />
               </>
@@ -205,6 +214,7 @@ export default function Prognoza() {
             <div className="card-h">
               <h2>Următorii ani</h2>
               <span>{KIND[year]}</span>
+              <ResultsBasisSwitch />
             </div>
             <div className="vtabs" role="group" aria-label="Ce fel de ani">
               <YearChips year={year} onPick={setYear} />
@@ -222,9 +232,9 @@ export default function Prognoza() {
             <p className="lead">{t(`Între ${about(upTo('bad', n).in)} și ${about(upTo('good', n).in)} lei, la prețurile de azi, până în ${monthName(longLast.to)}.`)}</p>
             <FarmChart className="chart fc-chart" id="l-chart" rows={longRows} low={longEnd} year={year} label={`Banii care intră în ${anii(n)}: ${lei(longEnd.v)}. ${yearEnds(longRows, year, lei)}.`} />
             <div className="fc-keys l-keys">
-              <Tile label="Intră" value={lei(longTotal.in)} />
-              <Tile label="Ies" value={lei(longTotal.out)} />
-              <Tile label="Rămân înainte de salariu" value={lei(longTotal.left)} />
+              <Tile label="Intră" value={each(longTotal.in, view.areaAri())} />
+              <Tile label="Ies" value={each(longTotal.out, view.areaAri())} />
+              <Tile label="Rămân înainte de salariu" value={each(longTotal.left, view.areaAri())} />
             </div>
             {firstSales.length > 0 && <p className="note">Următoarea vânzare: {firstSales.join(', ')}.</p>}
             <p className="note">
@@ -288,6 +298,7 @@ export default function Prognoza() {
                 Schimbă costurile
               </PageLink>
             </span>
+            <ResultsBasisSwitch />
           </div>
           <table className="crop-table">
             <thead>
@@ -296,7 +307,7 @@ export default function Prognoza() {
                 <th scope="col">Hectare</th>
                 <th scope="col">Intră</th>
                 <th scope="col">Costă</th>
-                <th scope="col">Rămâne pe hectar</th>
+                <th scope="col">Rămâne</th>
                 <th scope="col">Prețul la care nu pierzi</th>
               </tr>
             </thead>
@@ -305,16 +316,22 @@ export default function Prognoza() {
                 <tr key={c.cropId}>
                   <th scope="row">{nameOf(c.cropId)}</th>
                   <td data-l="Hectare">{ha(c.areaAri)}</td>
-                  <td data-l="Intră">{lei(c.income)}</td>
-                  <td data-l="Costă">{lei(c.cost)}</td>
-                  <td data-l="Rămâne pe hectar">{lei(c.marginPerHa)}</td>
-                  <td data-l="Prețul la care nu pierzi">{t(`${cents(c.breakEvenPerKg)} lei/kg`)}</td>
+                  <td data-l="Intră">{each(c.income, c.areaAri)}</td>
+                  <td data-l="Costă">{each(c.cost, c.areaAri)}</td>
+                  <td data-l="Rămâne">{each(c.income - c.cost, c.areaAri)}</td>
+                  <td data-l="Prețul la care nu pierzi">{c.breakEvenPerKg === null ? 'Nu se strânge nimic' : t(`${cents(c.breakEvenPerKg)} lei/kg`)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {shownEconomics.map((c) => lossLine(nameOf(c.cropId) ?? view.cropName(c.cropId), c.loss)).filter(Boolean).map((line) => (
+            <p className="note" key={line}>
+              {line}
+            </p>
+          ))}
         </section>
       </div>
+      <Drivers />
       <p className="note gap">{foot}</p>{' '}
       <PageLink className="btn btn-dark next-step" path="/salariu" href={href('/salariu')}>
         Mai departe: cât poți scoate pe lună

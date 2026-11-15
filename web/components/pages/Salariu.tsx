@@ -11,6 +11,7 @@ import { YEARS, yearName, type Year } from '../../lib/ui/chart';
 import { salaryShareText } from '../../lib/ui/family-text';
 import { nextMoneyIn } from '../../lib/ui/next-money';
 import { OfflineNote, useHref } from '../app/bits';
+import { PayrollWarn } from '../app/PayrollWarn';
 import { AverageNote } from '../app/PageNotes';
 import { ShareSheet } from '../app/ShareSheet';
 import { PageLink } from '../app/Frame';
@@ -48,13 +49,15 @@ export default function Salariu() {
   const onServer = !!farm.me;
 
   const cropWord = (id?: string | null) => (view.cropName(id ?? '') || '').toLowerCase();
-  const incomeLabel = (l: Line) => (l.kind === 'apia_advance' ? 'Avans APIA' : l.kind === 'apia_balance' ? 'Restul de la APIA' : l.kind === 'credit' ? 'Credit' : `Vânzare ${cropWord(l.cropId)}`);
-  const costLabel = (l: Line) => (l.kind === 'loan_repayment' ? 'Creditul dat înapoi' : l.what ? `${capital(l.what)}, ${cropWord(l.cropId)}` : `Lucrări la ${cropWord(l.cropId)}`);
+  const own = (l: Line) => `${capital(l.what ?? '')}${l.cropId ? `, ${cropWord(l.cropId)}` : ''}, suma ta`;
+  const incomeLabel = (l: Line) => (l.kind === 'farmer_in' ? own(l) : l.kind === 'apia_advance' ? 'Avans APIA' : l.kind === 'apia_balance' ? 'Restul de la APIA' : l.kind === 'credit' ? 'Credit' : `Vânzare ${cropWord(l.cropId)}`);
+  const costLabel = (l: Line) => (l.kind === 'farmer_out' ? own(l) : l.kind === 'loan_repayment' ? 'Creditul dat înapoi' : l.kind === 'payroll' ? (l.what ? `Salariu: ${l.what}` : 'Salariile oamenilor') : l.what ? `${capital(l.what)}, ${cropWord(l.cropId)}` : `Lucrări la ${cropWord(l.cropId)}`);
   /* "din grâu", "de la APIA": where the next money comes from. */
   const fromWhere = (lines: Line[]) => {
     const crops = [...new Set(lines.filter((l) => l.cropId).map((l) => cropWord(l.cropId)))];
     const parts = crops.length ? [`din ${both(crops)}`] : [];
-    if (lines.some((l) => !l.cropId)) parts.push('de la APIA');
+    if (lines.some((l) => l.kind === 'apia_advance' || l.kind === 'apia_balance')) parts.push('de la APIA');
+    for (const l of lines.filter((x) => x.kind === 'farmer_in' && !x.cropId)) parts.push(`din „${l.what}”`);
     return parts.join(' și ');
   };
   const paidIn = (k: Year) => (k === 'medium' ? plan.monthlySalary : salaryBreakdown(plan, k, data).salary);
@@ -133,6 +136,7 @@ export default function Salariu() {
       </header>
       <OfflineNote>Nu ai internet. Salariul se calculează pe telefon, din datele salvate.</OfflineNote>
       <div className="bento">
+        <PayrollWarn plan={plan} link />
         <section className="chart-card field hero-card pay-hero s12">
           <div>
             <p className="eyebrow">
@@ -178,6 +182,11 @@ export default function Salariu() {
               <SumRow label={b.deficit ? 'Îți lipsesc' : 'Rămân pentru salariu'} amount={lei(printed)} className="total" />
             </ul>
             <p className="sum-end">{end}</p>
+            <p className="note gap">
+              <PageLink path="/prognoza" href={href('/prognoza#ce-conteaza')}>
+                De ce atât? Vezi ce schimbă cel mai mult salariul
+              </PageLink>
+            </p>
           </div>
         </section>
         <section className="card s7">

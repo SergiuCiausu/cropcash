@@ -4,6 +4,7 @@ import { farmInputFromStored, type CreditInput, type StoredFarm } from '../farm'
 import { activePensionMonthly } from '../farm/plan-inputs';
 import { leiToBani, type Bani } from '../money';
 import { pensionMinimum } from '../pension';
+import { EmployeeInputSchema, employeeRow, payrollYear, type EmployeeInput, type StoredEmployee } from '../payroll';
 import { computeSubsidies, type ParcelInput } from '../subsidies';
 import { buildFarmPlan, type FarmPlan } from './plan';
 
@@ -139,5 +140,43 @@ export function whatIfPension(plan: FarmPlan, farm: StoredFarm, data: AppData, m
     minimum: minimum.amount,
     minimumVerified: minimum.verified,
     underMinimum: monthly > 0 && monthly < minimum.amount,
+  };
+}
+
+/**
+ * „Îmi permit încă un om din martie?”: the salary and the lowest month with one more person, built the
+ * way a saved one would be (same payroll rules). Information only, never a yes or no. The input is a
+ * person as the farmer types them; a bad one throws.
+ */
+export function whatIfHire(plan: FarmPlan, farm: StoredFarm, data: AppData, person: EmployeeInput) {
+  const row = employeeRow(EmployeeInputSchema.parse(person));
+  const t = plan.timelines.medium;
+  const hired: StoredEmployee = { ...row, id: 'what-if-person', archived_at: null };
+  const withPerson = buildFarmPlan({ ...farm, employees: [...(farm.employees ?? []), hired] }, data, { month: t.months[0]!.key, params: plan.subsidyParams });
+  const after = withPerson.timelines.medium;
+  const firstYear = Number(t.months[0]!.key.slice(0, 4));
+  return {
+    /** What they cost in the next 12 months of the plan, all paid. */
+    costInPlan: after.months.flatMap((m) => m.entries).filter((e) => e.employeeId === hired.id).reduce((s, e) => s + e.value, 0),
+    costThisYear: payrollYear([hired], firstYear).total,
+    salaryBefore: plan.salary.salary,
+    salaryAfter: withPerson.salary.salary,
+    limitingMonth: withPerson.salary.bindingMonth,
+    lowestBefore: t.lowest,
+    lowestAfter: after.lowest,
+    goesShort: t.lowest.balance >= 0 && after.lowest.balance < 0,
+    /** Months where the people's pay no longer fits, with this person. */
+    payrollShort: withPerson.payrollShort.medium,
+  };
+}
+
+/** „Cât mă costă oamenii pe an?”: each person's work in `year`, and the total. */
+export function peopleCost(farm: StoredFarm, year: number) {
+  const people = farm.employees ?? [];
+  const { perEmployee, total } = payrollYear(people, year);
+  return {
+    year,
+    total,
+    people: people.map((e) => ({ name: e.name, role: e.role, kind: e.kind, left: !!e.archived_at, cost: perEmployee[e.id] ?? 0 })),
   };
 }

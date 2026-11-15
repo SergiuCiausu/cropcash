@@ -11,8 +11,25 @@ export const MAX_FARM_HA = 1000;
  * What the onboarding sends to POST /api/farmers. Validated on both sides.
  * Crop and county ids are checked against docs/data by `validateOnboarding`.
  */
+export * from './crop-loss';
 export * from './harvests';
 export * from './own-crops';
+export * from './own-match';
+export * from './sowing';
+
+/**
+ * „Cum lucrezi pământul?” (docs/employees-arenda-plan.md §2): a preset for the interface, not two data models.
+ * 'own': mostly the farm's own land; 'arendas': mostly land taken in arendă. Both have people who do the work.
+ */
+export const FARM_MODES = ['own', 'arendas'] as const;
+export type FarmMode = (typeof FARM_MODES)[number];
+
+/** Hectares with up to 2 decimals (ari precision), 0 allowed. */
+const Ha = z
+  .number()
+  .min(0)
+  .max(MAX_FARM_HA)
+  .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, 'max 2 decimals');
 
 export const OnboardingInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -34,11 +51,17 @@ export const OnboardingInputSchema = z.object({
       }),
     )
     .min(1),
+  /** Left out: the farm keeps what it has (a new farm gets 'own'). */
+  farmMode: z.enum(FARM_MODES).optional(),
+  /** Of the hectares above, how many are taken in arendă. Left out: not asked. */
+  leasedInHa: Ha.optional(),
+  /** Land the farm owns and lets to someone else (D5). Not in the parcels: a cerere doesn't list it. */
+  leasedOutHa: Ha.optional(),
 });
 export type OnboardingInput = z.input<typeof OnboardingInputSchema>;
 export type OnboardingParsed = z.output<typeof OnboardingInputSchema>;
 
-export type OnboardingIssue = 'unknown_county' | 'unknown_crop' | 'duplicate_crop' | 'too_large';
+export type OnboardingIssue = 'unknown_county' | 'unknown_crop' | 'duplicate_crop' | 'too_large' | 'leased_too_large';
 
 /** Domain checks that need reference data (zod only checks shapes). */
 export function validateOnboarding(input: OnboardingInput, data: AppData): OnboardingIssue[] {
@@ -49,7 +72,17 @@ export function validateOnboarding(input: OnboardingInput, data: AppData): Onboa
   if (new Set(input.parcels.map((p) => p.cropId)).size !== input.parcels.length) issues.push('duplicate_crop');
   const totalAri = input.parcels.reduce((s, p) => s + haToAri(p.areaHa), 0);
   if (totalAri > haToAri(MAX_FARM_HA)) issues.push('too_large');
+  if (input.leasedInHa !== undefined && haToAri(input.leasedInHa) > totalAri) issues.push('leased_too_large');
   return issues;
+}
+
+/** The farm-mode and arendă answers as columns of `farmers` (migration 030). Only what was sent. */
+export function farmSetupRow(input: Pick<OnboardingParsed, 'farmMode' | 'leasedInHa' | 'leasedOutHa'>): { farm_mode?: FarmMode; leased_in_ari?: number; leased_out_ari?: number } {
+  return {
+    ...(input.farmMode ? { farm_mode: input.farmMode } : {}),
+    ...(input.leasedInHa !== undefined ? { leased_in_ari: haToAri(input.leasedInHa) } : {}),
+    ...(input.leasedOutHa !== undefined ? { leased_out_ari: haToAri(input.leasedOutHa) } : {}),
+  };
 }
 
 /** birth_year is what we store; age is derived from the reference year. */
@@ -88,6 +121,26 @@ export interface StoredFarm {
   /** The total from the farmer's payment decision. It replaces the estimate in the plan. */
   apia_decision?: import('../subsidies').ApiaDecision | null;
   parcels: { crop_id: string; area_ari: number; is_arable: boolean; planted_month?: string | null }[];
+  /** The farmer's own calendar events, with their occurrence rows (migration 023). */
+  farm_events?: import('../calendar/events').StoredEvent[];
+  /** Parcels, their seasons and the work on them (migration 020), when the farm has them. */
+  plots?: import('../plots/model').StoredPlot[];
+  /** The farm's people, archived ones too (migration 026). */
+  employees?: import('../payroll').StoredEmployee[];
+  /** „Lucrările pe câmp le fac oamenii tăi?” (migration 030). Null: not asked yet. */
+  own_field_work?: boolean | null;
+  /** „Cum lucrezi pământul?” (migration 030). Existing farms are 'own'. */
+  farm_mode?: FarmMode;
+  /** Hectares (in ari) taken in arendă, and let to someone else. Null: not asked. */
+  leased_in_ari?: number | null;
+  leased_out_ari?: number | null;
+  /** Landowners and arendă contracts, archived ones too (migration 033). */
+  landowners?: import('../arenda/contracts').StoredLandowner[];
+  lease_contracts?: import('../arenda/contracts').StoredContract[];
+  /** „Câți proprietari ai?” (migration 033). Null: not asked. */
+  landowner_count?: number | null;
+  plot_seasons?: import('../plots/model').StoredSeason[];
+  plot_operations?: import('../plots/model').StoredOperation[];
 }
 
 /** Editing the farm. Unlike onboarding the balance is required, so omitting it can't reset it. */

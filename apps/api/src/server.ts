@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { loadData } from '@cropcash/shared';
+import { supabasePredictions } from './db/predictions';
+import { createDataSource, liveData } from './predictions/source';
 import { cleanSourceUrl, pageFields, pageReader } from 'subventii-monitor/pages';
 import { createDocumentReader } from './ai/documents';
 import { createAnthropicAssistant } from './ai/assistant';
@@ -8,6 +9,15 @@ import { createApp } from './app';
 import { supabaseRepo } from './db/repo';
 import { supabaseAdminRepo } from './db/admin';
 import { supabaseFactory } from './db/supabase';
+import { supabaseFertilizers } from './db/fertilizers';
+import { supabasePlots } from './db/plots';
+import { lpisClient } from './lpis/client';
+import { dbLpisSource, localFirst } from './lpis/db';
+import { LPIS_SERVICE_URL } from '@cropcash/shared';
+import { supabaseEvents } from './db/events';
+import { supabaseEmployees } from './db/employees';
+import { supabaseArenda } from './db/arenda';
+import { supabaseMembers } from './db/members';
 import { loadEnv } from './env';
 import { supabaseTokenVerifier } from './middleware/auth';
 import { supabaseMonitor } from './monitor/reader';
@@ -19,7 +29,12 @@ import { createWeatherService } from './weather';
 const env = loadEnv();
 const db = supabaseFactory(env.supabaseUrl, env.supabaseAnonKey, env.supabaseServiceKey);
 
-const data = loadData();
+// docs/data with the admin panel's published changes (docs/admin-panel-plan.md). Every route, the Stripe
+// salary and the assistant read it through `data`; the first read happens before the API takes requests.
+const predictionStore = supabasePredictions(db.admin());
+const predictionSource = createDataSource({ store: predictionStore });
+await predictionSource.start(env.predictionsRefreshMs);
+const data = liveData(predictionSource);
 
 let money;
 if (env.stripeSecretKey && env.stripeWebhookSecret) {
@@ -81,6 +96,15 @@ const app = createApp({
   money,
   assistant: env.anthropicApiKey ? createAnthropicAssistant(env.anthropicApiKey, env.anthropicModel, data.crops.crops) : undefined,
   assistantDailyLimit: env.assistantDailyLimit,
+  fertilizers: { store: supabaseFertilizers(db.admin()), editors: env.catalogueEditors },
+  plots: supabasePlots(db),
+  /* The local copy of the blocs (migration 034) first, APIA for the rest (docs/harta-plan.md step 1b). */
+  lpis: localFirst(dbLpisSource(db.admin()), lpisClient({ serviceUrl: LPIS_SERVICE_URL })),
+  events: supabaseEvents(db),
+  employees: supabaseEmployees(db),
+  arenda: supabaseArenda(db),
+  members: supabaseMembers(db),
+  predictions: { store: predictionStore, source: predictionSource, admins: env.adminEmails },
 });
 
 app.listen(env.port, () => {

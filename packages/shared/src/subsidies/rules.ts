@@ -1,6 +1,9 @@
 import { haToAri } from '../money';
 import type { Condition, Op, Rule, Scheme } from '../data/schemas';
-import { AREA_FIELDS, type FarmProfile } from './profile';
+import { AREA_FIELDS, PCT_FIELDS, type FarmProfile } from './profile';
+
+/** Rules are written in ha and %; the profile keeps ari and hundredths of a %. Both are ×100. */
+const scaled = (field: Condition['field']) => AREA_FIELDS.has(field) || PCT_FIELDS.has(field);
 
 export interface FailedCondition {
   field: Condition['field'];
@@ -42,20 +45,18 @@ function compare(actual: number, op: Op, expected: number): boolean {
   }
 }
 
-/** Compares in integer units: area fields are converted from ha to ari. */
+/** Compares in integer units: areas from ha to ari, shares from % to hundredths of a %. */
 export function evaluateCondition(cond: Condition, profile: FarmProfile): boolean {
-  const isArea = AREA_FIELDS.has(cond.field);
-  const expected = isArea ? haToAri(cond.value) : cond.value;
+  const expected = scaled(cond.field) ? haToAri(cond.value) : cond.value;
   return compare(profile[cond.field], cond.op, expected);
 }
 
 function toFailed(cond: Condition, profile: FarmProfile): FailedCondition {
-  const isArea = AREA_FIELDS.has(cond.field);
   return {
     field: cond.field,
     op: cond.op,
     expected: cond.value,
-    actual: isArea ? profile[cond.field] / 100 : profile[cond.field],
+    actual: scaled(cond.field) ? profile[cond.field] / 100 : profile[cond.field],
   };
 }
 

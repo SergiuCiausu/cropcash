@@ -1,5 +1,7 @@
 import { leiToBani } from '../../../packages/shared/src/money/index';
 import { saleAmountBani } from '../../../packages/shared/src/farm/plan-inputs';
+import { litresToCl } from '../../../packages/shared/src/reports/fuel';
+import { applyEventWrite, isEventWrite, type StoredEvent } from '../../../packages/shared/src/calendar/events';
 import planParams from '../../../docs/data/plan-params.json';
 import type { MeFarm } from './farm';
 
@@ -8,7 +10,27 @@ import type { MeFarm } from './farm';
  * an expense, a finished task) and the farmer's own plan (harvests, farm details), where the newest
  * one replaces the one waiting. Nothing that moves money is ever queued (docs/07-architecture.md §8).
  */
-export const QUEUEABLE = ['record_sale', 'add_expense', 'complete_task', 'reopen_task', 'save_harvests', 'update_farm'] as const;
+export const QUEUEABLE = [
+  'record_sale',
+  'add_expense',
+  'complete_task',
+  'reopen_task',
+  'save_harvests',
+  'update_farm',
+  /* The farmer's own calendar (docs/calendar-events-plan.md): plans and notes, and „Ai plătit?”,
+     which records money that already moved, like a sale or an expense. */
+  'add_event',
+  'update_event',
+  'delete_event',
+  'set_occurrence',
+  'confirm_occurrence',
+  /* Work on a parcel and its outline (docs/harta-plan.md step 11): they only record what was done or
+     planned on the land, so they wait like a finished task. The parcels page shows them at once
+     (withPendingPlotWrites). */
+  'add_operation',
+  'update_operation',
+  'update_plot',
+] as const;
 export type QueueableName = (typeof QUEUEABLE)[number];
 export const isQueueable = (name: string): name is QueueableName => (QUEUEABLE as readonly string[]).includes(name);
 
@@ -105,14 +127,17 @@ export function withOutboxLock<T>(fn: () => Promise<T> | T, locks: Pick<LockMana
 }
 let lockTail: Promise<unknown> = Promise.resolve();
 
+/** Writes whose repeat is made safe by a clientId the queue keeps. */
+const NEEDS_CLIENT_ID = new Set(['record_sale', 'add_expense', 'add_operation']);
+
 /**
- * A sale or expense queued by an older version has no id. It gets one, and the caller saves the
+ * A sale, an expense or a piece of parcel work queued without an id (an older version) gets one. It gets one, and the caller saves the
  * queue before sending, so a send that gets no answer repeats with the same id.
  */
 export function withClientIds(items: OutboxItem[], newKey: () => string): { items: OutboxItem[]; changed: boolean } {
   let changed = false;
   const filled = items.map((i) => {
-    if ((i.name !== 'record_sale' && i.name !== 'add_expense') || i.input.clientId) return i;
+    if (!NEEDS_CLIENT_ID.has(i.name) || i.input.clientId) return i;
     changed = true;
     return { ...i, input: { ...i.input, clientId: newKey() } };
   });
@@ -144,6 +169,15 @@ export function takeBack(items: OutboxItem[], sent: SentOutbox, id: string): { i
   return { items, serverId: sent[id]?.serverId ?? null };
 }
 
+/**
+ * A change to work still in the queue (marking a planned treatment done offline) is folded into the
+ * queued item, as the server has no id for it yet. Sent already, it names the server's id instead.
+ */
+export function patchQueued(items: OutboxItem[], sent: SentOutbox, id: string, patch: Record<string, unknown>): { items: OutboxItem[]; serverId: string | null } {
+  if (items.some((i) => i.id === id)) return { items: items.map((i) => (i.id === id ? { ...i, input: { ...i.input, ...patch } } : i)), serverId: null };
+  return { items, serverId: sent[id]?.serverId ?? null };
+}
+
 export const isOutboxId =(id: unknown): id is string => typeof id === 'string' && id.startsWith('outbox:');
 
 /** Parses what was saved, keeping only items this version can still send. */
@@ -168,13 +202,28 @@ function rowFor(item: OutboxItem): Row | null {
     tonnes?: number;
     pricePerKgLei?: number;
     amountLei?: number;
+    plotId?: string;
+    docNo?: string;
+    counterparty?: string;
+    fuelLiters?: number;
+    employeeId?: string;
   };
-  const common = { id: item.id, occurred_at: `${i.date}T12:00:00Z`, source: 'manual', harvest_year: i.harvestYear ?? null, note: i.note ?? null, pending: true };
+  const common = {
+    id: item.id,
+    occurred_at: `${i.date}T12:00:00Z`,
+    source: 'manual',
+    harvest_year: i.harvestYear ?? null,
+    note: i.note ?? null,
+    pending: true,
+    doc_no: i.docNo ?? null,
+    counterparty: i.counterparty ?? null,
+    fuel_liters_cl: i.fuelLiters === undefined ? null : litresToCl(i.fuelLiters),
+  };
   if (item.name === 'record_sale') {
-    return { ...common, kind: 'sale', category: null, crop_id: i.cropId ?? null, amount_bani: saleAmountBani(i as Parameters<typeof saleAmountBani>[0]) };
+    return { ...common, kind: 'sale', category: null, crop_id: i.cropId ?? null, plot_id: i.plotId ?? null, amount_bani: saleAmountBani(i as Parameters<typeof saleAmountBani>[0]) };
   }
   if (item.name === 'add_expense') {
-    return { ...common, kind: 'expense', category: i.category ?? null, crop_id: i.cropId ?? null, amount_bani: -leiToBani(i.amountLei ?? 0) };
+    return { ...common, kind: 'expense', category: i.category ?? null, crop_id: i.cropId ?? null, plot_id: i.plotId ?? null, amount_bani: -leiToBani(i.amountLei ?? 0), ...(i.employeeId ? { employee_id: i.employeeId } : {}) };
   }
   return null;
 }
@@ -188,7 +237,21 @@ export function withOutbox<T extends MeFarm | null>(me: T, items: OutboxItem[]):
   let transactions = [...(me.transactions ?? [])];
   let done = [...(me.task_completions ?? [])];
   let plan: Partial<MeFarm> = {};
+  let events: StoredEvent[] = me.farm_events ?? [];
   for (const item of items) {
+    if (item.name === 'confirm_occurrence') {
+      /* The plan stops counting the planned sum, so the real one counts from now, as a record does. */
+      const i = item.input as { eventId: string; amountLei: number; date: string };
+      const ev = events.find((e) => e.id === i.eventId);
+      if (ev?.direction) {
+        const bani = leiToBani(i.amountLei);
+        transactions = [
+          ...transactions,
+          { id: item.id, occurred_at: `${i.date}T12:00:00Z`, source: 'manual', harvest_year: null, note: ev.title, pending: true, kind: ev.direction === 'out' ? 'expense' : 'sale', category: ev.direction === 'out' ? (ev.expense_category ?? 'other') : null, crop_id: ev.crop_id ?? null, amount_bani: ev.direction === 'out' ? -bani : bani } as (typeof transactions)[number],
+        ];
+      }
+    }
+    if (isEventWrite(item.name)) events = applyEventWrite(events, item.name, item.input, new Date(item.at));
     if (item.name === 'save_harvests') plan = { ...plan, harvests: item.input as unknown as MeFarm['harvests'] };
     if (item.name === 'update_farm') plan = { ...plan, ...farmFromUpdate(me, item.input) };
     const row = rowFor(item);
@@ -197,13 +260,16 @@ export function withOutbox<T extends MeFarm | null>(me: T, items: OutboxItem[]):
     if (item.name === 'complete_task' && !done.some((t) => t.task_id === id)) done = [...done, { task_id: id }];
     if (item.name === 'reopen_task') done = done.filter((t) => t.task_id !== id);
   }
-  return { ...me, ...plan, transactions, task_completions: done };
+  return { ...me, ...plan, transactions, task_completions: done, farm_events: events };
 }
 
 /** A waiting update_farm in the shape of the saved copy, so the pages show it already. */
 function farmFromUpdate(me: MeFarm, input: Record<string, unknown>): Partial<MeFarm> {
-  const i = input as { name: string; county: string; startBalanceLei: number; parcels: { cropId: string; areaHa: number; plantedMonth?: string }[] };
+  const i = input as { name: string; county: string; startBalanceLei: number; parcels: { cropId: string; areaHa: number; plantedMonth?: string }[]; farmMode?: 'own' | 'arendas'; leasedInHa?: number; leasedOutHa?: number };
   return {
+    ...(i.farmMode ? { farm_mode: i.farmMode } : {}),
+    ...(i.leasedInHa !== undefined ? { leased_in_ari: Math.round(i.leasedInHa * 100) } : {}),
+    ...(i.leasedOutHa !== undefined ? { leased_out_ari: Math.round(i.leasedOutHa * 100) } : {}),
     name: i.name,
     county: i.county,
     start_balance_bani: leiToBani(i.startBalanceLei),
@@ -217,7 +283,7 @@ function farmFromUpdate(me: MeFarm, input: Record<string, unknown>): Partial<MeF
 }
 
 /** Records in the queue. Ticked tasks don't change a figure, so they aren't counted. */
-export const pendingRecords = (items: OutboxItem[]) => items.filter((i) => i.name === 'record_sale' || i.name === 'add_expense').length;
+export const pendingRecords = (items: OutboxItem[]) => items.filter((i) => i.name === 'record_sale' || i.name === 'add_expense' || i.name === 'confirm_occurrence').length;
 
 /** Is a change to the plan waiting? It shows in the figures, so the farmer is told it isn't sent yet. */
 export const pendingPlan = (items: OutboxItem[]) => items.some((i) => isPlanSave(i.name));

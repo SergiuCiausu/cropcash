@@ -6,6 +6,7 @@ import {
   buildFarmPlan,
   farmToday,
   leiToBani,
+  litresToCl,
   monthKey,
   proposeSplit,
   saleAmountBani,
@@ -51,7 +52,16 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
       return;
     }
     const amountBani = saleAmountBani(sale);
-    const id = await repo.addSale(token, farm.id, { amountBani, date: sale.date, cropId: sale.cropId, harvestYear: sale.harvestYear, note: sale.note, clientId: sale.clientId });
+    let id: string;
+    try {
+      id = await repo.addSale(token, farm.id, { amountBani, date: sale.date, cropId: sale.cropId, harvestYear: sale.harvestYear, note: sale.note, clientId: sale.clientId, docs: { docNo: sale.docNo, counterparty: sale.counterparty }, plotId: sale.plotId });
+    } catch (err) {
+      if (err instanceof RepoError && err.code === 'not_found') {
+        res.status(404).json({ error: 'unknown_plot' });
+        return;
+      }
+      throw err;
+    }
     const plan = await planFor(token);
     res.status(201).json({ id, split: plan && proposeSplit(plan, amountBani, true).split });
   });
@@ -87,12 +97,22 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
         note: expense.note,
         envelope: expense.envelope,
         clientId: expense.clientId,
+        fertilizer: expense.fertilizer,
+        plotId: expense.plotId,
+        docs: { docNo: expense.docNo, counterparty: expense.counterparty, fuelLitersCl: expense.fuelLiters === undefined ? undefined : litresToCl(expense.fuelLiters) },
+        employeeId: expense.employeeId,
       });
       const plan = await planFor(token);
       res.status(201).json({ id, salary: plan?.salary.salary ?? null });
     } catch (err) {
       if (err instanceof RepoError && err.code === 'not_found') {
-        res.status(404).json({ error: 'no_farm' });
+        // The farm was found above, so it's the person or the parcel that isn't there.
+        const what = /employee/.test(err.message) ? 'unknown_employee' : expense.plotId ? 'unknown_plot' : 'no_farm';
+        res.status(404).json({ error: what });
+        return;
+      }
+      if (err instanceof RepoError && err.code === 'invalid') {
+        res.status(400).json({ error: 'unknown_fertilizer' });
         return;
       }
       throw err;

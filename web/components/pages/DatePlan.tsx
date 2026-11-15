@@ -5,14 +5,20 @@
    saved once the phone is back online. */
 import { useMemo, useState } from 'react';
 import { isOwnCrop } from '../../../packages/shared/src/farm/index';
+import { isFallow } from '../../../packages/shared/src/data/schemas';
 import type { FarmPlan } from '../../../packages/shared/src/functions/plan';
-import { parseWholeLei } from '../../../packages/shared/src/money/index';
+import { parseWholeLei, perHaToBani } from '../../../packages/shared/src/money/index';
+import { flipText, leiPerHaFrom, tPerHaFrom, type Basis } from '../../lib/cc/basis';
 import { failText, group } from '../../lib/cc/format';
 import { ionFarm } from '../../lib/cc/farm';
 import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
 import { AmountEcho, ErrorLine, OfflineNote, useHref } from '../app/bits';
 import { useSaved } from '../app/useSaved';
+import { BasisSwitch } from '../app/Basis';
 import { PageLink } from '../app/Frame';
+import { expectedLossShare, lossHistory } from '../../../packages/shared/src/farm/crop-loss';
+import type { HarvestsInput } from '../../../packages/shared/src/farm/harvests';
+import { LOSS_LABELS } from '../../lib/ui/loss';
 
 const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
 const monthName = (key: string) => `${MONTHS[+key.split('-')[1] - 1]} ${key.slice(0, 4)}`;
@@ -26,6 +32,16 @@ const decimalNumber = (text: string) => {
   const t = text.trim().replace(',', '.');
   return /^\d+(\.\d+)?$/.test(t) ? Number(t) : null;
 };
+/** A share typed in %: empty is null (the farm's history stays), anything else must be 0–100. */
+const pctFrom = (text: string): number | null | undefined => {
+  const t = text.trim().replace(',', '.');
+  if (!t) return null;
+  if (!/^\d+(\.\d+)?$/.test(t)) return undefined;
+  const n = Math.round(Number(t) * 10) / 10;
+  return n <= 100 ? n : undefined;
+};
+const pct = (share: number) => `${decimal(Math.round(share * 1000) / 10)}%`;
+const reasonWord = new Map(LOSS_LABELS);
 const firstSale = (plan: FarmPlan, cropId: string) => plan.timelines.medium.months.find((m) => m.entries.some((e) => e.kind === 'crop_sale' && e.cropId === cropId && e.value > 0))?.key;
 
 export default function DatePlan() {
@@ -41,9 +57,11 @@ export default function DatePlan() {
   const PENSION = { min: params.pension.slider_min_lei.value, max: params.pension.slider_max_lei.value };
 
   /* What a figure falls back to without the farmer's own: Recolte, or the average. */
+  const lossParams = params.crop_loss;
   const crops = useMemo(() => {
     const noted = view.dataWithout();
-    const ids = [...new Set(FARM.parcels.map((p) => p.cropId))].filter((id) => !isOwnCrop(id));
+    const years = view.harvests.items.map((h) => ({ year: h.year, parcels: h.parcels })) as unknown as HarvestsInput['years'];
+    const ids = [...new Set(FARM.parcels.map((p) => p.cropId))].filter((id) => !isOwnCrop(id) && !isFallow(id));
     return ids.map((id) => {
       const own = view.harvests.expected.find((e) => e.cropId === id);
       const back = noted.crops.crops.find((c) => c.id === id)!;
@@ -59,15 +77,22 @@ export default function DatePlan() {
         startCost: own?.costLeiPerHa ?? back.cost_lei_per_ha.mean,
         real: view.latestOwnCost(id),
         backWord: view.figureSource(id, false) === 'gathered' ? 'din Recolte' : 'media noastră',
+        /* What didn't make it to harvest (docs/crop-loss-plan.md): every answered harvest, and their average. */
+        lossRows: lossHistory(years, id),
+        lossAverage: expectedLossShare(years, id, lossParams),
+        gatheredYield: view.harvests.gathered.some((g) => g.cropId === id && !!g.tonnes),
+        startLoss: own?.lossPct == null ? '' : decimal(own.lossPct),
       };
     });
-  }, [view, FARM]);
+  }, [view, FARM, lossParams]);
   /* A crop of the farmer's own already holds their figures, so it's changed where it was described. */
   const ownIds = [...new Set(FARM.parcels.map((p) => p.cropId))].filter(isOwnCrop);
 
   const [opening, setOpening] = useState(group(Math.round(FARM.startBalanceBani / 100)));
   const [pensionText, setPensionText] = useState(group(Math.round(view.pensionBani() / 100)));
-  const [figures, setFigures] = useState(() => Object.fromEntries(crops.map((c) => [c.id, { y: c.startYield, p: c.startPrice, c: group(c.startCost) }])));
+  const [figures, setFigures] = useState(() => Object.fromEntries(crops.map((c) => [c.id, { y: c.startYield, p: c.startPrice, c: group(c.startCost), l: c.startLoss }])));
+  /* Each crop's yield and cost open per hectare, like the usual ranges. */
+  const [bases, setBases] = useState<Record<string, { y: Basis; c: Basis }>>(() => Object.fromEntries(crops.map((c) => [c.id, { y: 'ha', c: 'ha' }])));
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState('');
 
@@ -77,21 +102,34 @@ export default function DatePlan() {
   const pensionOk = onServer || (pensionLei !== null && (pensionLei === 0 || (pensionLei >= PENSION.min && pensionLei <= PENSION.max)));
 
   const rows = crops.map((c) => {
-    const yieldText = figures[c.id].y.trim();
+    const ari = Math.round(c.area * 100);
+    const unit = bases[c.id];
     const priceText = figures[c.id].p.trim();
-    const y = decimalNumber(yieldText);
+    /* Typed in tonnes or per hectare, kept per hectare (docs/per-ha-total-plan.md). */
+    const y = tPerHaFrom(figures[c.id].y, unit.y, ari);
+    const yieldText = y === null ? figures[c.id].y.trim() : decimal(y);
     const p = decimalNumber(priceText);
     const bad = !(y !== null && y > 0) || !(p !== null && p > 0);
-    const costLei = wholeLei(figures[c.id].c);
+    const costLei = leiPerHaFrom(figures[c.id].c, unit.c, ari);
     const costBad = costLei === null || costLei < 1 || costLei > MAX_COST_LEI_PER_HA;
     const ownCost = costBad || costLei === c.backCost ? null : costLei;
     /* A figure left at its fallback isn't the farmer's own, so it keeps following Recolte. */
-    const row = { cropId: c.id, yieldTPerHa: yieldText === c.backYield ? null : y, priceLeiPerKg: priceText === c.backPrice ? null : p, ...(ownCost === null ? {} : { costLeiPerHa: ownCost }) };
-    const own = row.yieldTPerHa !== null || row.priceLeiPerKg !== null || ownCost !== null;
+    const lossPct = pctFrom(figures[c.id].l);
+    const lossBad = lossPct === undefined;
+    const row = {
+      cropId: c.id,
+      yieldTPerHa: yieldText === c.backYield ? null : y,
+      priceLeiPerKg: priceText === c.backPrice ? null : p,
+      ...(ownCost === null ? {} : { costLeiPerHa: ownCost }),
+      ...(lossPct == null ? {} : { lossPct }),
+    };
+    const own = row.yieldTPerHa !== null || row.priceLeiPerKg !== null || ownCost !== null || lossPct != null;
+    /* A county yield may already count lost fields, so the plan subtracts a usual loss only from the farmer's own (P33). */
+    const lossIgnored = row.yieldTPerHa === null && !c.gatheredYield && (lossPct != null ? lossPct > 0 : (c.lossAverage?.share ?? 0) > 0);
     const range = view.baseData().crops.crops.find((x) => x.id === c.id)!;
     const cr = range.cost_lei_per_ha;
     const usualCost = `De obicei, ${group(cr.min)}–${group(cr.max)} lei/ha.`;
-    const costTotal = costBad ? '' : `${group(costLei)} lei/ha × ${decimal(c.area)} ha = ${lei(Math.round(costLei * c.area * 100))} pe sezon.${ownCost !== null && (costLei < cr.min || costLei > cr.max) ? ` ${usualCost}` : ''}`;
+    const costTotal = costBad ? '' : `${unit.c === 'ha' ? '' : 'Salvăm '}${group(costLei)} lei/ha × ${decimal(c.area)} ha = ${lei(perHaToBani(costLei, ari))} pe sezon.${ownCost !== null && (costLei < cr.min || costLei > cr.max) ? ` ${usualCost}` : ''}`;
     /* Few expenses noted make a figure that looks cheap, so the farmer is told before using it. */
     const realLow = c.real !== null && c.real.leiPerHa < cr.min;
     const yr = range.yield_t_per_ha;
@@ -102,12 +140,13 @@ export default function DatePlan() {
         : !bad && row.priceLeiPerKg !== null && (p! < pr.min || p! > pr.max)
           ? ` De obicei, ${decimal(pr.min)}–${decimal(pr.max)} lei/kg.`
           : '';
-    const total = bad ? '' : `${decimal(y!)} t/ha × ${decimal(c.area)} ha = ${decimal(y! * c.area)} t, adică ${lei(Math.round(y! * c.area * 1000 * p! * 100))}.${unusual}`;
-    const changed = yieldText !== c.startYield || priceText !== c.startPrice;
-    return { c, bad, costBad, costLei, costTotal, realLow, row, own, total, changed, costChanged: costLei !== c.startCost };
+    const total = bad ? '' : `${unit.y === 'ha' ? '' : 'Salvăm '}${decimal(y!)} t/ha × ${decimal(c.area)} ha = ${decimal(y! * c.area)} t, adică ${lei(Math.round(y! * c.area * 1000 * p! * 100))}.${unusual}`;
+    const changed = yieldText !== c.startYield || priceText !== c.startPrice || figures[c.id].l.trim() !== c.startLoss;
+    const costExample = unit.c === 'ha' ? `în lei întregi pe hectar, de exemplu ${group(c.backCost)}` : `pe tot sezonul, în lei întregi, de exemplu ${group(Math.round(perHaToBani(c.backCost, ari) / 100))}`;
+    return { c, ari, unit, bad, costBad, costExample, costLei, costTotal, realLow, row, own, total, changed, costChanged: costLei !== c.startCost, lossBad, lossIgnored };
   });
 
-  const ok = openingOk && pensionOk && !rows.some((r) => r.bad || r.costBad);
+  const ok = openingOk && pensionOk && !rows.some((r) => r.bad || r.costBad || r.lossBad);
   const input = {
     openingBani: openingOk ? openingLei * 100 : 0,
     pension: !onServer && pensionOk ? pensionLei! * 100 : 0,
@@ -153,7 +192,15 @@ export default function DatePlan() {
       setSaving(false);
     }
   }
-  const setFig = (id: string, patch: Partial<{ y: string; p: string; c: string }>) => setFigures((f) => ({ ...f, [id]: { ...f[id], ...patch } }));
+  const setFig = (id: string, patch: Partial<{ y: string; p: string; c: string; l: string }>) => setFigures((f) => ({ ...f, [id]: { ...f[id], ...patch } }));
+  /* Flipping the unit keeps the same amount, so a filled-in figure never changes meaning. */
+  const flip = (id: string, field: 'y' | 'c', to: Basis, ari: number) => {
+    const kind = field === 'y' ? 'tonnes' : 'lei';
+    setFig(id, { [field]: flipText(figures[id][field], kind, bases[id][field], ari) });
+    setBases((b) => ({ ...b, [id]: { ...b[id], [field]: to } }));
+  };
+  /* The figures these buttons put back are per hectare. */
+  const perHaAgain = (id: string, fields: ('y' | 'c')[]) => setBases((b) => ({ ...b, [id]: { ...b[id], ...Object.fromEntries(fields.map((f) => [f, 'ha'])) } }));
 
   return (
     <>
@@ -228,13 +275,17 @@ export default function DatePlan() {
             <h2>Recolta și costurile, într-un an normal</h2>
             <p className="note">Anul slab și anul bun se schimbă odată cu aceste cifre. Costurile sunt pe tot sezonul și rămân aceleași în toți anii.</p>
             <div className="crop-figs">
-              {rows.map(({ c, bad, costBad, costLei, costTotal, realLow, own, total }) => (
+              {rows.map(({ c, ari, unit, bad, costBad, costExample, costLei, costTotal, realLow, own, total, lossBad, lossIgnored }) => (
                 <fieldset className="crop-fig" key={c.id}>
                   <legend>
                     {c.name}, {decimal(c.area)} ha <span className="tag n">{own ? 'cifrele tale' : c.backWord}</span>
                   </legend>
+                  <div className="basis-row">
+                    <p className="note">Producția</p>
+                    <BasisSwitch kind="tonnes" basis={unit.y} onChange={(b) => flip(c.id, 'y', b, ari)} label={`Producția de ${c.name.toLowerCase()}: tone sau tone la hectar`} />
+                  </div>
                   <label className="ob-field">
-                    Tone la hectar
+                    {unit.y === 'ha' ? 'Tone la hectar' : `Tone pe ${decimal(c.area)} ha`}
                     <input inputMode="decimal" autoComplete="off" value={figures[c.id].y} onChange={(e) => setFig(c.id, { y: e.target.value })} />
                   </label>
                   <label className="ob-field">
@@ -243,24 +294,52 @@ export default function DatePlan() {
                   </label>
                   <p className="note">{total}</p>
                   {bad && <ErrorLine>Scrie un număr mai mare ca 0, de exemplu 5,5.</ErrorLine>}
+                  <div className="basis-row">
+                    <p className="note">Costurile</p>
+                    <BasisSwitch basis={unit.c} onChange={(b) => flip(c.id, 'c', b, ari)} label={`Costurile pentru ${c.name.toLowerCase()}: total sau pe hectar`} />
+                  </div>
                   <label className="ob-field crop-cost">
-                    Costuri pe tot sezonul, lei/ha
+                    {unit.c === 'ha' ? 'Costuri pe tot sezonul, lei/ha' : `Costuri pe tot sezonul, în lei, pe ${decimal(c.area)} ha`}
                     <input inputMode="numeric" autoComplete="off" value={figures[c.id].c} onChange={(e) => setFig(c.id, { c: e.target.value })} />
                   </label>
                   <p className="note">{costTotal}</p>
-                  {costBad && <ErrorLine>Scrie costul în lei întregi pe hectar, de exemplu {group(c.backCost)}.</ErrorLine>}
+                  {costBad && <ErrorLine>Scrie costul {costExample}.</ErrorLine>}
                   {c.real && (
                     <p className="note">
                       Din cheltuielile tale, Recolta {c.real.year}: {group(c.real.leiPerHa)} lei/ha.{realLow && ' Poate lipsesc cheltuieli.'}
                     </p>
                   )}
                   {c.real && costLei !== c.real.leiPerHa && (
-                    <button type="button" className="btn btn-line crop-reset" onClick={() => setFig(c.id, { c: group(c.real!.leiPerHa) })}>
+                    <button type="button" className="btn btn-line crop-reset" onClick={() => (setFig(c.id, { c: group(c.real!.leiPerHa) }), perHaAgain(c.id, ['c']))}>
                       Folosește cifra asta
                     </button>
                   )}
+                  <div className="crop-loss">
+                    <p className="note">
+                      {c.lossAverage
+                        ? `Pierderi: în medie ${pct(c.lossAverage.share)} din ${c.name.toLowerCase()} (din recoltele ${c.lossAverage.from === c.lossAverage.to ? c.lossAverage.from : `${c.lossAverage.from}–${c.lossAverage.to}`}).`
+                        : c.lossRows.length
+                          ? `Facem media după ${lossParams.min_years.value} recolte în care ai spus ce ai pierdut.`
+                          : 'Încă nu știm cât pierzi. Scrie ce pierzi de obicei sau notează la recoltă.'}
+                    </p>
+                    {c.lossRows.length > 0 && (
+                      <ul className="loss-years">
+                        {c.lossRows.map((r) => (
+                          <li key={r.year}>
+                            Recolta {r.year}: {r.lostHa === 0 ? 'nimic pierdut' : `${decimal(r.lostHa)} ha din ${decimal(r.sownHa)}${r.reason ? `, ${reasonWord.get(r.reason)!.toLowerCase()}` : ''}`}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <label className="ob-field">
+                      Cât pierzi de obicei, în %
+                      <input inputMode="decimal" autoComplete="off" placeholder={c.lossAverage ? decimal(Math.round(c.lossAverage.share * 1000) / 10) : 'nu știu'} value={figures[c.id].l} onChange={(e) => setFig(c.id, { l: e.target.value })} />
+                    </label>
+                    {lossBad && <ErrorLine>Scrie un procent între 0 și 100, de exemplu 10.</ErrorLine>}
+                    {lossIgnored && <p className="note">Producția de aici e media județului, care poate ține deja cont de câmpurile pierdute. Scădem pierderea doar din producția ta, din Recolte sau scrisă mai sus.</p>}
+                  </div>
                   {own && (
-                    <button type="button" className="btn btn-line crop-reset" onClick={() => setFig(c.id, { y: c.backYield, p: c.backPrice, c: group(c.backCost) })}>
+                    <button type="button" className="btn btn-line crop-reset" onClick={() => (setFig(c.id, { y: c.backYield, p: c.backPrice, c: group(c.backCost), l: '' }), perHaAgain(c.id, ['y', 'c']))}>
                       Înapoi la {c.backWord}
                     </button>
                   )}

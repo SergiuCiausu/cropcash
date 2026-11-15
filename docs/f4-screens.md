@@ -66,7 +66,7 @@ Uses `add_expense`.
 
 | Part | Detail |
 |---|---|
-| What for | Large tiles: Semințe, Îngrășăminte, Tratamente, Motorină, Lucrări, Reparații, Arendă, Altceva |
+| What for | Large tiles: Semințe, Îngrășăminte, Tratamente, Motorină, Lucrări, Arendă, Construcții, Service, Alte servicii, Altceva |
 | Amount | Number keyboard, in lei |
 | Crop | Optional, only for the first five tiles |
 | Paid from | Optional, a list of envelopes with their balances |

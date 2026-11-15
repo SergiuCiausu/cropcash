@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildFarmPlan } from '../cashflow/farm-plan';
 import { loadData } from '../data';
+import { ExpenseInputSchema } from './plan-inputs';
 import {
   SetCropCostInputSchema,
   areaShare,
@@ -57,18 +58,39 @@ describe('what a crop cost per hectare', () => {
     expect(cropCostsPerHa([...parcels].reverse(), [...records].reverse())).toEqual(cropCostsPerHa(parcels, records));
   });
 
-  it('keeps rent, repairs and other out of the plan cost, because they would count twice', () => {
+  it('keeps rent, constructions and other out of the plan cost, because they would count twice', () => {
     const c = wheat(
       cropCostsPerHa(parcels, [
         { cropId: 'grau', category: 'fertilizer', amountBani: -1_000_000 },
         { cropId: 'grau', category: 'rent', amountBani: -500_000 },
-        { cropId: 'grau', category: 'repairs', amountBani: -100_000 },
+        { cropId: 'grau', category: 'constructions', amountBani: -100_000 },
         { cropId: 'grau', category: 'other', amountBani: -100_000 },
       ]).crops,
     );
     expect(c.perHa).toBe(170_000);
     expect(c.planPerHa).toBe(100_000);
     expect(planCostLei(c)).toBe(1000);
+  });
+
+  it('counts an old repairs row as constructions, and machine service apart, both outside the plan cost', () => {
+    const c = wheat(
+      cropCostsPerHa(parcels, [
+        { cropId: 'grau', category: 'repairs', amountBani: -100_000 },
+        { cropId: 'grau', category: 'machine_service', amountBani: -200_000 },
+      ]).crops,
+    );
+    expect(c.categories.map((k) => [k.category, k.total])).toEqual([
+      ['constructions', 100_000],
+      ['machine_service', 200_000],
+    ]);
+    expect(c.planCost).toBe(0);
+  });
+
+  it('reads an expense sent as repairs as constructions, and accepts machine service', () => {
+    const base = { amountLei: 100, date: '2026-11-02' };
+    expect(ExpenseInputSchema.parse({ ...base, category: 'repairs' }).category).toBe('constructions');
+    expect(ExpenseInputSchema.parse({ ...base, category: 'machine_service' }).category).toBe('machine_service');
+    expect(ExpenseInputSchema.safeParse({ ...base, category: 'reparatii' }).success).toBe(false);
   });
 
   it('skips a row with no category, and counts a crop outside the harvest apart', () => {
@@ -195,7 +217,7 @@ describe("the farmer's own cost in the plan", () => {
     const after = plan(3000).economics[0]!;
     expect(after.cost).toBe(3_000_000);
     expect(after.costPerHa).toBe(300_000);
-    expect(after.breakEvenPerKg).toBeLessThan(before.breakEvenPerKg);
+    expect(after.breakEvenPerKg!).toBeLessThan(before.breakEvenPerKg!);
     expect(costs(3000)).toBe(Math.round((costs() * 3000) / 4250));
   });
 });

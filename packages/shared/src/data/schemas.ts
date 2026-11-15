@@ -21,6 +21,8 @@ export const ProfileFieldSchema = z.enum([
   'dairy_cows',
   'beef_cattle',
   'unproductive_ha',
+  /** Uncultivated land as a share of arable land. Rules give it in %, the profile keeps hundredths of a %. */
+  'unproductive_pct',
 ]);
 export type ProfileField = z.infer<typeof ProfileFieldSchema>;
 
@@ -59,6 +61,19 @@ export const SchemeSchema = z.object({
   unit: z.enum(['ha', 'cap']),
   units_field: ProfileFieldSchema,
   amount_eur: z.number().positive().nullable(),
+  /**
+   * When amount_eur is still null: a past year's amount to show as an estimate. It is shown apart
+   * and never enters the totals, so the salary and pension don't plan on it.
+   */
+  estimate: z
+    .object({
+      amount_eur: z.number().positive(),
+      basis_year: z.number().int(),
+      status: StatusSchema,
+      source_url: z.string().url().nullable(),
+      note: z.string().optional(),
+    })
+    .optional(),
   advance_pct: z.number().min(0).max(100).nullable(),
   advance_amount_eur: z.number().nullable(),
   fund: FundSchema,
@@ -95,6 +110,7 @@ export const SubsidyTestCaseSchema = z.object({
     dairy_cows: z.number().int(),
     beef_cattle: z.number().int(),
     unproductive_ha: z.number(),
+    unproductive_pct: z.number().optional(),
   }),
   expected_schemes: z.array(z.string()),
   expected_total_eur: z.number(),
@@ -161,6 +177,23 @@ export type CalendarFile = z.infer<typeof CalendarFileSchema>;
 
 const Param = z.object({ value: z.number().nullable() }).passthrough();
 const PositiveParam = z.object({ value: z.number().positive() }).passthrough();
+const MonthsParam = z.object({ value: z.number().int().min(1) }).passthrough();
+
+/** Which end of a min / mean / max figure a kind of year takes. */
+export const RangeEndSchema = z.enum(['min', 'mean', 'max']);
+export type RangeEnd = z.infer<typeof RangeEndSchema>;
+
+/** One kind of year (bad, normal, good): which end of each figure it uses (docs/11 P4). */
+export const YearKindSchema = z.object({
+  yield: RangeEndSchema,
+  price: RangeEndSchema,
+  cost: RangeEndSchema,
+  apia_balance: RangeEndSchema,
+});
+export type YearKind = z.infer<typeof YearKindSchema>;
+
+/** Which day of a payment window the plan uses. */
+export const WindowDaySchema = z.enum(['early', 'mid', 'late']);
 
 export const PlanParamsFileSchema = z.object({
   salary_round_lei: PositiveParam,
@@ -180,6 +213,16 @@ export const PlanParamsFileSchema = z.object({
   pension_suggest_min_lei: PositiveParam,
   calendar_reminder_days: PositiveParam,
   calendar_reminder_hour: PositiveParam,
+  /** The farmer's own events (docs/calendar-events-plan.md). */
+  farmer_events: z.object({
+    carry_days: PositiveParam,
+    whole_harvest_window_months: PositiveParam,
+    whole_harvest_match_pct: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+    remind_options_days: z.object({ values: z.array(z.number().int().min(0).max(60)).min(1) }).passthrough(),
+    drivers_first_rows: PositiveParam,
+    drivers_unsure_pct: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+    drivers_small_lei: z.object({ value: z.number().min(0) }).passthrough(),
+  }),
   opportunities_closing_soon_days: PositiveParam,
   opportunities_changes_days: PositiveParam,
   documents: z.object({
@@ -217,9 +260,22 @@ export const PlanParamsFileSchema = z.object({
     extreme_years: PositiveParam,
     min_years: PositiveParam,
   }),
+  crop_loss: z.object({
+    window_years: PositiveParam,
+    min_years: PositiveParam,
+  }),
   long_forecast: z.object({
     max_years: PositiveParam,
     subsidy_rules_until_year: PositiveParam,
+  }),
+  /** The plan's own shape: horizons, days and what each kind of year means (docs/admin-panel-plan.md step 1). */
+  forecast: z.object({
+    plan_months: MonthsParam,
+    after_bad_harvest_months: MonthsParam,
+    projection_years: MonthsParam,
+    entry_day: z.object({ value: z.number().int().min(1).max(28) }).passthrough(),
+    apia_day: z.object({ plan: WindowDaySchema, demo_clock: WindowDaySchema }).passthrough(),
+    years: z.object({ bad: YearKindSchema, medium: YearKindSchema, good: YearKindSchema }).passthrough(),
   }),
   weather: z.object({
     forecast_days: z.object({ value: z.number().int().min(1).max(16) }).passthrough(),
@@ -306,6 +362,11 @@ const MinMeanMax = z.object({ min: z.number(), mean: z.number(), max: z.number()
 
 export const CropSchema = z.object({
   id: z.string(),
+  /**
+   * 'fallow' = teren necultivat: arable land left unsown. It counts for the subsidies (as arable land,
+   * as a crop and as uncultivated land for PD-28) but has no costs, harvest or sale.
+   */
+  kind: z.enum(['crop', 'fallow']).optional(),
   name_ro: z.string(),
   /** With the article, for sentences: "Vinzi grâul". A farmer's own crop has none. */
   name_ro_art: z.string().optional(),
@@ -326,8 +387,27 @@ export const CropSchema = z.object({
   status: StatusSchema,
   /** Set when the yields come from the INS history: which area and harvests (cashflow/county-yields). */
   yield_basis: z.object({ area: z.string(), from: z.number().int(), to: z.number().int() }).optional(),
+  /** APIA crop codes (col. "Cod cultură" on the cerere de plată) that count as this crop. A farmer's own crop has none. */
+  apia_codes: z.array(z.number().int().positive()).min(1).optional(),
+  /**
+   * Set on the crops made from one APIA line of a family (data/catalogue.ts): the family's id. The family's
+   * figures, INS history and nitrogen limit are shared; the name is the APIA line's.
+   */
+  family: z.string().optional(),
+  /** Genul botanic from APIA Tabel 1. APIA counts diversification by genus. */
+  genus: z.string().nullable().optional(),
+  /** The name exactly as printed in APIA Tabel 1. */
+  apia_name: z.string().optional(),
+  /** Other words farmers use for it, for search and the assistant: "grâu" for Grâu comun de toamnă. */
+  aliases: z.array(z.string()).optional(),
 });
 export type Crop = z.infer<typeof CropSchema>;
+
+/** The one fallow "crop" in docs/data: teren necultivat. Pure code needs the id without the data. */
+export const FALLOW_CROP_ID = 'teren-necultivat';
+/** Uncultivated land: no costs, harvest or sale, but it counts for the subsidies. */
+export const isFallow = (crop: string | Pick<Crop, 'id'> & { kind?: Crop['kind'] }): boolean =>
+  typeof crop === 'string' ? crop === FALLOW_CROP_ID : crop.kind === 'fallow' || crop.id === FALLOW_CROP_ID;
 
 /** Yearly yields (INS AGR110A): area code → crop id → one value per year from first_year, in kg/ha. */
 export const CountyHistorySchema = z
@@ -339,12 +419,56 @@ export const CountyHistorySchema = z
   })
   .passthrough();
 
-export const CropsFileSchema = z.object({
-  meta: z.object({ source_url: z.string().url() }).passthrough(),
-  crops: z.array(CropSchema),
-  county_history: CountyHistorySchema,
-});
+export const CropsFileSchema = z
+  .object({
+    meta: z.object({ source_url: z.string().url(), apia_codes_source_url: z.string().url() }).passthrough(),
+    crops: z.array(CropSchema),
+    county_history: CountyHistorySchema,
+  })
+  .superRefine((file, ctx) => {
+    /* Fallow land is exactly one crop, with the shared id, and it costs and yields nothing. */
+    const fallow = file.crops.filter((c) => c.kind === 'fallow');
+    if (fallow.length > 1 || fallow.some((c) => c.id !== FALLOW_CROP_ID))
+      ctx.addIssue({ code: 'custom', message: `The only fallow crop must be ${FALLOW_CROP_ID}` });
+    for (const c of fallow) {
+      const figures = [c.cost_lei_per_ha, c.yield_t_per_ha, c.price_lei_per_kg].flatMap((r) => [r.min, r.mean, r.max]);
+      if (c.expense_months.length || figures.some((v) => v !== 0))
+        ctx.addIssue({ code: 'custom', message: `${c.id} is fallow: no expense months, costs, yield or price` });
+    }
+    /* One APIA code read off a paper must lead to exactly one crop. */
+    const owner = new Map<number, string>();
+    for (const crop of file.crops)
+      for (const code of crop.apia_codes ?? []) {
+        const other = owner.get(code);
+        if (other) ctx.addIssue({ code: 'custom', message: `APIA code ${code} belongs to both ${other} and ${crop.id}` });
+        owner.set(code, crop.id);
+      }
+  });
 export type CropsFile = z.infer<typeof CropsFileSchema>;
+
+/** docs/data/apia-crop-codes.json: APIA Tabel 1, one row per crop code, names as printed. */
+export const ApiaCropTableSchema = z
+  .object({
+    meta: z.object({ source_url: z.string().url(), status: StatusSchema }).passthrough(),
+    rows: z.array(
+      z.object({
+        code: z.number().int().positive(),
+        genus: z.string().nullable(),
+        name: z.string().min(1),
+        section: z.string().min(1),
+        heading: z.string().nullable(),
+      }),
+    ),
+  })
+  .superRefine((file, ctx) => {
+    const seen = new Set<number>();
+    for (const r of file.rows) {
+      if (seen.has(r.code)) ctx.addIssue({ code: 'custom', message: `APIA code ${r.code} appears twice` });
+      seen.add(r.code);
+    }
+  });
+export type ApiaCropTable = z.infer<typeof ApiaCropTableSchema>;
+export type ApiaCropRow = ApiaCropTable['rows'][number];
 
 export const FundingGuidesFileSchema = z.object({
   guides: z.array(

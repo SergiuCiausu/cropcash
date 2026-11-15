@@ -7,13 +7,20 @@ import { SCREENS } from '../../screens';
 import { blocks, card, withClientId } from './assistant';
 import { chartRows, otherYears, yearEnds } from './chart';
 import { buildMessage, MESSAGES, panelRows, type MessageInput } from './messages';
-import { REACT_PAGES, sectionOf, TABS } from './nav';
+import { REACT_PAGES, sectionOf, TABS, tabsFor } from './nav';
 
 const data = loadData();
 const NOW = new Date('2026-11-15T10:00:00Z');
 const ion = () => farmView(readFarmState('demo', memoryStore(), data, NOW), 'farm');
 
 describe('navigation', () => {
+  it('shows Arendă to an arendaș, and to a farm on its own land only when it has arendă (plan step 7)', () => {
+    expect(tabsFor('arendas')).toEqual(TABS);
+    expect(tabsFor('own').map((t) => t.path)).not.toContain('/arenda');
+    expect(tabsFor(undefined)).toEqual(tabsFor('own'));
+    expect(tabsFor('own', true)).toEqual(TABS);
+  });
+
   it('puts each page under its tab', () => {
     expect(sectionOf('/oportunitati')).toBe('/subventii');
     expect(sectionOf('/surse')).toBe('/subventii');
@@ -21,7 +28,7 @@ describe('navigation', () => {
     expect(sectionOf('/date-plan')).toBe('/salariu');
     expect(sectionOf('/calendar')).toBe('/calendar');
     // On a phone these sit under "Mai mult"; the bar keeps Acasă, Subvenții, Recolte and Salariu.
-    expect(TABS.filter((t) => t.railOnly).map((t) => t.path)).toEqual(['/calendar', '/prognoza', '/pensie']);
+    expect(TABS.filter((t) => t.railOnly).map((t) => t.path)).toEqual(['/calendar', '/prognoza', '/harta', '/pensie', '/oameni', '/arenda', '/rapoarte']);
     expect(TABS.filter((t) => !t.railOnly).map((t) => t.path)).toEqual(['/acasa', '/subventii', '/recolte', '/salariu']);
   });
 

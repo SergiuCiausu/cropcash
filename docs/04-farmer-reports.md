@@ -1,8 +1,12 @@
 # 04. Rapoarte și registre pentru fermier
 
+> **Rapoarte PDF (faza 1, 14 nov 2026):** rezumatul fermei, registrul încasărilor și plăților și situația subvențiilor APIA se descarcă din `/rapoarte`. Planul și fazele următoare: `docs/rapoarte-pdf-plan.md`.
+>
 > Prioritate: **doar rambursarea accizei la motorină** e în plan (Should have, pasul 10). Celelalte sunt descrise pentru pitch și pentru roadmap.
 
 ## 1. Rambursarea accizei la motorină
+
+> Făcut (14 nov 2026) ca raport PDF în /rapoarte: litrii se notează pe cheltuiala de motorină (Recolte → Mai multe detalii), nu într-un jurnal separat. Cota vine din `docs/data/fuel-excise.json`. Vezi `docs/rapoarte-pdf-plan.md` §7 faza 2.
 
 | Ce | Valoare | Status |
 |---|---|---|

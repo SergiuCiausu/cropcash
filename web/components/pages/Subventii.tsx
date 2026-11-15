@@ -12,10 +12,11 @@ import { Icon, Sheet, useHref, Verify } from '../app/bits';
 import { useWidth } from '../app/FarmChart';
 import { PageLink, SubNav } from '../app/Frame';
 import { FutureNote } from '../app/PageNotes';
+import { ResultsBasisSwitch, useResultsBasis } from '../app/Basis';
 import { PaperButton, usePapers } from '../app/Papers';
 import { ShareSheet } from '../app/ShareSheet';
 
-const AREA = new Set(['total_ha', 'arable_ha', 'unproductive_ha']);
+const AREA = new Set(['total_ha', 'arable_ha', 'unproductive_ha', 'unproductive_pct']);
 const AXIS_START = '2026-10-01';
 const AXIS_END = '2027-07-01';
 const AXIS_MONTHS = ['oct.', 'nov.', 'dec.', 'ian.', 'feb.', 'mar.', 'apr.', 'mai', 'iun.'];
@@ -45,6 +46,7 @@ function reasonText(c: Failed) {
     'arable_ha:>': 'Nu ai teren arabil declarat.',
     'distinct_crops:>=': `Trebuie cel puțin ${e} culturi diferite. Tu ai ${a}.`,
     'unproductive_ha:>': 'Doar dacă lași zone necultivate, ca fâșii sau margini de câmp. Suma pentru 2026 nu e anunțată încă.',
+    'unproductive_pct:>=': `Doar dacă lași necultivat cel puțin ${e}% din terenul arabil. Tu ai ${a}%. Adaugă terenul necultivat la culturi.`,
   };
   return texts[`${c.field}:${c.op}`] ?? 'Nu se potrivește cu ferma ta.';
 }
@@ -84,6 +86,11 @@ export default function Subventii() {
   const rulesUnverified = (code: string) => (schemeData(code)?.eligibility?.rules ?? []).some((r: { status?: string }) => r.status === 'DE-VERIFICAT');
 
   const [payKey, setPayKey] = useState<'adv' | 'bal' | null>(null);
+  /* "Total | Pe hectar" (docs/per-ha-total-plan.md): a crop's part goes by its hectares, the farm's by all. */
+  const { show, perHa } = useResultsBasis();
+  const subAri = crop ? crop.ari : view.areaAri();
+  const big = (bani: number) => (perHa ? show(bani, subAri) : t(`${about(bani)} lei`));
+  const exactly = (bani: number) => (perHa ? show(bani, subAri) : t(`${exact(bani)} lei`));
 
   /* ---- The real total, from the farmer's payment decision ---- */
   async function sendDecision(name: string, input: Record<string, unknown>) {
@@ -181,9 +188,12 @@ export default function Subventii() {
       <SubNav page="/subventii" href={href} />
       <div className="bento">
         <section className="chart-card field hero-card s6">
-          <p className="eyebrow">{crop ? `Pentru ${crop.name.toLowerCase()} primești` : 'De la APIA primești'}</p>
-          <p className="amount">{t(`${about(part(totals.lei.probable))} lei`)}</p>
-          <p className="range">{decided ? 'din decizia ta de plată' : t(`între ${about(part(totals.lei.min))} lei și ${about(part(totals.lei.max))} lei`)}</p>
+          <div className="basis-row hero-basis">
+            <p className="eyebrow">{crop ? `Pentru ${crop.name.toLowerCase()} primești` : 'De la APIA primești'}</p>
+            <ResultsBasisSwitch />
+          </div>
+          <p className="amount">{big(part(totals.lei.probable))}</p>
+          <p className="range">{decided ? 'din decizia ta de plată' : `între ${big(part(totals.lei.min))} și ${big(part(totals.lei.max))}`}</p>
           <p className="why">
             {crop
               ? t(`APIA plătește o singură sumă pentru toată ferma, de ${about(totals.lei.probable)} lei. Aici vezi partea după hectare: ${ha(crop.ari)} din ${ha(crop.totalAri)} ha.`)
@@ -193,10 +203,10 @@ export default function Subventii() {
           </p>
           <div className="sum">
             <p>
-              Avansul<b>{t(`${exact(part(totals.advanceLei))} lei`)}</b>
+              Avansul<b>{exactly(part(totals.advanceLei))}</b>
             </p>
             <p>
-              Restul<b>{t(`${exact(part(totals.balanceLei.probable))} lei`)}</b>
+              Restul<b>{exactly(part(totals.balanceLei.probable))}</b>
             </p>
           </div>
           {!crop && (
@@ -315,6 +325,45 @@ export default function Subventii() {
                 );
               })}
             </div>
+            {base.estimated.map((s) => (
+              <details className="scheme" key={s.code}>
+                <summary>
+                  <b>
+                    {s.nameRo} <span className="tag n">Estimare</span>
+                  </b>
+                  <span className="amt">{t(`cam ${about(s.leiIndicative.probable)} lei`)}</span>
+                  <Icon name="arrow" />
+                </summary>
+                <dl className="facts">
+                  <dt>Calculul</dt>
+                  <dd>
+                    {ha(s.units)} ha × {num(s.amountEurPerUnit)} € = {cents(s.eur.probable)} €
+                  </dd>
+                  <dt>De ce e estimare</dt>
+                  <dd>
+                    Suma pentru {campaign} nu e anunțată. Am socotit cu suma din {s.estimate!.basisYear}. Nu intră în totalul de sus, nici în salariu, până nu e anunțată.
+                  </dd>
+                  <dt>Cum se plătește</dt>
+                  <dd>Se plătește pe tot terenul arabil, nu doar pe partea lăsată necultivată. Pământul care se odihnește își recapătă și puterea.</dd>
+                  {s.unverified.some((u) => u.note) && (
+                    <>
+                      <dt>De verificat</dt>
+                      <dd>{s.unverified.map((u) => u.note).filter(Boolean).join(' ')}</dd>
+                    </>
+                  )}
+                  <dt>Sursa</dt>
+                  <dd>
+                    {s.estimate!.sourceUrl ? (
+                      <a href={s.estimate!.sourceUrl} rel="noopener" target="_blank">
+                        {host(s.estimate!.sourceUrl)}
+                      </a>
+                    ) : (
+                      'Lipsește'
+                    )}
+                  </dd>
+                </dl>
+              </details>
+            ))}
             {decided && <p className="note gap">Pe rânduri rămâne calculul nostru. Totalul de sus vine din decizia ta de plată.</p>}
           </section>
         )}
@@ -372,7 +421,7 @@ export default function Subventii() {
             </div>
             <div className="key-facts">
               <Tile label="Când" value={date(pay.event.end, true)} sub={payDays >= 0 ? `mai sunt ${zile(payDays)}` : ''} />
-              <Tile label="Suma" value={t(`${exact(pay.value)} lei`)} sub={pay.range ? t(`între ${about(pay.range[0])} și ${about(pay.range[1])} lei`) : ''} />
+              <Tile label="Suma" value={exactly(pay.value)} sub={pay.range ? `între ${big(pay.range[0])} și ${big(pay.range[1])}` : ''} />
             </div>
             {pay.unverified && (
               <p className="note gap">
@@ -414,7 +463,8 @@ function Simulator() {
   const crop = view.crop;
   const data = view.data();
   const plan = view.farmPlan();
-  const CROPS = data.crops.crops;
+  /* The main crops and the farm's own: one chip per APIA line of every crop would be too many. */
+  const CROPS = data.crops.crops.filter((c) => !c.family || FARM.parcels.some((p) => p.cropId === c.id));
   const focus = crop ? crop.id : null;
   const cropWord = crop ? crop.name.toLowerCase() : '';
   const part = crop ? crop.share : (bani: number) => bani;
@@ -469,6 +519,10 @@ function Simulator() {
   const shown = !focus ? w.after.probable : same ? crop!.share(w.after.probable) : partOf(w.after.probable, ari);
   const delta = shown - part(w.before.probable);
   const sign = delta > 0 ? 'up' : delta < 0 ? 'down' : '';
+  /* Per hectare, the change is per hectare too: today's amount on today's hectares against the new one. */
+  const { show, perHa } = useResultsBasis();
+  const shownDelta = perHa ? Math.round((shown * 100) / ari) - Math.round((part(w.before.probable) * 100) / (START_ARI || 1)) : delta;
+  const shownSign = shownDelta > 0 ? 'up' : shownDelta < 0 ? 'down' : '';
   /* Swapping one crop for another changes nothing, and that needs saying or the chips look broken. */
   const swapped = !focus && !same && ari === START_ARI && w.difference === 0;
   const schemeData = (code: string) => data.subsidies.schemes.find((s) => s.code === code);
@@ -503,6 +557,7 @@ function Simulator() {
       <div className="card-h">
         <h2>Ce s-ar schimba dacă...</h2>
         <span>Doar o simulare</span>
+        <ResultsBasisSwitch />
       </div>
       <p className="note">{focus ? `Celelalte culturi rămân la fel. APIA plătește o singură sumă pentru toată ferma, așa că aici vezi partea pentru ${cropWord}, după hectare.` : 'Unele schimbări mici pot costa mult, pentru că regulile se schimbă la anumite praguri.'}</p>
       <div className="sim">
@@ -567,8 +622,8 @@ function Simulator() {
             </>
           )}
           <div className="res" aria-live="polite">
-            <p className="big">{t(`${about(shown)} lei`)}</p>
-            <p className={`delta ${sign}`}>{same ? (focus ? `Asta e partea pentru ${cropWord} de azi` : 'Asta e ferma ta de azi') : delta === 0 ? 'La fel ca azi' : t(`${delta > 0 ? '+' : '−'}${about(Math.abs(delta))} lei față de azi`)}</p>
+            <p className="big">{perHa ? show(shown, ari) : t(`${about(shown)} lei`)}</p>
+            <p className={`delta ${shownSign}`}>{same ? (focus ? `Asta e partea pentru ${cropWord} de azi` : 'Asta e ferma ta de azi') : shownDelta === 0 ? 'La fel ca azi' : perHa ? `${shownDelta > 0 ? '+' : '−'}${show(Math.abs(shownDelta), 0)}/ha față de azi` : t(`${delta > 0 ? '+' : '−'}${about(Math.abs(delta))} lei față de azi`)}</p>
             {focus && <p className="note">{t(`Toată ferma: ${about(w.after.probable)} lei`)}</p>}
             {swapped && <p className="note">Aceeași sumă. APIA plătește la fel pe hectar pentru aceste culturi.</p>}
             {(lost.length > 0 || gained.length > 0) && (

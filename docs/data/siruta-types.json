@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "description": "Tipurile de localități din SIRUTA (coloana TIP) și ce înseamnă la noi (docs/harta-plan.md, pasul 1b). Codurile și denumirile sunt copiate din „Nomenclatorul tipurilor de localități” din legenda INS, nu scrise din memorie. Coloana kind e alegerea noastră: cum grupăm tipurile (județ, municipiu, oraș, comună, sat, localitate componentă, sector).",
+    "source": "INS, legenda-siruta.xml din setul SIRUTA_an 2025 / SIRUTA_s1 2026 pe data.gov.ro",
+    "source_url": "https://data.gov.ro/dataset/06950cb3-41b7-48b8-91bb-4a329786d178/resource/8d5d8a77-d8bf-425d-a9f9-2514d751e84e/download/legenda-siruta.xml",
+    "checked_on": "2026-11-15",
+    "status": "oficial"
+  },
+  "columns": {
+    "SIRUTA": "Cod identificare",
+    "DENLOC": "Denumire Unitate Administrativ Teritorială (UAT)/Localitate",
+    "JUD": "Cod județ",
+    "SIRSUP": "Cod for tutelar (UAT ierarhic superioară)",
+    "TIP": "Tipul de localitate",
+    "NIV": "Nivelul Unității Administrativ Teritorială (UAT)",
+    "MED": "Cod mediu (1 - Urban 3 - Rural)"
+  },
+  "types": [
+    { "tip": 40, "ins": "Județ, municipiul București", "kind": "county", "seat": false },
+    { "tip": 1, "ins": "Municipiu reședință de județ, municipiul București", "kind": "municipality", "seat": true },
+    { "tip": 2, "ins": "Oraș ce aparține de județ, altul decât reședința de județ", "kind": "town", "seat": false },
+    { "tip": 3, "ins": "Comună", "kind": "commune", "seat": false },
+    { "tip": 4, "ins": "Municipiu, altul decât reședința de județ", "kind": "municipality", "seat": false },
+    { "tip": 5, "ins": "Oraș reședință de județ", "kind": "town", "seat": true },
+    { "tip": 6, "ins": "Sectoarele municipiului București", "kind": "sector", "seat": false },
+    { "tip": 9, "ins": "Localitate componentă, reședință de municipiu", "kind": "component_locality", "seat": true },
+    { "tip": 10, "ins": "Localitate componentă a unui municipiu, alta decât reședința de municipiu", "kind": "component_locality", "seat": false },
+    { "tip": 11, "ins": "Sat ce aparține de municipiu", "kind": "village", "seat": false },
+    { "tip": 17, "ins": "Localitate componentă reședință a orașului", "kind": "component_locality", "seat": true },
+    { "tip": 18, "ins": "Localități componente ale orașului, altele decât reședința de oraș", "kind": "component_locality", "seat": false },
+    { "tip": 19, "ins": "Sate subordonate unui oraș", "kind": "village", "seat": false },
+    { "tip": 22, "ins": "Sat reședință de comună", "kind": "village", "seat": true },
+    { "tip": 23, "ins": "Sat ce aparține de comună, altele decât reședința de comună", "kind": "village", "seat": false }
+  ]
+}

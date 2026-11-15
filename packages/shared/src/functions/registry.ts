@@ -5,6 +5,7 @@ import {
   creditAvailableFrom,
   creditCapacity,
   maxSafeSalary,
+  planDrivers,
   springNeed,
   upcoming,
   type AmountScenario,
@@ -36,7 +37,14 @@ import { defineRead, defineWrite, type ReadContext, type ReadFunction, type Writ
 import { explainSalary, explainSubsidy } from './explain';
 import { afterBadHarvest, farmData, planView, proposeSplit } from './plan';
 import { tasksForFarm } from './tasks';
-import { checkPurchase, whatIfCredit, whatIfPension, whatIfSubsidy } from './whatIf';
+import { PLOT_FUNCTIONS } from './plots';
+import { EVENT_FUNCTIONS } from './events';
+import { EMPLOYEE_FUNCTIONS } from './employees';
+import { ARENDA_FUNCTIONS } from './arenda';
+import { addDays, eventItems } from '../calendar/events';
+import type { TimelineEntry } from '../cashflow/timeline';
+import { checkPurchase, peopleCost, whatIfCredit, whatIfHire, whatIfPension, whatIfSubsidy } from './whatIf';
+import { EmployeeInputSchema } from '../payroll';
 import {
   closingSoonRows,
   filterOpportunities,
@@ -78,7 +86,7 @@ export const checkScheme = defineRead({
     const scheme = data.subsidies.schemes.find((s) => s.code === code);
     if (!scheme) return null;
     const year = data.subsidies.meta.campaign_year;
-    const check = checkEligibility(scheme, profileForScheme(farmInputFromStored(farm, year), scheme));
+    const check = checkEligibility(scheme, profileForScheme(farmInputFromStored(farm, year), scheme, data));
     return {
       code: scheme.code,
       nameRo: scheme.name_ro,
@@ -180,13 +188,32 @@ export const explainSalaryFn = defineRead({
   run: ({ scenario }, { plan, data }) => explainSalary(plan, scenario, data),
 });
 
+export const ExplainDriversInputSchema = z.strictObject({
+  order: z.enum(['effect', 'unsure']).default('effect'),
+  cropId: z.string().min(1).nullable().optional(),
+  limit: z.number().int().min(1).max(30).default(8),
+});
+
+export const explainDriversFn = defineRead({
+  name: 'explain_drivers',
+  description:
+    'Which incomes and costs of the next 12 months move the safe salary most, largest first. salaryEffect is how much higher (+) or lower (-) the monthly salary would be without that sum; lowestEffect the same for the lowest point; spread how much it differs between a bad and a good year. own = the farmer put the sum in the calendar. With a fixed salary (salaryFixed true) the rows are ordered by lowestEffect. Rows do not add up.',
+  input: ExplainDriversInputSchema,
+  run: ({ order, cropId, limit }, { plan, data }) => {
+    const all = planDrivers(plan, data, { order, cropId: cropId ?? null });
+    return { salaryFixed: plan.salaryFixed != null, total: all.length, drivers: all.slice(0, limit) };
+  },
+});
+
 export const getForecast = defineRead({
   name: 'get_forecast',
-  description: 'The next 12 months in a bad, normal or good year: in, out and money left, plus where the money goes.',
+  description:
+    "The next 12 months in a bad, normal or good year: in, out and money left, plus where the money goes. cropLoss lists, per crop, the share of the sown hectares taken as not reaching harvest (the same in every scenario) and where it comes from: 'this_year' (a loss already reported for that harvest), 'farmer' (their usual %), 'history' (their answered harvests, from–to). applied=false means it was not subtracted, because the yield is the county's, which may already count lost fields (P33). Costs are never reduced.",
   input: ScenarioInput,
   run: ({ scenario }, ctx) => {
     const t = timeline(ctx, scenario);
     return {
+      cropLoss: ctx.plan.economics.flatMap((c) => (c.loss && c.loss.basis !== 'none' ? [{ cropId: c.cropId, subtractedShare: c.lossShare, ...c.loss }] : [])),
       scenario,
       startBalance: t.startBalance,
       months: t.months.map((m) => ({ key: m.key, in: m.in, out: m.out, balanceEnd: m.balanceEnd })),
@@ -234,7 +261,15 @@ export const listUpcoming = defineRead({
   name: 'list_upcoming',
   description: 'What comes next from today: payments, deadlines and farm work, in date order.',
   input: ListUpcomingInputSchema,
-  run: ({ scenario, days }, ctx) => upcoming(timeline(ctx, scenario), ctx.today, days),
+  run: ({ scenario, days }, ctx) => {
+    const money = upcoming(timeline(ctx, scenario), ctx.today, days);
+    // The farmer's own notes with no sum, in the same window (their sums are already in the timeline).
+    const last = money.reduce((m, e) => (e.date > m ? e.date : m), addDays(ctx.today, days));
+    const notes: TimelineEntry[] = eventItems(ctx.farm.farm_events ?? [], [], [], [], ctx.today, last)
+      .filter((i) => i.direction === 'none' && !i.done && i.date)
+      .map((i) => ({ id: i.id, kind: 'farmer_note', direction: 'none', amount: null, value: 0, date: i.date!, window: null, what: i.title, ...(i.cropId ? { cropId: i.cropId } : {}), estimated: false, unverified: false }));
+    return [...money, ...notes].sort((a, b) => a.date.localeCompare(b.date));
+  },
 });
 
 // ── Credit ──────────────────────────────────────────────────────────────────
@@ -287,6 +322,21 @@ export const getFarm = defineRead({
   },
 });
 
+export const whatIfHireFn = defineRead({
+  name: 'what_if_hire',
+  description:
+    "Information only, for „Îmi permit încă un om?”: the monthly salary, the lowest month and the people's pay that no longer fits, before and after one more person (total cost in lei per month or per day, from a date). Saves nothing. Never a yes or no.",
+  input: EmployeeInputSchema,
+  run: (person, { plan, farm, data }) => whatIfHire(plan, farm, data, person),
+});
+
+export const getPeopleCost = defineRead({
+  name: 'get_people_cost',
+  description: "What the farm's people cost in a year (bani): each person and the total, for the work done that year. Default: this year.",
+  input: z.strictObject({ year: z.number().int().min(2020).max(2100).optional() }),
+  run: ({ year }, { plan, farm }) => peopleCost(farm, year ?? Number(plan.timelines.medium.months[0]!.key.slice(0, 4))),
+});
+
 export const CheckPurchaseInputSchema = z.strictObject({
   amount: Amount,
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
@@ -328,7 +378,7 @@ export const removeCredit = defineWrite({
 
 export const getEnvelopes = defineRead({
   name: 'get_envelopes',
-  description: 'How the money is split now: salary, spring costs, debts and pension.',
+  description: "How the money is split now: salary, the people's pay, spring costs, debts and pension.",
   input: NoInput,
   run: (_input, { plan }) => ({ balances: plan.envelopes }),
 });
@@ -444,7 +494,8 @@ export const updateFarm = defineWrite({
 
 export const saveHarvests = defineWrite({
   name: 'save_harvests',
-  description: 'Saves the harvest years, closed crops and gathered grain. This replaces what was saved before.',
+  description:
+    "Saves the harvest years, closed crops and gathered grain. This replaces what was saved before. A crop in a harvest year may hold lost: { ha, reason?, month? }, the hectares not harvested (0 is an answer, missing is unknown, never more than the crop's hectares); expected rows may hold lossPct, the farmer's usual % lost.",
   input: HarvestsInputSchema,
   request: (body) => ({ method: 'PUT', path: '/api/farmers/me/harvests', body }),
 });
@@ -893,6 +944,7 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   getPlan,
   getSalary,
   explainSalaryFn,
+  explainDriversFn,
   getForecast,
   getTightMonths,
   getAfterBadHarvest,
@@ -901,6 +953,8 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   whatIfCreditFn,
   getFarm,
   checkPurchaseFn,
+  whatIfHireFn,
+  getPeopleCost,
   whatIfPensionFn,
   listCredits,
   addCredit,
@@ -946,6 +1000,10 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   clearApiaDecision,
   getExchangeRates,
   convertCurrency,
+  ...PLOT_FUNCTIONS,
+  ...EVENT_FUNCTIONS,
+  ...EMPLOYEE_FUNCTIONS,
+  ...ARENDA_FUNCTIONS,
 ];
 
 export function findFunction(name: string): ReadFunction | WriteFunction | undefined {

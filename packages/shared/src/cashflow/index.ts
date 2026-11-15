@@ -8,3 +8,5 @@ export * from './simulate';
 export * from './scenarios';
 export * from './seasons';
 export * from './county-yields';
+export * from './drivers';
+export * from './plan-diff';

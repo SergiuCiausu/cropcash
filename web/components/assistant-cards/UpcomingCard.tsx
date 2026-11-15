@@ -23,6 +23,18 @@ function titleOf(e: Entry, data: ReturnType<typeof loadData>): string {
       return 'Primești creditul';
     case 'loan_repayment':
       return 'Dai înapoi creditul';
+    case 'payroll':
+      return `Salariu: ${e.what ?? 'un om de la fermă'}`;
+    case 'rent':
+      return `Arenda${e.what ? ` pentru ${e.what}` : ''}`;
+    case 'rent_tax':
+      return 'Impozitul reținut din arendă';
+    case 'rent_in':
+      return `Arenda${e.what ? ` de la ${e.what}` : ''}`;
+    case 'farmer_in':
+    case 'farmer_out':
+    case 'farmer_note':
+      return `${e.what ?? 'Notat de tine'}${crop ? `, ${crop.toLowerCase()}` : ''}`;
     default:
       return data.calendar.events.find((x) => x.id === e.eventId)?.title_ro ?? 'Termen';
   }

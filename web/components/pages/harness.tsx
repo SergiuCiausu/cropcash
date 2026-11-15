@@ -29,9 +29,12 @@ export const ME = {
 };
 export const SIGNED_IN = { 'sb-x-auth-token': '{}', 'cropcash-me': JSON.stringify(ME), 'cropcash-me-at': '2026-11-14T10:00:00Z' };
 
-function fakeStore(mode: Mode, saved: Record<string, string>, online: boolean, me: object = ME) {
+/** Other API answers, by path without the query ('/api/plots'). */
+export type Answers = Record<string, unknown>;
+
+function fakeStore(mode: Mode, saved: Record<string, string>, online: boolean, me: object = ME, answers: Answers = {}) {
   const live: LiveCalls = {
-    api: vi.fn(async (path: string) => (path === '/api/me' ? { farmer: me } : {}) as never),
+    api: vi.fn(async (path: string) => (path === '/api/me' ? { farmer: me } : (answers[path.split('?')[0]!] ?? {})) as never),
     read: vi.fn(async () => ({ data: [] }) as never),
     write: vi.fn(async () => ({}) as never),
   };
@@ -62,8 +65,8 @@ export async function showOnboarding(saved: Record<string, string> = SIGNED_IN, 
   return { store, live };
 }
 
-export async function showPage(name: ScreenName, mode: Mode, saved: Record<string, string> = {}, online = true, me: object = ME) {
-  const { store, live } = fakeStore(mode, saved, online, me);
+export async function showPage(name: ScreenName, mode: Mode, saved: Record<string, string> = {}, online = true, me: object = ME, answers: Answers = {}) {
+  const { store, live } = fakeStore(mode, saved, online, me, answers);
   const App = SCREENS[name].App!;
   await act(async () => {
     render(

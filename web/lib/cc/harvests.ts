@@ -5,7 +5,8 @@
    Signed in, the years come from the server and only the picked project stays on the phone. In the
    demo, everything stays on the phone under cropcash-demo-harvests. */
 import type { AppData } from '../../../packages/shared/src/data/index';
-import type { HarvestsInput, OwnCrop } from '../../../packages/shared/src/farm/index';
+import { isFallow } from '../../../packages/shared/src/data/schemas';
+import type { CropLoss, HarvestsInput, OwnCrop, Sowing } from '../../../packages/shared/src/farm/index';
 
 export { areaShare } from '../../../packages/shared/src/farm/index';
 import { harvestsFromServer, type PageRecord } from '../live/farm';
@@ -24,8 +25,11 @@ export interface HarvestParcel {
   cropId: string;
   areaHa: number;
   plantedMonth?: string;
+  sowing?: Sowing;
   status?: 'open' | 'closed';
   planned?: Planned;
+  /** Hectares that didn't make it to harvest (docs/crop-loss-plan.md). */
+  lost?: CropLoss;
 }
 
 export interface Harvest {
@@ -142,6 +146,7 @@ export const toTransaction = (r: PageRecord) => ({
   occurred_at: `${r.date}T12:00:00Z`,
   note: null,
   source: 'manual',
+  ...(r.employeeId ? { employee_id: r.employeeId } : {}),
 });
 
 export const toParcel = (p: HarvestParcel) => ({
@@ -160,11 +165,11 @@ export interface CropTab {
   current: boolean;
 }
 
-/** The strip at the top of a page: the whole farm first, then each crop of this harvest. */
+/** The strip at the top of a page: the whole farm first, then each crop of this harvest. Fallow land has no page of its own. */
 export function cropTabs(h: Pick<Harvest, 'parcels' | 'status'>, active: string | null, cropName: (id: string) => string): CropTab[] {
   return [
     { cropId: null, label: 'Toată ferma', sub: null, current: active === null },
-    ...h.parcels.map((p) => ({
+    ...h.parcels.filter((p) => !isFallow(p.cropId)).map((p) => ({
       cropId: p.cropId,
       label: cropName(p.cropId),
       sub: projectClosed(h as Harvest, p.cropId) ? 'încheiată' : `${String(p.areaHa).replace('.', ',')} ha`,

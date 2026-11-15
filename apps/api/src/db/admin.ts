@@ -1,3 +1,4 @@
+import { EVENT_COLUMNS, OCCURRENCE_COLUMNS } from './events';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FarmRow } from './repo';
 
@@ -29,6 +30,8 @@ export const MONEY_FARM_SELECT = [
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
   'transactions (amount_bani, kind, category, occurred_at, crop_id, source, expected_payment_id)',
   'pension_plans (monthly_bani, status, stripe_subscription_id, start_key)',
+  // The farmer's planned sums change the salary, so the payout reads them too (migration 023).
+  `farm_events (${EVENT_COLUMNS}, farm_event_occurrences (${OCCURRENCE_COLUMNS}))`,
 ].join(', ');
 
 /** The money operations that must not run twice at once for one farm. */

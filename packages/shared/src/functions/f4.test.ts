@@ -59,7 +59,7 @@ describe('recorded money in the plan', () => {
   });
 
   it('an unplanned expense always lowers the money', () => {
-    const p = withTx(tx({ category: 'repairs', amount_bani: -80_000 }));
+    const p = withTx(tx({ category: 'constructions', amount_bani: -80_000 }));
     expect(planned(p, 'input_cost')).toBe(planned(base, 'input_cost'));
     expect(p.timelines.medium.months.at(-1)!.balanceEnd).toBe(base.timelines.medium.months.at(-1)!.balanceEnd - 80_000);
   });

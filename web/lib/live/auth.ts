@@ -78,9 +78,16 @@ const ONBOARDING = '/onboarding';
 /* Every page of the farmer's app (lib/paths.ts), so a sign-in can come back to any of them. */
 const RETURN_PAGES: readonly string[] = DEMO_PAGES;
 
+/* Pages for an account that may have no farm: an accountant's farms, and accepting an invitation
+   (migration 028). They don't need the farm's copy, so a sign-in goes straight back to them. */
+export const MEMBER_HOME = '/contabil';
+const ACCOUNT_PAGE = /^\/contabil$|^\/invitatie\?cod=[A-Za-z0-9_-]{43}$/;
+export const isAccountPage = (next: string | null) => !!next && ACCOUNT_PAGE.test(next);
+
 /** Only pages of this app, so a crafted link can't send the farmer to another site. */
 export function safeNext(next: string | null): string | null {
   if (!next) return null;
+  if (isAccountPage(next)) return next;
   const [page, ...hash] = next.split('#');
   if (!RETURN_PAGES.includes(page!)) return null;
   if (hash.length > 1 || (hash.length === 1 && !/^[a-z-]+$/.test(hash[0]!))) return null;
@@ -128,11 +135,21 @@ export function guardTarget({ pathname, hash, hasSession, hasFarmCopy, online }:
   return online ? { action: 'load-farm', next: back ?? HOME } : { action: 'need-net' };
 }
 
+const memberFarmCount = async (api: Api) => {
+  try {
+    return (await api<{ farms: unknown[] }>('/api/memberships')).farms.length;
+  } catch {
+    return 0;
+  }
+};
+
 /** A new account needs a farm first. If the API can't say, the page itself asks again. */
 export async function landingPage(api: Api, next: string | null, store: Pick<Storage, 'setItem'>): Promise<string> {
+  if (isAccountPage(next)) return next!;
   try {
     const { farmer } = await api<{ farmer: unknown }>('/api/me');
-    if (!farmer) return ONBOARDING;
+    /* No farm of their own: an accountant goes to the farms they were let in to. */
+    if (!farmer) return (await memberFarmCount(api)) > 0 ? MEMBER_HOME : ONBOARDING;
     try {
       store.setItem(FARM_COPY, JSON.stringify(farmer));
     } catch {

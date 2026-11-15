@@ -3,13 +3,14 @@
    each figure is worked out once, on first use. A new FarmState gets a new view, so nothing can
    show figures from before a change. */
 import type { AppData } from '../../../packages/shared/src/data/index';
+import { isFallow } from '../../../packages/shared/src/data/schemas';
 import { activePensionMonthly, finishedCost, harvestCosts, isOwnCrop, latestFinishedCost } from '../../../packages/shared/src/farm/index';
 import { afterBadHarvest as afterBadHarvestFor, buildFarmPlan, farmData as farmDataFor, grainInBarn as grainInBarnFor, longForecast as longForecastFor, type FarmPlan } from '../../../packages/shared/src/functions/plan';
 import { withCountyYields } from '../../../packages/shared/src/cashflow/county-yields';
 import type { PlanFarm } from '../../../packages/shared/src/cashflow/farm-plan';
 import type { MonthPlan, Timeline, TimelineEntry } from '../../../packages/shared/src/cashflow/timeline';
 import type { FarmState, PageFarm } from './farm';
-import { between, date, MONTHS } from './format';
+import { between, date, group, MONTHS } from './format';
 import {
   areaShare,
   cropParcel,
@@ -30,7 +31,7 @@ import {
 export type { FarmPlan };
 
 /** Pages that show the whole farm, whatever harvest is picked. The others follow the picker. */
-export const WHOLE_FARM_PAGES = ['/acasa', '/bani', '/salariu', '/date-plan', '/pensie', '/oportunitati', '/surse'] as const;
+export const WHOLE_FARM_PAGES = ['/acasa', '/bani', '/salariu', '/date-plan', '/pensie', '/oportunitati', '/surse', '/rapoarte', '/harta', '/oameni', '/arenda', '/admin'] as const;
 export type Scope = 'farm' | 'picked';
 export const scopeOf = (page: string): Scope => ((WHOLE_FARM_PAGES as readonly string[]).includes(page) ? 'farm' : 'picked');
 
@@ -67,6 +68,10 @@ export interface PlanItem {
   tone: '' | 'b' | 'c';
   task: boolean;
   exactDay: boolean;
+  /** A sum the farmer put in the calendar; its id is the occurrence id (ev:<event>:<date>). */
+  own?: boolean;
+  /** Its day passed and the farmer hasn't said whether it happened. */
+  overdue?: boolean;
 }
 
 
@@ -123,6 +128,8 @@ export function farmView(state: FarmState, scope: Scope) {
       stored_grain: grainInBarn(scoped, transactions),
       pension_plans: { monthly_bani: pensionBani(), status: 'active' },
       apia_decision: me?.apia_decision ?? null,
+      /* The farmer's own planned sums: in a crop's project, only that crop's. */
+      farm_events: selectedCrop ? state.events.filter((e) => e.crop_id === selectedCrop) : state.events,
     } as PlanFarm;
   });
   const planMonth = () => (paidFarm ? today.slice(0, 7) : harvestMonth(scoped.year));
@@ -156,6 +163,24 @@ export function farmView(state: FarmState, scope: Scope) {
     if (e.kind === 'apia_advance') return { ...item, title: apiaTitle('Avansul de la APIA'), sub: between(e.window!, today), icon: 'down', tone: '', task: false, exactDay: true };
     if (e.kind === 'apia_balance') return { ...item, title: apiaTitle('Restul de la APIA'), sub: between(e.window!, today), icon: 'down', tone: '', task: false, exactDay: true };
     if (e.kind === 'crop_sale') return { ...item, title: `Vinzi ${base.crops.crops.find((c) => c.id === e.cropId)?.name_ro_art ?? cropName(e.cropId!).toLowerCase()}`, sub: 'Sumă estimată, în cursul lunii', icon: 'sack', tone: '', task: false, exactDay: false };
+    if (e.kind === 'farmer_in' || e.kind === 'farmer_out')
+      return { ...item, title: e.what ?? '', sub: e.overdue ? (e.direction === 'in' ? 'Ziua a trecut. Ai primit banii?' : 'Ziua a trecut. Ai plătit?') : 'Suma ta', icon: e.direction === 'in' ? 'down' : 'tool', tone: e.direction === 'in' ? '' : 'c', task: false, exactDay: !e.overdue, own: true, ...(e.overdue ? { overdue: true } : {}) };
+    if (e.kind === 'payroll') return { ...item, title: `Salariu: ${e.what ?? 'un om de la fermă'}`, sub: 'Tot ce te costă, pe ziua de plată', icon: 'up', tone: 'c', task: false, exactDay: true };
+    if (e.kind === 'rent' || e.kind === 'rent_in') {
+      const kind = e.rentKg ? `${group(e.rentKg)} kg ${cropName(e.cropId!).toLowerCase()}` : '';
+      const who = e.what ?? 'un proprietar';
+      if (e.kind === 'rent_in') return { ...item, title: `Arenda de la ${who}`, sub: kind ? `${kind}, de vândut. Suma e estimată` : 'După ce își reține impozitul', icon: 'down', tone: '', task: false, exactDay: false };
+      return {
+        ...item,
+        title: kind ? `Arenda pentru ${who}: ${kind} de cumpărat` : `Arenda pentru ${who}`,
+        sub: kind ? 'Nu cultivi ce cere contractul, deci cumperi. Sumă estimată' : `În bani, fără impozitul pe care îl reții${e.estimated ? '. Luna e estimată' : ''}`,
+        icon: 'up',
+        tone: 'c',
+        task: false,
+        exactDay: false,
+      };
+    }
+    if (e.kind === 'rent_tax') return { ...item, title: `Impozitul reținut din arenda lui ${e.what ?? 'un proprietar'}`, sub: `Îl plătești statului până pe ${date(e.date)}. Formularul ți-l spune contabilul`, icon: 'cal', tone: 'c', task: false, exactDay: true };
     if (e.kind === 'input_cost') return { ...item, title: `${cropName(e.cropId!)}: ${e.what}`, sub: 'Sumă estimată, în cursul lunii', icon: 'tool', tone: 'c', task: false, exactDay: false };
     const admin = e.kind === 'admin';
     const taskId = `${e.eventId}:${(e.window?.end ?? e.date).slice(0, 4)}`;
@@ -255,11 +280,17 @@ export function farmView(state: FarmState, scope: Scope) {
       p.planned = harvestPlanned(h, p.cropId);
       p.status = 'closed';
     }
-    if (h.parcels.every((p) => p.status === 'closed')) {
+    // Fallow land is never harvested, so it never holds a year open.
+    if (h.parcels.every((p) => p.status === 'closed' || isFallow(p.cropId))) {
       h.planned = harvestPlanned(h);
       h.status = 'closed';
     }
   }
+
+  /** The hectares a per-hectare figure is counted on, in ari: one crop's in a harvest, or all of them.
+      The harvest the page works on unless another is given. 0 when the crop isn't in it. */
+  const areaAri = (cropId: string | null = null, h: Pick<Harvest, 'parcels'> = scoped) =>
+    h.parcels.filter((p) => !cropId || p.cropId === cropId).reduce((s, p) => s + Math.round(p.areaHa * 100), 0);
 
   const projectName = (h: Pick<Harvest, 'year'>, cropId: string | null = null) => (cropId ? `${cropName(cropId)} ${h.year}` : `Toată ferma ${h.year}`);
 
@@ -308,6 +339,7 @@ export function farmView(state: FarmState, scope: Scope) {
     compare,
     closeProject,
     projectName,
+    areaAri,
     costsOf,
     latestOwnCost,
     costFromHarvest,

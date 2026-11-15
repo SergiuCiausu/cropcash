@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "description": "Limite de azot pe hectar din Programul de acțiune pentru protecția apelor împotriva poluării cu nitrați proveniți din surse agricole (obligatoriu pe tot teritoriul României din 4 iunie 2021). Art. 9 alin. (1): azotul din îngrășăminte organice max. 170 kg/ha/an. Art. 9 alin. (2): azotul din îngrășăminte chimice, când fermierul NU are studiu agrochimic, nu poate depăși valorile din tabel, în funcție de cultură și de panta blocului fizic. Art. 9 alin. (3): dacă planul de fertilizare se bazează pe studiu agrochimic, se aplică doza calculată după recolta planificată și aprovizionarea solului cu azot (organicele tot max. 170 kg N/ha/an). Art. 9 alin. (4): la irigat, planul de fertilizare pe bază de studiu agrochimic este obligatoriu. Valorile din max_n_kg_ha sunt pentru pantă de până la 12%; pentru pantă peste 12% vezi max_n_kg_ha_slope_over_12pct.",
+    "legal_ref": "Programul de acțiune din 2 martie 2021 (Anexa nr. 2 la Ordinul MMAP/MADR nr. 333/165/2021), publicat în Monitorul Oficial nr. 754 bis din 3 august 2021; ordinul publicat în MO nr. 754 din 3 august 2021; rectificare în MO nr. 780 din 12 august 2021. Art. 9 «Norme privind aplicarea îngrășămintelor pe terenul agricol». Pe portalul legislatie.just.ro (consultat 2026-11-14) singura formă consolidată este cea din 12.08.2021 (rectificarea); nu apare nicio modificare ulterioară, deci e actul în vigoare în 2026. Codul de bune practici agricole (Anexa nr. 1 la același ordin) are caracter voluntar.",
+    "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/245238",
+    "source_url_printable": "https://legislatie.just.ro/Public/FormaPrintabila/00000G1ISY7M6CIHWOR3M1PHHBLV95GU",
+    "units": "kg N substanță activă/ha/an",
+    "scope_note": "Limitele pe cultură privesc DOAR azotul din îngrășăminte chimice și DOAR fermele fără studiu agrochimic (plan de fertilizare simplificat, model în Anexa 1 a Programului). Alte limite din același articol: 100 kg N/ha/an pentru vii, livezi și alte culturi permanente; 80 kg N/ha/an pentru pajiști permanente. Art. 4: pe culturi de toamnă sau extratimpurii semănate în perioada de interdicție se pot aplica îngrășăminte chimice și în perioada de interdicție, în limita a maxim 50 kg N s.a./ha.",
+    "status": "confirmat"
+  },
+  "manure_n_cap_kg_ha": {
+    "value": 170,
+    "status": "confirmat",
+    "note": "Art. 9 alin. (1): «Cantitatea maximă de azot provenită din îngrășămintele organice care poate fi aplicată pe terenul agricol nu poate depăși 170 Kg/ha/an.»"
+  },
+  "crops": {
+    "grau": {
+      "max_n_kg_ha": 120,
+      "max_n_kg_ha_slope_over_12pct": 90,
+      "status": "confirmat",
+      "note": "Coloana «Grâu și rapiță» din tabelul art. 9 alin. (2) lit. a). Doar azot chimic, fără studiu agrochimic. Cu studiu agrochimic: doza calculată după recolta planificată și aprovizionarea solului."
+    },
+    "porumb": {
+      "max_n_kg_ha": 150,
+      "max_n_kg_ha_slope_over_12pct": 120,
+      "status": "confirmat",
+      "note": "Coloana «Porumb și sfeclă de zahăr» din tabelul art. 9 alin. (2) lit. a). Doar azot chimic, fără studiu agrochimic."
+    },
+    "floarea-soarelui": {
+      "max_n_kg_ha": 100,
+      "max_n_kg_ha_slope_over_12pct": 80,
+      "status": "confirmat",
+      "note": "Nu e numită în tabel; intră în coloana «Alte culturi» (art. 9 alin. (2) lit. a)). Doar azot chimic, fără studiu agrochimic."
+    },
+    "rapita": {
+      "max_n_kg_ha": 120,
+      "max_n_kg_ha_slope_over_12pct": 90,
+      "status": "confirmat",
+      "note": "Coloana «Grâu și rapiță». Id-ul «rapita» nu există încă în crops-reference.json (acolo sunt doar grau, porumb, floarea-soarelui, teren-necultivat)."
+    },
+    "orz": {
+      "max_n_kg_ha": 100,
+      "max_n_kg_ha_slope_over_12pct": 80,
+      "status": "confirmat",
+      "note": "Orzul nu e numit în tabel; după textul legii intră la «Alte culturi», nu la «Grâu și rapiță». Id-ul «orz» nu există încă în crops-reference.json."
+    },
+    "soia": {
+      "max_n_kg_ha": 100,
+      "max_n_kg_ha_slope_over_12pct": 80,
+      "status": "confirmat",
+      "note": "Nu e numită în tabel; intră la «Alte culturi». Id-ul «soia» nu există încă în crops-reference.json."
+    }
+  }
+}

@@ -8,6 +8,7 @@ import {
   birthYearFromAge,
   computeSubsidies,
   farmInputFromStored,
+  farmSetupRow,
   farmSubsidies,
   farmToday,
   finishedCost,
@@ -30,6 +31,11 @@ import { RepoError, type Repo } from '../db/repo';
 export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams, now: () => Date): Router {
   const r = Router();
   const year = data.subsidies.meta.campaign_year;
+  /** The farm mode and arendă answers, when the phone sent them (older builds don't). */
+  const saveSetup = async (token: string, farmerId: string, input: OnboardingParsed) => {
+    const setup = farmSetupRow(input);
+    if (Object.keys(setup).length) await repo.setFarmSetup(token, farmerId, setup);
+  };
   const storedParcel = (p: OnboardingParsed['parcels'][number]) => ({
     cropId: p.cropId,
     areaAri: haToAri(p.areaHa),
@@ -65,6 +71,7 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams, 
         startBalanceBani: leiToBani(input.startBalanceLei),
         parcels: input.parcels.map(storedParcel),
       });
+      await saveSetup(token, farmerId, input);
       const farm = await repo.getMyFarm(token);
       res.status(201).json({
         farmerId,
@@ -102,6 +109,7 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams, 
         startBalanceBani: leiToBani(input.startBalanceLei),
         parcels: input.parcels.map(storedParcel),
       });
+      if (before) await saveSetup(token, before.id, input);
       const farm = await repo.getMyFarm(token);
       res.json({ subsidies: farm ? farmSubsidies(farm, data, params) : null });
     } catch (err) {

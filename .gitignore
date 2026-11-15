@@ -20,3 +20,6 @@ farm-app/sw.js
 
 # demo-deck work files (login state, captures, renders)
 pptx/build/
+
+# Raw downloads of the geo import (scripts/import-geo, docs/harta-plan.md step 1b)
+data-cache/

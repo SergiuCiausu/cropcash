@@ -43,6 +43,45 @@ describe('the harvests document', () => {
     expect(parses({ ...harvests, years: [{ ...harvests.years[1], parcels }] })).toBe(false);
   });
 
+  it("keeps what didn't make it to harvest, and still reads documents without it", () => {
+    const lost = { ha: 3, reason: 'drought' as const, month: '2027-06' };
+    const parcels = [{ cropId: 'grau', areaHa: 8, lost }];
+    const doc = { ...harvests, years: [{ ...harvests.years[1]!, parcels }] };
+    expect(HarvestsInputSchema.parse(doc).years[0]!.parcels[0]!.lost).toEqual(lost);
+    expect(parses(harvests)).toBe(true);
+  });
+
+  it('takes 0 lost as an answer, up to the whole crop, but not more', () => {
+    const withLost = (lost: unknown) => parses({ ...harvests, years: [{ ...harvests.years[1]!, parcels: [{ cropId: 'grau', areaHa: 8, lost }] }] });
+    expect(withLost({ ha: 0 })).toBe(true);
+    expect(withLost({ ha: 8 })).toBe(true);
+    expect(withLost({ ha: 8.01 })).toBe(false);
+    expect(withLost({ ha: -1 })).toBe(false);
+  });
+
+  it('names where a loss larger than the crop went wrong', () => {
+    const doc = { ...harvests, years: [{ ...harvests.years[1]!, parcels: [{ cropId: 'grau', areaHa: 8, lost: { ha: 9 } }] }] };
+    const issue = HarvestsInputSchema.safeParse(doc).error!.issues[0]!;
+    expect(issue.path).toEqual(['years', 0, 'parcels', 0, 'lost', 'ha']);
+    expect(issue.message).toBe('lost_over_area');
+  });
+
+  it('refuses an unknown reason or field in a loss', () => {
+    const withLost = (lost: unknown) => parses({ ...harvests, years: [{ ...harvests.years[1]!, parcels: [{ cropId: 'grau', areaHa: 8, lost }] }] });
+    expect(withLost({ ha: 1, reason: 'meteorit' })).toBe(false);
+    expect(withLost({ ha: 1, pct: 10 })).toBe(false);
+    expect(withLost({ ha: 1, month: '2027-13' })).toBe(false);
+  });
+
+  it("takes the farmer's own loss share between 0 and 100, or null for the history", () => {
+    const withPct = (lossPct: unknown) => parses({ ...harvests, expected: [{ cropId: 'grau', yieldTPerHa: null, priceLeiPerKg: null, lossPct }] });
+    expect(withPct(0)).toBe(true);
+    expect(withPct(12.5)).toBe(true);
+    expect(withPct(null)).toBe(true);
+    expect(withPct(101)).toBe(false);
+    expect(withPct(-1)).toBe(false);
+  });
+
   it('is what save_harvests sends', () => {
     expect(saveHarvests.request(harvests)).toEqual({ method: 'PUT', path: '/api/farmers/me/harvests', body: harvests });
   });

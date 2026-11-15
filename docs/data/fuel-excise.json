@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "description": "Rambursarea accizei la motorina folosită în agricultură (docs/04-farmer-reports.md §1). Folosit de raportul de motorină din /rapoarte.",
+    "status": "DE-VERIFICAT"
+  },
+  "refund_bani_per_10_l": {
+    "value": 2213,
+    "note": "2,213 lei pe litru, scris ca bani la 10 litri ca să rămână număr întreg (221,3 bani/l).",
+    "status": "DE-VERIFICAT",
+    "source": "din brief, întrebarea 15 din docs/11-open-questions.md"
+  },
+  "frequency": {
+    "value": "quarter",
+    "status": "DE-VERIFICAT",
+    "source": "din brief, întrebarea 15 din docs/11-open-questions.md"
+  }
+}

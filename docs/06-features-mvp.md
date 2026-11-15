@@ -58,8 +58,10 @@
 
 | # | Ecran | Ce vede | Ce apasă | Ce urmează |
 |---|---|---|---|---|
-| O1 | Despre tine și fermă | „Hai să-ți vedem banii.” Numele, vârsta și județul (listă derulantă) pe același ecran. Cere cont: ferma se salvează mereu pe server. | Ion, 55, Teleorman → **Mai departe** | O2 |
-| O2 | Culturile | Butonul pentru hârtia de la APIA (opțional: cererea completează hectarele, decizia păstrează și suma), apoi Grâu, Porumb, Floarea-soarelui cu butoane +/− și suma de la APIA, calculată pe loc cu vârsta | 8 ha grâu, 7 ha porumb → **Mai departe** | O3 |
+| O1 | Despre tine și fermă | „Hai să-ți vedem banii.” Sus, „Ai cererea de plată de la APIA?” cu **Încarcă cererea** (opțional, cere internet). Apoi numele, vârsta și județul (listă derulantă) pe același ecran. Cere cont: ferma se salvează mereu pe server. | Ion, 55, Teleorman → **Mai departe**, sau cererea, care le completează | O2 |
+| O2 | Culturile | Butonul pentru hârtia de la APIA (opțional: cererea face ce face la O1, decizia păstrează și suma), apoi Grâu, Porumb, Floarea-soarelui cu butoane +/− și suma de la APIA, calculată pe loc cu vârsta | 8 ha grâu, 7 ha porumb → **Mai departe** | O3 |
+
+**Cererea de plată (din 14 nov 2026, planul în `cerere-onboarding-plan.md`):** completează vârsta (din CNP), județul (al exploatației, altfel al domiciliului) și hectarele. Numele e completat doar dacă e gol. Sub el apar „Ion” și „Ion Popescu” de pe cerere, iar fermierul alege sau scrie altceva. Hectarele se îmbină: ce e pe cerere se adaugă sau înlocuiește, ce nu e pe cerere rămâne, iar nota spune fiecare schimbare. Câmpurile luate de pe hârtie au eticheta „din cerere” până le schimbă fermierul. Nimic nu se salvează până la **Arată-mi banii**.
 | O3 | Banii de acum (opțional) | „Câți bani ai acum?” Ne trebuie ca să-i spunem dacă îi ajung. | 35.000 → **Arată-mi banii** (sau „Nu știu, sar peste” = 0) | Rezultatul |
 | – | Rezultatul | „De la APIA primești **16.900 lei**” (între 15.200 și 17.100) | **Vezi cât îți aduce ferma**, sau „Spune-ne ce ai strâns și ce ai semănat” (Recolte) | Prognoză |
 

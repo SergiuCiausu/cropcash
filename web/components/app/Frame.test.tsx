@@ -102,7 +102,7 @@ describe('the frame', () => {
     expect(more.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(more);
     const menu = document.getElementById('more-menu') as HTMLElement;
-    expect(within(menu).getAllByRole('link').map((a) => a.textContent)).toEqual(['Calendar', 'Prognoză', 'Pensie']);
+    expect(within(menu).getAllByRole('link').map((a) => a.textContent)).toEqual(['Calendar', 'Prognoză', 'Harta', 'Pensie', 'Oameni', 'Rapoarte']);
     expect(within(menu).getByRole('link', { name: 'Calendar' }).getAttribute('href')).toBe('/ferma-lui-ion/calendar');
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(document.getElementById('more-menu')).toBeNull();

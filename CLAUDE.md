@@ -25,6 +25,7 @@ npm run db:migrate   # aplică supabase/migrations/*.sql (SUPABASE_DB_URL, poole
 npm run typecheck
 npm run seed:demo    # datele lui Ion (docs/data/demo-ion.json), ceasul la 15 nov 2026, ~20 s
 npm run demo:rehearse  # scriptul din 09 §3 de 3 ori, pe Supabase + Stripe reale (~6 min); apoi iar seed:demo
+npm run admin:rehearse # panoul de admin pe Supabase-ul real (~30 s): publică, verifică salariul, revine; lasă cifrele ca la început
 stripe listen --events payment_intent.succeeded,invoice.paid,payout.paid,payout.failed --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
 npm run test:stripe  # flux cap-coadă pe sandbox-ul Stripe (lent, ~1-2 min)
 npm run test:assistant  # cele 20 de întrebări de test pe Claude-ul real (~20 s, costă bani)
@@ -63,5 +64,7 @@ Script separat, adus din repo-ul echipei. Urmărește ~179 de surse oficiale (li
 | `docs/13-auth-demo-loading-plan.md` | atingi rutele, paza de login, ferma lui Ion sau skeletonurile |
 | `docs/12-deploy.md` | faci deploy (Netlify, VPS cu pm2 + Caddy, webhooks Stripe) |
 | `docs/11-open-questions.md` | folosești o cifră marcată DE-VERIFICAT |
+| `docs/15-arenda.md` + `data/arenda-prices-2026.json` | lucrezi la arendă (contracte, impozitul reținut, arenda în natură) |
 | `data/calendar-2026.json` | lucrezi la calendar sau termene |
 | `data/crops-reference.json` | lucrezi la scenarii, cheltuieli pe luni sau prognoză |
+| `data/apia-crop-codes.json` + `docs/crops-catalog-plan.md` | atingi lista de culturi, codurile APIA sau numele culturilor (toate culturile din cererea APIA, numite ca la APIA) |

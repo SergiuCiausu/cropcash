@@ -11,7 +11,7 @@ import type { MonitorSnapshot, MonitorView } from './monitor';
 import { followedCalls } from './monitor';
 import { viewFor, type FarmView, type Scope } from './plan';
 import { browserStore, type Mode } from './storage';
-import { createStore, type FarmStore, type LiveCalls, type StoreState } from './store';
+import { createStore, NO_PREDICTIONS, type FarmStore, type LiveCalls, type StoreState } from './store';
 
 const StoreContext = createContext<FarmStore | null>(null);
 
@@ -67,7 +67,14 @@ export function FarmProvider({ mode, snapshot, store: given, children }: { mode:
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 
-const NOT_READY: StoreState = { ready: false, online: true, version: 0, farm: null, monitor: { fromServer: false, at: null, calls: [], events: [], sources: [], problems: [], changes: [] } };
+const NOT_READY: StoreState = {
+  ready: false,
+  online: true,
+  version: 0,
+  farm: null,
+  monitor: { fromServer: false, at: null, calls: [], events: [], sources: [], problems: [], changes: [] },
+  predictions: NO_PREDICTIONS,
+};
 const noop = () => () => undefined;
 
 /** The store's actions (send, selectHarvest, setFollow, …). Null before the phone has read storage. */
@@ -103,6 +110,11 @@ export function useMoney(): MoneyFormat {
 
 export function useOnline(): boolean {
   return useFarmState().online;
+}
+
+/** The admin panel's published version, its changes, and whether this account may open the panel. */
+export function usePredictions(): StoreState['predictions'] {
+  return useFarmState().predictions;
 }
 
 /** Calls, sources and changes, from the farm's copy or the snapshot, plus the followed calls. */

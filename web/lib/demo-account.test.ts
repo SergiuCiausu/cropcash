@@ -3,7 +3,7 @@ import demoIon from '../../docs/data/demo-ion.json';
 import { demoAccount } from './demo-account';
 
 const plan = {
-  proposal: { salary: 300_000, spring_inputs: 2_000_000, debts: 0, pension: 50_000 },
+  proposal: { salary: 300_000, payroll: 0, spring_inputs: 2_000_000, debts: 0, pension: 50_000 },
   monthlySalary: 150_000,
   smoothing: { pensionMonthly: 25_000 },
 };

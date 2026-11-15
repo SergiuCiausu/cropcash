@@ -1,6 +1,7 @@
 /* "Întreabă" (docs/functions.md §14, plan steps 9c–9d), the parts that don't touch the page:
    the reply's text as blocks, and what a confirm card shows. From web/legacy/assistant.js. */
 import { exact } from '../cc/format';
+import { expenseLabel } from './categories';
 
 export const MAX_TURNS = 20;
 export const NO_NET = 'Pornește internetul ca să întrebi.';
@@ -42,7 +43,6 @@ export function blocks(text: string): Block[] {
   return out;
 }
 
-const CATEGORIES: Record<string, string> = { seeds: 'Sămânță', fertilizer: 'Îngrășăminte', treatments: 'Tratamente', diesel: 'Motorină', field_work: 'Lucrări', repairs: 'Reparații', rent: 'Arendă', other: 'Altele' };
 const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
 const lei = (n: number) => `${exact(Math.round(n * 100))} lei`;
 const day = (iso: string) => {
@@ -87,7 +87,7 @@ export function card(action: Action, cropName: (id: string) => string, costs?: C
       };
     }
     case 'add_expense':
-      return { title: 'Notez o cheltuială', rows: [['Pe ce', CATEGORIES[i.category] || i.category], ['Suma', lei(i.amountLei)], ['Data', day(i.date)], ...(i.cropId ? [['Cultura', cropName(i.cropId)] as [string, string]] : []), ...(i.note ? [['Notă', i.note] as [string, string]] : [])] };
+      return { title: 'Notez o cheltuială', rows: [['Pe ce', expenseLabel(i.category) || i.category], ['Suma', lei(i.amountLei)], ['Data', day(i.date)], ...(i.cropId ? [['Cultura', cropName(i.cropId)] as [string, string]] : []), ...(i.note ? [['Notă', i.note] as [string, string]] : [])] };
     case 'record_sale':
       return {
         title: 'Notez o vânzare',
@@ -104,6 +104,28 @@ export function card(action: Action, cropName: (id: string) => string, costs?: C
       return { title: 'Bifez un termen ca făcut', rows: [['Termenul', i.id]], task: i.id };
     case 'reopen_task':
       return { title: 'Scot bifa de la un termen', rows: [['Termenul', i.id]], task: i.id };
+    case 'add_event': {
+      const x = action.input;
+      const repeat = x.repeat === 'monthly' ? 'În fiecare lună' : x.repeat === 'yearly' ? 'În fiecare an' : null;
+      const money = x.category === 'money' && typeof x.amountLei === 'number';
+      const row = (k: string, v: string): [string, string] => [k, v];
+      const remind = (d: number) => (d === 0 ? 'În ziua aceea' : `Cu ${d === 1 ? 'o zi' : `${d} zile`} înainte`);
+      return {
+        title: 'Pun în calendar',
+        rows: [
+          row('Ce', i.title),
+          row(repeat ? 'Prima dată' : 'Ziua', day(i.startsOn)),
+          ...(x.endsOn ? [row('Până pe', day(i.endsOn))] : []),
+          ...(x.atTime ? [row('Ora', i.atTime)] : []),
+          ...(money ? [row(x.direction === 'in' ? 'Primești' : 'Plătești', lei(i.amountLei))] : []),
+          ...(money && x.direction === 'out' && x.expenseCategory ? [row('Pe ce', expenseLabel(i.expenseCategory) || i.expenseCategory)] : []),
+          ...(x.cropId ? [row('Cultura', cropName(i.cropId))] : []),
+          ...(repeat ? [row('Se repetă', x.repeatUntil ? `${repeat}, până pe ${day(i.repeatUntil)}` : repeat)] : []),
+          ...(typeof x.remindDaysBefore === 'number' ? [row('Îți amintesc', remind(x.remindDaysBefore))] : []),
+          ...(x.note ? [row('Notă', i.note)] : []),
+        ],
+      };
+    }
     case 'follow_opportunity':
       return { title: 'Pun un apel de finanțare în calendar', rows: Object.entries(i).map(([k, v]) => [k, String(v)]) };
     default:
@@ -113,7 +135,7 @@ export function card(action: Action, cropName: (id: string) => string, costs?: C
 
 /** The card's own id: a second tap after an error can't save the sale, expense or credit twice. */
 export function withClientId(action: Action, id: () => string): Action {
-  if (action.function === 'record_sale' || action.function === 'add_expense') return { ...action, input: { ...action.input, clientId: id() } };
+  if (action.function === 'record_sale' || action.function === 'add_expense' || action.function === 'add_event') return { ...action, input: { ...action.input, clientId: id() } };
   if (action.function === 'add_credit') return { ...action, input: { ...action.input, groupId: id() } };
   return action;
 }

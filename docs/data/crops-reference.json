@@ -9,12 +9,17 @@
       "status": "din-2025"
     },
     "months_status": "DE-VERIFICAT",
-    "months_note": "Lunile de cheltuieli și recoltă vin din calendarul agricol general, nu din sursă. Ponderile pe luni sunt o presupunere de produs."
+    "months_note": "Lunile de cheltuieli și recoltă vin din calendarul agricol general, nu din sursă. Ponderile pe luni sunt o presupunere de produs.",
+    "apia_codes_source_url": "https://alba24.ro/wp-content/uploads/2026/03/Monitorul-Oficial-cere-de-plata-agricultori.pdf",
+    "apia_codes_status": "confirmat",
+  "fallow_note": "Teren necultivat (pârloagă) e teren arabil lăsat nesemănat. Nu are cheltuieli, recoltă sau vânzare: lunile lui nu sunt folosite de plan. Contează la subvenții ca teren arabil, ca o cultură în plus (PD-04) și ca zonă neproductivă (PD-28). Codul APIA de cultură e 970 (TEREN NECULTIVAT, Tabel nr. 1, p. 204).",
+    "apia_codes_note": "Codurile de cultură din cererea de plată: Monitorul Oficial nr. 193 bis/12.III.2026, Anexa 1 la Instrucțiuni, Tabel nr. 1 (p. 186–223), transcris întreg în apia-crop-codes.json. Fiecare cod din apia_codes devine o cultură separată, cu numele APIA (packages/shared/src/data/catalogue.ts): primul cod e cultura însăși (101 GRÂU COMUN de toamnă, 108 PORUMB, 201 FLOAREA SOARELUI), celelalte o au ca familie și îi folosesc cifrele. Alegerea codurilor din familie e a noastră: grâul comun și dur, de toamnă și de primăvară (fără spelta, 132), porumbul boabe și hibrizii lui (fără porumb zaharat, siloz și furajer: 109, 131, 1317, 133), floarea soarelui și hibrizii ei. Celelalte coduri sunt în catalog, fără cifre: fermierul le scrie pe ale lui în Recolte."
   },
   "crops": [
     {
       "id": "grau",
-      "name_ro": "Grâu", "name_ro_art": "grâul",
+      "name_ro": "Grâu comun de toamnă", "name_ro_art": "grâul comun de toamnă",
+      "aliases": ["Grâu", "Grâu de toamnă"],
       "cost_lei_per_ha": { "min": 3500, "mean": 4250, "max": 5000 },
       "yield_t_per_ha": { "min": 4, "mean": 5, "max": 6 },
       "price_lei_per_kg": { "min": 0.90, "mean": 1.05, "max": 1.20 },
@@ -28,11 +33,13 @@
       "sowing_month": 10,
       "harvest_month": 7,
       "sale_month_default": 7,
+      "apia_codes": [101, 1010, 102, 1020],
       "status": "din-2025"
     },
     {
       "id": "porumb",
       "name_ro": "Porumb", "name_ro_art": "porumbul",
+      "aliases": ["Porumb boabe"],
       "cost_lei_per_ha": { "min": 4000, "mean": 5000, "max": 6000 },
       "yield_t_per_ha": { "min": 5, "mean": 6.5, "max": 8 },
       "price_lei_per_kg": { "min": 0.80, "mean": 0.95, "max": 1.10 },
@@ -46,11 +53,13 @@
       "sowing_month": 4,
       "harvest_month": 10,
       "sale_month_default": 10,
+      "apia_codes": [108, 115, 116, 117, 118],
       "status": "din-2025"
     },
     {
       "id": "floarea-soarelui",
-      "name_ro": "Floarea-soarelui", "name_ro_art": "floarea-soarelui",
+      "name_ro": "Floarea soarelui", "name_ro_art": "floarea soarelui",
+      "aliases": ["Floarea-soarelui"],
       "cost_lei_per_ha": { "min": 3500, "mean": 4500, "max": 5500 },
       "yield_t_per_ha": { "min": 2, "mean": 2.5, "max": 3 },
       "price_lei_per_kg": { "min": 1.80, "mean": 2.15, "max": 2.50 },
@@ -64,7 +73,23 @@
       "sowing_month": 4,
       "harvest_month": 9,
       "sale_month_default": 9,
+      "apia_codes": [201, 123, 124, 125, 126],
       "status": "din-2025"
+    },
+    {
+      "id": "teren-necultivat",
+      "kind": "fallow",
+      "name_ro": "Teren necultivat",
+      "name_ro_art": "terenul necultivat",
+      "cost_lei_per_ha": { "min": 0, "mean": 0, "max": 0 },
+      "yield_t_per_ha": { "min": 0, "mean": 0, "max": 0 },
+      "price_lei_per_kg": { "min": 0, "mean": 0, "max": 0 },
+      "expense_months": [],
+      "sowing_month": 1,
+      "harvest_month": 12,
+      "sale_month_default": 12,
+      "apia_codes": [970],
+      "status": "confirmat"
     }
   ],
   "county_history": {

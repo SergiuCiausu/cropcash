@@ -8,7 +8,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { computeSubsidies, withApiaDecision } from '../../../packages/shared/src/subsidies/index';
 import { isOwnCrop, OnboardingInputSchema } from '../../../packages/shared/src/farm/index';
+import { MAX_LANDOWNERS } from '../../../packages/shared/src/arenda/contracts';
+import { mergePaperHa } from '../../../packages/shared/src/documents/index';
+import type { PaperReading } from '../../lib/cc/store';
 import { parseWholeLei } from '../../../packages/shared/src/money/index';
+import { isFallow } from '../../../packages/shared/src/data/schemas';
 import { salaryBreakdown } from '../../../packages/shared/src/functions/explain';
 import { about, date, exact, failText, group } from '../../lib/cc/format';
 import { ionFarm } from '../../lib/cc/farm';
@@ -20,23 +24,60 @@ import { appHref, storageKey } from '../../lib/paths';
 import { monthName } from '../../lib/ui/chart';
 import { nextMoneyIn } from '../../lib/ui/next-money';
 import { AmountEcho, Icon } from '../app/bits';
+import { newIntentKey } from '../../lib/live/intent';
+import '../../styles/onboarding-mode.css';
 import { FlowFrame } from '../app/FlowFrame';
 import FlowSkeleton from '../skeleton/FlowSkeleton';
 import { PaperButton, PapersProvider, usePapers } from '../app/Papers';
+import { CropSearch } from '../app/CropSearch';
+import type { CatalogueCrop } from '../../../packages/shared/src/data/catalogue';
 
 const STEPS = [
   { label: 'Despre tine', short: 'Tu', icon: 'home' as const },
   { label: 'Culturile', short: 'Culturi', icon: 'sprout' as const },
+  { label: 'Oamenii', short: 'Oameni', icon: 'people' as const },
   { label: 'Banii de acum', short: 'Bani', icon: 'sack' as const },
 ];
 const CROPS = 1;
-const MONEY = 2;
-const RESULT = 3;
-type Field = 'name' | 'age' | 'county' | 'crops' | 'money' | 'form';
+const PEOPLE = 2;
+const MONEY = 3;
+const RESULT = 4;
+type Field = 'mode' | 'name' | 'age' | 'county' | 'crops' | 'leasedIn' | 'leasedOut' | 'owners' | 'people' | 'money' | 'form';
+type FarmMode = 'own' | 'arendas';
+/** „Cum lucrezi pământul?” (docs/employees-arenda-plan.md §2.1). Both answers have people who do the work. */
+const MODES: [FarmMode, string, string][] = [
+  ['own', 'Pământul e al meu', 'Am oameni care îl lucrează.'],
+  ['arendas', 'Iau pământ în arendă', 'Am oameni care fac munca.'],
+];
+/** A person typed on the people step. `key` is the phone's id for them, so a retry can't add them twice. */
+interface QuickPerson {
+  key: string;
+  name: string;
+  cost: string;
+}
+/** The fields a cerere de plată can fill in, tagged "din cerere" until the farmer changes them. */
+type PaperField = 'name' | 'age' | 'county';
 
 const num = (v: string) => parseFloat(String(v).replace(',', '.'));
 const roundHa = (v: number) => Math.round(Math.max(0, v) * 100) / 100;
 const haText = (v: number) => String(v).replace('.', ',');
+/** An optional hectares field: undefined when empty, null when it isn't a number. */
+/** „De la câți proprietari?”: empty is undefined, a bad number is null. */
+const ownerCount = (v: string): number | undefined | null => {
+  const t = v.trim();
+  if (t === '') return undefined;
+  const n = Number(t);
+  return Number.isInteger(n) && n >= 1 && n <= MAX_LANDOWNERS ? n : null;
+};
+
+const optionalHa = (v: string): number | undefined | null => {
+  if (!v.trim()) return undefined;
+  const n = num(v);
+  return Number.isFinite(n) && n >= 0 ? roundHa(n) : null;
+};
+/** ["a", "b", "c"] -> "a, b și c". */
+const andList = (items: string[]) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} și ${items.at(-1)}`);
+const CERERE_PAGES = 'Cel mai bine e PDF-ul cererii, descărcat din contul tău APIA: are toate parcelele. Dacă faci poze, fă la prima pagină, cea cu numele, și la paginile cu tabelul de parcele (II.A).';
 
 const HOME = '/acasa';
 const DRAFT = storageKey('cropcash-onboarding-draft', 'farm');
@@ -48,6 +89,17 @@ interface Form {
   ha: Record<string, number>;
   money: string;
   decisionBani: number | null;
+  fromPaper: PaperField[];
+  /** The names on the cerere, for the farmer to pick from. */
+  names: string[];
+  paperNote: string;
+  farmMode: FarmMode | '';
+  leasedIn: string;
+  leasedOut: string;
+  /** „De la câți proprietari?” (migration 033). */
+  owners: string;
+  people: QuickPerson[];
+  fieldWork: boolean | null;
 }
 
 /** What the form opens with: the saved farm when there is one, otherwise nothing. */
@@ -62,6 +114,16 @@ function savedForm(farm: FarmState, cropIds: string[]): Form {
     ha: Object.fromEntries(cropIds.map((id) => [id, area.get(id) ?? 0])),
     money: me ? group(Math.round(me.start_balance_bani / 100)) : '',
     decisionBani: null,
+    fromPaper: [],
+    names: [],
+    paperNote: '',
+    /* A saved farm is 'own' until the farmer says otherwise (migration 032); a new one picks. */
+    farmMode: me ? (me.farm_mode ?? 'own') : '',
+    leasedIn: me?.leased_in_ari != null ? haText(me.leased_in_ari / 100) : '',
+    leasedOut: me?.leased_out_ari != null ? haText(me.leased_out_ari / 100) : '',
+    owners: me?.landowner_count ? String(me.landowner_count) : '',
+    people: [],
+    fieldWork: me?.own_field_work ?? null,
   };
 }
 
@@ -140,9 +202,20 @@ function Steps() {
   const [haText_, setHaText] = useState<Record<string, string>>({});
   const [money, setMoney] = useState(opening.form.money);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
-  const [paperNote, setPaperNote] = useState('');
+  const [paperNote, setPaperNote] = useState(opening.form.paperNote ?? '');
+  const [fromPaper, setFromPaper] = useState<PaperField[]>(opening.form.fromPaper ?? []);
+  const [names, setNames] = useState<string[]>(opening.form.names ?? []);
   const [decisionBani, setDecisionBani] = useState<number | null>(opening.form.decisionBani);
+  const [farmMode, setFarmMode] = useState<FarmMode | ''>(opening.form.farmMode ?? '');
+  const [leasedIn, setLeasedIn] = useState(opening.form.leasedIn ?? '');
+  const [leasedOut, setLeasedOut] = useState(opening.form.leasedOut ?? '');
+  const [owners, setOwners] = useState(opening.form.owners ?? '');
+  const [people, setPeople] = useState<QuickPerson[]>(opening.form.people ?? []);
+  const [fieldWork, setFieldWork] = useState<boolean | null>(opening.form.fieldWork ?? null);
   const [saving, setSaving] = useState(false);
+  /* Crops picked from the APIA list. The main crops always show; another one shows once picked or given hectares. */
+  const [added, setAdded] = useState<string[]>(() => Object.keys(opening.form.ha).filter((id) => opening.form.ha[id] > 0));
+  const [unpriced, setUnpriced] = useState<CatalogueCrop | null>(null);
   const h1 = useRef<HTMLHeadingElement>(null);
   const firstError = useRef<Field | null>(null);
   const finished = useRef(false);
@@ -170,8 +243,8 @@ function Steps() {
 
   /* What's typed outlives a reload or a closed tab, until the save. */
   useEffect(() => {
-    if (!finished.current) writeDraft(opening.seed, { i, name, age, county, ha, money, decisionBani });
-  }, [opening.seed, i, name, age, county, ha, money, decisionBani]);
+    if (!finished.current) writeDraft(opening.seed, { i, name, age, county, ha, money, decisionBani, fromPaper, names, paperNote, farmMode, leasedIn, leasedOut, owners, people, fieldWork });
+  }, [opening.seed, i, name, age, county, ha, money, decisionBani, fromPaper, names, paperNote, farmMode, leasedIn, leasedOut, owners, people, fieldWork]);
 
   const show = (n: number) => {
     setI(n);
@@ -210,13 +283,29 @@ function Steps() {
   const CHECK = [
     () => {
       const e: Partial<Record<Field, string>> = {};
+      if (!farmMode) e.mode = 'Alege cum lucrezi pământul.';
       if (!name.trim()) e.name = 'Scrie-ți numele.';
       const a = +age;
       if (!(age !== '' && Number.isInteger(a) && a >= 16 && a <= 100)) e.age = 'Scrie vârsta ca număr, de la 16 la 100.';
       if (!county) e.county = 'Alege județul din listă.';
       return Object.keys(e).length ? e : null;
     },
-    () => (parcels.length ? null : { crops: 'Scrie hectarele pentru cel puțin o cultură.' }),
+    () => {
+      if (!parcels.length) return { crops: 'Scrie hectarele pentru cel puțin o cultură.' };
+      const e: Partial<Record<Field, string>> = {};
+      const inHa = optionalHa(leasedIn);
+      if (inHa === null) e.leasedIn = 'Scrie hectarele ca număr, de exemplu 120 sau 12,5.';
+      else if (inHa !== undefined && inHa > totalHa) e.leasedIn = `Ai ${haText(totalHa)} ha în total, deci în arendă pot fi cel mult atât.`;
+      if (optionalHa(leasedOut) === null) e.leasedOut = 'Scrie hectarele ca număr, de exemplu 30.';
+      if (ownerCount(owners) === null) e.owners = 'Scrie câți proprietari ai, ca număr întreg, de exemplu 40.';
+      return Object.keys(e).length ? e : null;
+    },
+    () => {
+      const typed = people.filter((p) => p.name.trim() || p.cost.trim());
+      const bad = typed.find((p) => !p.name.trim() || !(parseWholeLei(p.cost) ?? 0));
+      if (!bad) return null;
+      return { people: bad.name.trim() ? `Scrie cât te costă ${bad.name.trim()} pe lună, în lei întregi.` : 'Scrie numele fiecărui om.' };
+    },
     () => {
       const v = money.trim() === '' && !editing ? 0 : parseWholeLei(money);
       return v !== null && v <= 100000000 ? null : { money: `Scrie suma ca număr, de exemplu ${group(ionFarm(app).startBalanceBani / 100)}.` };
@@ -225,7 +314,18 @@ function Steps() {
 
   /* A farm that already exists is edited. What Recolte already holds (gathered grain, other years) is kept. */
   async function save(m: string): Promise<string | null> {
-    const parsed = OnboardingInputSchema.safeParse({ name, county, age: +age, startBalanceLei: m.trim() === '' ? 0 : parseWholeLei(m), parcels });
+    const inHa = optionalHa(leasedIn);
+    const outHa = optionalHa(leasedOut);
+    const parsed = OnboardingInputSchema.safeParse({
+      name,
+      county,
+      age: +age,
+      startBalanceLei: m.trim() === '' ? 0 : parseWholeLei(m),
+      parcels,
+      ...(farmMode ? { farmMode } : {}),
+      ...(inHa != null ? { leasedInHa: inHa } : {}),
+      ...(outHa != null ? { leasedOutHa: outHa } : {}),
+    });
     if (!parsed.success) return 'Verifică datele de la pașii de dinainte.';
     const input = parsed.data;
     try {
@@ -240,6 +340,13 @@ function Steps() {
         const before = me?.harvests;
         await write('save_harvests', onboardingHarvests({ year: farm.baseYear, openingBani: input.startBalanceLei * 100, parcels: input.parcels, gathered: before?.gathered ?? [], before }));
         if (decisionBani) await write('save_apia_decision', { campaignYear: year, totalBani: decisionBani });
+        /* The people, each with the phone's id, so saving again after a lost answer doesn't add them twice. */
+        for (const p of people.filter((x) => x.name.trim())) {
+          await write('add_employee', { name: p.name.trim(), kind: 'permanent', costLei: parseWholeLei(p.cost)!, payBasis: 'month', startsOn: farm.today, clientId: p.key });
+        }
+        if (fieldWork !== null && fieldWork !== (me?.own_field_work ?? null)) await write('set_own_field_work', { ownFieldWork: fieldWork });
+        const count = ownerCount(owners);
+        if (count !== null && count !== undefined && count !== (me?.landowner_count ?? null)) await write('set_landowner_count', { count });
       });
       return null;
     } catch (e) {
@@ -262,18 +369,74 @@ function Steps() {
     go(i + 1);
   }
 
-  /* The crops step is where the farmer checks and fixes what the paper said. */
-  async function readPaper() {
-    const r = await papers.pick({ accepts: ['apia_cerere', 'apia_decizie'], pages: true });
-    if (!r) return;
-    setHa((h) => ({ ...h, ...Object.fromEntries(r.parcels.map((p) => [p.cropId, p.areaAri / 100])) }));
+  /* A cerere fills in everything it can, and the farmer checks it on the steps. The name the farmer already
+     typed stays: the names on the paper are offered next to it. The hectares are merged: what the paper
+     lists wins, what it doesn't list stays, and the note says every change. */
+  function applyCerere(r: PaperReading) {
+    const a = r.applicant;
+    const filled: PaperField[] = [];
+    const choices = [...new Set([a?.firstName, a?.fullName].filter((n): n is string => !!n))];
+    setNames(choices);
+    if (choices[0] && !name.trim()) {
+      setName(choices[0]);
+      filled.push('name');
+    }
+    if (a?.age) {
+      setAge(String(a.age));
+      filled.push('age');
+    }
+    if (a?.county) {
+      setCounty(a.county);
+      filled.push('county');
+    }
+    setFromPaper(filled);
+    setErrors({});
+
+    const merge = mergePaperHa(Object.fromEntries(crops.map((c) => [c.id, Math.round(ha[c.id] * 100)])), r.parcels);
+    setHa(Object.fromEntries(Object.entries(merge.next).map(([id, ari]) => [id, ari / 100])));
+    setAdded((a) => [...new Set([...a, ...Object.keys(merge.next).filter((id) => merge.next[id] > 0)])]);
     setHaText({});
-    const none = r.kind === 'apia_decizie' ? 'Decizia nu are hectarele. Scrie-le tu mai jos.' : 'Nu am găsit hectare pe hârtie. Scrie-le tu mai jos.';
-    const found = r.parcels.length ? 'Am completat de pe hârtie. Verifică hectarele mai jos.' : none;
-    setPaperNote(r.unknownCrops.length ? `${found} Nu am recunoscut: ${r.unknownCrops.join(', ')}.` : found);
-    if (r.kind === 'apia_decizie') setDecisionBani((await papers.confirmDecision(r)) ?? null);
-    go(CROPS);
+    if (merge.added.length || merge.changed.length) clearError('crops');
+
+    const crop = (id: string) => nameOf(id).toLowerCase();
+    const notes: string[] = [];
+    const missing = [!a?.firstName && !name.trim() && 'numele', !a?.age && 'vârsta', !a?.county && 'județul'].filter((m): m is string => !!m);
+    notes.push(filled.length || r.parcels.length ? 'Am completat de pe cerere. Verifică ce e scris.' : 'Nu am găsit date pe cerere. Completează tu mai jos.');
+    if (missing.length && (filled.length || r.parcels.length)) notes.push(`Nu am găsit ${andList(missing)}. Scrie tu.`);
+    if (r.year && r.year !== year) notes.push(`E cererea din ${r.year}. Dacă anul ăsta ai alte culturi, schimbă hectarele la pasul 2.`);
+    if (merge.added.length) notes.push(`Am adăugat ${andList(merge.added.map((p) => `${crop(p.cropId)} (${haText(p.areaAri / 100)} ha)`))}.`);
+    for (const p of merge.changed) notes.push(`Am schimbat ${crop(p.cropId)}: ${haText(p.fromAri / 100)} → ${haText(p.toAri / 100)} ha.`);
+    if (merge.kept.length) notes.push(`Nu apar pe cerere, așa că nu le-am schimbat: ${andList(merge.kept.map((id) => `${crop(id)} (${haText((merge.next[id] ?? 0) / 100)} ha)`))}.`);
+    if (r.unknownCrops.length) notes.push(`Nu am recunoscut: ${r.unknownCrops.join(', ')}.`);
+    /* Unknown crops explain a smaller sum, so only a sum over the total or a gap with nothing unknown is suspicious. */
+    const sum = r.parcels.reduce((s, p) => s + p.areaAri, 0);
+    if (r.totalAri && sum && (sum > r.totalAri || (sum < r.totalAri && !r.unknownCrops.length)))
+      notes.push(`Pe cerere scrie ${haText(r.totalAri / 100)} ha în total, iar noi am găsit ${haText(sum / 100)} ha. Poate lipsește o pagină.`);
+    setPaperNote(notes.join(' '));
   }
+
+  async function readCerere() {
+    const r = await papers.pick({
+      accepts: ['apia_cerere'],
+      pages: true,
+      hint: CERERE_PAGES,
+      seen: { apia_decizie: 'Asta e decizia de plată. Aici ne trebuie cererea. Decizia o poți pune la pasul 2.' },
+    });
+    if (r) applyCerere(r);
+  }
+
+  /* The crops step takes either paper: the cerere as on step 1, the decision for the exact amount. */
+  async function readPaper() {
+    const r = await papers.pick({ accepts: ['apia_cerere', 'apia_decizie'], pages: true, hint: CERERE_PAGES });
+    if (!r) return;
+    if (r.kind === 'apia_cerere') return applyCerere(r);
+    setPaperNote('Decizia nu are hectarele. Scrie-le tu mai jos.');
+    setDecisionBani((await papers.confirmDecision(r)) ?? null);
+  }
+
+  /* A field the farmer changes is theirs, not the paper's. */
+  const untag = (f: PaperField) => fromPaper.includes(f) && setFromPaper((p) => p.filter((x) => x !== f));
+  const tag = (f: PaperField) => (fromPaper.includes(f) ? <span className="tag ok">din cerere</span> : null);
 
   const setCropHa = (id: string, v: number, text?: string) => {
     setHa((h) => ({ ...h, [id]: v }));
@@ -342,22 +505,67 @@ function Steps() {
   if (i === 0)
     body = (
       <>
-        {editing ? heading('Schimbă datele fermei', 'Verifică ce e scris și schimbă ce nu mai e bine.') : heading('Hai să-ți vedem banii', 'Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună. Sunt doar trei pași.')}
-        <section className="card">
+        {editing ? heading('Schimbă datele fermei', 'Verifică ce e scris și schimbă ce nu mai e bine.') : heading('Hai să-ți vedem banii', 'Îți arătăm cât primești, când vin banii și cât poți cheltui pe lună, după ce îi plătești pe oameni. Sunt patru pași.')}
+        <section className="card ob-mode-card">
+          <fieldset className="ob-mode">
+            <legend>
+              <h2>Cum lucrezi pământul?</h2>
+            </legend>
+            <div className="ob-modes">
+              {MODES.map(([m, title, sub], n) => (
+                <button
+                  type="button"
+                  key={m}
+                  id={n === 0 ? 'mode' : undefined}
+                  className="ob-mode-opt"
+                  aria-pressed={farmMode === m}
+                  {...(errors.mode ? { 'aria-describedby': 'err-mode' } : {})}
+                  onClick={() => (setFarmMode(m), clearError('mode'))}
+                >
+                  <b>{title}</b>
+                  <small>{sub}</small>
+                </button>
+              ))}
+            </div>
+            <p className="note">Dacă ai din amândouă, alege ce e mai mult. Poți schimba oricând.</p>
+            {err('mode')}
+          </fieldset>
+        </section>
+        <section className="card ob-paper-card gap">
+          <div className="card-h">
+            <h2>Ai cererea de plată de la APIA?</h2>
+          </div>
+          <p className="note" aria-live="polite">
+            {paperNote || 'O citim și completăm noi numele, vârsta, județul și hectarele. Tu doar verifici.'}
+          </p>
+          <div className="ob-paper">
+            <PaperButton label="Încarcă cererea" onClick={() => void readCerere()} />
+          </div>
+        </section>
+        <section className="card gap">
           <h2>Despre tine</h2>
           <label className="ob-field">
-            Cum te cheamă?
-            <input id="name" value={name} autoComplete="given-name" {...invalid('name')} onChange={(e) => (setName(e.target.value), clearError('name'))} />
+            Cum te cheamă? {tag('name')}
+            <input id="name" value={name} autoComplete="given-name" {...invalid('name')} onChange={(e) => (setName(e.target.value), clearError('name'), untag('name'))} />
           </label>
+          {names.length > 0 && (names.length > 1 || names[0] !== name) && (
+            <div className="ob-names" role="group" aria-label="Numele de pe cerere">
+              {names.map((n) => (
+                <button type="button" className="chipb" key={n} aria-pressed={n === name} onClick={() => (setName(n), clearError('name'), setFromPaper((p) => (p.includes('name') ? p : [...p, 'name'])))}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          )}
           {err('name')}
           <label className="ob-field">
-            Câți ani ai?
-            <input id="age" value={age} inputMode="numeric" {...invalid('age')} onChange={(e) => (setAge(e.target.value.trim()), clearError('age'))} />
+            Câți ani ai? {tag('age')}
+            <input id="age" value={age} inputMode="numeric" {...invalid('age')} onChange={(e) => (setAge(e.target.value.trim()), clearError('age'), untag('age'))} />
           </label>
           {err('age')}
           <label className="ob-field">
-            În ce județ e ferma?
-            <select id="county" value={county} {...invalid('county')} onChange={(e) => (setCounty(e.target.value), clearError('county'))}>
+            În ce județ e ferma? {tag('county')}
+            <select id="county" value={county} {...invalid('county')} onChange={(e) => (setCounty(e.target.value), clearError('county'), untag('county'))}>
               <option value="">Alege județul</option>
               {counties.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -393,9 +601,12 @@ function Steps() {
             <h2>Culturile tale</h2>
             <span>în hectare</span>
           </div>
-          {crops.map((c) => (
+          {crops.filter((c) => !c.family || added.includes(c.id)).map((c) => (
             <div className="ob-crop" key={c.id}>
-              <b>{c.name_ro}</b>
+              <b>
+                {c.name_ro}
+                {c.apia_codes?.[0] !== undefined && <small>cod APIA {c.apia_codes[0]}</small>}
+              </b>
               <span className="ob-step">
                 <button type="button" aria-label={`Mai puțin ${c.name_ro}`} onClick={() => setCropHa(c.id, roundHa(ha[c.id] - 1))}>
                   −
@@ -417,8 +628,48 @@ function Steps() {
               </span>
             </div>
           ))}
+          <CropSearch
+            catalogue={app.catalogue}
+            exclude={crops.filter((c) => !c.family || added.includes(c.id)).map((c) => c.id)}
+            onPick={(c) => {
+              if (c.priced) {
+                setAdded((a) => [...a, c.id]);
+                setUnpriced(null);
+              } else setUnpriced(c);
+            }}
+          />
+          {unpriced && (
+            <p className="note gap" role="status">
+              Pentru {unpriced.name_ro} (cod APIA {unpriced.code}) nu avem încă costuri și prețuri. După ce salvezi ferma, o adaugi în Recolte cu cifrele tale.
+            </p>
+          )}
           {err('crops')}
+          {crops.some((c) => isFallow(c)) && <p className="note gap">Teren necultivat e pământul lăsat nesemănat anul ăsta, la odihnă. Și pe el primești subvenție.</p>}
           {ownParcels.length > 0 && <p className="note gap">Păstrăm și {ownParcels.map((p) => `${nameOf(p.cropId)} (${haText(p.areaHa)} ha)`).join(', ')}. Le schimbi din Recolte.</p>}
+        </section>
+        <section className="card gap">
+          <h2>Pământ în arendă</h2>
+          <p className="note">Cererea APIA nu spune ce pământ e în arendă, așa că te întrebăm. Dacă nu știi exact, scrie cât crezi.</p>
+          <label className="ob-field">
+            Din hectarele de mai sus, câte sunt luate în arendă?
+            <input id="leasedIn" value={leasedIn} inputMode="decimal" {...invalid('leasedIn')} onChange={(e) => (setLeasedIn(e.target.value), clearError('leasedIn'))} />
+          </label>
+          {err('leasedIn')}
+          <label className="ob-field">
+            Ai pământ al tău dat în arendă altcuiva? Câte hectare?
+            <input id="leasedOut" value={leasedOut} inputMode="decimal" placeholder="0" {...invalid('leasedOut')} onChange={(e) => (setLeasedOut(e.target.value), clearError('leasedOut'))} />
+          </label>
+          {err('leasedOut')}
+          {(farmMode === 'arendas' || (optionalHa(leasedIn) ?? 0) > 0) && (
+            <>
+              <label className="ob-field">
+                De la câți proprietari? <small>(cam câți)</small>
+                <input id="owners" value={owners} inputMode="numeric" {...invalid('owners')} onChange={(e) => (setOwners(e.target.value), clearError('owners'))} />
+              </label>
+              {err('owners')}
+            </>
+          )}
+          <p className="note">Proprietarii, contractele și parcelele le treci apoi în Arendă.</p>
         </section>
         <section className="chart-card field hero-card ob-live gap" aria-live="polite">
           <p className="eyebrow">De la APIA primești</p>
@@ -441,7 +692,74 @@ function Steps() {
         )}
       </>
     );
-  else if (i === MONEY)
+  else if (i === PEOPLE) {
+    const saved = (me?.employees ?? []).filter((e) => !e.archived_at);
+    const setPerson = (key: string, patch: Partial<QuickPerson>) => (setPeople((ps) => ps.map((p) => (p.key === key ? { ...p, ...patch } : p))), clearError('people'));
+    body = (
+      <>
+        {heading('Cine lucrează la fermă?', 'Scrie oamenii pe care îi plătești și cât te costă fiecare pe lună, tot cu taxe. Salariile lor intră în plan înaintea salariului tău.')}
+        <section className="card">
+          <h2>Oamenii tăi</h2>
+          {saved.length > 0 && (
+            <p className="note">
+              Ai deja {saved.length === 1 ? 'un om' : `${saved.length} oameni`} în listă: {andList(saved.map((e) => e.name))}. Îi schimbi din Oameni. Aici poți adăuga alții.
+            </p>
+          )}
+          {people.map((p, n) => (
+            <div className="ob-person" key={p.key}>
+              <label className="ob-field">
+                Numele
+                <input id={n === 0 ? 'people' : undefined} value={p.name} maxLength={80} autoComplete="off" {...(n === 0 ? invalid('people') : {})} onChange={(e) => setPerson(p.key, { name: e.target.value })} />
+              </label>
+              <label className="ob-field">
+                Cât te costă pe lună, în lei
+                <input value={p.cost} inputMode="numeric" autoComplete="off" onChange={(e) => setPerson(p.key, { cost: e.target.value })} />
+                <AmountEcho text={p.cost} />
+              </label>
+              <button type="button" className="btn btn-line ob-person-x" aria-label={`Scoate ${p.name.trim() || 'rândul'}`} onClick={() => setPeople((ps) => ps.filter((x) => x.key !== p.key))}>
+                Scoate
+              </button>
+            </div>
+          ))}
+          {err('people')}
+          <div className="ob-actions">
+            <button type="button" className="btn btn-line" onClick={() => setPeople((ps) => [...ps, { key: newIntentKey(), name: '', cost: '' }])}>
+              <Icon name="plus" /> {people.length || saved.length ? 'Mai adaug un om' : 'Adaugă un om'}
+            </button>
+          </div>
+          <p className="note">Zilierii și sezonierii, cu zilele și lunile lor, îi adaugi din Oameni. Contabilul face actele; aici e doar cât te costă.</p>
+        </section>
+        <section className="card gap">
+          <fieldset className="ob-mode">
+            <legend>
+              <h2>Lucrările pe câmp le fac oamenii tăi?</h2>
+            </legend>
+            <p className="note">Arat, semănat, recoltat. Dacă da, costul pe hectar îl scrii pe al tău, ca munca lor să nu fie socotită de două ori.</p>
+            <div className="chips">
+              {(
+                [
+                  [true, 'Da'],
+                  [false, 'Nu, plătesc pe altcineva'],
+                ] as const
+              ).map(([v, label]) => (
+                <button key={label} type="button" className="chip" aria-pressed={fieldWork === v} onClick={() => setFieldWork(fieldWork === v ? null : v)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </section>
+        {actions(
+          <>
+            {back}
+            <button type="submit" className="btn btn-dark">
+              {people.some((p) => p.name.trim()) || fieldWork !== null ? 'Mai departe' : 'Sar peste'}
+            </button>
+          </>,
+        )}
+      </>
+    );
+  } else if (i === MONEY)
     body = (
       <>
         {heading('Câți bani ai acum?', 'Ne trebuie ca să-ți spunem dacă îți ajung până vin banii de pe recoltă.')}

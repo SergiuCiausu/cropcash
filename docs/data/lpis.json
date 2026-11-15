@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "description": "Serviciul public APIA cu blocurile fizice (LPIS), verificat pe 2026-11-14 (docs/harta-plan.md, pasul 0).",
+    "checked_on": "2026-11-14"
+  },
+  "service_url": "https://inspire.apia.org.ro/network/rest/services/INSPIRE/LPIS_referinta_2024/MapServer/0",
+  "layer_year": 2024,
+  "spatial_reference": "EPSG:4258 (ETRS89), la fel ca WGS84 la scara hărții",
+  "max_record_count": 1000,
+  "fields": {
+    "fbid": "<SIRUTA>-<nr. bloc fizic>, de ex. 153277-286",
+    "siruta": "codul SIRUTA al UAT-ului",
+    "judet": "codul județului (TR, CT)",
+    "nume_com": "numele UAT-ului, fără diacritice",
+    "fol_pr_trn": "categoria principală de folosință (TA, PP, CP, VI…)",
+    "aria_neta": "suprafața netă a blocului, în ha"
+  },
+  "query_rules": "Doar egalitate (where=fbid='…') și interogări spațiale. Un filtru LIKE primește 403 de la firewall-ul lor.",
+  "metadata_url": "https://inspire-geoportal.ec.europa.eu/srv/api/records/1679393868825r09124922837951",
+  "terms_status": "DE-VERIFICAT",
+  "terms_note": "Metadatele spun că datele sunt proprietatea APIA. Întrebăm APIA înainte de lansare și înainte de copia în bloc a județelor (docs/harta-plan.md, întrebarea 1)."
+}

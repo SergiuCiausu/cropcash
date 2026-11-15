@@ -1,0 +1,330 @@
+{
+  "meta": {
+    "description": "Arenda: impozitul reținut la plată și prețurile medii pe județ la care arenda în natură se socotește în lei (docs/15-arenda.md). Prețurile sunt în bani pe kg, numere întregi.",
+    "status": "parțial",
+    "checked": "2026-11-15"
+  },
+  "tax": {
+    "gross": "Banii plus produsele în natură, în lei la prețul mediu al județului (Codul fiscal art. 84 alin. (4)–(5)).",
+    "expense_quota_pct": {
+      "value": 20,
+      "source": "Codul fiscal art. 84 alin. (7)",
+      "status": "confirmat"
+    },
+    "withholding_rate_pct": {
+      "value": 10,
+      "source": "Codul fiscal art. 84 alin. (8): la fiecare plată, pe venitul net; impozitul e final",
+      "status": "confirmat"
+    },
+    "due": {
+      "day": 25,
+      "month_offset": 1,
+      "source": "Codul fiscal art. 84 alin. (9): până pe 25 a lunii de după reținere",
+      "status": "confirmat"
+    },
+    "form": {
+      "value": null,
+      "status": "DE-VERIFICAT",
+      "note": "Formularul în care plătitorul declară impozitul reținut (probabil D100) nu e scris în articol. docs/11."
+    },
+    "no_form_205": {
+      "value": true,
+      "source": "ANAF, materiale informative (static.anaf.ro); de citit în Ordinul pentru formularul 205",
+      "status": "DE-VERIFICAT"
+    },
+    "source_url": "https://static.anaf.ro/static/10/Anaf/legislatie/Cod_fiscal_norme_2023.htm",
+    "code_version": "Legea 227/2015, actualizată prin Legea nr. 204/2026 (versiunea ANAF citită pe 2026-11-15)"
+  },
+  "cass": {
+    "rate_pct": {
+      "value": 10,
+      "source": "Codul fiscal art. 156",
+      "status": "confirmat"
+    },
+    "rule": "Dacă venitul net estimat din arendă de la un singur plătitor e de cel puțin 6 salarii minime, plătitorul calculează, reține și plătește CASS-ul (Codul fiscal art. 174^1 alin. (3)), declarat până pe 25 a lunii următoare (alin. (5)). Baza: 6, 12 sau 24 de salarii minime (art. 170 alin. (3)).",
+    "threshold_min_wages": {
+      "value": 6,
+      "source": "Codul fiscal art. 174^1 alin. (3)",
+      "status": "confirmat"
+    },
+    "in_app": false,
+    "status": "DE-VERIFICAT",
+    "note": "Aplicația nu calculează CASS-ul: depinde de ce alte venituri are proprietarul. Contabilul îl socotește."
+  },
+  "products": [
+    {
+      "key": "grau",
+      "genus": "Triticum",
+      "name_ro": "grâu"
+    },
+    {
+      "key": "orz",
+      "genus": "Hordeum",
+      "name_ro": "orz și orzoaică"
+    },
+    {
+      "key": "porumb",
+      "genus": "Zea",
+      "name_ro": "porumb"
+    },
+    {
+      "key": "floarea-soarelui",
+      "genus": "Helianthus",
+      "name_ro": "floarea soarelui"
+    },
+    {
+      "key": "rapita",
+      "genus": "Brassica",
+      "name_ro": "rapiță"
+    },
+    {
+      "key": "soia",
+      "genus": "Glycine",
+      "name_ro": "soia"
+    },
+    {
+      "key": "mazare",
+      "genus": "Pisum",
+      "name_ro": "mazăre"
+    }
+  ],
+  "county_prices": {
+    "AB": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null,
+      "note": "Pentru 2025 sunt prețuri (docs/11, întrebarea 20); pentru 2026 nu au fost căutate."
+    },
+    "AR": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "AG": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "BC": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "BH": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "BN": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "BT": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null,
+      "note": "Doar proiectul de hotărâre (PH249/19.12.2025) găsit."
+    },
+    "BV": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "BR": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "B": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "BZ": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "CS": {
+      "decision": "HCJ Caraș-Severin nr. 203 din 29.09.2025",
+      "valid_from": "2026-01-01",
+      "url": "https://www.cjcs.ro/dm_cjcs/hotarari.nsf/CB5E0034073237AAC2258D180022F6C6/$FILE/203.pdf?Open=",
+      "prices_bani_per_kg": {
+        "grau": 100,
+        "porumb": 100,
+        "orz": 100,
+        "rapita": 200,
+        "soia": 200,
+        "floarea-soarelui": 200
+      },
+      "status": "confirmat",
+      "checked": "2026-11-15"
+    },
+    "CL": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null,
+      "note": "CJ Călărași a schimbat prețurile în ședința din 30 iunie 2026 (obiectiv-online.ro). Hotărârea n-a fost citită."
+    },
+    "CJ": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "CT": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "CV": {
+      "decision": "HCJ Covasna nr. 225/2025",
+      "valid_from": "2026-01-01",
+      "url": "https://www.cjcv.ro/fileman/Uploads/monitor/03_hatarozatok/2025/11/ro/225_2025.pdf",
+      "prices_bani_per_kg": {
+        "grau": 80,
+        "porumb": 80,
+        "orz": 75,
+        "rapita": 220,
+        "floarea-soarelui": 220
+      },
+      "labels_ro": {
+        "grau": "grâu de panificație",
+        "porumb": "porumb boabe",
+        "orz": "orz, orzoaică (furaj)"
+      },
+      "status": "confirmat",
+      "checked": "2026-11-15"
+    },
+    "DB": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "DJ": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "GL": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "GR": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null,
+      "note": "HCJ Giurgiu nr. 280 din 08.12.2025: site-ul CJ refuză descărcarea (403). Cifrele din căutare nu sunt citite din hotărâre."
+    },
+    "GJ": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "HR": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "HD": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "IL": {
+      "decision": "HCJ Ialomița nr. 102 din 29.07.2026 (abrogă HCJ nr. 229 din 17.12.2025)",
+      "valid_from": "2026-08-01",
+      "url": "https://infoialomita.ro/consiliul-judetean-ialomita-hotarare-privind-stabilirea-preturilor-medii-ale-produselor-agricole-in-vederea-calcularii-veniturilor-anuale-brute-obtinute-din-cedarea-folosintei-bunurilor-prin-arendar-2/",
+      "prices_bani_per_kg": {
+        "grau": 80,
+        "orz": 80,
+        "rapita": 220,
+        "floarea-soarelui": 210,
+        "porumb": 80
+      },
+      "status": "DE-VERIFICAT",
+      "checked": "2026-11-15",
+      "note": "Textul hotărârii, publicat de presa locală, nu de site-ul CJ. Prețurile de la 1 ian. la 31 iul. 2026 (HCJ 229/2025) lipsesc."
+    },
+    "IS": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "IF": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "MM": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null,
+      "note": "Doar proiectul de hotărâre găsit, nu cea adoptată."
+    },
+    "MH": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "MS": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "NT": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "OT": {
+      "decision": "HCJ Olt nr. 201 din 18.12.2025",
+      "valid_from": "2026-01-01",
+      "url": "https://cjolt.ro/storage/formidable/255/001-HCJ-nr.-201-18.12.2025.pdf",
+      "prices_bani_per_kg": {
+        "grau": 75,
+        "orz": 70,
+        "porumb": 72,
+        "rapita": 200,
+        "floarea-soarelui": 185,
+        "mazare": 90
+      },
+      "status": "confirmat",
+      "checked": "2026-11-15"
+    },
+    "PH": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "SM": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "SJ": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "SB": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "SV": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "TR": {
+      "decision": "HCJ Teleorman nr. 1 din 28 ianuarie 2026",
+      "valid_from": "2026-01-01",
+      "url": "https://cjteleorman.ro/ro/cjt/cjt/hotarari/HOTARARI%202026/1.pdf",
+      "prices_bani_per_kg": {
+        "grau": 69,
+        "orz": 76,
+        "floarea-soarelui": 184,
+        "porumb": 72
+      },
+      "labels_ro": {
+        "grau": "grâu consum",
+        "orz": "orz boabe consum",
+        "floarea-soarelui": "floarea soarelui consum",
+        "porumb": "porumb consum"
+      },
+      "status": "confirmat",
+      "checked": "2026-11-15",
+      "note": "Anexa e scanată; cifrele citite de pe imagine."
+    },
+    "TM": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "TL": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "VS": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "VL": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    },
+    "VN": {
+      "status": "DE-VERIFICAT",
+      "prices_bani_per_kg": null
+    }
+  }
+}

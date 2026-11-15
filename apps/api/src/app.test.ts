@@ -92,6 +92,9 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
       if (farm.startBalanceBani === 100) throw new RepoError('invalid', 'envelopes exceed money');
       farms[token]!.parcels = farm.parcels.map((p) => ({ crop_id: p.cropId, area_ari: p.areaAri, is_arable: true }));
     }),
+    setFarmSetup: vi.fn(async (token: string, _farmerId: string, setup: object) => {
+      Object.assign(farms[token]!, setup);
+    }),
   };
   return { repo, farms, created, credits, sales, expenses, tasks, getEnvelopes: () => envelopes };
 }
@@ -175,6 +178,47 @@ describe('POST /api/farmers (onboarding)', () => {
     expect(badCounty.body.issues).toContain('unknown_county');
     const badCrop = await post({ ...ion, parcels: [{ cropId: 'orez', areaHa: 3 }] });
     expect(badCrop.body.issues).toContain('unknown_crop');
+  });
+});
+
+describe('how the farm works its land (migration 032)', () => {
+  const auth = { Authorization: 'Bearer good' };
+
+  it('saves the farm mode and the arendă hectares with a new farm, in ari', async () => {
+    const { repo, farms } = memoryRepo();
+    const res = await request(makeApp(repo)).post('/api/farmers').set(auth).send({ ...ion, farmMode: 'arendas', leasedInHa: 12.5, leasedOutHa: 0 });
+    expect(res.status).toBe(201);
+    expect(repo.setFarmSetup).toHaveBeenCalledWith('good', 'farm-1', { farm_mode: 'arendas', leased_in_ari: 1250, leased_out_ari: 0 });
+    expect(farms.good).toMatchObject({ farm_mode: 'arendas', leased_in_ari: 1250 });
+  });
+
+  it('leaves them alone when an older phone doesn’t send them', async () => {
+    const { repo } = memoryRepo();
+    const app = makeApp(repo);
+    await request(app).post('/api/farmers').set(auth).send(ion);
+    await request(app).put('/api/farmers/me').set(auth).send({ ...ion, startBalanceLei: 0 });
+    expect(repo.setFarmSetup).not.toHaveBeenCalled();
+  });
+
+  it('changes them from „Schimbă ferma”', async () => {
+    const { repo } = memoryRepo();
+    const app = makeApp(repo);
+    await request(app).post('/api/farmers').set(auth).send(ion);
+    expect((await request(app).put('/api/farmers/me').set(auth).send({ ...ion, startBalanceLei: 0, farmMode: 'own', leasedInHa: 3 })).status).toBe(200);
+    expect(repo.setFarmSetup).toHaveBeenCalledWith('good', 'farm-1', { farm_mode: 'own', leased_in_ari: 300 });
+  });
+
+  it('refuses more hectares in arendă than the farm has, and a mode it doesn’t know', async () => {
+    const app = makeApp(memoryRepo().repo);
+    const tooMany = await request(app).post('/api/farmers').set(auth).send({ ...ion, leasedInHa: 16 });
+    expect(tooMany.status).toBe(400);
+    expect(tooMany.body.issues).toContain('leased_too_large');
+    expect((await request(app).post('/api/farmers').set(auth).send({ ...ion, farmMode: 'family' })).status).toBe(400);
+    expect((await request(app).post('/api/farmers').set(auth).send({ ...ion, leasedOutHa: -1 })).status).toBe(400);
+  });
+
+  it('reads the answers with the farm', () => {
+    expect(FARM_SELECT).toMatch(/^id, [^(]*farm_mode, leased_in_ari, leased_out_ari/);
   });
 });
 
@@ -272,7 +316,11 @@ describe('credits and envelopes (step 5)', () => {
     const { app, getEnvelopes } = await onboarded();
     const split = { salary: 65_000, spring_inputs: 3_435_000, debts: 0, pension: 0 };
     expect((await request(app).put('/api/envelopes').set(auth).send(split)).status).toBe(204);
-    expect(getEnvelopes()).toEqual(split);
+    // A phone from before the payroll envelope leaves it out: it's saved as 0.
+    expect(getEnvelopes()).toEqual({ ...split, payroll: 0 });
+    const withPayroll = { ...split, spring_inputs: 3_000_000, payroll: 435_000 };
+    expect((await request(app).put('/api/envelopes').set(auth).send(withPayroll)).status).toBe(204);
+    expect(getEnvelopes()).toEqual(withPayroll);
   });
 
   it('refuses a split larger than the money available, or negative', async () => {
@@ -458,7 +506,7 @@ describe('records, tasks and the farm', () => {
 
   it('records an expense and returns the salary', async () => {
     const { app, expenses } = setup();
-    const res = await request(app).post('/api/expenses').set(auth).send({ category: 'repairs', amountLei: 900.5, date: '2026-11-02', envelope: 'spring_inputs' });
+    const res = await request(app).post('/api/expenses').set(auth).send({ category: 'constructions', amountLei: 900.5, date: '2026-11-02', envelope: 'spring_inputs' });
     expect(res.status).toBe(201);
     expect(expenses[0]).toMatchObject({ amountBani: 90_050, envelope: 'spring_inputs' });
     expect(typeof res.body.salary).toBe('number');
@@ -507,7 +555,7 @@ describe('records, tasks and the farm', () => {
 describe('what the payout reads', () => {
   it('fetches every column the plan reads, the same as the screens', () => {
     for (const select of [FARM_SELECT, MONEY_FARM_SELECT]) {
-      for (const column of ['harvests', 'apia_decision', 'salary_bani', 'demo_now', 'planted_month', 'category', 'source', 'expected_payment_id', 'pension_plans', 'expected_payments', 'envelopes']) {
+      for (const column of ['harvests', 'apia_decision', 'salary_bani', 'demo_now', 'planted_month', 'category', 'source', 'expected_payment_id', 'pension_plans', 'expected_payments', 'envelopes', 'farm_events', 'farm_event_occurrences', 'amount_bani, expense_category, replaces_estimate', 'transaction_id']) {
         expect(select, column).toContain(column);
       }
     }
@@ -644,6 +692,31 @@ describe('harvests', () => {
     const expense = { category: 'diesel', amountLei: 100, date: '2026-11-01', harvestYear: 2026 };
     expect((await request(app).post('/api/expenses').set(auth).send(expense)).status).toBe(201);
     expect(repo.addExpense).toHaveBeenCalledWith('good', expect.objectContaining({ harvestYear: 2026 }));
+  });
+
+  it('files a sale on the parcel it came from, and refuses a parcel from another farm', async () => {
+    const { app, repo } = setup();
+    const plotId = '11111111-1111-4111-8111-111111111111';
+    const sale = { cropId: 'grau', date: '2026-11-01', totalLei: 1000, plotId };
+    expect((await request(app).post('/api/sales').set(auth).send(sale)).status).toBe(201);
+    expect(repo.addSale).toHaveBeenCalledWith('good', 'farm-1', expect.objectContaining({ plotId }));
+    expect((await request(app).post('/api/sales').set(auth).send({ ...sale, plotId: 'bloc-286' })).status).toBe(400);
+    (repo.addSale as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new RepoError('not_found', 'fk'));
+    const other = await request(app).post('/api/sales').set(auth).send(sale);
+    expect([other.status, other.body.error]).toEqual([404, 'unknown_plot']);
+  });
+
+  it('keeps the invoice number, the partner and the diesel litres for the reports (migration 027)', async () => {
+    const { app, repo } = setup();
+    const sale = { cropId: 'grau', date: '2026-11-01', totalLei: 1000, docNo: 'F 12', counterparty: 'Agro SRL' };
+    expect((await request(app).post('/api/sales').set(auth).send(sale)).status).toBe(201);
+    expect(repo.addSale).toHaveBeenCalledWith('good', 'farm-1', expect.objectContaining({ docs: { docNo: 'F 12', counterparty: 'Agro SRL' } }));
+    const diesel = { category: 'diesel', amountLei: 700, date: '2026-11-01', docNo: 'PTR 1', fuelLiters: 120.5 };
+    expect((await request(app).post('/api/expenses').set(auth).send(diesel)).status).toBe(201);
+    expect(repo.addExpense).toHaveBeenCalledWith('good', expect.objectContaining({ docs: { docNo: 'PTR 1', counterparty: undefined, fuelLitersCl: 12050 } }));
+    // Litres only go on diesel.
+    const seeds = { category: 'seeds', amountLei: 700, date: '2026-11-01', fuelLiters: 10 };
+    expect((await request(app).post('/api/expenses').set(auth).send(seeds)).status).toBe(400);
   });
 
   it('refuses a harvest year outside the range', async () => {

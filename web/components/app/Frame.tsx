@@ -7,10 +7,10 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { date } from '../../lib/cc/format';
 import { scopeOf } from '../../lib/cc/plan';
-import { useFarmState, useStore, useView } from '../../lib/cc/react';
+import { useFarmState, usePredictions, useStore, useView } from '../../lib/cc/react';
 import { appHref, storageKey, type Mode } from '../../lib/paths';
 import '../../lib/ui/install';
-import { CROP_TAB_PAGES, isReactPage, SALARY_PAGES, sectionOf, SUBSIDY_PAGES, TABS } from '../../lib/ui/nav';
+import { CROP_TAB_PAGES, isReactPage, SALARY_PAGES, sectionOf, SUBSIDY_PAGES, tabsFor, type FarmMode } from '../../lib/ui/nav';
 import { Icon } from './bits';
 import { FrameContext, type FrameInfo } from './context';
 import { CropTabs } from './CropTabs';
@@ -21,9 +21,10 @@ import { Assistant } from './Assistant';
 import { takeFlash } from './useSaved';
 import { ClosedView } from './PageNotes';
 import { PapersProvider } from './Papers';
+import { MiniMap } from '../map/MiniMap';
 
 /** A link to an app page: client-side between the app's screens, a full load anywhere else. */
-export function PageLink({ path, href, children, ...rest }: { path: string; href: string; children: ReactNode; className?: string; 'aria-current'?: 'page' }) {
+export function PageLink({ path, href, children, ...rest }: { path: string; href: string; children: ReactNode; className?: string; 'aria-current'?: 'page'; 'aria-label'?: string }) {
   const page = path.split(/[?#]/)[0];
   return isReactPage(page) ? (
     <Link href={href} {...rest}>
@@ -37,6 +38,9 @@ export function PageLink({ path, href, children, ...rest }: { path: string; href
 }
 
 /** Only these pages swap to "Plan și realitate" for a finished harvest. Recolte and Pensie stay themselves. */
+/** /admin has no copy on Ion's farm: appHref leaves it as it is. Shown only to an admin. */
+const ADMIN_TAB = { path: '/admin', icon: 'tool' as const, label: 'Administrare' };
+
 const CLOSED_PAGES = ['/subventii', '/calendar', '/prognoza'];
 
 export const Logo = () => (
@@ -53,6 +57,7 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   const store = useStore();
   const { ready, farm } = useFarmState();
   const view = useView(scope);
+  const predictions = usePredictions();
   const [panel, setPanel] = useState(false);
   const toaster = useToaster();
 
@@ -70,6 +75,8 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
   const bell = (where: string) => <Bell key={where} open={panel} mode={mode} onToggle={() => setPanel((o) => !o)} />;
   const isDemo = mode === 'demo';
   const signedIn = !isDemo && !!farm?.signedIn;
+  /* The admin panel's link, only for accounts the API says are admins (never on Ion's farm). */
+  const admin = signedIn && predictions.admin;
 
   return (
     <FrameContext.Provider value={info}>
@@ -83,13 +90,19 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
           <aside className="rail field">
             <Logo />
             <nav aria-label="Principal">
-              {TABS.map((t) => (
+              {tabsFor(farm?.me?.farm_mode, hasArenda(farm?.me)).map((t) => (
                 <PageLink key={t.path} path={t.path} href={href(t.path)} className={t.railOnly ? 'rail-only' : undefined} aria-current={t.path === section ? 'page' : undefined}>
                   <Icon name={t.icon} />
                   {t.label}
                 </PageLink>
               ))}
-              <MoreMenu page={page} section={section} href={href} signedIn={signedIn} />
+              {admin && (
+                <PageLink path={ADMIN_TAB.path} href={href(ADMIN_TAB.path)} className="rail-only" aria-current={page === ADMIN_TAB.path ? 'page' : undefined}>
+                  <Icon name={ADMIN_TAB.icon} />
+                  {ADMIN_TAB.label}
+                </PageLink>
+              )}
+              <MoreMenu page={page} section={section} href={href} signedIn={signedIn} admin={admin} farmMode={farm?.me?.farm_mode} hasArenda={hasArenda(farm?.me)} />
             </nav>
             {view && bell('rail')}
             {view && (
@@ -138,6 +151,7 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
       </div>
       {view && <NotificationPanel view={view} open={panel} onClose={() => setPanel(false)} />}
       <Toaster toaster={toaster} />
+      {view && <MiniMap page={page} mode={mode} />}
       {view && <Assistant />}
       </PapersProvider>
     </FrameContext.Provider>
@@ -149,7 +163,11 @@ export default function Frame({ page, mode, children }: { page: string; mode: Mo
  * Pensie, and Contul tău when signed in) just above the bar. A small menu, not a Sheet: a Sheet adds a
  * history entry, and leaving the page from inside one would make Back land on the wrong page.
  */
-function MoreMenu({ page, section, href, signedIn }: { page: string; section: string; href: (p: string) => string; signedIn: boolean }) {
+/** A farm on its own land with landowners, or land let to someone (D5), sees Arendă too. */
+const hasArenda = (me: { landowners?: unknown[]; leased_out_ari?: number | null } | null | undefined) =>
+  !!me && ((me.landowners?.length ?? 0) > 0 || (me.leased_out_ari ?? 0) > 0);
+
+function MoreMenu({ page, section, href, signedIn, admin = false, farmMode, hasArenda = false }: { page: string; section: string; href: (p: string) => string; signedIn: boolean; admin?: boolean; farmMode?: FarmMode; hasArenda?: boolean }) {
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [page]);
   useEffect(() => {
@@ -161,8 +179,9 @@ function MoreMenu({ page, section, href, signedIn }: { page: string; section: st
     return () => removeEventListener('keydown', onKey);
   }, [open]);
   const items = [
-    ...TABS.filter((t) => t.railOnly),
+    ...tabsFor(farmMode, hasArenda).filter((t) => t.railOnly),
     ...(signedIn ? [{ path: '/bani', icon: 'shield' as const, label: 'Contul tău' }] : []),
+    ...(admin ? [ADMIN_TAB] : []),
   ];
   const here = items.some((t) => t.path === section || t.path === page);
   return (

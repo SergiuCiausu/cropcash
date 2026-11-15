@@ -7,6 +7,7 @@ import type { ReadContext } from '../functions/define';
 import {
   closingSoonRows,
   filterOpportunities,
+  apiaSector,
   matchOpportunityRows,
   opportunityChangeRows,
   plainText,
@@ -264,5 +265,63 @@ describe('through the registry', () => {
     expect(followOpportunity.access).toBe('confirm');
     expect(followOpportunity.request({ key: 'afir:x' }).path).toBe('/api/opportunities/follow');
     expect(() => followOpportunity.request({ key: '' })).toThrow();
+  });
+});
+
+/* docs/crops-catalog-plan.md, step 10: since the catalogue, crop ids are `grau`, `apia-<code>` or
+   `own-<slug>`, so a call's sector is checked against the crop's APIA line, not words in its id. */
+describe('a sector call and the crops from the APIA list', () => {
+  const VEG = 'DR-14: Componenta LEGUMICULTURĂ';
+  const ORCH = 'DR-14: Componenta POMICOL';
+  const VINE = 'Intervenția în sectorul viticol';
+  const FLOW = 'DR-18: Investiții în floricultură';
+  const sectorDoubt = (title: string, farm: object) => {
+    const { forYou, check, notForYou } = matchOpportunityRows([call({ title })], farm as typeof ion, data, today);
+    return codes([...forYou, ...check, ...notForYou][0]!.doubts).includes('other_sector');
+  };
+  const own = (id: string, name: string, apiaCode?: number) => ({ id, name, ...(apiaCode ? { apiaCode } : {}) });
+  const withOwn = (crop: ReturnType<typeof own>, where: 'page' | 'stored' = 'page') => ({
+    ...ion,
+    parcels: [...ion.parcels, { crop_id: crop.id, area_ari: 100, is_arable: true }],
+    ...(where === 'page' ? { ownCrops: [crop] } : { harvests: { ownCrops: [crop] } }),
+  });
+
+  it('an own crop counts by the APIA line the farmer picked, whatever it is called', () => {
+    const plums = withOwn(own('own-livada-deal', 'Livada de la deal', 653));
+    expect(sectorDoubt(ORCH, plums)).toBe(false);
+    expect(sectorDoubt(VEG, plums)).toBe(true);
+    // A stored farm keeps its own crops under harvests.
+    expect(sectorDoubt(ORCH, withOwn(own('own-livada-deal', 'Livada de la deal', 653), 'stored'))).toBe(false);
+  });
+
+  it('an own crop without a line counts by its name', () => {
+    expect(sectorDoubt(VEG, withOwn(own('own-tomate', 'Tomate')))).toBe(false);
+    expect(sectorDoubt(VINE, withOwn(own('own-vie', 'Vie')))).toBe(false);
+    expect(sectorDoubt(ORCH, withOwn(own('own-mazare', 'Mazăre')))).toBe(true);
+  });
+
+  it('reads the code in an apia- id', () => {
+    const vines = { ...ion, parcels: [{ crop_id: 'apia-961', area_ari: 100, is_arable: false }] };
+    expect(sectorDoubt(VINE, vines)).toBe(false);
+    expect(sectorDoubt(FLOW, vines)).toBe(true);
+  });
+
+  it('grain, oilseeds and protein crops are in none of these sectors', () => {
+    const rows = new Map(data.apiaTable.rows.map((r) => [r.code, r]));
+    expect(apiaSector(rows.get(101)!)).toBeNull(); // grâu
+    expect(apiaSector(rows.get(201)!)).toBeNull(); // floarea-soarelui: industrial, not medicinal
+    expect(apiaSector(rows.get(203)!)).toBeNull(); // soia
+    const protein = data.apiaTable.rows.find((r) => plainText(r.heading).startsWith('plante proteice'))!;
+    expect(apiaSector(protein), protein.name).toBeNull(); // „leguminoase”, not vegetables
+    for (const title of [VEG, ORCH, VINE, FLOW]) expect(sectorDoubt(title, ion), title).toBe(true);
+  });
+
+  it('splits the mixed headings by name', () => {
+    const rows = new Map(data.apiaTable.rows.map((r) => [r.code, r]));
+    expect(apiaSector(rows.get(211)!)).toBe('flowers_medicinal'); // mentă
+    expect(apiaSector(rows.get(902)!)).toBe('orchards'); // pepiniere pomicole
+    expect(apiaSector(rows.get(901)!)).toBe('vineyards'); // pepiniere viticole
+    expect(apiaSector(rows.get(903)!)).toBeNull(); // pepiniere forestiere
+    expect(apiaSector(rows.get(251)!)).toBe('vegetables'); // cartofi
   });
 });

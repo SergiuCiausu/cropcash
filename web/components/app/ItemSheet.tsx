@@ -1,34 +1,88 @@
-'use client';
+"use client";
 /* One dated thing from the plan: what it is, when, how much, and what can be done with it. Calendar
    and Acasă show the same sheet. A ticked task goes through the outbox on a real farm, so it works
    offline; removing a followed call needs internet. */
-import { useState } from 'react';
-import { about, date, daysLeft, eurShort, exact, failText, zile } from '../../lib/cc/format';
-import type { FarmView, PlanItem } from '../../lib/cc/plan';
-import { buildIcs } from '../../../packages/shared/src/calendar/ics';
-import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
-import { saveCalendarFile } from '../../lib/ui/share';
-import { NetButton, Sheet, useHref, Verify } from './bits';
+import { useState } from "react";
+import {
+  about,
+  date,
+  daysLeft,
+  eurShort,
+  exact,
+  failText,
+  zile,
+} from "../../lib/cc/format";
+import type { FarmView, PlanItem } from "../../lib/cc/plan";
+import { buildIcs } from "../../../packages/shared/src/calendar/ics";
+import {
+  useFarm,
+  useMoney,
+  useOnline,
+  useStore,
+  useView,
+} from "../../lib/cc/react";
+import { saveCalendarFile } from "../../lib/ui/share";
+import { NetButton, Sheet, useHref, Verify } from "./bits";
+import { EventActions, EventFacts, findOccurrence } from "./EventActions";
+import { EventSheet } from "./EventSheet";
+import {
+  parseOccurrenceId,
+  type StoredEvent,
+} from "../../../packages/shared/src/calendar/events";
 
-export type SheetItem = Omit<PlanItem, 'icon'> & { follow?: boolean; url?: string; keys?: string[]; budgets?: (number | null | undefined)[] };
+export type SheetItem = Omit<PlanItem, "icon"> & {
+  follow?: boolean;
+  url?: string;
+  keys?: string[];
+  budgets?: (number | null | undefined)[];
+  /** One date of the farmer's own event (docs/calendar-events-plan.md). */
+  ev?: { eventId: string; originalDate: string };
+};
 
-export const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
+export const MONTH_NAMES = [
+  "Ianuarie",
+  "Februarie",
+  "Martie",
+  "Aprilie",
+  "Mai",
+  "Iunie",
+  "Iulie",
+  "August",
+  "Septembrie",
+  "Octombrie",
+  "Noiembrie",
+  "Decembrie",
+];
 export const monthName = (key: string) => {
-  const [y, m] = key.split('-');
+  const [y, m] = key.split("-");
   return `${MONTH_NAMES[+m - 1]} ${y}`;
 };
 
 function explain(i: SheetItem) {
   const w = i.window;
-  if (i.kind === 'apia_balance') return `Vine între ${date(w!.start)} și ${date(w!.end, true)}. Nu știm exact luna. Noi am socotit că vine abia pe ${date(w!.end)}, ca să fii acoperit.`;
-  if (i.kind === 'apia_advance') return `Plățile se fac între ${date(w!.start)} și ${date(w!.end, true)}. Planul socotește cu ultima zi, ca să fii acoperit dacă banii vin târziu.`;
-  if (i.kind === 'input_cost' || i.kind === 'crop_sale') return 'Suma și luna sunt estimate după culturile tale. Le poți schimba când ai cifrele tale.';
-  if (i.follow) return 'Termenul vine de la sursa oficială.';
-  if (i.estimated) return 'Termenul pentru anul viitor nu e anunțat. Am pus data de anul ăsta.';
-  return '';
+  if (i.kind === "apia_balance")
+    return `Vine între ${date(w!.start)} și ${date(w!.end, true)}. Nu știm exact luna. Noi am socotit că vine abia pe ${date(w!.end)}, ca să fii acoperit.`;
+  if (i.kind === "apia_advance")
+    return `Plățile se fac între ${date(w!.start)} și ${date(w!.end, true)}. Planul socotește cu ultima zi, ca să fii acoperit dacă banii vin târziu.`;
+  if (i.kind === "input_cost" || i.kind === "crop_sale")
+    return "Suma și luna sunt estimate după culturile tale. Le poți schimba când ai cifrele tale.";
+  if (i.follow) return "Termenul vine de la sursa oficială.";
+  if (i.estimated)
+    return "Termenul pentru anul viitor nu e anunțat. Am pus data de anul ăsta.";
+  return "";
 }
 
-function Tile({ label, value, sub, className }: { label: string; value: string; sub?: string; className?: string }) {
+function Tile({
+  label,
+  value,
+  sub,
+  className,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  className?: string;
+}) {
   return (
     <div className={className}>
       <span>{label}</span>
@@ -39,30 +93,87 @@ function Tile({ label, value, sub, className }: { label: string; value: string; 
 }
 
 /** The facts about an item. `items`: everything else in the plan, for what arrives on the same day. */
-export function ItemDetail({ item: i, items, view }: { item: SheetItem; items: SheetItem[]; view: FarmView }) {
+export function ItemDetail({
+  item: i,
+  items,
+  view,
+}: {
+  item: SheetItem;
+  items: SheetItem[];
+  view: FarmView;
+}) {
   const { text: t } = useMoney();
-  const when = i.exactDay ? date(i.date, true) : i.month ? monthName(i.month) : 'Fără termen';
+  const when = i.exactDay
+    ? date(i.date, true)
+    : i.month
+      ? monthName(i.month)
+      : "Fără termen";
   /* Everything planned to arrive on that day. Left out when the item's own Suma already says it. */
-  const entering = i.exactDay ? items.filter((x) => x.exactDay && x.date === i.date && x.direction === 'in') : [];
+  const entering = i.exactDay
+    ? items.filter(
+        (x) => x.exactDay && x.date === i.date && x.direction === "in",
+      )
+    : [];
   const dayTotal = entering.reduce((s, x) => s + x.value, 0);
-  const sameAsSuma = i.direction === 'in' && dayTotal === i.value;
+  const sameAsSuma = i.direction === "in" && dayTotal === i.value;
   const days_ = i.date && i.exactDay ? daysLeft(i.date, view.today) : -1;
   /* Red means something to do, so money on its way stays black. */
-  const urgent = (i.task || i.follow) && days_ >= 0 && days_ <= view.data().params.opportunities_closing_soon_days.value;
-  const source = (i.event as { source_url?: string } | null | undefined)?.source_url;
-  const notes = [explain(i), (i.event as { note?: string } | null | undefined)?.note].filter(Boolean) as string[];
+  const urgent =
+    (i.task || i.follow) &&
+    days_ >= 0 &&
+    days_ <= view.data().params.opportunities_closing_soon_days.value;
+  const source = (i.event as { source_url?: string } | null | undefined)
+    ?.source_url;
+  const notes = [
+    explain(i),
+    (i.event as { note?: string } | null | undefined)?.note,
+  ].filter(Boolean) as string[];
   return (
     <>
       <div className="key-facts">
-        <Tile label="Când" value={when} sub={days_ >= 0 ? `mai sunt ${zile(days_)}` : ''} className={urgent ? 'soon' : undefined} />
-        {i.direction !== 'none' && <Tile label="Suma" value={t(`${exact(i.value)} lei`)} sub={i.amount && i.amount.min !== i.amount.max ? t(`între ${about(i.amount.min)} și ${about(i.amount.max)} lei`) : ''} />}
+        <Tile
+          label="Când"
+          value={when}
+          sub={days_ >= 0 ? `mai sunt ${zile(days_)}` : ""}
+          className={urgent ? "soon" : undefined}
+        />
+        {i.direction !== "none" && (
+          <Tile
+            label="Suma"
+            value={t(`${exact(i.value)} lei`)}
+            sub={
+              i.amount && i.amount.min !== i.amount.max
+                ? t(
+                    `între ${about(i.amount.min)} și ${about(i.amount.max)} lei`,
+                  )
+                : ""
+            }
+          />
+        )}
         {/* The whole call's money, the same figure as on Oportunități, and not what this farm would get. */}
-        {i.budgets?.every((b) => b != null) && <Tile label="Bani alocați" value={eurShort(i.budgets.reduce<number>((s, b) => s + (b as number), 0)) ?? ''} sub="pentru tot apelul" />}
-        {i.exactDay && !sameAsSuma && <Tile label="Intră în ziua asta" value={t(`${exact(dayTotal)} lei`)} sub={dayTotal ? '' : 'nimic planificat'} />}
+        {i.budgets?.every((b) => b != null) && (
+          <Tile
+            label="Bani alocați"
+            value={
+              eurShort(
+                i.budgets.reduce<number>((s, b) => s + (b as number), 0),
+              ) ?? ""
+            }
+            sub="pentru tot apelul"
+          />
+        )}
+        {i.exactDay && !sameAsSuma && (
+          <Tile
+            label="Intră în ziua asta"
+            value={t(`${exact(dayTotal)} lei`)}
+            sub={dayTotal ? "" : "nimic planificat"}
+          />
+        )}
       </div>
       {i.unverified && (
         <p className="note gap">
-          <Verify /> Verifică la instituție înainte să te bazezi pe această dată.
+          <Verify /> Verifică la instituție înainte să te bazezi pe această
+          dată.
         </p>
       )}
       {notes.map((n) => (
@@ -82,22 +193,50 @@ export function ItemDetail({ item: i, items, view }: { item: SheetItem; items: S
 }
 
 /** A deadline in the phone's own calendar, with an alarm. Made on the phone, so it works offline. */
-function ToPhoneCalendar({ item: i, view }: { item: SheetItem; view: FarmView }) {
-  const [note, setNote] = useState('');
+function ToPhoneCalendar({
+  item: i,
+  view,
+}: {
+  item: SheetItem;
+  view: FarmView;
+}) {
+  const [note, setNote] = useState("");
   const put = async () => {
-    const { calendar_reminder_days: days, calendar_reminder_hour: hour } = view.data().params;
+    const { calendar_reminder_days: days, calendar_reminder_hour: hour } =
+      view.data().params;
     const left = daysLeft(i.date, view.today);
-    const event = i.event as { source_url?: string; note?: string } | null | undefined;
-    const description = [explain(i), event?.note, i.unverified ? 'Verifică la instituție înainte să te bazezi pe această dată.' : '', event?.source_url].filter(Boolean).join('\n');
+    const event = i.event as
+      { source_url?: string; note?: string } | null | undefined;
+    const description = [
+      explain(i),
+      event?.note,
+      i.unverified
+        ? "Verifică la instituție înainte să te bazezi pe această dată."
+        : "",
+      event?.source_url,
+    ]
+      .filter(Boolean)
+      .join("\n");
     /* The alarm has to fall before the day itself, and still be ahead of us. */
-    const reminder = left >= 1 ? { daysBefore: Math.min(days.value, left), hour: hour.value } : null;
-    const ics = buildIcs({ id: i.id, title: i.title, date: i.date, description }, reminder);
-    setNote('');
+    const reminder =
+      left >= 1
+        ? { daysBefore: Math.min(days.value, left), hour: hour.value }
+        : null;
+    const ics = buildIcs(
+      { id: i.id, title: i.title, date: i.date, description },
+      reminder,
+    );
+    setNote("");
     try {
-      const how = await saveCalendarFile(`cropcash-${i.date}.ics`, ics, i.title);
-      if (how === 'downloaded') setNote('Fișierul s-a descărcat. Deschide-l ca să intre în calendar.');
+      const how = await saveCalendarFile(
+        `cropcash-${i.date}.ics`,
+        ics,
+        i.title,
+      );
+      if (how === "downloaded")
+        setNote("Fișierul s-a descărcat. Deschide-l ca să intre în calendar.");
     } catch {
-      setNote('Nu am putut face fișierul. Încearcă din nou.');
+      setNote("Nu am putut face fișierul. Încearcă din nou.");
     }
   };
   return (
@@ -111,18 +250,32 @@ function ToPhoneCalendar({ item: i, view }: { item: SheetItem; view: FarmView })
 }
 
 /** What can be done with an item: tick a task, or stop following a call. */
-export function ItemActions({ item: i, onDone }: { item: SheetItem; onDone: () => void }) {
+export function ItemActions({
+  item: i,
+  onDone,
+}: {
+  item: SheetItem;
+  onDone: () => void;
+}) {
   const farm = useFarm()!;
   const store = useStore()!;
   const online = useOnline();
   const href = useHref();
-  const view = useView('farm')!;
+  const view = useView("farm")!;
   const onServer = !!farm.me;
   const isDone = farm.doneTasks.includes(i.id);
-  const canCalendar = (i.task || i.follow) && i.exactDay && !!i.date && !isDone && daysLeft(i.date, view.today) >= 0;
+  const canCalendar =
+    (i.task || i.follow) &&
+    i.exactDay &&
+    !!i.date &&
+    !isDone &&
+    daysLeft(i.date, view.today) >= 0;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const run = async (action: () => Promise<void>, fail: (e: unknown) => string) => {
+  const run = async (
+    action: () => Promise<void>,
+    fail: (e: unknown) => string,
+  ) => {
     if (busy) return;
     setBusy(true);
     setError(null);
@@ -139,22 +292,48 @@ export function ItemActions({ item: i, onDone }: { item: SheetItem; onDone: () =
   return (
     <>
       {i.task && (
-        <button type="button" className="btn btn-dark" disabled={busy} onClick={() => void run(() => store.setTaskDone(i.id, !isDone) as Promise<void>, (e) => failText(e, online))}>
-          {isDone ? 'Nu am făcut încă' : 'Am făcut'}
+        <button
+          type="button"
+          className="btn btn-dark"
+          disabled={busy}
+          onClick={() =>
+            void run(
+              () => store.setTaskDone(i.id, !isDone) as Promise<void>,
+              (e) => failText(e, online),
+            )
+          }
+        >
+          {isDone ? "Nu am făcut încă" : "Am făcut"}
         </button>
       )}
       {i.follow &&
         (onServer ? (
-          <NetButton className="btn btn-dark" reason="Pornește internetul ca să schimbi calendarul." disabled={busy} onClick={() => void run(unfollow, (e) => (online ? failText(e, online) : 'Pornește internetul ca să schimbi calendarul.'))}>
+          <NetButton
+            className="btn btn-dark"
+            reason="Pornește internetul ca să schimbi calendarul."
+            disabled={busy}
+            onClick={() =>
+              void run(unfollow, (e) =>
+                online
+                  ? failText(e, online)
+                  : "Pornește internetul ca să schimbi calendarul.",
+              )
+            }
+          >
             Scoate din calendar
           </NetButton>
         ) : (
-          <button type="button" className="btn btn-dark" disabled={busy} onClick={() => void run(unfollow, (e) => failText(e, online))}>
+          <button
+            type="button"
+            className="btn btn-dark"
+            disabled={busy}
+            onClick={() => void run(unfollow, (e) => failText(e, online))}
+          >
             Scoate din calendar
           </button>
         ))}
       {i.follow && (
-        <a className="btn btn-line" href={href('/oportunitati')}>
+        <a className="btn btn-line" href={href("/oportunitati")}>
           Vezi oportunitățile
         </a>
       )}
@@ -168,35 +347,101 @@ export function ItemActions({ item: i, onDone }: { item: SheetItem; onDone: () =
   );
 }
 
-export function ItemSheet({ item, items, view, onClose }: { item: SheetItem | null; items: SheetItem[]; view: FarmView; onClose: () => void }) {
+export function ItemSheet({
+  item,
+  items,
+  view,
+  onClose,
+  onEdit,
+}: {
+  item: SheetItem | null;
+  items: SheetItem[];
+  view: FarmView;
+  onClose: () => void;
+  onEdit?: (event: StoredEvent, originalDate: string) => void;
+}) {
   const online = useOnline();
-  const onServer = !!useFarm()!.me;
+  const farm = useFarm()!;
+  const onServer = !!farm.me;
+  /* A farmer's own sum from the plan carries its date in its id. */
+  const link = item?.ev ?? (item?.own ? parseOccurrenceId(item.id) : null);
+  const occ = link
+    ? findOccurrence(farm.events, link.eventId, link.originalDate)
+    : null;
+  /* Pages that don't open the form themselves get it here. */
+  const [editing, setEditing] = useState<{
+    event: StoredEvent;
+    originalDate: string;
+  } | null>(null);
+  const edit =
+    onEdit ??
+    ((event: StoredEvent, originalDate: string) =>
+      setEditing({ event, originalDate }));
   return (
-    <Sheet open={!!item} onClose={onClose} className="detail" label={item?.title ?? 'Detalii'}>
-      {item && (
-        <>
-          <div className="top">
-            <div>
-              <h2 tabIndex={-1} autoFocus>
-                {item.title}
-              </h2>
-            </div>
-            <button type="button" className="x" aria-label="Închide" onClick={onClose}>
-              ×
-            </button>
-          </div>
-          <ItemDetail item={item} items={items} view={view} />
-          <div className="acts">
-            <ItemActions key={item.id} item={item} onDone={onClose} />
-            {!item.task && !item.follow && (
-              <button type="button" className="btn btn-line" onClick={onClose}>
-                Închide
+    <>
+      <Sheet
+        open={!!item}
+        onClose={onClose}
+        className="detail"
+        label={item?.title ?? "Detalii"}
+      >
+        {item && (
+          <>
+            <div className="top">
+              <div>
+                <h2 tabIndex={-1} autoFocus>
+                  {item.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="x"
+                aria-label="Închide"
+                onClick={onClose}
+              >
+                ×
               </button>
-            )}
-            {online || !(item.task || item.follow) ? null : <small>{onServer ? 'Ai nevoie de internet ca să salvezi.' : 'Se trimite când ai internet.'}</small>}
-          </div>
-        </>
+            </div>
+            <ItemDetail item={item} items={items} view={view} />
+            {occ && <EventFacts occ={occ} />}
+            <div className="acts">
+              {occ ? (
+                <EventActions
+                  key={item.id}
+                  occ={occ}
+                  onDone={onClose}
+                  onEdit={(e, d) => (onClose(), edit(e, d))}
+                />
+              ) : (
+                <ItemActions key={item.id} item={item} onDone={onClose} />
+              )}
+              {!item.task && !item.follow && !occ && (
+                <button
+                  type="button"
+                  className="btn btn-line"
+                  onClick={onClose}
+                >
+                  Închide
+                </button>
+              )}
+              {online || !(item.task || item.follow) ? null : (
+                <small>
+                  {onServer
+                    ? "Ai nevoie de internet ca să salvezi."
+                    : "Se trimite când ai internet."}
+                </small>
+              )}
+            </div>
+          </>
+        )}
+      </Sheet>
+      {!onEdit && (
+        <EventSheet
+          open={!!editing}
+          editing={editing}
+          onClose={() => setEditing(null)}
+        />
       )}
-    </Sheet>
+    </>
   );
 }

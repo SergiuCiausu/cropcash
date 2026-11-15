@@ -26,7 +26,7 @@ describe('the farm on the pages', () => {
       county: 'Teleorman',
       region: 'Sud-Muntenia',
       startBalanceBani: 3_500_000,
-      summary: '15 ha, grâu și porumb',
+      summary: '15 ha, grâu comun de toamnă și porumb',
     });
     expect(farm.parcels).toEqual([
       { cropId: 'grau', areaHa: 8 },
@@ -44,13 +44,13 @@ describe('the farm on the pages', () => {
 
   it('shows part hectares the Romanian way', () => {
     const small = { ...ion, parcels: [{ crop_id: 'grau', area_ari: 750 }] };
-    expect(farmForPages(small, data, '2026-11-07').summary).toBe('7,5 ha, grâu');
+    expect(farmForPages(small, data, '2026-11-07').summary).toBe('7,5 ha, grâu comun de toamnă');
   });
 
   it('lists three crops', () => {
     const parcels = [...ion.parcels, { crop_id: 'floarea-soarelui', area_ari: 100 }];
     const { summary } = farmForPages({ ...ion, parcels }, data, '2026-11-07');
-    expect(summary).toMatch(/^16 ha, grâu, porumb și /);
+    expect(summary).toMatch(/^16 ha, grâu comun de toamnă, porumb și /);
   });
 
   it('copes with a county or crop it does not know', () => {
@@ -114,7 +114,7 @@ describe('Recolte, from the server', () => {
       year: 2027,
       status: 'open',
       openingBani: 3_500_000,
-      summary: '15 ha, grâu și porumb',
+      summary: '15 ha, grâu comun de toamnă și porumb',
       records: [],
     });
   });
@@ -226,6 +226,48 @@ describe('the figures the farmer expects', () => {
     const doc = harvestsDocument({ ...harvestsFromServer(ion, 2027, data), ownCrops });
     expect(harvestsDocument(harvestsFromServer({ ...ion, harvests: doc }, 2027, data)).ownCrops).toEqual(ownCrops);
     expect(onboardingHarvests({ year: 2027, openingBani: 0, parcels: [{ cropId: 'grau', areaHa: 8 }], gathered: [], before: doc }).ownCrops).toEqual(ownCrops);
+  });
+
+  it('keeps how a crop was sown through a Recolte save, a reload and onboarding', () => {
+    const sowing = { depth: { value: 4, unit: 'cm' as const }, rowSpacing: { value: 12.5, unit: 'cm' as const } };
+    const page = harvestsFromServer(ion, 2027, data);
+    page.items[0]!.parcels = page.items[0]!.parcels.map((p) => (p.cropId === 'grau' ? { ...p, sowing } : p));
+    const doc = harvestsDocument(page);
+    expect(HarvestsInputSchema.safeParse(doc).success).toBe(true);
+    const again = harvestsDocument(harvestsFromServer({ ...ion, harvests: doc }, 2027, data));
+    expect(again.years.at(-1)!.parcels.find((p) => p.cropId === 'grau')!.sowing).toEqual(sowing);
+    const onboarded = onboardingHarvests({ year: 2027, openingBani: 0, parcels: [{ cropId: 'grau', areaHa: 8 }], gathered: [], before: doc });
+    expect(onboarded.years.at(-1)!.parcels[0]!.sowing).toEqual(sowing);
+  });
+
+  it("keeps what didn't make it to harvest through a Recolte save, a reload and onboarding", () => {
+    const lost = { ha: 3, reason: 'hail' as const };
+    const page = harvestsFromServer(ion, 2027, data);
+    page.items[0]!.parcels = page.items[0]!.parcels.map((p) => (p.cropId === 'grau' ? { ...p, lost } : p));
+    const doc = harvestsDocument(page);
+    expect(HarvestsInputSchema.safeParse(doc).success).toBe(true);
+    const again = harvestsDocument(harvestsFromServer({ ...ion, harvests: doc }, 2027, data));
+    expect(again.years.at(-1)!.parcels.find((p) => p.cropId === 'grau')!.lost).toEqual(lost);
+    const onboarded = onboardingHarvests({ year: 2027, openingBani: 0, parcels: [{ cropId: 'grau', areaHa: 8 }], gathered: [], before: doc });
+    expect(onboarded.years.at(-1)!.parcels[0]!.lost).toEqual(lost);
+  });
+
+  it('drops a saved loss when onboarding gives the crop fewer hectares than were lost', () => {
+    const page = harvestsFromServer(ion, 2027, data);
+    page.items[0]!.parcels = page.items[0]!.parcels.map((p) => (p.cropId === 'grau' ? { ...p, lost: { ha: 5 } } : p));
+    const onboarded = onboardingHarvests({ year: 2027, openingBani: 0, parcels: [{ cropId: 'grau', areaHa: 4 }], gathered: [], before: harvestsDocument(page) });
+    expect(onboarded.years.at(-1)!.parcels[0]).not.toHaveProperty('lost');
+    expect(HarvestsInputSchema.safeParse(onboarded).success).toBe(true);
+  });
+
+  it('drops a saved loss when the farm now has fewer hectares of the crop, so saving still works', () => {
+    const page = harvestsFromServer(ion, 2027, data);
+    page.items[0]!.parcels = page.items[0]!.parcels.map((p) => (p.cropId === 'grau' ? { ...p, lost: { ha: 8 } } : p));
+    const doc = harvestsDocument(page);
+    const smaller = { ...ion, parcels: ion.parcels.map((p) => (p.crop_id === 'grau' ? { ...p, area_ari: 500 } : p)), harvests: doc };
+    const again = harvestsDocument(harvestsFromServer(smaller, 2027, data));
+    expect(again.years.at(-1)!.parcels.find((p) => p.cropId === 'grau')).not.toHaveProperty('lost');
+    expect(HarvestsInputSchema.safeParse(again).success).toBe(true);
   });
 
   it('is left out when there is none, so older documents stay as they were', () => {

@@ -27,6 +27,9 @@ export const KEYS = {
   monitor: 'cropcash-monitor',
   currency: 'cropcash-currency',
   rates: 'cropcash-rates',
+  /** The admin panel's published changes to docs/data (cc/predictions.ts). Never read on Ion's farm. */
+  predictions: 'cropcash-prediction-data',
+/** The admin panel's unpublished draft (cc/admin.ts). Kept until it's published or thrown away. */  adminDraft: 'cropcash-admin-draft',
 } as const;
 
 /** Keys that hold the farm's own choices, one set per mode (storageKey, the rule app.js uses too). */
@@ -36,6 +39,7 @@ export function farmKeys(mode: Mode) {
     pension: storageKey('cropcash-pension', mode),
     follows: storageKey('cropcash-follows', mode),
     done: storageKey('cropcash-done', mode),
+    events: storageKey('cropcash-events', mode),
   };
 }
 
@@ -43,10 +47,13 @@ export function farmKeys(mode: Mode) {
 export function pageKeys(mode: Mode) {
   return {
     assistant: storageKey('cropcash-assistant', mode),
-    paperOk: storageKey('cropcash-paper-ok', mode),
+    /* -2 since the cerere also gives the name and the age from the CNP (14 nov 2026): asked again. */
+    paperOk: storageKey('cropcash-paper-ok-2', mode),
     pensionCompare: storageKey('cropcash-pension-compare', mode),
     sourceKey: storageKey('cropcash-source-key', mode),
     mySources: storageKey('cropcash-my-sources', mode),
+    /* Own crops the farmer said aren't the APIA line Recolte offered (docs/crops-catalog-plan.md, step 11). */
+    ownMatchSeen: storageKey('cropcash-own-match-seen', mode),
   };
 }
 

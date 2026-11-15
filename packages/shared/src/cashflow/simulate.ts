@@ -2,7 +2,7 @@ import type { AppData } from '../data';
 import { normalizeParcels } from '../subsidies';
 import { extrasFromStored, farmInputFromStored } from '../farm';
 import { buildTimeline } from './timeline';
-import { farmData, farmSubsidies } from './farm-plan';
+import { farmData, farmLossShare, farmSubsidies } from './farm-plan';
 import { computeFarmPlan, planToday, type PlanFarm } from './plan';
 
 /**
@@ -53,9 +53,9 @@ export function incomesBetween(farm: PlanFarm, data: AppData, fromIso: string, t
   const subsidies = farmSubsidies(farm, data);
   const months = 13;
   const tl = buildTimeline(
-    { parcels: normalizeParcels(input.parcels), subsidies, startBalance: 0, received: plan.received },
+    { parcels: normalizeParcels(input.parcels), subsidies, startBalance: 0, received: plan.received, lossShare: farmLossShare(farm, data) },
     farmData(farm, data),
-    { start: fromIso.slice(0, 7), months, amounts: 'medium', timing: 'mid' },
+    { start: fromIso.slice(0, 7), months, amounts: 'medium', timing: data.params.forecast.apia_day.demo_clock },
   );
   const from = fromIso.slice(0, 10);
   const to = toIso.slice(0, 10);

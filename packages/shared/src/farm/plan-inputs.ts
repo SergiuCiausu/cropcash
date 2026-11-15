@@ -3,6 +3,7 @@ import { HarvestYearSchema } from './harvests';
 import { ENVELOPE_KINDS, type EnvelopeKind, type Envelopes } from '../cashflow/allocation';
 import type { ExtraPayment, RecordedItem } from '../cashflow/timeline';
 import { leiToBani, type Bani } from '../money';
+import { FertilizerUseSchema, type FertilizerUnit } from '../fertilizers/model';
 
 const MonthKey = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 
@@ -22,6 +23,9 @@ const MAX_RECORD_LEI = 10_000_000;
 const Note = z.string().trim().min(1).max(200).optional();
 /** Set by the phone before the first send, so a sale or expense sent twice is saved once (migration 017). */
 const ClientId = z.uuid().optional();
+/** For the accountant (migration 027): the invoice or receipt number, and who was paid or who bought. */
+const DocNo = z.string().trim().min(1).max(60).optional();
+const Counterparty = z.string().trim().min(1).max(120).optional();
 
 /** "Înregistrează o vânzare": either the total, or the tonnes and the price. */
 export const SaleInputSchema = z
@@ -34,6 +38,10 @@ export const SaleInputSchema = z
     harvestYear: HarvestYearSchema.optional(),
     note: Note,
     clientId: ClientId,
+    docNo: DocNo,
+    counterparty: Counterparty,
+    /** The parcel it came from (docs/harta-plan.md step 10). Without one, it is the whole crop's. */
+    plotId: z.uuid().optional(),
   })
   .refine((s) => (s.totalLei !== undefined) !== (s.tonnes !== undefined && s.pricePerKgLei !== undefined), {
     message: 'a total, or tonnes with a price',
@@ -48,12 +56,36 @@ export function saleAmountBani(s: SaleInput): Bani {
 }
 
 /** The first five are costs the plan already expects; the rest come on top. */
-export const EXPENSE_CATEGORIES = ['seeds', 'fertilizer', 'treatments', 'diesel', 'field_work', 'repairs', 'rent', 'other'] as const;
+export const EXPENSE_CATEGORIES = [
+  'seeds',
+  'fertilizer',
+  'treatments',
+  'diesel',
+  'field_work',
+  'rent',
+  /** The whole cost of the farm's people: pay, taxes and contributions (docs/employees-arenda-plan.md D2). */
+  'salaries',
+  /** Sheds, fences, wells, platforms, and fixing them. Took over the old `repairs`. */
+  'constructions',
+  /** Repairs and upkeep of machinery: tractor, combine, sprayer. */
+  'machine_service',
+  /** Other paid services that aren't field work: consultancy, soil analysis, transport. */
+  'services',
+  'other',
+] as const;
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 /** The categories the plan's crop costs stand for. A recorded one replaces the planned cost of its month. */
 export const PLANNED_CATEGORIES: readonly string[] = EXPENSE_CATEGORIES.slice(0, 5);
 
+/** Categories that were renamed. Old records and queued offline expenses may still carry them. */
+const RENAMED_CATEGORIES: Record<string, ExpenseCategory> = { repairs: 'constructions' };
+/** The current name of a stored category; anything else comes back unchanged. */
+export function expenseCategory<T extends string | null | undefined>(category: T): T | ExpenseCategory {
+  return (category && RENAMED_CATEGORIES[category]) || category;
+}
+
 export const ExpenseInputSchema = z.strictObject({
-  category: z.enum(EXPENSE_CATEGORIES),
+  category: z.preprocess((v) => (typeof v === 'string' ? expenseCategory(v) : v), z.enum(EXPENSE_CATEGORIES)),
   amountLei: z.number().positive().max(MAX_RECORD_LEI),
   date: z.iso.date(),
   cropId: z.string().min(1).max(40).optional(),
@@ -62,14 +94,36 @@ export const ExpenseInputSchema = z.strictObject({
   envelope: z.enum(ENVELOPE_KINDS as [EnvelopeKind, ...EnvelopeKind[]]).optional(),
   note: Note,
   clientId: ClientId,
+  /** Which fertilizer and how much, so the app can work out kg N/ha. Only on a fertilizer expense. */
+  fertilizer: FertilizerUseSchema.optional(),
+  /** The parcel it was for (migration 020). Its crop then comes from the parcel's season. */
+  plotId: z.uuid().optional(),
+  /** Whose pay it was (migration 026). Only on a salaries expense. */
+  employeeId: z.uuid().optional(),
+  docNo: DocNo,
+  counterparty: Counterparty,
+  /** On a diesel expense, for the excise refund (migration 027). */
+  fuelLiters: z.number().positive().max(100_000).optional(),
+}).refine((e) => e.fuelLiters === undefined || e.category === 'diesel', {
+  message: 'litres go on a diesel expense',
+  path: ['fuelLiters'],
+}).refine((e) => !e.fertilizer || e.category === 'fertilizer', {
+  message: 'a fertilizer goes on a fertilizer expense',
+  path: ['fertilizer'],
+}).refine((e) => !e.employeeId || e.category === 'salaries', {
+  message: 'a person goes on a salaries expense',
+  path: ['employeeId'],
 });
 export type ExpenseInput = z.infer<typeof ExpenseInputSchema>;
 
 /** "<calendar event id>:<year>". */
 export const TaskIdSchema = z.string().regex(/^[a-z0-9-]{1,60}:\d{4}$/);
 
+/** `payroll` may be left out (0), so a phone with the app from before it still saves a split. */
 export const EnvelopesInputSchema = z.object(
-  Object.fromEntries(ENVELOPE_KINDS.map((k) => [k, z.number().int().min(0)])) as Record<EnvelopeKind, z.ZodNumber>,
+  Object.fromEntries(
+    ENVELOPE_KINDS.map((k) => [k, k === 'payroll' ? z.number().int().min(0).default(0) : z.number().int().min(0)]),
+  ) as Record<Exclude<EnvelopeKind, 'payroll'>, z.ZodNumber> & { payroll: z.ZodDefault<z.ZodNumber> },
 );
 
 /** DB rows of a stored credit pair -> timeline extras. */
@@ -109,6 +163,18 @@ export interface StoredTransaction {
   source?: string;
   /** The declared payment this movement settles (a credit or its repayment). */
   expected_payment_id?: string | null;
+  /** The parcel a sale or expense is for (migration 020). Null means the whole crop, or the whole farm. */
+  plot_id?: string | null;
+  /** On a fertilizer expense: the catalogue product and how much (migration 024). */
+  fertilizer_product_id?: string | null;
+  fertilizer_qty?: number | null;
+  fertilizer_unit?: FertilizerUnit | null;
+  /** On a salaries expense: whose pay it was (migration 026). */
+  employee_id?: string | null;
+  /** For the accountant and the diesel refund (migration 027). Litres in hundredths. */
+  doc_no?: string | null;
+  counterparty?: string | null;
+  fuel_liters_cl?: number | null;
 }
 
 export interface StoredPayout {
@@ -156,7 +222,9 @@ export function recordedFromStored(rows: MovedMoney[]): RecordedItem[] {
     amount: Math.abs(r.amount_bani),
     date: r.occurred_at.slice(0, 10),
     cropId: r.crop_id ?? undefined,
-    replacesPlanned: r.kind === 'sale' ? !!r.crop_id : replacesPlannedCost(r),
+    replacesPlanned: r.kind === 'sale' ? !!r.crop_id : replacesPlannedCost(r) || !!r.employee_id || r.category === 'rent',
+    ...(r.employee_id ? { employeeId: r.employee_id } : {}),
+    ...(r.kind === 'expense' && r.category === 'rent' ? { rent: true } : {}),
   }));
   // A credit also arrives by transfer, but it's borrowed money, not income.
   const income = rows

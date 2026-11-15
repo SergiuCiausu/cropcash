@@ -2,16 +2,11 @@ import type { AppData } from '../data';
 import { ageFromBirthYear, farmToday } from '../farm';
 import { pensionParams, suggestSliderPension } from '../pension';
 import { todayInRomania } from './dates';
-import { buildFarmPlan, farmData, timelineInput, PLAN_HORIZON_MONTHS, type PlanFarm } from './farm-plan';
+import { buildFarmPlan, farmData, planTiming, timelineInput, type PlanFarm } from './farm-plan';
 import { monthsToYearEnd, quarterlyProjection, salaryByScenario, SCENARIOS, yearlyTotals } from './scenarios';
 import { buildTimeline, type AmountScenario, type ReceivedIncome } from './timeline';
 
 export type { PlanFarm } from './farm-plan';
-
-/** Plan 12 months ahead; payments with a window are assumed late (conservative, docs/11 P13). */
-export const HORIZON_MONTHS = PLAN_HORIZON_MONTHS;
-/** Quarterly projection: this year + 2 (docs/06 Should #6). */
-export const PROJECTION_YEARS = 3;
 
 /** "Today" for the plan: the demo clock when there is one, otherwise the date in Romania. */
 export function planToday(farm: PlanFarm, realNow = new Date()): { today: string; month: string } {
@@ -38,10 +33,10 @@ export function computeFarmPlan(farm: PlanFarm, baseData: AppData, realNow = new
     }));
   const input = timelineInput(farm, data);
   // Long view by quarter, for each kind of year (as if every year were like that).
-  const months = monthsToYearEnd(month, PROJECTION_YEARS);
+  const months = monthsToYearEnd(month, data.params.forecast.projection_years.value);
   const projection = Object.fromEntries(
     SCENARIOS.map((s) => {
-      const timeline = buildTimeline(input, data, { start: month, months, timing: 'late', amounts: s });
+      const timeline = buildTimeline(input, data, { start: month, months, timing: planTiming(data), amounts: s });
       const quarters = quarterlyProjection(timeline);
       return [s, { quarters, years: yearlyTotals(quarters) }];
     }),

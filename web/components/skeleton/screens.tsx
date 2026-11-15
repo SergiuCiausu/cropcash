@@ -4,15 +4,24 @@
 import type { ComponentType, ReactNode } from 'react';
 import type { ScreenName } from '../../screens/types';
 import { Bone, BoneCard } from './Bone';
+import '../../styles/harta.css';
+import '../../styles/admin.css';
 
 const repeat = (n: number, draw: (i: number) => ReactNode) => Array.from({ length: n }, (_, i) => draw(i));
 
 /** A lime hero: small label, big amount, a line under it. */
-function Hero({ span, className, small = false, children }: { span?: string; className?: string; small?: boolean; children?: ReactNode }) {
+function Hero({ span, className, small = false, basis = false, children }: { span?: string; className?: string; small?: boolean; basis?: boolean; children?: ReactNode }) {
   return (
     <section className={['chart-card field hero-card', span, className].filter(Boolean).join(' ')}>
       <div className="sk-stack">
-        <Bone w={150} h={12} className="on-field" />
+        {basis ? (
+          <div className="sk-head-row">
+            <Bone w={150} h={12} className="on-field" />
+            <BasisBone field />
+          </div>
+        ) : (
+          <Bone w={150} h={12} className="on-field" />
+        )}
         <Bone w="62%" h={small ? 36 : 46} r={10} className="on-field" />
         <Bone w="80%" h={13} className="on-field" />
         {small ? null : <Bone w="50%" h={13} className="on-field" />}
@@ -85,10 +94,22 @@ function Chart({ kind = 'fc-chart' }: { kind?: string }) {
   );
 }
 
-function ChartCard({ className, tabs = false }: { className?: string; tabs?: boolean }) {
+/** Where the "Total | Pe hectar" switch sits in a card's header (docs/per-ha-total-plan.md). */
+function BasisBone({ field = false }: { field?: boolean }) {
+  return <Bone w={148} h={36} r={99} className={field ? 'on-field' : undefined} />;
+}
+
+function ChartCard({ className, tabs = false, basis = false }: { className?: string; tabs?: boolean; basis?: boolean }) {
   return (
     <section className={className ? `card ${className}` : 'card'}>
-      <Bone w="45%" h={18} />
+      {basis ? (
+        <div className="sk-head-row">
+          <Bone w="45%" h={18} />
+          <BasisBone />
+        </div>
+      ) : (
+        <Bone w="45%" h={18} />
+      )}
       {tabs ? <VTabs n={3} /> : null}
       <Chart />
     </section>
@@ -128,7 +149,7 @@ const Subventii = () => (
   <>
     <SubNav />
     <div className="bento">
-      <Hero span="s6" />
+      <Hero span="s6" basis />
       <ListCard span="s6" n={4} />
       <ListCard span="s7" n={4} />
       <ListCard span="s5" n={4} />
@@ -158,8 +179,8 @@ const Prognoza = () => (
   <>
     <VTabs n={3} className="page-tabs" />
     <div className="fc-pair">
-      <ChartCard className="fc-main" />
-      <ChartCard tabs />
+      <ChartCard className="fc-main" basis />
+      <ChartCard tabs basis />
     </div>
     <div className="bento">
       <ListCard span="s6" n={4} />
@@ -232,6 +253,49 @@ const Bani = () => (
   </div>
 );
 
+/** The month's pay, the list of people, the field-work question. */
+const Oameni = () => (
+  <div className="bento">
+    <BoneCard span="s7" lines={3} />
+    <BoneCard span="s5" lines={2} />
+    <ListCard span="s12" n={4} />
+  </div>
+);
+
+/** The land and the year's rent, what to do, the landowners. */
+const Arenda = () => (
+  <div className="bento">
+    <BoneCard span="s7" lines={3} />
+    <BoneCard span="s5" lines={3} />
+    <ListCard span="s12" n={5} />
+  </div>
+);
+
+const Rapoarte = () => (
+  <>
+    <VTabs n={2} />
+    <div className="bento">
+      <FormCard span="s6" fields={2} />
+      <FormCard span="s6" fields={2} />
+    </div>
+  </>
+);
+
+/** The filters bar, then the list beside the map (a phone stacks them). */
+const Harta = () => (
+  <>
+    <Bone w={260} h={40} r={20} />
+    <div className="hm sk-hm">
+      <div className="hm-map">
+        <Bone w="100%" h="100%" r={24} />
+      </div>
+      <section className="card hm-side">
+        <Rows n={4} />
+      </section>
+    </div>
+  </>
+);
+
 const Monitor = ({ split }: { split: boolean }) => (
   <>
     <SubNav />
@@ -245,6 +309,25 @@ const Monitor = ({ split }: { split: boolean }) => (
 const Oportunitati = () => <Monitor split />;
 const Surse = () => <Monitor split={false} />;
 
+/** The admin panel: a search field and the groups of figures beside the draft and the history. */
+const Admin = () => (
+  <>
+    <Bone w={300} h={14} />
+    <div className="adm">
+      <div className="adm-list">
+        <Field />
+        {repeat(4, (i) => (
+          <BoneCard key={i} lines={1} />
+        ))}
+      </div>
+      <div className="adm-side">
+        <BoneCard lines={2} />
+        <ListCard span="" n={3} />
+      </div>
+    </div>
+  </>
+);
+
 export const SCREEN_SKELETONS = {
   acasa: Acasa,
   subventii: Subventii,
@@ -257,6 +340,11 @@ export const SCREEN_SKELETONS = {
   pensie: withSalaryNav(Pensie),
   'date-plan': DatePlan,
   bani: withSalaryNav(Bani),
+  rapoarte: Rapoarte,
+  harta: Harta,
+  oameni: Oameni,
+  arenda: Arenda,
+  admin: Admin,
 } satisfies Record<ScreenName, ComponentType>;
 
 /** Screens whose title has a button next to it. */

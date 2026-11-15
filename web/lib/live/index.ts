@@ -2,12 +2,12 @@
    and for the React store (lib/cc/react.tsx). */
 import { FUNCTIONS } from '../../../packages/shared/src/functions/registry';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { AUTH_TEXT, authErrorKey, stampOutboxOwner, createAuth, guardTarget, hasFarmCopy, hasSession, landingPage as landingPageFor, linkErrorKey, safeNext, type AuthClient } from './auth';
+import { AUTH_TEXT, authErrorKey, stampOutboxOwner, createAuth, guardTarget, hasFarmCopy, hasSession, isAccountPage, landingPage as landingPageFor, linkErrorKey, MEMBER_HOME, safeNext, type AuthClient } from './auth';
 import planParams from '../../../docs/data/plan-params.json';
 import { ApiError, createApi, fetchWithTimeout, timeoutsFrom, type Api } from './client';
 import { createFunctions } from './functions';
 
-export { ApiError, AUTH_TEXT, authErrorKey, guardTarget, hasFarmCopy, hasSession, linkErrorKey, safeNext };
+export { ApiError, AUTH_TEXT, authErrorKey, guardTarget, hasFarmCopy, hasSession, isAccountPage, linkErrorKey, MEMBER_HOME, safeNext };
 export { newIntentKey } from './intent';
 export { FAIL_TEXT, failText } from './fail-text';
 export { isMoneyMove, moneyOutcome } from './money-check';
@@ -23,6 +23,8 @@ interface Config {
   supabaseKey: string;
   apiUrl: string;
   demo?: boolean;
+  /** MapTiler, for the map's „Satelit”. Absent: no satellite. */
+  maptilerKey?: string;
 }
 
 declare global {

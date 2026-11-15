@@ -30,6 +30,7 @@ export const ASSISTANT_WRITES = new Set([
   'add_credit',
   'follow_opportunity',
   'set_crop_cost',
+  'add_event',
 ]);
 
 export interface AssistantTurn {
@@ -57,6 +58,8 @@ export interface AssistantRequest {
   /** The farm's own today (the demo clock can move it). */
   today: string;
   runRead(fn: ReadFunction, input: unknown): Promise<ReadOutcome>;
+  /** The crops on the farm. A name like "grâu" that fits two of them is sent back to ask which one. */
+  farmCropIds?: string[];
 }
 
 export type Assistant = (request: AssistantRequest) => Promise<AssistantReply>;
@@ -87,6 +90,7 @@ How you work:
 - If a value is null or a result lists "unverified" items, say the figure isn't confirmed yet.
 - Subsidies are ranges ("între 15.200 și 17.100 lei"), never a promise. Eligibility: say "pare că te încadrezi, verifică la APIA", never "te încadrezi".
 - For "Pot să-mi iau…?" or "Să vând…?", show what changes (use check_purchase, what_if_credit and similar tools) and leave the decision to the farmer. Never say yes or no.
+- For hiring someone ("Îmi permit încă un om?"), use what_if_hire with the total cost the farmer gives (pay plus taxes); if they give only the net pay, ask for the total, never guess the taxes. For what the people cost in a year, use get_people_cost.
 - Credit: never name a bank, an offer or a link to one. Pension: never recommend a fund; it's a simulation.
 - Never refuse a choice the farmer makes about their own money. Show its effect.
 - If the farmer says "spune-mi mai simplu", repeat the same answer with shorter sentences and the same figures.
@@ -94,9 +98,16 @@ How you work:
 - Never use these words: lichiditate, cash-flow, portofoliu, randament, buget, venit net. For how a pension fund grows, say "cât câștigă fondul".
 
 Saving things:
-- Tools that save (record_sale, add_expense, complete_task, reopen_task, add_credit, follow_opportunity, set_crop_cost) don't save anything. They prepare a card; the farmer checks the values and taps to save. After you call one, tell the farmer to check the card and tap "Da, salvează". Never say it is saved.
+- Tools that save (record_sale, add_expense, complete_task, reopen_task, add_credit, follow_opportunity, set_crop_cost, add_event) don't save anything. They prepare a card; the farmer checks the values and taps to save. After you call one, tell the farmer to check the card and tap "Da, salvează". Never say it is saved.
 - Only prepare a save when the farmer clearly says it already happened or asks for it, with the amount. If the amount, crop or date is missing, ask for it first. Dates are YYYY-MM-DD; "azi" is today's date given with the message.
 - You can't change or delete a recorded sale or expense. Tell the farmer to open it in Recolte.
+
+The farmer's calendar:
+- add_event puts something in the farmer's calendar: a vet visit, the ITP, a bank rate, money to receive. Use it only when the farmer asks to note or remember something for a day. category is crop, animals, machinery, money, paperwork or other. For money, give direction (in or out) and amountLei in whole lei; for a cost, expenseCategory too. repeat is none, monthly or yearly; repeatUntil only if the farmer says when it ends. remindDaysBefore only if the farmer asks to be reminded.
+- A sum in the calendar changes the plan and the salary. Say so after you prepare the card, but give the new salary only from a tool result.
+- A sum already paid or received is not a calendar event: use add_expense or record_sale.
+- You can't change or delete calendar events. Tell the farmer to open them in Calendar.
+- For "ce contează cel mai mult", "de ce e salariul atât de mic" or "ce mă costă cel mai mult", use explain_drivers. Name the first two or three rows with their effect on the salary, and say the rows don't add up.
 
 What a crop costs:
 - get_crop_costs gives what the plan counts per hectare for a whole season, and whether it is the farmer's own figure or the average. get_cost_per_hectare gives what the farmer's recorded expenses really add up to per hectare. When seasonDone is false, say the figure is only "până acum", never a full season.
@@ -178,18 +189,33 @@ const TOO_LONG = 'Mi-a luat prea mult să caut. Întreabă-mă ceva mai scurt, d
 export interface Crop {
   id: string;
   name_ro: string;
+  aliases?: string[];
+  /** Set on the crops made from one APIA line of a family (data/catalogue.ts): the family's first crop. */
+  family?: string;
 }
 
 /** Lowercase, without diacritics: "Grâu" and "grau" match. */
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
 
-/** A crop the model named instead of giving its id ("grâu" for "grau") gets its id, so the tap isn't refused. */
-function withCropId(input: unknown, crops: Crop[]): unknown {
+/**
+ * A crop the model named instead of giving its id ("grâu" for "grau") gets its id, so the tap isn't refused.
+ * A short name stands for a whole family (every APIA line of wheat). On a farm with one of them, that's the
+ * one; with two or more, the result says which, so the model asks the farmer instead of guessing.
+ */
+export function withCropId(input: unknown, crops: Crop[], farmCropIds?: string[]): unknown | { ambiguous: Crop[] } {
   if (!input || typeof input !== 'object' || !('cropId' in input) || typeof input.cropId !== 'string') return input;
   const named = input.cropId;
-  const crop = crops.find((c) => c.id === named) ?? crops.find((c) => fold(c.name_ro) === fold(named));
-  return crop ? { ...input, cropId: crop.id } : input;
+  const exact = crops.find((c) => c.id === named) ?? crops.find((c) => fold(c.name_ro) === fold(named));
+  if (exact) return { ...input, cropId: exact.id };
+  // "grâu" is an alias of Grâu comun de toamnă, the wheat almost every farm means.
+  const alias = crops.find((c) => (c.aliases ?? []).some((a) => fold(a) === fold(named)));
+  if (!alias) return input;
+  const family = alias.family ?? alias.id;
+  const onFarm = farmCropIds ? crops.filter((c) => (c.family ?? c.id) === family && farmCropIds.includes(c.id)) : [];
+  if (onFarm.length > 1) return { ambiguous: onFarm };
+  return { ...input, cropId: (onFarm[0] ?? alias).id };
 }
+const isAmbiguous = (v: unknown): v is { ambiguous: Crop[] } => !!v && typeof v === 'object' && 'ambiguous' in v;
 
 export function createAssistant({ client, model, crops = [] }: { client: MessagesClient; model: string; crops?: Crop[] }): Assistant {
   const { tools, byName } = assistantTools();
@@ -198,7 +224,7 @@ export function createAssistant({ client, model, crops = [] }: { client: Message
     ? `${SYSTEM}\n\nCrop ids for cropId (id = name): ${crops.map((c) => `${c.id} = ${c.name_ro}`).join(', ')}. A farmer's own crop may have another id; list_transactions and get_plan show it.`
     : SYSTEM;
 
-  return async ({ turns, today, runRead }) => {
+  return async ({ turns, today, runRead, farmCropIds }) => {
     const messages: Anthropic.Beta.BetaMessageParam[] = turns.map((t, i) =>
       i === turns.length - 1 && t.role === 'user'
         ? { role: 'user', content: [{ type: 'text', text: `Azi este ${today}.` }, { type: 'text', text: t.text }] }
@@ -271,7 +297,12 @@ export function createAssistant({ client, model, crops = [] }: { client: Message
           results.push({ type: 'tool_result', tool_use_id: call.id, content: 'Unknown tool.', is_error: true });
           continue;
         }
-        const callInput = fn.access === 'read' ? call.input : withCropId(call.input, crops);
+        const callInput = fn.access === 'read' ? call.input : withCropId(call.input, crops, farmCropIds);
+        if (isAmbiguous(callInput)) {
+          const names = callInput.ambiguous.map((c) => `${c.id} = ${c.name_ro}`).join(', ');
+          results.push({ type: 'tool_result', tool_use_id: call.id, content: `The farm has more than one crop with that name: ${names}. Ask the farmer which one, then call again with its id.`, is_error: true });
+          continue;
+        }
         const parsed = fn.input.safeParse(callInput);
         if (!parsed.success) {
           results.push({ type: 'tool_result', tool_use_id: call.id, content: `Invalid input: ${zodIssues(parsed.error)}`, is_error: true });

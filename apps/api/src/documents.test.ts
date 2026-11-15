@@ -9,7 +9,7 @@ const data = loadData();
 const campaignYear = data.subsidies.meta.campaign_year;
 const auth = { Authorization: 'Bearer good' };
 const paper = { files: [{ mediaType: 'image/jpeg', data: '/9j/AAAA' }] };
-const invoice: DocumentExtraction = { kind: 'invoice', year: null, crops: [], amount: '1.200,50', date: '2026-10-03', category: 'diesel', crop_id: null };
+const invoice: DocumentExtraction = { kind: 'invoice', year: null, crops: [], amount: '1.200,50', date: '2026-10-03', category: 'diesel', crop_id: null, applicant: null, total_area: null };
 
 const farm = (): FarmRow => ({ id: 'f1', name: 'Ion', birth_year: 1971, parcels: [{ crop_id: 'grau', area_ari: 800, is_arable: true }] }) as unknown as FarmRow;
 
@@ -125,6 +125,52 @@ describe('POST /api/documents/read', () => {
     expect(res.status).toBe(502);
     expect(JSON.stringify(log.mock.calls)).not.toContain('/9j/');
     log.mockRestore();
+  });
+
+  describe('a cerere de plată', () => {
+    const CNP = '1660315340010';
+    const cerere: DocumentExtraction = {
+      ...invoice,
+      kind: 'apia_cerere',
+      year: String(campaignYear),
+      amount: null,
+      date: null,
+      category: null,
+      crops: [
+        { code: '101', crop_id: null, name: 'GRÂU COMUN DE TOAMNĂ', area: '8,00' },
+        { code: '108', crop_id: null, name: 'PORUMB', area: '7,00' },
+      ],
+      applicant: { first_name: 'ION', last_name: 'POPESCU', cnp: CNP, county_farm: null, county_home: 'Teleorman' },
+      total_area: '15,00',
+    };
+
+    it('returns the name, the age and the county, and never the CNP', async () => {
+      const { app } = setup({ read: async () => cerere });
+      const res = await request(app).post('/api/documents/read').set(auth).send(paper);
+      expect(res.status).toBe(200);
+      // The clock in setup() is 7 Nov 2026, so someone born 15 Mar 1966 is 60.
+      expect(res.body.applicant).toEqual({ firstName: 'Ion', fullName: 'Ion Popescu', age: 60, county: 'TR' });
+      expect(res.body.parcels).toEqual([{ cropId: 'grau', areaAri: 800 }, { cropId: 'porumb', areaAri: 700 }]);
+      expect(res.body.totalAri).toBe(1500);
+      expect(res.text).not.toContain(CNP);
+    });
+
+    it('keeps no CNP in the replay either', async () => {
+      const { app } = setup({ read: async () => cerere });
+      await request(app).post('/api/documents/read').set(auth).send(paper);
+      const again = await request(app).post('/api/documents/read').set(auth).send(paper);
+      expect(again.status).toBe(200);
+      expect(again.text).not.toContain(CNP);
+    });
+
+    it('never logs the CNP when reading fails', async () => {
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const failure = Object.assign(new Error(`bad output ${JSON.stringify(cerere)}`), { status: 500 });
+      const { app } = setup({ read: async () => { throw failure; } });
+      expect((await request(app).post('/api/documents/read').set(auth).send(paper)).status).toBe(502);
+      expect(JSON.stringify(log.mock.calls)).not.toContain(CNP);
+      log.mockRestore();
+    });
   });
 
   it('leaves the normal limit on every other route', async () => {

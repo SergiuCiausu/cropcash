@@ -98,7 +98,7 @@ describe('what the plan counts', () => {
   });
 
   it('keeps a repair out of the planned costs', () => {
-    const repair = { amount_bani: -40_000, kind: 'expense' as const, occurred_at: '2026-11-10T12:00:00Z', source: 'manual', category: 'repairs', crop_id: 'grau' };
+    const repair = { amount_bani: -40_000, kind: 'expense' as const, occurred_at: '2026-11-10T12:00:00Z', source: 'manual', category: 'constructions', crop_id: 'grau' };
     const end = (p: ReturnType<typeof on>) => p.timelines.medium.months.at(-1)!.balanceEnd;
     expect(end(on([repair]))).toBe(end(on([])) - 40_000);
   });

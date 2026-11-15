@@ -2,7 +2,7 @@
    Same worker as farm-app (lib/live/service-worker.mjs), over the exported files, plus each page
    under its route (/salariu as well as salariu.html), because that is the address people open.
    Ion's farm is one folder down (ferma-lui-ion/salariu.html → /ferma-lui-ion/salariu). */
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { cacheList, swSource, versionOf } from '../lib/live/service-worker.mjs';
 
@@ -16,6 +16,7 @@ export function webCacheList(root) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const out = fileURLToPath(new URL('../out/', import.meta.url));
   const { files, cached } = webCacheList(out);
-  writeFileSync(`${out}sw.js`, swSource(cached, versionOf(out, files)));
+  const params = JSON.parse(readFileSync(new URL('../../docs/data/plots-params.json', import.meta.url), 'utf8'));
+  writeFileSync(`${out}sw.js`, swSource(cached, versionOf(out, files), { maxTiles: params.map_tile_cache_max.value }));
   console.log(`web: wrote out/sw.js with ${cached.length} entries`);
 }

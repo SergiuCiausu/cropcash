@@ -2,7 +2,7 @@
  * A crop's season runs from sowing to harvest, so it depends on the crop: wheat sown in October
  * is cut the next July, maize sown in April is cut that October. A farm year isn't 12 months.
  */
-import type { AppData, Crop } from '../data';
+import { isFallow, type AppData, type Crop } from '../data';
 import { addMonths, monthOf, type MonthKey } from './dates';
 
 const monthsBetween = (from: number, to: number) => (to - from + 12) % 12;
@@ -58,6 +58,8 @@ export interface GatheredHarvest {
   /** Null when the farmer doesn't know: the crop's average stays. */
   tonnes: number | null;
   priceLeiPerKg: number | null;
+  /** Hectares that weren't harvested at all (docs/crop-loss-plan.md). Left out means none known. */
+  lostHa?: number;
 }
 
 export interface HarvestFigures {
@@ -68,13 +70,20 @@ export interface HarvestFigures {
   costLeiPerHa?: number | null;
 }
 
-/** What the farmer got per crop: yield weighted by area, price weighted by tonnes. */
+/** The hectares the tonnes came from: sown minus lost. */
+const harvestedHa = (g: GatheredHarvest) => Math.max(0, g.areaHa - Math.min(g.lostHa ?? 0, g.areaHa));
+
+/**
+ * What the farmer got per crop: yield per harvested hectare weighted by area, price weighted by
+ * tonnes. A lost field is a loss, not a low yield, so it isn't in the yield (docs/crop-loss-plan.md).
+ * A crop lost entirely has no yield to give.
+ */
 export function harvestFigures(gathered: GatheredHarvest[]): HarvestFigures[] {
   const ids = [...new Set(gathered.map((g) => g.cropId))];
   return ids.map((cropId) => {
     const rows = gathered.filter((g) => g.cropId === cropId);
-    const known = rows.filter((g) => g.tonnes !== null && g.areaHa > 0);
-    const area = known.reduce((sum, g) => sum + g.areaHa, 0);
+    const known = rows.filter((g) => g.tonnes !== null && harvestedHa(g) > 0);
+    const area = known.reduce((sum, g) => sum + harvestedHa(g), 0);
     const tonnes = known.reduce((sum, g) => sum + (g.tonnes ?? 0), 0);
     const priced = rows.filter((g) => g.priceLeiPerKg !== null);
     const pricedTonnes = priced.reduce((sum, g) => sum + (g.tonnes ?? 0), 0);
@@ -117,7 +126,8 @@ function scaled<T extends { min: number; mean: number; max: number }>(range: T, 
 export function withFarmerHarvest(data: AppData, figures: HarvestFigures[]): AppData {
   const crops = data.crops.crops.map((crop) => {
     const own = figures.find((f) => f.cropId === crop.id);
-    if (!own) return crop;
+    // Fallow land has no yield, price or cost to scale (its normal year is all zeros).
+    if (!own || isFallow(crop)) return crop;
     return {
       ...crop,
       yield_t_per_ha: scaled(crop.yield_t_per_ha, own.yieldTPerHa),

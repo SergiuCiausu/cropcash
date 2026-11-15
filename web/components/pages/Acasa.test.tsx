@@ -31,7 +31,7 @@ describe.each(cases)('Acasă on %s', (_, mode, saved, online) => {
     await showPage('acasa', mode, saved, online);
     expect(main().getByText('Salariul tău', { selector: '.eyebrow' })).toBeTruthy();
     expect(main().getByRole('heading', { name: 'Pe culturi' })).toBeTruthy();
-    expect(main().getByRole('button', { name: 'Grâu' })).toBeTruthy();
+    expect(main().getByRole('button', { name: 'Grâu comun de toamnă' })).toBeTruthy();
     expect(main().getByRole('button', { name: 'Porumb' })).toBeTruthy();
     expect(document.querySelector('.crop-total')!.textContent).toMatch(/^Total/);
   });
@@ -52,8 +52,8 @@ describe.each(cases)('Acasă on %s', (_, mode, saved, online) => {
 
   it('opens a crop from its row under the whole farm, and comes back', async () => {
     await showPage('acasa', mode, saved, online);
-    await act(async () => fireEvent.click(main().getByRole('button', { name: 'Grâu' })));
-    expect(main().getByText('Ce rămâne din grâu')).toBeTruthy();
+    await act(async () => fireEvent.click(main().getByRole('button', { name: 'Grâu comun de toamnă' })));
+    expect(main().getByText('Ce rămâne din grâu comun de toamnă')).toBeTruthy();
     await act(async () => fireEvent.click(tab(/^Toată ferma/)));
     expect(main().getByRole('heading', { name: 'Pe culturi' })).toBeTruthy();
   });

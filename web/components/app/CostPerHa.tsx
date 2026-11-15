@@ -5,6 +5,7 @@ import type { FarmView } from '../../lib/cc/plan';
 import type { Harvest } from '../../lib/cc/harvests';
 import { ha } from '../../lib/cc/format';
 import { useMoney } from '../../lib/cc/react';
+import { expenseCategory } from '../../../packages/shared/src/farm/plan-inputs';
 
 export function CostPerHa({ view, harvest, records, cropId, categories }: { view: FarmView; harvest: Harvest; records: Harvest['records']; cropId: string | null; categories: [string, string][] }) {
   const { signed: lei } = useMoney();
@@ -12,7 +13,7 @@ export function CostPerHa({ view, harvest, records, cropId, categories }: { view
   /* In the order the page lists the crops. */
   const order = harvest.parcels.map((p) => p.cropId);
   const shown = crops.filter((c) => (!cropId || c.cropId === cropId) && c.total > 0).sort((a, b) => order.indexOf(a.cropId) - order.indexOf(b.cropId));
-  const label = (category: string) => categories.find(([k]) => k === category)?.[1] ?? category;
+  const label = (category: string) => categories.find(([k]) => k === expenseCategory(category))?.[1] ?? category;
   const planned = (id: string) => (view.data().crops.crops.find((c) => c.id === id)?.cost_lei_per_ha.mean ?? 0) * 100;
 
   return (

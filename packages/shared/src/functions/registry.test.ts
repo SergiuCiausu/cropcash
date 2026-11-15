@@ -132,6 +132,23 @@ describe('salary and plan functions', () => {
     expect(f.endBalance).toBe(plan.timelines.good.months.at(-1)!.balanceEnd);
   });
 
+  it('get_forecast says what it took as lost per crop, and from where (docs/crop-loss-plan.md)', () => {
+    expect(getForecast.execute({ scenario: 'medium' }, ctx).data!.cropLoss).toEqual([]);
+    const lossFarm = {
+      ...farm,
+      harvests: {
+        years: [2025, 2026].map((year) => ({ year, status: 'closed' as const, openingBani: 0, parcels: [{ cropId: 'porumb', areaHa: 7, lost: { ha: 1.4 } }] })),
+        gathered: [],
+        expected: [{ cropId: 'porumb', yieldTPerHa: 7, priceLeiPerKg: null }],
+      },
+    };
+    const lossCtx: ReadContext = { farm: lossFarm, plan: buildFarmPlan(lossFarm, data, { month: '2026-11' }), data, today: '2026-11-07' };
+    const [maize, ...rest] = getForecast.execute({ scenario: 'bad' }, lossCtx).data!.cropLoss;
+    expect(rest).toEqual([]);
+    expect(maize).toMatchObject({ cropId: 'porumb', basis: 'history', from: 2025, to: 2026, applied: true });
+    expect(maize!.subtractedShare).toBeCloseTo(0.2);
+  });
+
   it('get_tight_months reports what is missing only below zero', () => {
     const t = getTightMonths.execute({}, ctx).data!;
     expect(t.months).toEqual(plan.timelines.medium.hardMonths);
@@ -195,7 +212,8 @@ describe('envelope functions', () => {
 
   it('save_envelopes refuses negative amounts', () => {
     const split = { salary: 1, spring_inputs: 0, debts: 0, pension: 0 };
-    expect(saveEnvelopes.request(split)).toEqual({ method: 'PUT', path: '/api/envelopes', body: split });
+    expect(saveEnvelopes.request(split)).toEqual({ method: 'PUT', path: '/api/envelopes', body: { ...split, payroll: 0 } });
+    expect(() => saveEnvelopes.request({ ...split, payroll: -1 })).toThrow();
     expect(() => saveEnvelopes.request({ ...split, salary: -1 })).toThrow();
   });
 });

@@ -86,8 +86,16 @@ function chooseFiles(multiple: boolean) {
   });
 }
 
+interface PickOptions {
+  accepts: PaperReading['kind'][];
+  pages?: boolean;
+  /** Which pages to photograph, when the paper is long. */
+  hint?: string;
+  /** What to say when the paper is another kind, instead of the usual text. */
+  seen?: Partial<Record<PaperReading['kind'], string>>;
+}
 interface PapersApi {
-  pick(o: { accepts: PaperReading['kind'][]; pages?: boolean }): Promise<PaperReading | null>;
+  pick(o: PickOptions): Promise<PaperReading | null>;
   tell(title: string, text: string): Promise<string>;
   confirmDecision(reading: PaperReading, effect?: (bani: number) => string): Promise<number | null>;
 }
@@ -107,7 +115,7 @@ export function PapersProvider({ children }: { children: ReactNode }) {
   const api = useRef<PapersApi>(null as never);
   api.current = {
     tell,
-    async pick({ accepts, pages = false }) {
+    async pick({ accepts, pages = false, hint, seen }) {
       if (!store || !limits) return null;
       /* Asked once per phone: the paper goes to an AI reader. */
       const asked = pageKeys(mode).paperOk;
@@ -118,7 +126,7 @@ export function PapersProvider({ children }: { children: ReactNode }) {
         /* asks every time */
       }
       if (!ok) {
-        const answer = await ask('Citim hârtia cu un program AI', 'Hârtia ajunge la serviciul care o citește și poate avea numele, CNP-ul sau contul tău. Păstrăm doar cifrele pe care le confirmi tu, nu și hârtia.', [
+        const answer = await ask('Citim hârtia cu un program AI', 'Hârtia ajunge la serviciul care o citește și poate avea numele, CNP-ul sau contul tău. Din cererea APIA luăm numele, vârsta (o aflăm din CNP), județul și hectarele. Nu păstrăm CNP-ul, contul sau hârtia, ci doar ce confirmi tu.', [
           ['yes', 'Bine așa'],
           ['no', 'Renunță'],
         ]);
@@ -135,7 +143,7 @@ export function PapersProvider({ children }: { children: ReactNode }) {
         for (;;) {
           for (const f of await chooseFiles(pages)) files.push(await prepare(f, limits.photo_long_side_px.value));
           if (!files.length || files.some((f) => f.mediaType === 'application/pdf') || !pages || files.length >= limits.max_pages.value) break;
-          const more = await ask(files.length === 1 ? 'Ai o pagină' : `Ai ${files.length} pagini`, 'Dacă hârtia are mai multe pagini, adaugă-le pe toate.', [
+          const more = await ask(files.length === 1 ? 'Ai o pagină' : `Ai ${files.length} pagini`, hint ?? 'Dacă hârtia are mai multe pagini, adaugă-le pe toate.', [
             ['read', 'Citește hârtia'],
             ['more', 'Mai adaug o pagină'],
             ['stop', 'Renunță'],
@@ -157,7 +165,7 @@ export function PapersProvider({ children }: { children: ReactNode }) {
       let problem: string | null = null;
       try {
         reading = await store.readDocument(files.map(({ mediaType, data }) => ({ mediaType, data })));
-        if (!accepts.includes(reading.kind)) problem = SEEN[reading.kind];
+        if (!accepts.includes(reading.kind)) problem = seen?.[reading.kind] ?? SEEN[reading.kind];
       } catch (e) {
         const code = (e as { code?: string })?.code ?? '';
         problem = ERRORS[code] ?? (code === 'timeout' ? FAIL_TEXT.timeout.paper : SEEN.other);

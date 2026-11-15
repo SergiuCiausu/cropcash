@@ -58,8 +58,13 @@ function download(file: File) {
 }
 
 /** The phone's share menu when it takes files, otherwise a download. */
-export async function saveCalendarFile(name: string, ics: string, title: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
-  const file = new File([ics], name, { type: 'text/calendar' });
+export function saveCalendarFile(name: string, ics: string, title: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  return saveFile(new File([ics], name, { type: 'text/calendar' }), title);
+}
+
+/** Any file: the share menu on a phone (WhatsApp, e-mail, Files), a download elsewhere. On iOS the
+    share menu is the dependable way; a download there often only opens a preview. */
+export async function saveFile(file: File, title: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
   let shareable = false;
   try {
     shareable = !!navigator.canShare?.({ files: [file] });

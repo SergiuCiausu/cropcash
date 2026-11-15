@@ -53,10 +53,14 @@ describe('cropBreakdown', () => {
   };
 
   it.each(['bad', 'medium', 'good'] as const)('splits a %s year with nothing left over', async (year) => {
-    const b = viewFor(await viewOf(harvests([])), 'picked').cropBreakdown(year);
+    const view = viewFor(await viewOf(harvests([])), 'picked');
+    const b = view.cropBreakdown(year);
     addsUp(b);
     expect(b.rows.map((r) => r.cropId)).toEqual(['grau', 'porumb']);
-    expect(b.shared).toEqual({ inBani: 0, outBani: 0 });
+    /* Only the farmer's own sums with no crop (Ion's bank rate, the combine's service) belong to no crop. */
+    const own = view.harvestYearPlan().timelines[year].months.flatMap((m) => m.entries).filter((e) => e.kind === 'farmer_out' && !e.cropId);
+    expect(own.length).toBeGreaterThan(0);
+    expect(b.shared).toEqual({ inBani: 0, outBani: own.reduce((s, e) => s + e.value, 0) });
   });
 
   it('is the same on Acasă and on the pages that follow the picker', async () => {
@@ -74,7 +78,7 @@ describe('cropBreakdown', () => {
   });
 
   it('keeps a cost with no crop in its own row, and still adds up', async () => {
-    const b = viewFor(await viewOf(harvests([{ id: 'n1', kind: 'expense', category: 'repairs', amountBani: -50_000, date: '2026-11-10' }])), 'picked').cropBreakdown();
+    const b = viewFor(await viewOf(harvests([{ id: 'n1', kind: 'expense', category: 'constructions', amountBani: -50_000, date: '2026-11-10' }])), 'picked').cropBreakdown();
     addsUp(b);
   });
 

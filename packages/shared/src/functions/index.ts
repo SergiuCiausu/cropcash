@@ -5,3 +5,6 @@ export * from './whatIf';
 export * from './plan';
 export * from './registry';
 export * from './cards';
+export * from './plots';
+export * from './events';
+export * from './employees';

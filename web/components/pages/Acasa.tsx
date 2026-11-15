@@ -15,12 +15,15 @@ import { pageFits } from '../../lib/live/monitor';
 import { chartRows, cropChartRows, monthName, yearEnds } from '../../lib/ui/chart';
 import type { IconName } from '../../lib/ui/icons';
 import { Icon, OfflineNote, useHref } from '../app/bits';
+import { ResultsBasisSwitch, useResultsBasis } from '../app/Basis';
 import { InstallCard } from '../app/InstallCard';
 import { ItemSheet } from '../app/ItemSheet';
 import { AverageNote } from '../app/PageNotes';
 import { CropBreakdown } from '../app/CropBreakdown';
 import FarmChart from '../app/FarmChart';
 import { PageLink } from '../app/Frame';
+import { PayrollWarn } from '../app/PayrollWarn';
+import { EventNudges } from '../app/EventNudges';
 
 const MAX_ROWS = 5;
 const MAX_CALLS = 5;
@@ -87,25 +90,31 @@ function CropSummary({ view, crop }: { view: View; crop: NonNullable<View['tabbe
   const rows = cropChartRows(view.harvestYearPlan(), crop.months, 'medium');
   const low = rows.reduce((a, b) => (b.v < a.v ? b : a));
   const word = crop.name.toLowerCase();
+  /* "Total | Pe hectar" (docs/per-ha-total-plan.md); the line under the amount gives the other unit. */
+  const { show, perHa } = useResultsBasis();
+  const each = (bani: number) => show(bani, crop.ari, 'signed');
   return (
     <>
       <section className="card chart-card hero-card s8">
-        <p className="eyebrow">Ce rămâne din {word}</p>
-        <p className="amount">{lei(row.leftBani)}</p>
+        <div className="basis-row hero-basis">
+          <p className="eyebrow">Ce rămâne din {word}</p>
+          <ResultsBasisSwitch />
+        </div>
+        <p className="amount">{each(row.leftBani)}</p>
         <p className="why">
-          Adică {lei(Math.round((row.leftBani * 100) / crop.ari))} pe hectar, pe toată {harvestName(view.scoped)}.
+          {perHa ? `Adică ${lei(row.leftBani)} pe ${ha(crop.ari)} ha` : `Adică ${lei(Math.round((row.leftBani * 100) / crop.ari))} pe hectar`}, pe toată {harvestName(view.scoped)}.
         </p>
         <FarmChart className="chart fc-chart" id="fc" rows={rows} low={low} year="medium" label={`Ce a adus cultura de ${word} minus ce a costat, lună de lună. La final: ${lei(rows[rows.length - 1].v)}.`} />
       </section>
       <div className="s4 side-stats ac-side">
         <section className="card kpi">
           <p className="lbl">Intră</p>
-          <p className="n20">{lei(row.inBani)}</p>
+          <p className="n20">{each(row.inBani)}</p>
           <p className="sub2">Vânzări și partea de la APIA</p>
         </section>{' '}
         <section className="card kpi">
           <p className="lbl">Ies</p>
-          <p className="n20">{lei(row.outBani)}</p>
+          <p className="n20">{each(row.outBani)}</p>
           <p className="sub2">Pe {ha(row.areaAri)} ha</p>
         </section>
       </div>
@@ -255,7 +264,7 @@ export default function Acasa() {
   /* ---- Calls still open: the ones followed first, then the soonest ---- */
   const callRows = useMemo(() => {
     const calls = new Map<string, { key: string; name: string; deadline: string | null; followed: boolean }>();
-    const fits = pageFits(monitor.calls, view.farm, view.data(), today);
+    const fits = pageFits(monitor.calls, { ...view.farm, ownCrops: view.harvests.ownCrops }, view.data(), today);
     for (const c of monitor.calls) {
       const followed = monitor.follows.has(c.key);
       const open = c.deadline ? c.deadline >= today : c.status === 'open';
@@ -294,11 +303,13 @@ export default function Acasa() {
         </div>
       </header>
       <OfflineNote>Nu ai internet. Vezi ultimele date salvate pe acest telefon.</OfflineNote>
+      <EventNudges />
       <div className="bento">
         {crop ? (
           <CropSummary view={view} crop={crop} />
         ) : (
           <>
+            <PayrollWarn plan={plan} link />
             <SalaryHero view={view} plan={plan} nextMoney={nextMoney} />
             <SideStats view={view} plan={plan} />
           </>

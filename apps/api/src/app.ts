@@ -11,12 +11,26 @@ import type { Assistant } from './ai/assistant';
 import { assistantRouter } from './routes/assistant';
 import { documentsRouter } from './routes/documents';
 import { farmersRouter } from './routes/farmers';
+import { fertilizersRouter, type FertilizerDeps } from './routes/fertilizers';
 import { functionsRouter } from './routes/functions';
 import { planRouter } from './routes/plan';
+import { plotsRouter } from './routes/plots';
+import type { PlotStore } from './db/plots';
+import { lpisRouter } from './routes/lpis';
+import type { LpisSource } from './lpis/client';
+import { eventsRouter } from './routes/events';
+import type { EventStore } from './db/events';
+import { employeesRouter } from './routes/employees';
+import { arendaRouter } from './routes/arenda';
+import type { ArendaStore } from './db/arenda';
+import type { EmployeeStore } from './db/employees';
+import { membersRouter } from './routes/members';
+import type { MemberStore } from './db/members';
 import { recordsRouter } from './routes/records';
 import { sourcesRouter, type SourcesDeps } from './routes/sources';
 import { weatherRouter } from './routes/weather';
 import { moneyRouter, webhookRouter, type MoneyDeps } from './routes/money';
+import { predictionsRouter, type PredictionDeps } from './routes/admin';
 import { createWeatherService, type WeatherService } from './weather';
 
 export interface AppDeps {
@@ -43,6 +57,24 @@ export interface AppDeps {
   assistant?: Assistant;
   /** Assistant messages per farmer per day. */
   assistantDailyLimit?: number;
+  /** The fertilizer catalogue. Without it, those routes don't exist. */
+  fertilizers?: FertilizerDeps;
+  /** Parcels on the map. Without it, those routes don't exist. */
+  plots?: PlotStore;
+  /** APIA's blocs, for finding parcels on the map. Without it, those routes don't exist. */
+  lpis?: LpisSource;
+  /** The farmer's own calendar events. Without it, those routes don't exist. */
+  events?: EventStore;
+  /** The farm's people. Without it, those routes don't exist. */
+  employees?: EmployeeStore;
+  arenda?: ArendaStore;
+  /** Who else sees the farm's reports (migration 028). Without it, those routes don't exist. */
+  members?: MemberStore;
+  /**
+   * The admin panel's published changes to docs/data. `data` should then be liveData(source), so
+   * every route reads the version in force. Without it, those routes don't exist.
+   */
+  predictions?: PredictionDeps;
 }
 
 export function createApp({
@@ -60,6 +92,14 @@ export function createApp({
   money,
   assistant,
   assistantDailyLimit = 5,
+  fertilizers,
+  plots,
+  lpis,
+  events,
+  employees,
+  arenda,
+  members,
+  predictions,
 }: AppDeps) {
   const reads = { repo, data, params: subsidyParams, now, getRates, monitor };
   const app = express();
@@ -88,7 +128,15 @@ export function createApp({
   app.use('/api', assistantRouter(reads, assistant, assistantDailyLimit));
   app.use('/api', opportunitiesRouter(repo));
   app.use('/api', weatherRouter(repo, weather));
+  if (fertilizers) app.use('/api', fertilizersRouter(fertilizers));
+  if (plots) app.use('/api', plotsRouter(plots));
+  if (lpis) app.use('/api', lpisRouter(lpis));
+  if (events) app.use('/api', eventsRouter(repo, events, data, subsidyParams ?? {}, now));
+  if (employees) app.use('/api', employeesRouter(repo, employees, now));
+  if (arenda) app.use('/api', arendaRouter(repo, arenda, now));
+  if (members) app.use('/api', membersRouter({ repo, members, webOrigins: corsOrigins, now }));
   if (money) app.use('/api', moneyRouter(money));
+  if (predictions) app.use('/api', predictionsRouter(predictions));
 
   // Express 5 forwards rejected promises here. Never leak internals to the client.
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

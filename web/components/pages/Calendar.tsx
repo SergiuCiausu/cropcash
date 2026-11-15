@@ -3,14 +3,20 @@
    calls (was web/legacy/calendar.js). Money, work and official dates come from buildFarmPlan, so this
    page shows what the plan shows. A ticked task goes through the outbox on a real farm, so it works
    offline; on Ion's farm it stays on the phone. Removing a followed call needs internet. */
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { eventItems, forCrop, parseOccurrenceId, type EventItem, type StoredEvent } from '../../../packages/shared/src/calendar/events';
+import { lastDay } from '../../../packages/shared/src/cashflow/dates';
 import { date, daysLeft, exact, zile } from '../../lib/cc/format';
+import { loadPlots, type FarmPlots } from '../../lib/cc/plots';
+import { useOnline, useStore } from '../../lib/cc/react';
+import { CATEGORY_WORDS, EventSheet, OPERATION_LABELS } from '../app/EventSheet';
 import { callName } from '../../lib/cc/monitor';
 import type { PlanItem } from '../../lib/cc/plan';
 import { useFarm, useMoney, useMonitor, useView } from '../../lib/cc/react';
 import type { IconName } from '../../lib/ui/icons';
 import { CHEVRON, Icon, OfflineNote, useHref, Verify } from '../app/bits';
 import { ItemActions, ItemDetail, ItemSheet, MONTH_NAMES, monthName, type SheetItem } from '../app/ItemSheet';
+import { EventActions, findOccurrence } from '../app/EventActions';
 import { FutureNote } from '../app/PageNotes';
 import { PageLink } from '../app/Frame';
 
@@ -21,8 +27,10 @@ const VIEWS: [Tab, string][] = [
   ['money', 'Bani'],
   ['todo', 'De făcut'],
   ['work', 'Lucrări'],
+  ['mine', 'Ale mele'],
 ];
-type Tab = 'all' | 'money' | 'todo' | 'work';
+type Tab = 'all' | 'money' | 'todo' | 'work' | 'mine';
+const EVENT_ICONS: Record<EventItem['category'], IconName> = { crop: 'sprout', animals: 'home', machinery: 'tool', money: 'sack', paperwork: 'cal', other: 'more', plot: 'spray' };
 const monthShort = (key: string) => MONTH_SHORT[+key.split('-')[1] - 1];
 const signedText = (bani: number) => `${bani < 0 ? '−' : ''}${exact(Math.abs(bani))} lei`;
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -37,15 +45,47 @@ const weekday = (iso: string) => {
 };
 const count = (n: number) => (n === 1 ? 'un lucru' : `${n} lucruri`);
 
-/** A plan entry or a followed call, as a row of the calendar. */
-type Item = SheetItem & { icon: IconName };
+/** A plan entry, a followed call, or one of the farmer's own events, as a row of the calendar. */
+type Item = SheetItem & { icon: IconName; doneOwn?: boolean; op?: boolean; category?: EventItem['category'] };
 
 const FILTER: Record<Tab, (i: Item) => boolean> = {
   all: () => true,
   money: (i) => i.direction !== 'none',
-  todo: (i) => !!i.task || !!i.follow,
-  work: (i) => i.kind === 'input_cost',
+  todo: (i) => !!i.task || !!i.follow || (!!i.ev && i.direction === 'none') || !!i.op,
+  work: (i) => i.kind === 'input_cost' || !!i.op || i.category === 'crop',
+  mine: (i) => !!i.ev || !!i.op,
 };
+
+/** A farmer's event or a piece of parcel work as a calendar row. Money comes through the plan instead. */
+function ownItem(x: EventItem, plotName: (id: string) => string, cropName: (id: string) => string): Item {
+  const op = x.operation;
+  const title = op ? `${OPERATION_LABELS.find(([k]) => k === op.kind)?.[1] ?? 'Lucrare'}${op.product ? `: ${op.product}` : ''}` : x.title;
+  const where = op ? plotName(op.plot_id) : x.cropId ? cropName(x.cropId) : x.category === 'plot' ? '' : CATEGORY_WORDS[x.category];
+  const when = x.occurrence?.atTime ? `, la ${x.occurrence.atTime}` : x.endDate && x.endDate !== x.date ? `, până pe ${date(x.endDate)}` : '';
+  return {
+    id: x.id,
+    kind: (op ? 'plot_work' : 'farmer_event') as SheetItem['kind'],
+    title,
+    date: x.date as string,
+    month: x.month as string,
+    window: null,
+    amount: x.amount != null ? { min: x.amount, probable: x.amount, max: x.amount } : null,
+    value: x.amount ?? 0,
+    direction: x.direction,
+    estimated: false,
+    unverified: false,
+    event: null,
+    sub: `${where}${when}${x.repeat !== 'none' ? (where || when ? ', ' : '') + (x.repeat === 'monthly' ? 'lunar' : 'anual') : ''}` || 'Notat de tine',
+    icon: EVENT_ICONS[x.category],
+    tone: 'b',
+    task: false,
+    exactDay: !!x.date,
+    ...(x.occurrence ? { ev: { eventId: x.occurrence.eventId, originalDate: x.occurrence.originalDate } } : {}),
+    doneOwn: x.done,
+    op: !!op,
+    category: x.category,
+  };
+}
 const shade = (i: Item) => (i.direction === 'in' ? 'in' : i.direction === 'out' ? 'out' : 'task');
 const chipText = (i: Item) => (i.direction === 'none' ? i.title : `${i.direction === 'in' ? '+' : '−'}${exact(i.value)}`);
 
@@ -62,7 +102,24 @@ export default function Calendar() {
   const timeline = plan.timelines.medium;
   const months = crop ? crop.months(timeline) : timeline.months;
   const onServer = !!farm.me;
+  const store = useStore()!;
+  const online = useOnline();
   const done = useMemo(() => new Set(farm.doneTasks), [farm.doneTasks]);
+  /* Parcels and their work come from the server for now, so they show only with internet. */
+  const [plots, setPlots] = useState<FarmPlots | null>(null);
+  useEffect(() => {
+    if (!onServer || !online) return;
+    let live = true;
+    loadPlots(store.live)
+      .then((p) => live && setPlots(p))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [onServer, online, store]);
+  /* „Adaugă” on a day, or „Schimbă” on an event. */
+  const [adding, setAdding] = useState<{ day: string | null } | null>(null);
+  const [editing, setEditing] = useState<{ event: StoredEvent; originalDate: string } | null>(null);
   const left = (iso: string) => daysLeft(iso, TODAY);
 
   /* Followed calls come from the same list as /oportunitati. Variants of one call count once. */
@@ -100,10 +157,27 @@ export default function Calendar() {
       seen.get(id)!.budgets!.push((c as { budgetEur?: number | null }).budgetEur);
     }
     const followed = [...seen.values()].filter((i) => !i.date || i.date >= TODAY);
-    const list = months.flatMap((m) => m.entries.map((e) => view.planItem(e, m.key) as unknown as Item));
-    return [...list, ...followed].sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
-  }, [view, months, monitor.followed, crop, TODAY]);
-  const isDone = (i: Item) => !!i.task && done.has(i.id);
+    const list = months.flatMap((m) =>
+      m.entries.map((e) => {
+        const it = view.planItem(e, m.key) as unknown as Item;
+        /* A sum the farmer planned: the plan gives its amount, the event gives the rest. */
+        const occ = it.own ? parseOccurrenceId(it.id) : null;
+        return occ ? { ...it, ev: occ } : it;
+      }),
+    );
+    /* The farmer's events without money, money already answered, and parcel work. */
+    const from = `${months[0].key}-01`;
+    const to = lastDay(months[months.length - 1].key);
+    const seasons = plots?.seasons ?? [];
+    const all = eventItems(farm.events, plots?.operations ?? [], plots?.plots ?? [], seasons, from, to);
+    const plotName = (id: string) => {
+      const p = plots?.plots.find((x) => x.id === id);
+      return p?.name ?? (p?.bloc_fizic ? `Bloc ${p.bloc_fizic}` : 'Parcelă');
+    };
+    const own = (crop ? forCrop(all, crop.id, seasons) : all).filter((x) => x.direction === 'none' || x.done).map((x) => ownItem(x, plotName, view.cropName));
+    return [...list, ...own, ...followed].sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
+  }, [view, months, monitor.followed, crop, TODAY, farm.events, plots]);
+  const isDone = (i: Item) => (i.ev || i.op ? !!i.doneOwn : !!i.task && done.has(i.id));
 
   /* ---- State that a fresh load used to reset ---- */
   const calKeys = months.map((m) => m.key);
@@ -202,13 +276,16 @@ export default function Calendar() {
 
   /* What an item says, on the green card and in the pop-up alike. */
   const detailBody = (i: Item) => <ItemDetail item={i} items={items} view={view} />;
-  const actions = (i: Item, onDone: () => void) => <ItemActions key={i.id} item={i} onDone={onDone} />;
+  const actions = (i: Item, onDone: () => void) => {
+    const occ = i.ev ? findOccurrence(farm.events, i.ev.eventId, i.ev.originalDate) : null;
+    return occ ? <EventActions key={i.id} occ={occ} onDone={onDone} onEdit={(event, originalDate) => setEditing({ event, originalDate })} /> : <ItemActions key={i.id} item={i} onDone={onDone} />;
+  };
 
   /* ---- Green card: the next dated thing in full, then three numbers ---- */
   /* A later harvest starts in its own year, so today's deadlines don't lead its calendar. */
   const from = [TODAY, `${months[0].key}-01`].sort().pop()!;
   const next = items.find((i) => !isDone(i) && i.exactDay && i.date >= from);
-  const soonTasks = items.filter((i) => (i.task || i.follow) && !isDone(i) && i.date && left(i.date) >= 0 && left(i.date) <= 30).length;
+  const soonTasks = items.filter((i) => (i.task || i.follow || i.ev || i.op) && !isDone(i) && i.date && left(i.date) >= 0 && left(i.date) <= 30).length;
   const coming = months.reduce((s, x) => s + x.in, 0);
 
   /* ---- The list ---- */
@@ -259,6 +336,11 @@ export default function Calendar() {
         <div>
           <h1>Calendar</h1>
           <p className="lead">{crop ? `Lucrările și banii pentru ${crop.name.toLowerCase()}, pe un singur an.` : 'Bani, termene și lucrări, pe un singur an.'}</p>
+        </div>
+        <div className="acts cal-new">
+          <button type="button" className="btn btn-dark" onClick={() => setAdding({ day: calDay && calDay >= TODAY ? calDay : null })}>
+            Adaugă
+          </button>
         </div>
       </header>
       <FutureNote />
@@ -314,6 +396,9 @@ export default function Calendar() {
                     ) : null}
                   </h3>
                   <div className="rows">{onDay.get(calDay)!.map(row)}</div>
+                  <button type="button" className="cal-add" onClick={() => setAdding({ day: calDay })}>
+                    + Adaugă în ziua asta
+                  </button>
                 </>
               ) : loose.length || openWindow.length ? null : (
                 <p className="cal-none">Nimic planificat în luna asta.</p>
@@ -340,7 +425,7 @@ export default function Calendar() {
           <p className="eyebrow">Urmează</p>
           <h2>{next ? next.title : 'Nimic în următoarele 12 luni.'}</h2>
           {next ? detailBody(next) : null}
-          {next && (next.task || next.follow) ? (
+          {next && (next.task || next.follow || next.ev) ? (
             <div className="v-acts">
               {actions(next, () => undefined)}
             </div>
@@ -420,12 +505,13 @@ export default function Calendar() {
       <p className="note gap">
         {crop
           ? `Partea de la APIA e împărțită după hectare. Termenele APIA, banii din cont și oportunitățile sunt la ${view.projectName(view.selected)}.`
-          : t(`Am pornit de la ${exact(view.farm.startBalanceBani)} lei în cont${farm.isIon ? ', ca în exemplul lui Ion' : ''}. Sumele de aici nu scad salariul de ${exact(plan.salary.salary)} lei și pensia de ${exact(view.pensionBani())} lei pe lună.${onServer ? '' : ' Apelurile urmărite sunt exemple pentru demo.'}`)}
+          : t(`Am pornit de la ${exact(view.farm.startBalanceBani)} lei în cont${farm.isIon ? ', ca în exemplul lui Ion' : ''}. Sumele de aici nu scad salariul de ${exact(plan.salary.salary)} lei și pensia de ${exact(view.pensionBani())} lei pe lună. Sumele puse de tine în calendar intră în plan, așa că salariul socotește cu ele.${onServer ? '' : ' Apelurile urmărite sunt exemple pentru demo.'}`)}
       </p>{' '}
       <PageLink path="/prognoza" href={href('/prognoza')} className="btn btn-dark next-step">
         Mai departe: prognoza pe un an
       </PageLink>
-      <ItemSheet item={item ?? null} items={items} view={view} onClose={() => setOpenId(null)} />
+      <ItemSheet item={item ?? null} items={items} view={view} onClose={() => setOpenId(null)} onEdit={(event, originalDate) => setEditing({ event, originalDate })} />
+      <EventSheet open={!!adding || !!editing} day={adding?.day ?? null} editing={editing} cropId={crop?.id ?? null} onClose={() => (setAdding(null), setEditing(null))} />
     </>
   );
 

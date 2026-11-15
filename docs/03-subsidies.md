@@ -34,7 +34,7 @@ De aceea **rezultatul e întotdeauna un interval**, nu o cifră fixă.
 | PD-03 | Tineri fermieri (<40 ani) | ha | 55,36 | 75% | FEGA | confirmat-2026 |
 | PD-04 | Eco-schemă teren arabil | ha | 56,28 | 42,21 (75%) | FEGA | confirmat-2026 |
 | PD-05 | Eco-schemă ferme mici | ha | 100 | 75 | FEGA | DE-VERIFICAT |
-| PD-28 | Zone neproductive | ha | necunoscut (2025: 32,94–40,21) | — | FEGA | DE-VERIFICAT |
+| PD-28 | Zone neproductive | ha (tot terenul arabil) | necunoscut; estimare cu 32,9366 din 2025 | — | FEGA | DE-VERIFICAT |
 | CPL-VACI-LAPTE | Cuplat vaci de lapte | cap | 347,81 | — | FEGA | DE-VERIFICAT |
 | CPL-VITA-CARNE | Cuplat vită de carne | cap | 244,72 | — | FEGA | DE-VERIFICAT |
 
@@ -51,7 +51,14 @@ Fondul FEGA pentru toate plățile directe (Pilonul I) e o deducție din structu
 | PD-03 | vârsta < 40 de ani | confirmat; alte condiții (prima instalare, plafon de ha) DE-VERIFICAT |
 | PD-04 | teren arabil ≥ 10,01 ha; la 10,01–30 ha, minimum 2 culturi; parcele ≥ 0,3 ha | confirmat ([agrointel PDF](https://agrointel.ro/wp-content/uploads/2025/02/pd-04-agrointeligenta.pdf)); peste 30 ha DE-VERIFICAT |
 | PD-05 | plafon de 10 ha | DE-VERIFICAT (e plafonul fermei sau suprafața plătită?) |
-| PD-28 | se combină cu PD-04 și PD-05 | din brief |
+| PD-28 | cel puțin 2% din terenul arabil lăsat necultivat (pârloagă, margini de câmp, fâșii); plata se dă pe **tot** terenul arabil; se combină cu PD-04 și PD-05 | 2% din regulile 2025 ([agrointel PDF](https://agrointel.ro/wp-content/uploads/2025/02/Informare-privind-PD-28-agrointeligenta.pdf)), DE-VERIFICAT pentru 2026 |
+
+### Teren necultivat
+
+Fermierul îl trece ca o cultură, „Teren necultivat” (`teren-necultivat`, `kind: "fallow"` în `crops-reference.json`). Nu are cheltuieli, recoltă sau vânzare, deci planul de bani îl sare. La subvenții contează:
+- ca **teren arabil** (intră în PD-01, PD-02, PD-04 etc.);
+- ca **o cultură în plus** la diversificare (PD-04): grâu + porumb + teren necultivat = 3 culturi;
+- ca **zonă neproductivă**: `unproductive_ha` = parcelele necultivate + `unproductiveHa` (margini fără parcelă), iar `unproductive_pct` = `unproductive_ha / arable_ha`, în sutimi de procent, rotunjit în jos.
 
 ### Cum sunt scrise regulile (declarativ, în JSON)
 
@@ -61,7 +68,7 @@ Fondul FEGA pentru toate plățile directe (Pilonul I) e o deducție din structu
   "then": [ { "field": "distinct_crops", "op": ">=", "value": 2 } ] }
 ```
 
-Câmpurile disponibile (`FarmProfile`): `total_ha`, `arable_ha`, `distinct_crops`, `age`, `dairy_cows`, `beef_cattle`, `unproductive_ha`, `parcels[]`.
+Câmpurile disponibile (`FarmProfile`): `total_ha`, `arable_ha`, `distinct_crops`, `age`, `dairy_cows`, `beef_cattle`, `unproductive_ha`, `unproductive_pct`, `parcels[]`. Regulile scriu suprafețele în ha și procentele în %; profilul le ține ca întregi (ari, sutimi de procent).
 
 Motorul (`packages/shared/src/subsidies/`) e format din **funcții pure**:
 
@@ -97,7 +104,7 @@ probable_factor = 1
 Rezultă `min_factor ≈ 0,900` și `max_factor ≈ 1,011`.
 
 - **Schemele fără istoric** (PD-02, PD-03, PD-04, PD-05) folosesc factorii de la BISS (`fallback_scheme`). E o presupunere de produs, listată în open questions.
-- **PD-28** nu intră în calculul MVP. Dacă o adăugăm, are intervalul propriu: 32,94 (min) – 40,21 (max) €/ha din 2025.
+- **PD-28** nu are cuantum pentru 2026. Schema are `estimate` (32,9366 €/ha, suma stabilită în 2025), iar motorul o pune în `estimated`, nu în `schemes`. **Estimarea nu intră în totaluri**, deci nici în salariu sau pensie. Subvenții o arată separat, cu eticheta „Estimare”. Când apare cuantumul 2026, se scrie în `amount_eur` și `estimate` se șterge.
 - Factorii se calculează în cod din JSON, nu se scriu de mână.
 - **Avansul** e calculat pe cuantumul de referință (probabil), pentru că e deja anunțat. **Incertitudinea stă doar în sold:** `sold_min = total_min − avans`. Dacă `sold_min < 0`, se afișează 0, iar UI-ul avertizează („s-ar putea să nu mai primești nimic din rest”).
 

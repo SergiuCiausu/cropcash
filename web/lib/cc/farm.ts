@@ -8,6 +8,7 @@ import demoIon from '../../../docs/data/demo-ion.json';
 import type { AppData } from '../../../packages/shared/src/data/index';
 import { farmToday, withOwnCrops, harvestYear, type OwnCrop, type StoredFarm } from '../../../packages/shared/src/farm/index';
 import { todayInRomania } from '../../../packages/shared/src/cashflow/dates';
+import type { StoredEvent } from '../../../packages/shared/src/calendar/events';
 import { farmForPages, type MeFarm as LiveMeFarm } from '../live/farm';
 
 /** The saved /api/me copy, with the followed calls the calendar shows offline. */
@@ -76,6 +77,8 @@ export interface FarmState {
   ownPension: number | null;
   follows: string[];
   doneTasks: string[];
+  /** The farmer's own calendar events: from the server copy (with the queue), or kept on the phone. */
+  events: StoredEvent[];
   outbox: OutboxItem[];
   refused: OutboxItem[];
   monitor: MonitorCopy | null;
@@ -89,6 +92,13 @@ function ownCrops(store: KeyStore, mode: Mode, me: MeFarm | null): OwnCrop[] {
 
 function stringList(raw: unknown): string[] {
   return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
+}
+
+/** Off the server the events live on the phone. Ion starts with the examples in docs/data. */
+export function localEvents(store: KeyStore, mode: Mode): StoredEvent[] {
+  const saved = readJson<StoredEvent[]>(store, farmKeys(mode).events);
+  if (Array.isArray(saved)) return saved;
+  return mode === 'demo' ? (demoIon.calendar_events.events as unknown as StoredEvent[]) : [];
 }
 
 function savedPension(store: KeyStore, mode: Mode): number | null {
@@ -121,6 +131,7 @@ export function readFarmState(mode: Mode, store: KeyStore, base: AppData, now: D
     ownPension: me ? null : savedPension(store, mode),
     follows: me ? (meSaved?.opportunity_follows ?? []).map((f) => f.stable_key) : stringList(readJson(store, keys.follows)),
     doneTasks: me ? (me.task_completions ?? []).map((t) => t.task_id) : stringList(readJson(store, keys.done)),
+    events: me ? (me.farm_events ?? []) : localEvents(store, mode),
     outbox,
     refused: mode === 'farm' ? readOutbox(readJson(store, KEYS.refused)) : [],
     monitor: me ? savedMonitor(store) : null,

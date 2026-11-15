@@ -20,7 +20,12 @@
     "test:stripe": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.stripe.config.ts",
     "test:assistant": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.assistant.config.ts",
     "seed:demo": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-demo.ts",
-    "demo:rehearse": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/rehearse-demo.ts"
+    "seed:fertilizers": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-fertilizers.ts",
+    "demo:rehearse": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/rehearse-demo.ts",
+    "admin:rehearse": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/rehearse-admin.ts",
+    "geo:siruta": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts",
+    "geo:lpis": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts",
+    "geo:import": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/reconcile.ts"
   },
   "engines": {
     "node": ">=20"

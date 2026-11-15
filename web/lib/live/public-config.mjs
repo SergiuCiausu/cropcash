@@ -32,5 +32,7 @@ export function publicConfig(env) {
     supabaseKey: env[NAMES.supabaseKey],
     apiUrl: env.VITE_API_URL || DEFAULT_API_URL,
     demo: env.VITE_DEMO_MODE === 'true',
+    /* Public by design, restricted by origin in the MapTiler dashboard (docs/harta-plan.md, decision 5). */
+    ...(env.VITE_MAPTILER_KEY ? { maptilerKey: env.VITE_MAPTILER_KEY } : {}),
   };
 }

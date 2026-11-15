@@ -4,7 +4,7 @@
 import { addMonths } from '../../packages/shared/src/cashflow/dates';
 import { paydaysBetween } from '../../packages/shared/src/cashflow/simulate';
 
-type Pots = { salary: number; spring_inputs: number; debts: number; pension: number };
+type Pots = { salary: number; payroll: number; spring_inputs: number; debts: number; pension: number };
 
 export interface DemoAccountPlan {
   proposal: Pots;

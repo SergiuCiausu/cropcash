@@ -13,6 +13,7 @@ const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'i
 const SHORT = ['ian.', 'feb.', 'mar.', 'apr.', 'mai', 'iun.', 'iul.', 'aug.', 'sept.', 'oct.', 'nov.', 'dec.'];
 const monthNo = (key: string) => +key.split('-')[1] - 1;
 export const monthName = (key: string) => `${MONTHS[monthNo(key)]} ${key.slice(0, 4)}`;
+export const shortMonth = (key: string) => SHORT[monthNo(key)];
 export const yearName = (k: Year) => YEARS.find(([y]) => y === k)![1];
 
 /** One point: the short month under the axis, its full name, the chosen year's balance, and all three. */

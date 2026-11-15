@@ -79,3 +79,4 @@ html[data-ready] .boot-skel { opacity: 0; visibility: hidden; pointer-events: no
 /* ---- After the page is up: a chart's place until it's drawn, and the weather (docs/13 §B4) ---- */
 .fc-chart:empty, .pn-chart:empty, .chart.big:empty { border-radius: 12px; background: color-mix(in srgb, var(--text-1) 6%, transparent); }
 .wx-wait { display: grid; gap: 10px; margin-top: 12px; }
+.sk-head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }

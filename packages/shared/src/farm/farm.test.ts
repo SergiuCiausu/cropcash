@@ -6,6 +6,7 @@ import {
   birthYearFromAge,
   farmInputFromOnboarding,
   farmInputFromStored,
+  farmSetupRow,
   validateOnboarding,
   type OnboardingInput,
 } from './index';
@@ -80,5 +81,29 @@ describe('stored farm round-trip', () => {
     const b = computeSubsidies(farmInputFromStored(stored, year), data);
     expect(b.totals).toEqual(a.totals);
     expect(a.totals.eur.probable).toBe(319500);
+  });
+});
+
+
+describe('how the farm works its land (plan step 5)', () => {
+  const data = loadData();
+  const farm: OnboardingInput = { name: 'Ana', county: 'TR', age: 50, parcels: [{ cropId: 'grau', areaHa: 120 }, { cropId: 'porumb', areaHa: 30 }] };
+
+  it('takes the mode and the arendă hectares, all optional', () => {
+    expect(OnboardingInputSchema.parse(farm)).not.toHaveProperty('farmMode');
+    expect(OnboardingInputSchema.parse({ ...farm, farmMode: 'arendas', leasedInHa: 100.25, leasedOutHa: 0 })).toMatchObject({ farmMode: 'arendas', leasedInHa: 100.25, leasedOutHa: 0 });
+    for (const bad of [{ farmMode: 'family' }, { leasedInHa: -1 }, { leasedOutHa: 1.234 }]) expect(OnboardingInputSchema.safeParse({ ...farm, ...bad }).success).toBe(false);
+  });
+
+  it('refuses more land in arendă than the farm has', () => {
+    expect(validateOnboarding({ ...farm, leasedInHa: 150 }, data)).toEqual([]);
+    expect(validateOnboarding({ ...farm, leasedInHa: 150.01 }, data)).toEqual(['leased_too_large']);
+    // Land given to someone else isn't in the parcels, so it isn't limited by them.
+    expect(validateOnboarding({ ...farm, leasedOutHa: 500 }, data)).toEqual([]);
+  });
+
+  it('turns the answers into columns in ari, only the ones sent', () => {
+    expect(farmSetupRow({})).toEqual({});
+    expect(farmSetupRow({ farmMode: 'own', leasedInHa: 12.5, leasedOutHa: 0 })).toEqual({ farm_mode: 'own', leased_in_ari: 1250, leased_out_ari: 0 });
   });
 });

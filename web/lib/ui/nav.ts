@@ -2,19 +2,34 @@
    a page belongs to. Pure, so the React frame and its tests share it. */
 import type { IconName } from './icons';
 
+/** „Cum lucrezi pământul?” (docs/employees-arenda-plan.md §2.2): the navigation is a preset per mode. */
+export type FarmMode = 'own' | 'arendas';
+
 /**
  * The rail on a computer shows them all. A phone's bottom bar shows four, with big labels, and puts the
  * `railOnly` ones under "Mai mult" (MoreMenu in Frame.tsx), so Ion's buttons stay wide enough to read.
  */
-export const TABS: { path: string; icon: IconName; label: string; railOnly?: true }[] = [
+export const TABS: { path: string; icon: IconName; label: string; railOnly?: true; modes?: readonly FarmMode[] }[] = [
   { path: '/acasa', icon: 'home', label: 'Acasă' },
   { path: '/subventii', icon: 'bank', label: 'Subvenții' },
   { path: '/calendar', icon: 'cal', label: 'Calendar', railOnly: true },
   { path: '/prognoza', icon: 'chart', label: 'Prognoză', railOnly: true },
   { path: '/recolte', icon: 'sprout', label: 'Recolte' },
+  { path: '/harta', icon: 'map', label: 'Harta', railOnly: true },
   { path: '/salariu', icon: 'sack', label: 'Salariu' },
   { path: '/pensie', icon: 'hourglass', label: 'Pensie', railOnly: true },
+  { path: '/oameni', icon: 'people', label: 'Oameni', railOnly: true },
+  { path: '/arenda', icon: 'land', label: 'Arendă', railOnly: true, modes: ['arendas'] },
+  { path: '/rapoarte', icon: 'doc', label: 'Rapoarte', railOnly: true },
 ];
+
+/**
+ * The tabs a farm sees. A tab with `modes` shows only for those modes: Arendă for 'arendas'. Without a farm
+ * (Ion's farm, before the copy is read) it's 'own'. `hasArenda`: a farm on its own land that still has
+ * landowners or lets land to someone (D5) sees Arendă too.
+ */
+export const tabsFor = (mode: FarmMode | null | undefined, hasArenda = false) =>
+  TABS.filter((t) => !t.modes || t.modes.includes(mode ?? 'own') || (hasArenda && t.path === '/arenda'));
 
 /** The three pages under the Subvenții tab, in its sub-navigation. */
 export const SUBSIDY_PAGES: { path: string; label: string }[] = [
@@ -45,6 +60,6 @@ export const CROP_TAB_PAGES: readonly string[] = ['/acasa', '/subventii', '/cale
  * page load; a link to a legacy page loads it, because its scripts run once per load (lib/boot.ts).
  * screens.test.ts checks this list against web/screens.
  */
-export const REACT_PAGES: readonly string[] = ['/salariu', '/date-plan', '/subventii', '/calendar', '/recolte', '/prognoza', '/pensie', '/bani', '/oportunitati', '/surse', '/acasa'];
+export const REACT_PAGES: readonly string[] = ['/salariu', '/date-plan', '/subventii', '/calendar', '/recolte', '/prognoza', '/pensie', '/bani', '/oportunitati', '/surse', '/acasa', '/rapoarte', '/harta', '/oameni', '/arenda', '/admin'];
 
 export const isReactPage = (page: string) => REACT_PAGES.includes(page);

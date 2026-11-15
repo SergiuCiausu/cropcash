@@ -4,6 +4,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createApp } from '../../apps/api/src/app';
 import { supabaseFactory } from '../../apps/api/src/db/supabase';
 import { supabaseRepo } from '../../apps/api/src/db/repo';
+import { supabasePlots } from '../../apps/api/src/db/plots';
+import { supabaseEmployees } from '../../apps/api/src/db/employees';
 import { loadData } from '../../packages/shared/src';
 import { supabaseTokenVerifier } from '../../apps/api/src/middleware/auth';
 
@@ -35,6 +37,8 @@ async function makeUser(tag: string): Promise<TestUser> {
 let a: TestUser;
 let b: TestUser;
 let farmA: string;
+/** A's parcel on the map, saved below and used by the API tests too. */
+let plotA: string;
 
 beforeAll(async () => {
   if (!url || !anonKey || !serviceKey) throw new Error('Supabase env vars missing');
@@ -106,6 +110,56 @@ describe('Row Level Security', () => {
     const { data } = await anon.from('farmers').select('*');
     expect(data ?? []).toEqual([]);
   });
+
+  /* Parcels as pieces of land (migration 020, docs/harta-plan.md). */
+
+  it('a user can save a parcel on the map, and the crop total follows it', async () => {
+    const year = (await a.client.rpc('farm_harvest_year', { p_farmer: farmA })).data as number;
+    const { data, error } = await a.client.rpc('save_plots', {
+      p_harvest_year: year,
+      p_plots: [{ siruta: 153277, bloc_fizic: '286', parcel_no: '1a', geometry_source: 'approx', season: { crop_id: 'grau', area_ari: 900 } }],
+    });
+    expect(error).toBeNull();
+    plotA = (data as string[])[0]!;
+    const totals = await a.client.from('parcels').select('crop_id, area_ari').eq('farmer_id', farmA);
+    expect(totals.data).toEqual([{ crop_id: 'grau', area_ari: 900 }]);
+  });
+
+  it("another user can't see A's parcel, add a season or work to it, or save onto it", async () => {
+    expect((await b.client.from('plots').select('id')).data).toEqual([]);
+    expect((await b.client.from('plot_seasons').select('plot_id')).data).toEqual([]);
+    const season = await b.client.from('plot_seasons').insert({ plot_id: plotA, farmer_id: farmA, harvest_year: 2031, area_ari: 10 });
+    expect(season.error).not.toBeNull();
+    const op = await b.client.from('plot_operations').insert({ plot_id: plotA, farmer_id: farmA, harvest_year: 2031, kind: 'herbicide', status: 'planned' });
+    expect(op.error).not.toBeNull();
+    const save = await b.client.rpc('save_plots', { p_harvest_year: 2031, p_plots: [{ id: plotA, season: { crop_id: 'grau', area_ari: 10 } }] });
+    expect(save.error).not.toBeNull();
+  });
+
+  it('the parcel store reads, adds work once per client id, changes and removes it, and hides other farms', async () => {
+    const store = supabasePlots(supabaseFactory(url, anonKey, serviceKey));
+    const year = (await a.client.rpc('farm_harvest_year', { p_farmer: farmA })).data as number;
+    const listed = await store.list(a.token, year);
+    expect(listed.plots.map((p) => p.id)).toContain(plotA);
+    expect(listed.seasons).toContainEqual(expect.objectContaining({ plot_id: plotA, crop_id: 'grau', area_ari: 900 }));
+
+    const clientId = crypto.randomUUID();
+    const row = { plot_id: plotA, harvest_year: year, kind: 'fungicide', status: 'planned', client_id: clientId };
+    const opId = await store.addOperation(a.token, row);
+    expect(await store.addOperation(a.token, row)).toBe(opId);
+    await store.updateOperation(a.token, opId, { status: 'done', on_date: '2026-11-14', product: 'Fungicid test' });
+    expect((await store.list(a.token, year)).operations).toEqual([expect.objectContaining({ id: opId, status: 'done', on_date: '2026-11-14' })]);
+    await expect(store.updateOperation(a.token, opId, { on_date: null })).rejects.toMatchObject({ status: 400 });
+
+    await expect(store.addOperation(b.token, { ...row, client_id: crypto.randomUUID() })).rejects.toMatchObject({ status: 404, code: 'not_found' });
+    await expect(store.updateOperation(b.token, opId, { note: 'x' })).rejects.toMatchObject({ status: 404 });
+    expect(await store.removeOperation(b.token, opId)).toBe(false);
+    expect(await store.removeOperation(a.token, opId)).toBe(true);
+    expect(await store.removeOperation(a.token, opId)).toBe(false);
+
+    await expect(store.save(b.token, year, [{ id: plotA, name: 'furat' }])).rejects.toMatchObject({ status: 404 });
+    await expect(store.save(a.token, year, [{ id: plotA, season: { crop_id: 'grau', area_ari: 0 } }])).rejects.toMatchObject({ status: 400 });
+  });
 });
 
 describe('API with real Supabase tokens', () => {
@@ -114,6 +168,7 @@ describe('API with real Supabase tokens', () => {
     verifyToken: supabaseTokenVerifier(url),
     repo: supabaseRepo(supabaseFactory(url, anonKey, serviceKey)),
     data: loadData(),
+    employees: supabaseEmployees(supabaseFactory(url, anonKey, serviceKey)),
   });
 
   it('GET /api/me returns only the caller’s farm', async () => {
@@ -126,7 +181,7 @@ describe('API with real Supabase tokens', () => {
     expect(resB.body).toEqual({ userId: b.id, farmer: null });
   });
 
-  it('onboarding via POST /api/farmers creates farm, parcels and 5 envelopes', async () => {
+  it('onboarding via POST /api/farmers creates farm, parcels and 6 envelopes (payroll since 030)', async () => {
     const ion = {
       name: 'Ion',
       county: 'TR',
@@ -143,7 +198,7 @@ describe('API with real Supabase tokens', () => {
 
     const envelopes = await b.client.from('envelopes').select('kind, balance_bani');
     expect(envelopes.data?.map((e) => e.kind).sort()).toEqual(
-      ['pension', 'risk_fund', 'salary', 'spring_inputs', 'debts'].sort(),
+      ['pension', 'risk_fund', 'salary', 'spring_inputs', 'debts', 'payroll'].sort(),
     );
     const parcels = await b.client.from('parcels').select('crop_id, area_ari');
     expect(parcels.data).toHaveLength(2);
@@ -214,11 +269,26 @@ describe('API with real Supabase tokens', () => {
     const res = await request(app)
       .post('/api/expenses')
       .set(auth)
-      .send({ category: 'repairs', amountLei: 1000, date: '2026-10-01', envelope: 'salary' });
+      .send({ category: 'constructions', amountLei: 1000, date: '2026-10-01', envelope: 'salary' });
     expect(res.status).toBe(201);
     expect(await salary()).toBe(0);
     expect((await request(app).delete(`/api/transactions/${res.body.id}`).set(auth)).status).toBe(204);
     expect(await salary()).toBe(65_000);
+  });
+
+  it('keeps the invoice number and diesel litres, and lets the farmer change only those (migration 027)', async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const res = await request(app)
+      .post('/api/expenses')
+      .set(auth)
+      .send({ category: 'diesel', amountLei: 700, date: '2026-10-01', docNo: 'PTR 1', counterparty: 'Petrom', fuelLiters: 120.5 });
+    expect(res.status).toBe(201);
+    const { data } = await b.client.from('transactions').select('doc_no, counterparty, fuel_liters_cl').eq('id', res.body.id).single();
+    expect(data).toEqual({ doc_no: 'PTR 1', counterparty: 'Petrom', fuel_liters_cl: 12050 });
+    // The amount stays what was recorded: only the document columns are open to the farmer.
+    const amount = await b.client.from('transactions').update({ amount_bani: -1 }).eq('id', res.body.id);
+    expect(amount.error).not.toBeNull();
+    expect((await request(app).delete(`/api/transactions/${res.body.id}`).set(auth)).status).toBe(204);
   });
 
   it("another user cannot see or undo someone else's records", async () => {
@@ -229,6 +299,17 @@ describe('API with real Supabase tokens', () => {
     expect(data).toEqual([]);
     expect((await request(app).delete(`/api/transactions/${sale.body.id}`).set(other)).status).toBe(404);
     expect((await request(app).delete(`/api/transactions/${sale.body.id}`).set(owner)).status).toBe(204);
+  });
+
+  it("a sale or expense can't be filed on another farm's parcel (docs/harta-plan.md step 10)", async () => {
+    const auth = { Authorization: `Bearer ${b.token}` };
+    const sale = await request(app).post('/api/sales').set(auth).send({ cropId: 'grau', date: '2026-10-01', totalLei: 300, plotId: plotA });
+    expect(sale.status).toBe(404);
+    expect(sale.body).toEqual({ error: 'unknown_plot' });
+    const expense = await request(app).post('/api/expenses').set(auth).send({ category: 'treatments', date: '2026-10-01', amountLei: 300, plotId: plotA });
+    expect(expense.status).toBe(404);
+    const { data } = await admin.from('transactions').select('id').eq('plot_id', plotA);
+    expect(data).toEqual([]);
   });
 
   it("tasks: saved for the owner only, and another user can't write or reopen them", async () => {
@@ -329,6 +410,46 @@ describe('API with real Supabase tokens', () => {
     expect(ids.filter((id: string) => id === s1.body.id || id === e1.body.id)).toHaveLength(2);
     await request(app).delete(`/api/transactions/${s1.body.id}`).set(owner);
     await request(app).delete(`/api/transactions/${e1.body.id}`).set(owner);
+  });
+
+  it('people (migration 026): added once per client id, paid by name, archived, and hidden from other farms', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    const other = { Authorization: `Bearer ${a.token}` };
+    const clientId = crypto.randomUUID();
+    const nelu = { name: 'Nelu', kind: 'permanent', costLei: 7500, payBasis: 'month', startsOn: '2026-03-01', clientId };
+    const added = await request(app).post('/api/employees').set(owner).send(nelu);
+    expect(added.status).toBe(201);
+    expect((await request(app).post('/api/employees').set(owner).send(nelu)).body.id).toBe(added.body.id);
+    const id = added.body.id as string;
+
+    const me = await request(app).get('/api/me').set(owner);
+    expect(me.body.farmer.employees).toEqual([expect.objectContaining({ id, cost_bani: 750_000, pay_day: 10, archived_at: null })]);
+
+    // Another farm sees nothing, and can't change, archive or pay this person.
+    expect((await a.client.from('employees').select('id').eq('id', id)).data).toEqual([]);
+    expect((await request(app).put(`/api/employees/${id}`).set(other).send({ ...nelu, clientId: undefined })).status).toBe(404);
+    expect((await request(app).post(`/api/employees/${id}/archive`).set(other).send({})).status).toBe(404);
+    const stolen = await request(app).post('/api/expenses').set(other).send({ category: 'salaries', amountLei: 1, date: '2026-10-10', employeeId: id });
+    expect(stolen.status).toBe(404);
+    expect(stolen.body).toEqual({ error: 'unknown_employee' });
+
+    // The database holds the same rules as the API, and people are never deleted.
+    const bad = await b.client.from('employees').insert({ farmer_id: (me.body.farmer as { id: string }).id, name: 'X', kind: 'zilier', cost_bani: 100, pay_basis: 'month', starts_on: '2026-01-01' });
+    expect(bad.error).not.toBeNull();
+    const gone = await b.client.from('employees').delete().eq('id', id).select('id');
+    expect(gone.data ?? []).toEqual([]);
+
+    const pay = await request(app).post('/api/expenses').set(owner).send({ category: 'salaries', amountLei: 7500, date: '2026-10-10', employeeId: id });
+    expect(pay.status).toBe(201);
+    const wrong = await b.client.from('transactions').update({ category: 'diesel' }).eq('id', pay.body.id).select('id');
+    expect(wrong.error).not.toBeNull();
+
+    expect((await request(app).post(`/api/employees/${id}/archive`).set(owner).send({ endsOn: '2026-10-31' })).status).toBe(204);
+    const after = await request(app).get('/api/me').set(owner);
+    expect(after.body.farmer.employees[0]).toMatchObject({ id, ends_on: '2026-10-31', archived_at: expect.any(String) });
+    expect(after.body.farmer.transactions).toContainEqual(expect.objectContaining({ id: pay.body.id, employee_id: id }));
+
+    await request(app).delete(`/api/transactions/${pay.body.id}`).set(owner);
   });
 
   it("onboarding data stays invisible to other users", async () => {

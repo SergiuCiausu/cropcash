@@ -1,4 +1,4 @@
-import type { AppData, Crop, CropsFile, PlanParamsFile } from '../data';
+import { cropFamily, type AppData, type Crop, type CropsFile, type PlanParamsFile } from '../data';
 
 /**
  * Real yields by county (INS AGR110A, docs/an-slab-an-bun-plan.md). Over the last harvests of a
@@ -55,7 +55,9 @@ export function withCountyYields(data: AppData, county: string | null | undefine
   const history = data.crops.county_history;
   const crops = data.crops.crops.map((crop) => {
     if (crop.yield_basis) return crop;
-    const found = yieldRange(history, county, crop.id, params) ?? yieldRange(history, NATIONAL_AREA, crop.id, params);
+    // INS has one series per family: every APIA line of wheat uses the wheat history.
+    const id = cropFamily(crop);
+    const found = yieldRange(history, county, id, params) ?? yieldRange(history, NATIONAL_AREA, id, params);
     return found ? { ...crop, yield_t_per_ha: found.range, yield_basis: found.basis } : crop;
   });
   return { ...data, crops: { ...data.crops, crops } };

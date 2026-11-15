@@ -263,8 +263,15 @@
       "name_ro": "Eco-schemă pentru zone neproductive",
       "enabled": true,
       "unit": "ha",
-      "units_field": "unproductive_ha",
+      "units_field": "arable_ha",
       "amount_eur": null,
+      "estimate": {
+        "amount_eur": 32.9366,
+        "basis_year": 2025,
+        "status": "din-2025",
+        "source_url": "https://www.economica.net/?p=932602",
+        "note": "Suma stabilită pentru campania 2025. Proiectul de majorare la 40,2089 €/ha nu e folosit."
+      },
       "advance_pct": null,
       "advance_amount_eur": null,
       "fund": "FEGA",
@@ -272,14 +279,15 @@
       "eligibility": {
         "rules": [
           {
-            "field": "unproductive_ha",
-            "op": ">",
-            "value": 0,
-            "status": "DE-VERIFICAT"
+            "field": "unproductive_pct",
+            "op": ">=",
+            "value": 2,
+            "status": "DE-VERIFICAT",
+            "note": "Pragul de 2% din teren arabil e din regulile campaniei 2025. Pentru 2026 nu e verificat."
           }
         ]
       },
-      "note": "Cuantumul pentru 2026 nu e cunoscut. Istoricul din 2025 e în subsidies-history.json. Nu intră în calculul MVP.",
+      "note": "Dacă cel puțin 2% din terenul arabil e lăsat necultivat (pârloagă, margini de câmp, fâșii), plata se dă pe tot terenul arabil, nu doar pe partea necultivată. Cuantumul pentru 2026 nu e cunoscut: aplicația arată suma din 2025 ca estimare, separat, fără s-o pună în total.",
       "combinable_with": [
         "PD-01",
         "PD-02",
@@ -287,7 +295,7 @@
         "PD-04",
         "PD-05"
       ],
-      "source_url": "https://www.economica.net/?p=932602",
+      "source_url": "https://agrointel.ro/wp-content/uploads/2025/02/Informare-privind-PD-28-agrointeligenta.pdf",
       "year": 2026,
       "status": "DE-VERIFICAT"
     },
@@ -358,7 +366,8 @@
         "age": 55,
         "dairy_cows": 0,
         "beef_cattle": 0,
-        "unproductive_ha": 0
+        "unproductive_ha": 0,
+        "unproductive_pct": 0
       },
       "expected_schemes": [
         "PD-01",

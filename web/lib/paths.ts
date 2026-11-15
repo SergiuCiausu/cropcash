@@ -17,6 +17,10 @@ export const DEMO_PAGES = [
   '/pensie',
   '/date-plan',
   '/bani',
+  '/rapoarte',
+  '/harta',
+  '/oameni',
+  '/arenda',
 ] as const;
 
 export type Mode = 'demo' | 'farm';

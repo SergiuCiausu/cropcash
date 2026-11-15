@@ -21,5 +21,80 @@
       "value": 3,
       "note": "Câte salarii programate arată /ferma-lui-ion/bani. Nu e o sumă: sumele vin din planul lui Ion (web/lib/demo-account.ts). Alegere de afișare, nu dată reală."
     }
+  },
+  "calendar_events": {
+    "status": "exemplu-demo",
+    "note": "Ce și-a pus Ion singur în calendar, ca să se vadă cum arată (docs/calendar-events-plan.md). Sumele sunt exemple de demo, nu date reale: rata și revizia sunt scrise de fermier, deci nu au sursă oficială (docs/11-open-questions.md, P-EV1).",
+    "events": [
+      {
+        "id": "demo-rata",
+        "category": "money",
+        "title": "Rata la bancă",
+        "starts_on": "2026-10-20",
+        "repeat": "monthly",
+        "repeat_until": "2027-09-20",
+        "direction": "out",
+        "amount_bani": 150000,
+        "expense_category": "other",
+        "remind_days_before": 3,
+        "note": "Exemplu de demo: suma e scrisă de fermier.",
+        "created_at": "2026-10-01T08:00:00Z"
+      },
+      {
+        "id": "demo-fungicid",
+        "category": "crop",
+        "title": "Fungicid pe grâu",
+        "starts_on": "2027-04-26",
+        "crop_id": "grau",
+        "repeat": "none",
+        "remind_days_before": 7,
+        "created_at": "2026-11-01T08:00:00Z"
+      },
+      {
+        "id": "demo-combina",
+        "category": "money",
+        "title": "Revizia combinei",
+        "starts_on": "2027-06-10",
+        "repeat": "none",
+        "direction": "out",
+        "amount_bani": 250000,
+        "expense_category": "machine_service",
+        "note": "Exemplu de demo: suma e scrisă de fermier.",
+        "created_at": "2026-11-01T08:00:00Z"
+      },
+      {
+        "id": "demo-itp",
+        "category": "machinery",
+        "title": "ITP la tractor",
+        "starts_on": "2027-03-02",
+        "repeat": "yearly",
+        "remind_days_before": 7,
+        "created_at": "2026-11-01T08:00:00Z"
+      },
+      {
+        "id": "demo-registru",
+        "category": "paperwork",
+        "title": "La primărie, pentru registrul agricol",
+        "starts_on": "2027-01-12",
+        "at_time": "09:00",
+        "repeat": "none",
+        "remind_days_before": 1,
+        "created_at": "2026-11-01T08:00:00Z"
+      }
+    ]
+  },
+  "plot_work": {
+    "status": "exemplu-demo",
+    "note": "Lucrările lui Ion pe parcelele lui (docs/harta-plan.md, pasul 11), ca să se vadă cum arată harta, cardul și mementourile. Datele și lucrările sunt exemple de demo, nu date reale (P9 în docs/11-open-questions.md): sunt scrise de fermier, deci nu au sursă oficială. Fără produse și fără sume. Ziua semănatului grâului e o zi din planted_month.",
+    "sown_on": { "grau": "2026-10-10" },
+    "operations": [
+      { "id": "demo-grau-arat", "crop_id": "grau", "kind": "soil_work", "status": "done", "on_date": "2026-09-28" },
+      { "id": "demo-grau-semanat", "crop_id": "grau", "kind": "sowing", "status": "done", "on_date": "2026-10-10" },
+      { "id": "demo-grau-erbicid", "crop_id": "grau", "kind": "herbicide", "status": "done", "on_date": "2026-11-05" },
+      { "id": "demo-grau-insecticid", "crop_id": "grau", "kind": "insecticide", "status": "planned", "on_date": "2026-11-20" },
+      { "id": "demo-grau-azot", "crop_id": "grau", "kind": "fertilizing", "status": "planned", "on_date": "2027-03-05" },
+      { "id": "demo-porumb-arat", "crop_id": "porumb", "kind": "soil_work", "status": "done", "on_date": "2026-11-10" },
+      { "id": "demo-porumb-semanat", "crop_id": "porumb", "kind": "sowing", "status": "planned", "on_date": "2027-04-15" }
+    ]
   }
 }

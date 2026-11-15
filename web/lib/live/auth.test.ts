@@ -362,3 +362,32 @@ describe('whose queue it is (FAIL-04)', () => {
     expect(store.getItem(OUTBOX_OWNER_KEY)).toBeNull();
   });
 });
+
+describe('accounts without a farm (migration 028)', () => {
+  const CODE = 'a'.repeat(43);
+  const api = (answers: Record<string, unknown>): Api => (async (path: string) => answers[path]) as unknown as Api;
+  const noStore = { setItem: () => undefined };
+
+  it('lets a sign-in come back to the accountant’s page and to an invitation, and to nothing like them', () => {
+    expect(safeNext('/contabil')).toBe('/contabil');
+    expect(safeNext(`/invitatie?cod=${CODE}`)).toBe(`/invitatie?cod=${CODE}`);
+    for (const bad of [`/invitatie?cod=${CODE}&x=1`, '/invitatie?cod=short', `//evil.example/invitatie?cod=${CODE}`, '/contabil?x', '/contabil#x']) expect(safeNext(bad), bad).toBeNull();
+  });
+
+  it('opens an invitation or the accountant’s page without needing a farm', async () => {
+    const asked: string[] = [];
+    const tracking = (async (path: string) => {
+      asked.push(path);
+      return { farmer: null };
+    }) as unknown as Api;
+    expect(await landingPage(tracking, `/invitatie?cod=${CODE}`, noStore)).toBe(`/invitatie?cod=${CODE}`);
+    expect(asked).toEqual([]);
+  });
+
+  it('sends an account with no farm of its own to the farms it was let in to, else to onboarding', async () => {
+    expect(await landingPage(api({ '/api/me': { farmer: null }, '/api/memberships': { farms: [{ farmerId: 'f' }] } }), null, noStore)).toBe('/contabil');
+    expect(await landingPage(api({ '/api/me': { farmer: null }, '/api/memberships': { farms: [] } }), null, noStore)).toBe('/onboarding');
+    // A farmer who is also someone's accountant still lands on their own farm.
+    expect(await landingPage(api({ '/api/me': { farmer: { id: 'f' } }, '/api/memberships': { farms: [{ farmerId: 'g' }] } }), null, noStore)).toBe(HOME);
+  });
+});

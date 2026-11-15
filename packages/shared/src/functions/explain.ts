@@ -49,7 +49,8 @@ export interface MoneyLine {
 function moneyLines(entries: TimelineEntry[], byWork = false): MoneyLine[] {
   const lines = new Map<string, MoneyLine>();
   for (const e of entries.filter((x) => x.value > 0)) {
-    const what = byWork ? (e.what ?? null) : null;
+    // The farmer's own sums keep their title: a bank rate and a repair are not one line.
+    const what = byWork || e.kind === 'farmer_in' || e.kind === 'farmer_out' ? (e.what ?? null) : null;
     const key = [e.kind, e.cropId, what].join('|');
     const month = e.date.slice(0, 7);
     const line = lines.get(key);
@@ -148,6 +149,21 @@ export function explainSubsidy(plan: FarmPlan, data: AppData, code: string) {
     };
   }
   const refused = plan.subsidies.notEligible.find((n) => n.code === code);
+  const guessed = plan.subsidies.estimated?.find((s) => s.code === code);
+  if (guessed) {
+    // Eligible, but this year's amount isn't announced: a past year's amount, outside the totals.
+    return {
+      ...base,
+      counted: false as const,
+      reason: 'estimate' as const,
+      failed: [],
+      units: guessed.units,
+      amountEurPerUnit: guessed.amountEurPerUnit,
+      eur: guessed.eur,
+      leiIndicative: guessed.leiIndicative,
+      estimate: guessed.estimate,
+    };
+  }
   const reason = !scheme.enabled ? 'not_in_app' : refused ? 'not_eligible' : 'amount_unknown';
   return { ...base, counted: false as const, reason, failed: refused?.failed ?? [] };
 }

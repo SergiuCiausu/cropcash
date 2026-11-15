@@ -1,4 +1,4 @@
-import type { AppData } from '../data';
+import { isFallow, type AppData } from '../data';
 import {
   activePensionMonthly,
   declaredCredits,
@@ -15,15 +15,20 @@ import { applyPct, type Bani } from '../money';
 import { computeSubsidies, normalizeParcels, withApiaDecision, type SubsidyParams } from '../subsidies';
 import { monthsUntilNextIncome, proposeAllocation } from './allocation';
 import { firstDay, type MonthKey } from './dates';
+import { gatheredWithLoss, lossShareFor, type AppliedLoss } from '../farm/crop-loss';
+import { isOwnCrop } from '../farm/own-crops';
 import { withCountyYields } from './county-yields';
-import { costsByCrop, cropEconomics, springNeed } from './insights';
+import { costsByCrop, cropEconomics, payrollShortMonths, springNeed } from './insights';
 import { rollingYears } from './scenarios';
 import { plannedFigures, withFarmerHarvest } from './seasons';
 import { maxSafeSalary, salaryToPay, suggestCredit, type SmoothingOptions } from './smoothing';
-import { buildTimeline, type AmountScenario, type Timeline } from './timeline';
+import { buildTimeline, nextHarvestYear, type AmountScenario, type RentInput, type Timeline } from './timeline';
 
-/** Plan 12 months ahead; payments with a window are assumed late (conservative, docs/11 P13). */
-export const PLAN_HORIZON_MONTHS = 12;
+/**
+ * The day of a payment window the plan counts on. The last day by default, so the plan holds when the
+ * money comes late (plan-params.json forecast.apia_day, docs/11 P13).
+ */
+export const planTiming = (data: AppData) => data.params.forecast.apia_day.plan;
 
 export interface FarmPlanOptions {
   /** First month of the plan. The caller supplies it, so this stays pure. */
@@ -44,8 +49,40 @@ export interface PlanFarm extends Omit<StoredFarm, 'transactions'> {
  */
 export function farmData(farm: Pick<StoredFarm, 'harvests'> & { county?: string | null }, data: AppData): AppData {
   const withOwn = withCountyYields(withOwnCrops(data, farm.harvests?.ownCrops), farm.county);
-  const figures = plannedFigures(farm.harvests?.gathered ?? [], farm.harvests?.expected ?? []);
+  /* Yield per harvested hectare: the year's lost hectares come off the gathered area. */
+  const gathered = farm.harvests ? gatheredWithLoss(farm.harvests) : [];
+  const figures = plannedFigures(gathered, farm.harvests?.expected ?? []);
   return figures.length ? withFarmerHarvest(withOwn, figures) : withOwn;
+}
+
+/**
+ * The share of each crop the plan takes as lost, per harvest year (docs/crop-loss-plan.md).
+ * A loss the farmer already reported for that year always counts: those hectares are gone.
+ * Their usual share and the farm's history count only when the yield is the farmer's own
+ * (gathered, expected, or an own crop). A county yield may already include lost fields (P33).
+ */
+export function farmLossShare(farm: Pick<StoredFarm, 'harvests'>, data: AppData): ((cropId: string, harvestYear: number) => number) | undefined {
+  const loss = farmLoss(farm, data);
+  return loss && ((cropId, year) => {
+    const l = loss(cropId, year);
+    return l.applied ? l.share : 0;
+  });
+}
+
+/** The same, with where the share comes from, for the screens and the assistant to say it. */
+export function farmLoss(farm: Pick<StoredFarm, 'harvests'>, data: AppData): ((cropId: string, harvestYear: number) => AppliedLoss) | undefined {
+  const harvests = farm.harvests;
+  if (!harvests?.years.length) return undefined;
+  const ownYield = new Set(
+    plannedFigures(gatheredWithLoss(harvests), harvests.expected ?? [])
+      .filter((f) => f.yieldTPerHa != null)
+      .map((f) => f.cropId),
+  );
+  const params = data.params.crop_loss;
+  return (cropId, year) => {
+    const loss = lossShareFor(harvests, cropId, year, params);
+    return { ...loss, applied: loss.basis === 'this_year' || ownYield.has(cropId) || isOwnCrop(cropId) };
+  };
 }
 
 /** Grain in the barn, minus what sold since. A sale in the crop's usual month is the new harvest. */
@@ -107,7 +144,18 @@ export function timelineInput(farm: PlanFarm, data: AppData, params?: SubsidyPar
   );
   const barn = farm.stored_grain ?? grainInBarn(farm.harvests?.gathered ?? [], farm.transactions ?? [], data);
   const stored = barn.map((g) => ({ id: g.id, cropId: g.crop_id, kg: g.kg }));
-  return { subsidies, parcels, startBalance, extras, recorded, followed, stored };
+  const fe = data.params.farmer_events;
+  const farmerEvents = farm.farm_events?.length
+    ? { events: farm.farm_events, carryDays: fe.carry_days.value, wholeHarvestWindowMonths: fe.whole_harvest_window_months.value }
+    : undefined;
+  const lossShare = farmLossShare(farm, data);
+  const employees = farm.employees ?? [];
+  const rent: RentInput = {
+    contracts: farm.lease_contracts ?? [],
+    county: farm.county ?? null,
+    owners: Object.fromEntries((farm.landowners ?? []).map((o) => [o.id, o.name])),
+  };
+  return { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent };
 }
 
 /**
@@ -119,23 +167,21 @@ export function longForecast(farm: PlanFarm, baseData: AppData, { month, params 
   const input = timelineInput(farm, data, params);
   const months = data.params.long_forecast.max_years.value * 12;
   const years = (amounts: AmountScenario) =>
-    rollingYears(buildTimeline(input, data, { start: month, months, timing: 'late', amounts }));
+    rollingYears(buildTimeline(input, data, { start: month, months, timing: planTiming(data), amounts }));
   return { bad: years('bad'), medium: years('medium'), good: years('good') };
 }
 
-/** Months that reach the spring after the next harvest, whatever month the plan starts in. */
-export const AFTER_BAD_HARVEST_MONTHS = 24;
-
 /**
  * A bad harvest doesn't show when it comes: it shows in the months before the next one. This runs the
- * bad year long enough to reach them. `lowest` is before salary and pension, as on Prognoză.
- * Null when no harvest is planned in that time.
+ * bad year long enough to reach them (forecast.after_bad_harvest_months). `lowest` is before salary
+ * and pension, as on Prognoză. Null when no harvest is planned in that time.
  */
 export function afterBadHarvest(farm: PlanFarm, baseData: AppData, { month, params }: FarmPlanOptions) {
   const data = farmData(farm, baseData);
   const input = timelineInput(farm, data, params);
+  const months = data.params.forecast.after_bad_harvest_months.value;
   const run = (amounts: AmountScenario) =>
-    buildTimeline(input, data, { start: month, months: AFTER_BAD_HARVEST_MONTHS, timing: 'late', amounts });
+    buildTimeline(input, data, { start: month, months, timing: planTiming(data), amounts });
   const bad = run('bad');
   const firstSale = bad.months.findIndex((m) => m.entries.some((e) => e.kind === 'crop_sale' && e.id.startsWith('sale:')));
   if (firstSale < 0) return null;
@@ -143,7 +189,7 @@ export function afterBadHarvest(farm: PlanFarm, baseData: AppData, { month, para
   const low = after.reduce((lowest, m) => (m.balanceEnd < lowest.balanceEnd ? m : lowest), after[0]!);
   const smoothing = { pensionMonthly: activePensionMonthly(farm.pension_plans) };
   return {
-    months: AFTER_BAD_HARVEST_MONTHS,
+    months,
     harvestMonth: bad.months[firstSale]!.key,
     lowest: { key: low.key, balance: low.balanceEnd },
     missing: Math.max(0, -low.balanceEnd),
@@ -158,8 +204,8 @@ export function afterBadHarvest(farm: PlanFarm, baseData: AppData, { month, para
  */
 export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params }: FarmPlanOptions) {
   const data = farmData(farm, baseData);
-  const { subsidies, parcels, startBalance, extras, recorded, followed, stored } = timelineInput(farm, data, params);
-  const opts = { start: month, months: PLAN_HORIZON_MONTHS, timing: 'late' as const };
+  const { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent } = timelineInput(farm, data, params);
+  const opts = { start: month, months: data.params.forecast.plan_months.value, timing: planTiming(data) };
   const build = (amounts: AmountScenario, withExtras = true) =>
     buildTimeline(
       {
@@ -169,7 +215,11 @@ export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params
         extras: withExtras ? extras : [],
         recorded: withExtras ? recorded : [],
         stored: withExtras ? stored : [],
+        farmerEvents: withExtras ? farmerEvents : undefined,
         followed,
+        lossShare,
+        employees,
+        rent,
       },
       data,
       { ...opts, amounts },
@@ -180,9 +230,12 @@ export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params
     good: build('good'),
   };
   const crops = new Map(data.crops.crops.map((c) => [c.id, c]));
+  const lossOf = farmLoss(farm, data);
   const economics = parcels.flatMap((p) => {
     const crop = crops.get(p.cropId);
-    return crop ? [cropEconomics(crop, p.areaAri)] : [];
+    if (!crop || isFallow(crop)) return [];
+    const loss = lossOf?.(crop.id, nextHarvestYear(crop, month));
+    return [{ ...cropEconomics(crop, p.areaAri, loss?.applied ? loss.share : 0), ...(loss ? { loss } : {}) }];
   });
 
   const envelopes = envelopesFromStored(farm.envelopes ?? []);
@@ -206,6 +259,8 @@ export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params
     economics,
     totalHa: parcels.reduce((s, p) => s + p.areaAri, 0) / 100,
     spring: springNeed(timelines.medium),
+    /** Months whose balance goes below zero with the people's pay in them, in a normal year (bad year below). */
+    payrollShort: { medium: payrollShortMonths(timelines.medium), bad: payrollShortMonths(timelines.bad) },
     costs: costsByCrop(timelines.medium),
     envelopes,
     salary,
@@ -235,9 +290,10 @@ export function plannedForMonth(farm: PlanFarm, baseData: AppData, month: MonthK
       subsidies: farmSubsidies(farm, data, params),
       startBalance: 0,
       recorded: recordedFromStored(farm.transactions ?? []),
+      lossShare: farmLossShare(farm, data),
     },
     data,
-    { start: month, months: 1, amounts: 'medium', timing: 'mid' },
+    { start: month, months: 1, amounts: 'medium', timing: data.params.forecast.apia_day.demo_clock },
   );
   const entries = months[0]!.entries.filter((e) => e.value > 0);
   return {
@@ -264,6 +320,11 @@ function splitMoney(
     .flatMap((m) => m.entries)
     .filter((e) => e.kind === 'loan_repayment')
     .reduce((s, e) => s + e.value, 0);
+  const payrollDue = t.months
+    .slice(0, monthsCovered)
+    .flatMap((m) => m.entries)
+    .filter((e) => e.kind === 'payroll')
+    .reduce((s, e) => s + e.value, 0);
   const split = proposeAllocation({
     amount,
     isIncome,
@@ -271,6 +332,7 @@ function splitMoney(
     pensionMonthly: smoothing.pensionMonthly ?? 0,
     monthsCovered,
     debtsDue,
+    payrollDue,
   });
   return { split, monthsCovered };
 }

@@ -89,7 +89,28 @@ describe('Acasă', () => {
     const row = document.querySelector<HTMLButtonElement>('button.ac-row')!;
     const title = row.querySelector('b')!.textContent!;
     fireEvent.click(row);
-    expect(within(document.querySelector<HTMLElement>('dialog.detail')!).getByRole('heading', { name: title })).toBeTruthy();
+    expect(within(document.querySelector<HTMLElement>('dialog.detail[open]')!).getByRole('heading', { name: title })).toBeTruthy();
+  });
+});
+
+describe('the farmer’s own events (docs/calendar-events-plan.md)', () => {
+  it('ranks what moves the salary on Prognoza, with Ion’s rate marked as his', async () => {
+    await showPage('prognoza', 'demo');
+    const section = document.querySelector<HTMLElement>('#ce-conteaza')!;
+    expect(section).toBeTruthy();
+    expect(section.querySelectorAll('ol > li').length).toBeGreaterThan(0);
+    fireEvent.click(within(section).getByRole('button', { name: 'Ies' }));
+    const more = within(section).queryByRole('button', { name: /Arată toate/ });
+    if (more) fireEvent.click(more);
+    expect(within(section).getAllByText('suma ta').length).toBeGreaterThan(0);
+  });
+
+  it('lists Ion’s own events on Calendar and opens the form to add one', async () => {
+    await showPage('calendar', 'demo');
+    fireEvent.click(screen.getByRole('button', { name: /^Ale mele/ }));
+    expect(document.body.textContent).toContain('ITP');
+    fireEvent.click(screen.getByRole('button', { name: 'Adaugă' }));
+    expect(within(document.querySelector<HTMLElement>('dialog.ev-sheet[open]')!).getByRole('heading', { name: 'Ce vrei să notezi?' })).toBeTruthy();
   });
 });
 

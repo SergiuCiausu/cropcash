@@ -38,6 +38,7 @@ Load the Netlify address, don't bundle `web/out` inside the app. The pages, the 
 | Works without `navigator.locks` or a service worker | Yes. Both are checked before use |
 | `navigator.onLine` can be wrong in a WebView | Covered. The app also pings `/api/health` |
 | Layout at phone width | Checked at 390 px: no sideways scroll |
+| Crop list (all APIA crops, search) | Yes, from `web/`: bundled in the JS and kept by the service worker, so it works offline too. Nothing in `mobile/` (docs/crops-catalog-plan.md, step 12) |
 | Offline with the host unreachable | Checked in headless Chromium, not in a WebView |
 
 ## What the wrapper has to do

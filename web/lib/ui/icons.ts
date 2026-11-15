@@ -10,6 +10,8 @@ export const ICONS = {
   chart: '<path d="M5 20v-7M12 20V5M19 20v-10"/>',
   sprout: '<path d="M12 21v-9"/><path d="M12 12C12 8 9 5.5 4.5 5.5 4.5 10 7.5 12 12 12Z"/><path d="M12 14c0-3.5 2.5-6 7.5-6 0 4.5-3 6-7.5 6Z"/>',
   bank: '<path d="M3 21h18M5 21V10M19 21V10M9.5 21V10M14.5 21V10M3 10l9-6 9 6Z"/>',
+  land: '<path d="M3 20.5h18"/><path d="M4.5 16.5h15M6.5 12.5h11"/><path d="M12 12.5V8"/><path d="M12 8c0-2.5 1.8-4.2 4.5-4.5C16.3 6 14.6 8 12 8ZM12 9.5C12 7.5 10.5 6 8 5.8 8.2 8 9.7 9.5 12 9.5Z"/>',
+  people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20.5c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M15.5 4.8a3.5 3.5 0 0 1 0 6.4M17.5 14.8c2.4.6 4 2.6 4 5.7"/>',
   sack: '<path d="M6.5 8.5h11l1.5 12H5Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/>',
   down: '<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>',
   up: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
@@ -21,6 +23,7 @@ export const ICONS = {
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   hourglass: '<path d="M7 3.5h10M7 20.5h10"/><path d="M8 3.5c0 4.5 8 4.5 8 8.5s-8 4-8 8.5"/><path d="M16 3.5c0 4.5-8 4.5-8 8.5s8 4 8 8.5"/>',
   arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
+  doc: '<path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5Z"/><path d="M13.5 3.5V8H18M9 12.5h6M9 16h6"/>',
   more: '<circle cx="5.5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18.5" cy="12" r="1.4"/>',
 } as const;
 

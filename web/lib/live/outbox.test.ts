@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { harvestsFromServer, type MeFarm } from './farm';
-import { afterFailedSend, classifyFlushError, enqueue, failedTries, isQueueable, msUntilNextTry, pendingPlan, retryDelay, sameDocument, pendingRecords, readOutbox, readSent, rememberSent, takeBack, withClientIds, withOutbox, withOutboxLock, type OutboxItem } from './outbox';
+import { afterFailedSend, classifyFlushError, enqueue, failedTries, isQueueable, msUntilNextTry, pendingPlan, retryDelay, sameDocument, pendingRecords, readOutbox, readSent, rememberSent, takeBack, patchQueued, withClientIds, withOutbox, withOutboxLock, type OutboxItem } from './outbox';
 import { loadData } from '../../../packages/shared/src/data/index';
 
 const me = {
@@ -110,6 +110,17 @@ describe('the outbox', () => {
     expect(farm.task_completions).toEqual([{ task_id: 'b:2026' }]);
   });
 
+  it('shows a calendar event added offline, and its paid date as a waiting expense', () => {
+    const id = '44444444-4444-4444-8444-444444444444';
+    const farm = withOutbox(me, [
+      item('add_event', { category: 'money', title: 'Rata', startsOn: '2026-11-05', repeat: 'none', direction: 'out', amountLei: 1_500, expenseCategory: 'other', clientId: id }, 1),
+      item('confirm_occurrence', { eventId: id, originalDate: '2026-11-05', amountLei: 1_500, date: '2026-11-06', clientId: '55555555-5555-4555-8555-555555555555' }, 2),
+    ]);
+    expect(farm.farm_events).toEqual([expect.objectContaining({ id, amount_bani: 150_000, farm_event_occurrences: [expect.objectContaining({ original_date: '2026-11-05' })] })]);
+    expect(farm.transactions!.at(-1)).toMatchObject({ kind: 'expense', amount_bani: -150_000, category: 'other', pending: true });
+    expect(pendingRecords([item('add_event', {}), item('confirm_occurrence', {})])).toBe(1);
+  });
+
   it('counts only records as waiting, and leaves an empty queue alone', () => {
     expect(pendingRecords([item('complete_task', { id: 'b' }), item('add_expense', { category: 'other', amountLei: 1, date: '2026-11-07' })])).toBe(1);
     expect(withOutbox(me, [])).toBe(me);
@@ -209,5 +220,50 @@ describe('plan saves in the queue (FAIL-14)', () => {
   it('reads two documents as the same whatever the order of their keys', () => {
     expect(sameDocument({ a: 1, b: [{ c: 1, d: 2 }] }, { b: [{ d: 2, c: 1 }], a: 1 })).toBe(true);
     expect(sameDocument({ a: 1 }, { a: 2 })).toBe(false);
+  });
+});
+
+describe('documents on queued records (migration 027)', () => {
+  it('keeps the invoice number, the partner and the litres until the queue is sent', () => {
+    const farm = withOutbox(me, [item('add_expense', { category: 'diesel', amountLei: 700, date: '2026-11-06', harvestYear: 2027, docNo: 'PTR 1', counterparty: 'Petrom', fuelLiters: 120.5 })]);
+    const records = harvestsFromServer(farm, 2027, loadData()).items.flatMap((h) => h.records);
+    expect(records).toContainEqual(expect.objectContaining({ id: 'outbox:1', docNo: 'PTR 1', counterparty: 'Petrom', fuelLitersCl: 12050 }));
+  });
+});
+
+describe('people and the farm mode in the queue (plan steps 4–5)', () => {
+  it('keeps the person on a waiting salary, so the plan doesn’t count the pay twice', () => {
+    const after = withOutbox(me, [item('add_expense', { category: 'salaries', amountLei: 7500, date: '2026-11-10', employeeId: 'p1' })]);
+    expect(after.transactions!.at(-1)).toMatchObject({ category: 'salaries', employee_id: 'p1', amount_bani: -750_000, pending: true });
+  });
+
+  it('shows a waiting farm change with its mode and arendă hectares', () => {
+    const update = { name: 'Ion', county: 'TR', startBalanceLei: 35_000, parcels: [{ cropId: 'grau', areaHa: 8 }], farmMode: 'arendas', leasedInHa: 5.5, leasedOutHa: 0 };
+    expect(withOutbox(me, [item('update_farm', update)])).toMatchObject({ farm_mode: 'arendas', leased_in_ari: 550, leased_out_ari: 0 });
+    const older = { name: 'Ion', county: 'TR', startBalanceLei: 35_000, parcels: [{ cropId: 'grau', areaHa: 8 }] };
+    expect(withOutbox({ ...me, farm_mode: 'arendas' }, [item('update_farm', older)]).farm_mode).toBe('arendas');
+  });
+});
+
+describe('parcel work in the queue (docs/harta-plan.md step 11)', () => {
+  it('work and outlines wait like a finished task; money moves still never do', () => {
+    for (const n of ['add_operation', 'update_operation', 'update_plot']) expect(isQueueable(n), n).toBe(true);
+    for (const n of ['save_plots', 'remove_operation', 'pay_salary']) expect(isQueueable(n), n).toBe(false);
+  });
+
+  it('queued work without an id gets one, so a send that loses its answer repeats safely', () => {
+    const out = withClientIds([item('add_operation', { plotId: 'p', kind: 'sowing' })], () => 'k1');
+    expect(out.changed).toBe(true);
+    expect(out.items[0]!.input.clientId).toBe('k1');
+  });
+
+  it('a change to work still waiting is folded into it; sent meanwhile, it names the server id', () => {
+    const queued = item('add_operation', { plotId: 'p', kind: 'fungicide', status: 'planned', onDate: '2026-11-20' });
+    expect(patchQueued([queued], {}, 'outbox:1', { status: 'done', onDate: '2026-11-15' })).toEqual({
+      items: [{ ...queued, input: { plotId: 'p', kind: 'fungicide', status: 'done', onDate: '2026-11-15' } }],
+      serverId: null,
+    });
+    const sent = { 'outbox:2': { serverId: 'srv-2', at: '2026-11-15T10:00:00Z' } };
+    expect(patchQueued([queued], sent, 'outbox:2', { status: 'done' })).toEqual({ items: [queued], serverId: 'srv-2' });
   });
 });
