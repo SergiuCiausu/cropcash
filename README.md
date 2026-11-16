@@ -16,11 +16,18 @@ Fermierii mici din România își încasează venitul în 2–3 valuri imprevizi
 - simulează și pornește **pensia** (Pilonul III / CEI);
 - are un asistent, **„Întreabă”**, care răspunde din cifrele fermei și propune salvări doar ca un card pe care fermierul îl apasă;
 - citește hârtiile APIA și facturile din poze;
+- arată parcelele pe **hartă**, cu blocurile APIA (LPIS);
+- ține **oamenii** fermei și salariile lor, și **arenda** (proprietari, contracte, impozitul reținut);
+- face **rapoarte PDF** (rezumatul fermei, registrul încasărilor și plăților, situația subvențiilor) și le poate deschide contabilului;
+- are un **panou de admin** pentru cifrele din spatele prognozei;
 - urmărește ~179 de surse oficiale pentru oportunități de finanțare (`subventii-monitor/`);
 - rulează fluxul de bani pe **Stripe Connect** (test mode): transferuri, payouts, subscriptions, Test Clocks, webhooks.
 
+Fără cont se poate vedea **ferma lui Ion**, exemplul, la `/ferma-lui-ion`.
+
 ## Structura
 - `web/`: interfața (Next.js, export static, PWA instalabil și offline).
+- `mobile/`: aplicația de telefon (Expo), care deschide site-ul live într-un WebView (`docs/14-mobile-expo.md`).
 - `apps/api/`: API-ul (Express + TypeScript), cu Stripe, Supabase și Claude.
 - `packages/shared/`: logica pură (subvenții, plan, salariu, pensie) și registrul de funcții.
 - `subventii-monitor/`: monitorul de surse oficiale.
