@@ -1,6 +1,6 @@
 # Plan: Harta parcelelor (`/harta` + mini-harta din colț)
 
-Status: **plan, nothing built.** Decisions confirmed by the owner on 2026-11-14 (see "Decisions"). The LPIS check (step 0) was run on 2026-11-14 and its results are below.
+Status: **steps 1–11 built (2026-11-14/15), see each step's status; `/harta` is live.** Was: plan, nothing built. Decisions confirmed by the owner on 2026-11-14 (see "Decisions"). The LPIS check (step 0) was run on 2026-11-14 and its results are below.
 
 ## What the farmer gets
 

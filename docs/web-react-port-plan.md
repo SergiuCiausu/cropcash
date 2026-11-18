@@ -93,7 +93,7 @@ Tests, all in Node:
 | `OfflineNote` | `[data-offline]` notes |
 | `Money` / `useMoney` | `showCurrency()` |
 | `CurrencyToggle`, palette | `currency`, `applyPalette()` |
-| `HarvestChip`, `HarvestSheet` (`<dialog>`) | `harvestChip()`, `harvestSheet()` |
+| `HarvestChip`, `HarvestSheet` (`<dialog>`), removed on 2026-11-08 with the year picker | `harvestChip()`, `harvestSheet()` |
 | `ClosedView`, `FutureNote` | `closedView()`, `futureNote()` |
 | `Sheet` | the `<dialog>` pattern used by several pages |
 | `Notifications` | `notifications.js` (bell, panel, toasts; `notify()` becomes a store action) |

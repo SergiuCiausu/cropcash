@@ -1,6 +1,6 @@
 # Progress
 
-What has been built in CropCash, what has been proven, and what is left. Last updated 2026-11-07.
+What has been built in CropCash, what has been proven, and what is left. Last updated 2026-11-16.
 
 Two parts: **the subsidy monitor** (`subventii-monitor/`, plans in `subventii-plan.md`, terms in `glossary.md`) and **the app** (`web/`, Next.js, with `apps/api` and `packages/shared`, see [The app](#the-app)).
 
@@ -124,9 +124,13 @@ The first real `npm run monitor` crashed on `assert(!this.paused)` in undici. It
 
 ## Overview
 
-The app is `web/`: a Next.js static export that wraps the former `farm-app` pages (their scripts are in `web/legacy`), offline-first, on the real API (`apps/api`) and the shared logic (`packages/shared`). `farm-app` and `apps/web` (the first, React interface) were removed on 2026-11-08.
+The app is `web/`: a Next.js static export whose pages are React components (`web/components/pages`, with their data in `web/lib/cc`; only the landing page still runs from `web/legacy`), offline-first, on the real API (`apps/api`) and the shared logic (`packages/shared`). `farm-app` and `apps/web` were removed on 2026-11-08. The farmer's app needs an account; Ion's farm, the example, is at `/ferma-lui-ion/[page]` with no API calls.
 
 Run it with `npm run dev` (web on :5173, API on :3001). Build it with `npm run build`.
+
+**Live (since 2026-11-08):** https://cropcash.netlify.app (uploaded from a laptop, not built from GitHub) and https://cropcash-api.andreitutea.com (VPS, pm2 + Caddy). Order for a new version: `npm run db:migrate`, then the API on the VPS, then Netlify (`docs/12-deploy.md`). The phone app (`mobile/`, Expo) opens the live site in a WebView; it runs in Expo Go, no installable build yet (`docs/14-mobile-expo.md`).
+
+**Phone navigation (2026-11-08):** four tabs at the bottom (Acasă, Subvenții, Recolte, Salariu) and "Mai mult" for the rest (Calendar, Prognoză, Harta, Pensie, Oameni, Arendă for arendași, Rapoarte). The harvest year picker was removed from the frame; the year shows in page titles. The sign-in page is a plain centred card with a sign-in / new account switch.
 
 ## Plan steps (`docs/10-plan.md`)
 
@@ -138,24 +142,30 @@ Run it with `npm run dev` (web on :5173, API on :3001). Build it with `npm run b
 | 4 Calendar | Done |
 | 5 Salary smoothing | Done |
 | 6 Stripe: Connect, payouts, subscription, webhooks, Test Clocks | Done |
-| 7 Risk fund and pension | Done. The risk fund is being removed (see below) |
+| 7 Risk fund and pension | Done. The risk fund was removed on 2026-11-07; the pension stays |
 | 8, 8b, 8c, 8d Forecast, weather, seasons, farmers' own sources | Done |
-| 9 Demo polish | Almost: `seed:demo` works. Still needs `demo:rehearse` to pass 3 times, and a deploy |
+| 9 Demo polish | Done (2026-11-08): `demo:rehearse` passed 3 times, pitch figures updated, deployed |
 | 9b Offline and install | Done (2026-11-08): offline from W9, plus a web manifest and icons in `web/public`. Not tried on a real phone yet |
-| 9c, 9d Assistant and its confirm cards | Done (2026-11-08). Conversation kept in the browser, no new tables. Tried with 3 real questions; the 20-question test isn't written |
+| 9c, 9d Assistant and its confirm cards | Done (2026-11-08). Model `claude-sonnet-5-5`, conversation kept in the browser, at most 5 questions a farmer a day (`ASSISTANT_DAILY_LIMIT`). `npm run test:assistant`: 20 real questions, 20/20 |
 | 9e Voice | Dropped (2026-11-08) |
 | 9f Notifications | Messages inside the app only. Nothing pushes to the phone |
-| 10, 11 Extras and use-case gaps | Not started. W11 covers part of the APIA paper reading |
+| 10 Extras | 10a diesel: in the PDF reports (`docs/04-farmer-reports.md`). 10b APIA papers: done (W11). 10c funding radar: not started |
+| 11 Use-case gaps | Not started |
+| 12–14 Idempotency (`docs/idempotency-plan.md`) | Done |
+| 15 Errors and weak network (`docs/failure-handling-plan.md`) | Done |
+| 16 Bad and good years from INS, per county | Done |
+
+Built since 2026-11-09, each with its own plan and status: calendar events (`docs/calendar-events-plan.md`), fertilizers (`docs/fertilizers-plan.md`), crop losses (`docs/crop-loss-plan.md`), per-hectare and total figures (`docs/per-ha-total-plan.md`), the APIA crop catalogue (`docs/crops-catalog-plan.md`), the map and parcels (`docs/harta-plan.md`), PDF reports and farm members (`docs/rapoarte-pdf-plan.md`), the admin panel (`docs/admin-panel-plan.md`), employees and arendă (`docs/employees-arenda-plan.md`, `docs/15-arenda.md`). Migrations go up to 034.
 
 ## Functions (`docs/functions.md`)
 
 Every button and every future AI tool goes through one registry in `packages/shared`. `POST /api/functions/:name` runs it on the server.
 
 - **F1–F3, F10: done.** The registry, one plan calculation (`buildFarmPlan`), the `explain_*` and `what_if_*` functions, the pension simulation, and exchange rates with the currency toggle.
-- **F4: built.** Sales, expenses, tasks and `update_farm`. The Supabase tests (`npm run test:integration`) haven't been run yet.
-- **F5: built.** The Stripe functions. Needs a run with live webhooks.
+- **F4: built.** Sales, expenses, tasks and `update_farm`. The Supabase tests (`npm run test:integration`) passed 23/23 on 2026-11-08.
+- **F5: built.** The Stripe functions. Live webhooks delivered on both Stripe destinations on 2026-11-08.
 - **F6: built.** Opportunities and sources. Needs `npm run documents -w subventii-monitor` to fill the document search.
-- **F7–F9, F11–F13: not started.** Assistant, confirm flow, diesel and tax, voice, notifications, use-case gaps.
+- **F7, F8: done** (steps 9c, 9d): the assistant on the registry, with confirm cards. **F11 voice: dropped.** **F9, F12, F13: not started** apart from the diesel report in the PDF reports.
 
 ## Wiring farm-app to live data (`docs/farm-app-wiring.md`): all done
 
@@ -175,29 +185,29 @@ Every button and every future AI tool goes through one registry in `packages/sha
 | W11 Papers | Photo of an invoice, an APIA application or a payment decision fills the form (Claude + Zod). Migration 016 |
 | W12 Pension page | `pensie.html`: the amount at 65, salary effect, start, change and stop, fund list, growth chart |
 
-## In progress
+## Pitch
 
-- **"Fondul pentru ani proști" is removed**, at the user's request.
-- **The pitch figures** in `docs/09-demo-pitch.md` match the app again (2026-11-08, `demo:rehearse` 3 times without errors): advance 12.649 lei, salary 1.050 lei, 2.950 with a 15.100 lei credit, 2.700 paid once the 200 lei pension starts, 2.450 in May.
+The figures in `docs/09-demo-pitch.md` match the app as of 2026-11-08 (`demo:rehearse` 3 times without errors): advance 12.649 lei, salary 1.050 lei, 2.950 with a 15.100 lei credit, 2.700 paid once the 200 lei pension starts, 2.450 in May. Rerun `demo:rehearse` after the changes since, then `seed:demo`.
 
 ## Still to run, by the user
 
 These write to the real Supabase or Stripe:
 
-- Apply any migrations not yet applied (`npm run db:migrate`; 001–016).
-- `npm run test:integration` and `npm run test:stripe`.
-- `npm run demo:rehearse`, then `npm run seed:demo` to reset Ion's account.
+- `npm run db:migrate` before each API deploy (it applies only what's missing; up to 034 now).
+- `npm run test:integration` and `npm run test:stripe` after migrations.
+- `npm run demo:rehearse`, then `npm run seed:demo` to reset Ion's account before the pitch.
 - `npm run documents -w subventii-monitor`.
-- A sign-in with a real account.
+- A test on a real phone: sign in, "Întreabă", install, airplane mode.
 
 ## Known limits
 
-- **A sale counted twice: fixed in code (2026-11-08), needs migration 017 applied.** The phone gives each sale and expense a `clientId` before the first send, and the server returns the saved row when the same one comes again. Until `npm run db:migrate` applies 017, sales and expenses fail on the real database.
+- **Netlify isn't linked to GitHub** (the repo is private and owned by a teammate), so a push doesn't update the site: it is built and uploaded from a laptop (`docs/12-deploy.md`).
 - **Unit tests don't open the pages,** so page checks are manual until there's an automated smoke test.
 - **The language test** (`web/lib/language.test.ts`) checks the banned words in `web/` line by line. It doesn't check the assistant's replies, which come from the model.
-- **Hosting isn't done yet.** `netlify.toml` builds `web/` and publishes `web/out`. Still needed: the Netlify site with the `VITE_*` variables, the live address in `CORS_ORIGINS` and in Supabase's redirect URLs, and the API's domain on the VPS (open decision 1 in `docs/11-open-questions.md`).
+- **Without the year picker,** a farm with several harvest years can only move forward (the button on a finished year); going back to an older year has no button.
+- **`npm ci` on the VPS reports one critical vulnerability** in a dependency (2026-11-16); not looked into yet.
 
-Tests: 720 passing across the app (48 files), plus 199 in the monitor. Typecheck clean in every workspace.
+Tests: 1,187 passing across the app on 2026-11-08 (more since; run `npm test`), plus 199 in the monitor.
 
 ## Weather: built (2026-11-07)
 

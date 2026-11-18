@@ -5,7 +5,7 @@
 | Criteriu | Pondere | Ce arătăm |
 |---|---|---|
 | **Business fit** | 30% | Un public clar (FMM de 5–50 ha, 671.334 de cereri APIA în 2026), o problemă specific românească (APIA în tranșe, 15 luni, CAS opțional, insolvențe +80%). Diferențierea: nimeni nu face planificare pentru ferma mică. Adopție: prin fiica fermierului, asociații și băncile care dau credit pe adeverință. |
-| **User experience** | 25% | 4 taburi, 4 întrebări. Cifre mari, română simplă, fără jargon. Onboarding de 2 minute. Incertitudinea explicată fără procente. |
+| **User experience** | 25% | Pe telefon, 4 taburi mari și „Mai mult”; 4 întrebări. Cifre mari, română simplă, fără jargon. Onboarding de 2 minute. Incertitudinea explicată fără procente. |
 | **Technical implementation** | 25% | Motor de reguli declarativ, testat (test case-ul de 3.195 €). Algoritm de netezire cu cazuri-limită. Stripe Connect, payouts, subscriptions, webhooks și Test Clocks, funcționale cap-coadă. |
 | **Delivery & pitch** | 20% | O singură persoană (Ion), o singură poveste (anul lui), un moment „wow” (dăm timpul înainte și vedem salariul plătit lună de lună). Live la https://cropcash.netlify.app. |
 

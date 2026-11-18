@@ -94,6 +94,7 @@ Aplicația de telefon (React Native + Expo) e descrisă în `docs/14-mobile-expo
 | `VITE_SUPABASE_ANON_KEY` | aceeași ca în `.env` (cheia publică `sb_publishable_…`, niciodată cea secretă) |
 | `VITE_API_URL` | `https://cropcash-api.andreitutea.com` |
 | `VITE_DEMO_MODE` | `true` |
+| `VITE_MAPTILER_KEY` | opțional: cheia MapTiler pentru „Satelit” pe Harta. E publică; restrânge-o la adresa site-ului în contul MapTiler |
 
 3. Deploy. În **Project configuration → Change project name** poți alege numele (de exemplu `cropcash` → `cropcash.netlify.app`, dacă e liber).
 4. Pune adresa finală în `CORS_ORIGINS` pe VPS și `pm2 reload cropcash-api`.

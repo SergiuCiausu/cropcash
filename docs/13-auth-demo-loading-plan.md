@@ -141,7 +141,7 @@ Each `screens/<name>.tsx` exports its `Skeleton`, built from the page's real gri
 | oportunitati / surse | subnav, filter chips, 6 list rows |
 | calendar | month strip, 6 deadline rows |
 | prognoza | year-pick segmented control, big chart block, 3-figure row, records list |
-| recolte | harvest chip, crop tabs, form card, records table (5 rows) |
+| recolte | crop tabs, form card, records table (5 rows); the harvest chip was removed on 2026-11-08 |
 | salariu | hero (eyebrow, amount, year-pick), sums card (s5), months list (s7, 6 rows), assumptions card |
 | pensie | hero amount, chart block, plan card |
 | date-plan | form card with 4 fields |
