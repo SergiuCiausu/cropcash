@@ -18,14 +18,21 @@
     "db:migrate": "node --env-file=.env scripts/migrate.mjs",
     "test:integration": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts",
     "test:stripe": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.stripe.config.ts",
+    "test:oblio": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/test-oblio.ts",
+    "test:efactura": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/test-efactura.ts",
     "test:assistant": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.assistant.config.ts",
     "seed:demo": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-demo.ts",
+    "documents:sweep": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/sweep-documents.ts",
     "seed:fertilizers": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-fertilizers.ts",
     "demo:rehearse": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/rehearse-demo.ts",
     "admin:rehearse": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/rehearse-admin.ts",
+    "admin:grant": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/admin-roles.ts grant",
+    "admin:revoke": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/admin-roles.ts revoke",
+    "admin:list": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/admin-roles.ts list",
     "geo:siruta": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts",
     "geo:lpis": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts",
-    "geo:import": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/reconcile.ts"
+    "geo:import": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/reconcile.ts",
+    "pensions:stop": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/stop-pensions.ts"
   },
   "engines": {
     "node": ">=20"

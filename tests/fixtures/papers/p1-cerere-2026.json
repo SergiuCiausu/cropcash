@@ -1,0 +1,34 @@
+{
+  "paper": "P1",
+  "kind": "apia_cerere",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "CERERE DE PLATĂ 2026, Ord. MADR 67/2026, Anexa 1 (MO 193 bis/12.03.2026), p. 4–6",
+  "checked": "official",
+  "printed": {
+    "title": "CERERE DE PLATĂ 2026",
+    "01_nume": "POPESCU",
+    "02_prenume": "ION",
+    "03_cnp": "1660315340010",
+    "15_judet_domiciliu": "TELEORMAN",
+    "26_judet_sediu_exploatatie": "TELEORMAN",
+    "39_iban": "RO49AAAA1B31007593840000",
+    "44_total_suprafata_agricola_utilizata_ha": "15,00",
+    "45_total_suprafata_agricola_solicitata_ha": "15,00",
+    "section_II_A_title": "II. A. DECLARAȚIE DE SUPRAFAȚĂ AGI-Online 2026",
+    "II_A_rows": [
+      { "judet": "TELEORMAN", "localitate": "MĂLDĂENI", "cod_siruta": "153277", "nr_bloc_fizic": "286", "pagina_harta": "1", "nr_parcela_agricola": "1", "categorie_folosinta": "TA", "nr_parcela_cultura": "1a", "cod_cultura": "101", "nume_cultura": "GRÂU COMUN de toamnă", "suprafata_ha": "8,00", "scheme": "PD-01, PD-02, PD-04" },
+      { "judet": "TELEORMAN", "localitate": "MĂLDĂENI", "cod_siruta": "153277", "nr_bloc_fizic": "293", "pagina_harta": "2", "nr_parcela_agricola": "1", "categorie_folosinta": "TA", "nr_parcela_cultura": "1a", "cod_cultura": "108", "nume_cultura": "PORUMB", "suprafata_ha": "7,00", "scheme": "PD-01, PD-02, PD-04" }
+    ],
+    "II_A_total_utilizata_ha": "15,00"
+  },
+  "expected": {
+    "applicant": { "firstName": "Ion", "fullName": "Ion Popescu", "county": "TR", "birthYear": 1966 },
+    "totalAri": 1500,
+    "rows": [
+      { "siruta": 153277, "blocFizic": "286", "parcelNo": "1", "landUse": "TA", "apiaCropCode": 101, "cropId": "grau", "areaAri": 800 },
+      { "siruta": 153277, "blocFizic": "293", "parcelNo": "1", "landUse": "TA", "apiaCropCode": 108, "cropId": "porumb", "areaAri": 700 }
+    ],
+    "schemes": ["PD-01", "PD-02", "PD-04"]
+  }
+}

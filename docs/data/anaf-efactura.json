@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "description": "Cum vorbește CropCash direct cu ANAF e-Factura (docs/facturi-plan.md pasul 8): logarea OAuth, adresele, limitele și mesajele. Paginile ANAF de pe mfinante.gov.ro (prezentarea API și swagger) nu au răspuns pe 17 nov 2026. Adresele upload / stareMesaj / listaMesajeFactura / descarcare sunt pe lista oficială ANAF. Restul e din referința compilată anafpy (după PDF-ul și swagger-ul ANAF, cu probe din iunie–iulie 2026): DE-VERIFICAT până rulează `npm run test:efactura` pe gazda de test.",
+    "status": "DE-VERIFICAT",
+    "sources": [
+      "https://static.anaf.ro/static/10/Anaf/Informatii_R/Servicii_web/url_eFactura.html",
+      "https://anafpy.readthedocs.io/en/latest/anaf-reference/efactura/api/",
+      "https://anafpy.readthedocs.io/en/latest/anaf-reference/oauth/authentication/"
+    ],
+    "checked": "2026-11-17"
+  },
+  "oauth": {
+    "authorize_url": "https://logincert.anaf.ro/anaf-oauth2/v1/authorize",
+    "token_url": "https://logincert.anaf.ro/anaf-oauth2/v1/token",
+    "status": "DE-VERIFICAT",
+    "note": "Logarea cere certificatul calificat în browser (D3: îl are contabilul). Codul primit înapoi se schimbă pe token în cel mult 60 de secunde. client_id și client_secret merg ca Basic. Tokenul de reînnoire se schimbă la fiecare reînnoire: se păstrează amândouă.",
+    "access_days": {
+      "value": 90,
+      "status": "DE-VERIFICAT",
+      "note": "129600 de minute, după PDF-ul ANAF citat de anafpy. Dacă tokenul (JWT) are exp, se ia acela."
+    },
+    "refresh_days": {
+      "value": 365,
+      "status": "DE-VERIFICAT",
+      "note": "525600 de minute, după PDF-ul ANAF citat de anafpy."
+    },
+    "refresh_before_days": {
+      "value": 7,
+      "status": "setare",
+      "note": "Tokenul de acces se reînnoiește cu atâtea zile înainte să expire."
+    },
+    "state_minutes": {
+      "value": 10,
+      "status": "setare",
+      "note": "Cât e bun linkul de logare pornit din CropCash."
+    }
+  },
+  "api": {
+    "base": {
+      "test": "https://api.anaf.ro/test/FCTEL/rest",
+      "prod": "https://api.anaf.ro/prod/FCTEL/rest"
+    },
+    "public_base": "https://webservicesp.anaf.ro/prod/FCTEL/rest",
+    "status": "DE-VERIFICAT",
+    "note": "api.anaf.ro cu token OAuth (Bearer). Lista oficială ANAF dă aceleași căi pe webserviceapl.anaf.ro, pentru certificat la fiecare cerere, pe care CropCash nu-l folosește. validare și transformare (XML → PDF) merg fără logare pe webservicesp.anaf.ro, doar în producție (pe gazda de test anafpy a primit 404)."
+  },
+  "timeout_s": {
+    "value": 30,
+    "status": "setare",
+    "note": "Cât așteptăm un răspuns de la ANAF."
+  },
+  "limits": {
+    "status": "DE-VERIFICAT",
+    "note": "Din limiteApeluriAPI.txt al ANAF, citat de anafpy (preluat pe 2 iul 2026, fără dată de intrare în vigoare). Peste limită ANAF poate bloca utilizatorul sau aplicația, deci CropCash se oprește singur înainte.",
+    "global_per_minute": 1000,
+    "status_per_message_per_day": 100,
+    "download_per_message_per_day": 10,
+    "list_per_cif_per_day": 1500,
+    "list_paged_per_cif_per_day": 100000
+  },
+  "check_interval_s": {
+    "value": 300,
+    "status": "setare",
+    "note": "O factură trimisă e întrebată la ANAF cel mult o dată la 5 minute (limita e 100 pe zi pentru un mesaj)."
+  },
+  "inbox": {
+    "interval_s": {
+      "value": 900,
+      "status": "setare",
+      "note": "Facturile primite se cer de la ANAF cel mult o dată la 15 minute pentru o fermă, oricât de des se deschide „Primite”."
+    },
+    "window_days": {
+      "value": 60,
+      "status": "DE-VERIFICAT",
+      "note": "ANAF ține mesajele 60 de zile; startTime nu poate fi mai vechi."
+    },
+    "overlap_s": {
+      "value": 3600,
+      "status": "setare",
+      "note": "Fiecare cerere reia ultima oră, pentru facturile care apar târziu în listă (anafpy: până la ~15 minute)."
+    },
+    "max_downloads_per_sync": {
+      "value": 50,
+      "status": "setare",
+      "note": "Câte facturi noi se descarcă la o trecere; restul la următoarea."
+    }
+  },
+  "reminder": {
+    "lead_days": {
+      "value": 30,
+      "status": "setare",
+      "note": "Evenimentul din calendar „Leagă din nou SPV” stă cu atâtea zile înainte să expire tokenul de reînnoire."
+    },
+    "remind_days_before": {
+      "value": 14,
+      "status": "setare"
+    }
+  },
+  "message_types": {
+    "status": "DE-VERIFICAT",
+    "note": "Câmpul tip din listaMesaje; filtru: E = erori, T = trimise, P = primite, R = mesaje cumpărător.",
+    "received": "FACTURA PRIMITA",
+    "sent": "FACTURA TRIMISA",
+    "errors": "ERORI FACTURA",
+    "filter_received": "P"
+  },
+  "states": {
+    "status": "DE-VERIFICAT",
+    "note": "stare din stareMesaj. „XML cu erori nepreluat de sistem” e respinsă la încărcare.",
+    "map": {
+      "ok": "accepted",
+      "nok": "rejected",
+      "in prelucrare": "in_processing",
+      "XML cu erori nepreluat de sistem": "rejected"
+    }
+  },
+  "no_rights_words": {
+    "status": "DE-VERIFICAT",
+    "note": "Bucăți din eroarea ANAF când certificatul nu are drept pe CIF-ul fermei în SPV. Se caută fără diacritice și fără majuscule.",
+    "match": [
+      "nu aveti drept",
+      "nu exista niciun cif",
+      "drepturi"
+    ]
+  },
+  "production": {
+    "status": "setare",
+    "note": "Pasul 9: o fermă trece pe gazda de producție ANAF doar cu INVOICING_ALLOW_PROD=true pe server și după o probă reușită pe gazda de test, cu CIF-ul ei: o factură de 1 leu încărcată acolo, pe care ANAF o primește (stare ok). Pe gazda de test nimic nu e fiscal.",
+    "probe_buyer": {
+      "name": "Client test CropCash",
+      "cif": "2816464",
+      "status": "setare",
+      "note": "Cumpărătorul facturii de probă, doar pe gazda de test ANAF. Un CIF cu cifra de control bună, din exemplele folosite și în testele CropCash."
+    },
+    "probe_valid_days": {
+      "value": 30,
+      "status": "setare",
+      "note": "O probă mai veche nu mai deschide trecerea pe producție: se face alta."
+    }
+  },
+  "poll_s": {
+    "value": 300,
+    "status": "setare",
+    "note": "Cât de des API-ul trece singur prin fermele legate: facturile trimise, cele primite de la ANAF, tokenurile ANAF ținute la zi (merge în același proces cu API-ul, pm2). INVOICING_POLL_S din .env îl schimbă; 0 îl oprește."
+  }
+}

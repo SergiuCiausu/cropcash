@@ -1,0 +1,36 @@
+{
+  "paper": "P5",
+  "kind": "registru_agricol",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "ADEVERINȚĂ conform înscrisurilor din registrul agricol, model Ord. MADR 106/2024, Anexa 5 (current version unverified, open question #37)",
+  "checked": "official",
+  "printed": {
+    "title": "ADEVERINȚĂ",
+    "titular": "POPESCU ION",
+    "an": "2026",
+    "registrul_agricol": "tip 1, vol. 3, poziția nr. 45",
+    "cap_II_b_terenuri_in_proprietate": [
+      { "categoria_de_folosinta": "arabil", "nr_bloc_fizic": "286", "ha": "8", "ari": "00" },
+      { "categoria_de_folosinta": "arabil", "nr_bloc_fizic": "293", "ha": "4", "ari": "00" }
+    ],
+    "cap_III_mod_de_utilizare": {
+      "01_teren_in_proprietate": { "ha": "12", "ari": "00" },
+      "02_primit_total": { "ha": "3", "ari": "00" },
+      "03_in_arenda": { "ha": "3", "ari": "00" },
+      "09_dat_total": { "ha": "0", "ari": "00" },
+      "17_suprafata_agricola_utilizata": { "ha": "15", "ari": "00" }
+    }
+  },
+  "expected": {
+    "ownAri": 1200,
+    "receivedAri": 300,
+    "leasedInAri": 300,
+    "givenAri": 0,
+    "usedAri": 1500,
+    "ownedParcels": [
+      { "blocFizic": "286", "landUse": "TA", "areaAri": 800 },
+      { "blocFizic": "293", "landUse": "TA", "areaAri": 400 }
+    ]
+  }
+}

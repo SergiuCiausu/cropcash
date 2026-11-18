@@ -150,3 +150,22 @@ npm run demo:rehearse      # scriptul din 09 §3 de 3 ori la rând (~6 min); la 
 ```
 
 `demo:rehearse` lasă contul lui Ion în starea de după demo. **Rulează `npm run seed:demo` ultimul.**
+
+## 7. Facturile (Oblio, ANAF e-Factura)
+
+Fără nimic din ce e mai jos, facturile merg pe simulator (seriile `SIM-`), ca până acum.
+
+1. **Migrația 041** (`041_invoices.sql`): `npm run db:migrate` de pe calculator, ca la orice versiune nouă.
+2. **`INVOICING_KEY`** în `.env` pe VPS: `openssl rand -base64 32`, o singură dată. **Nu se mai schimbă:** cu altă cheie, cheile Oblio și tokenurile ANAF salvate nu se mai deschid și fiecare fermă se leagă din nou. Ține o copie în afara VPS-ului.
+3. **ANAF:** aplicația înregistrată la ANAF (Servicii online > Înregistrare utilizatori > Dezvoltatori aplicații), cu callback-ul `https://cropcash-api.andreitutea.com/api/anaf/callback` (trebuie să fie exact același, cu https). Apoi `ANAF_CLIENT_ID`, `ANAF_CLIENT_SECRET` și `ANAF_REDIRECT_URI` în `.env`. Caddy trimite deja `/api/*` la API, deci nu e nimic de schimbat acolo.
+4. **`CORS_ORIGINS`** cu adresa site-ului: ANAF întoarce browserul contabilului acolo (`/contabil#spv=…`).
+5. `pm2 reload cropcash-api`.
+
+**Poller-ul** (facturile trimise, cele primite de la ANAF, tokenurile ANAF ținute la zi) merge în procesul API-ului, la `INVOICING_POLL_S` secunde (implicit din `anaf-efactura.json`, `0` îl oprește), doar cu `INVOICING_KEY`. Nu are proces pm2 separat: un singur proces înseamnă o singură reînnoire de token pe fermă (ANAF schimbă tokenul de reînnoire la fiecare reînnoire). Dacă vreodată API-ul rulează în mai multe instanțe, poller-ul trebuie mutat cu un lacăt în baza de date.
+
+**Trecerea pe producție (ANAF):**
+- Fără `INVOICING_ALLOW_PROD=true` (exact așa) nicio fermă nu ajunge pe gazda de producție ANAF: legăturile noi sunt pe gazda de test, iar una pusă pe producție nu mai merge până se pornește iar.
+- Cu el, o fermă trece pe producție doar după o probă reușită pe gazda de test, cu CIF-ul ei: din card, „Fă proba la ANAF” (o factură de 1 leu, doar pe test), apoi „Treci pe facturile adevărate”. Pe producție, „Primite” are facturile adevărate ale fermei din SPV.
+- Facturile emise merg tot prin Oblio. **Oblio nu are comutator:** o fermă legată de Oblio dă facturi adevărate din prima (decis pe 17 nov 2026); cardul o spune înainte de legare.
+
+**Verificare:** `npm run test:efactura` (validatorul public ANAF, fără logare); `EFACTURA_FARM_ID=<id> npm run test:efactura` după ce o fermă e legată; `npm run test:oblio` cu un cont Oblio de probă. În `pm2 logs cropcash-api`, poller-ul scrie doar ce pică (`invoice poll …`).

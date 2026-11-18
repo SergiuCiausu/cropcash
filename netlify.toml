@@ -25,3 +25,14 @@
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache"
+
+# The pension page is gone (docs/remove-pension-plan.md): old links and bookmarks land on the salary.
+[[redirects]]
+  from = "/pensie"
+  to = "/salariu"
+  status = 301
+
+[[redirects]]
+  from = "/ferma-lui-ion/pensie"
+  to = "/ferma-lui-ion/salariu"
+  status = 301

@@ -1,0 +1,23 @@
+{
+  "paper": "P6",
+  "kind": "seed_proof",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Seed purchase invoice + official seed lot document, proof of sowing for coupled support PD-09 soia (Ord. MADR 106/2024 art. 82–95, minimum kg/ha in Anexa 20); due 31.03.2027 for campaign 2026",
+  "checked": "described",
+  "printed": {
+    "factura": {
+      "furnizor": "SEMINȚE SINTETICE SRL",
+      "cif_furnizor": "RO00000000",
+      "numar": "SS 1042",
+      "data": "02.04.2026",
+      "linii": [{ "denumire": "Sămânță soia, cat. C1, lot TR-26-0007", "cantitate": "240", "um": "kg", "valoare_cu_tva": "3.196,80" }],
+      "total_de_plata": "3.196,80 lei"
+    },
+    "document_lot": { "tip": "BULETIN DE ANALIZĂ OFICIAL", "lot": "TR-26-0007", "mentiune": "Sămânță admisă pentru însămânțare" }
+  },
+  "expected": {
+    "expense": { "category": "seeds", "amountBani": 319680, "date": "2026-04-02", "docNo": "SS 1042", "counterparty": "SEMINȚE SINTETICE SRL" },
+    "seed": { "cropId": "apia-203", "kg": 240, "lot": "TR-26-0007", "certified": true }
+  }
+}

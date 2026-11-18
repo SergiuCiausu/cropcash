@@ -128,6 +128,51 @@
       "value": 20,
       "status": "presupunere",
       "note": "Câte hârtii poate citi un fermier într-o zi. Protecție împotriva costului."
+    },
+    "file_link_seconds": {
+      "value": 60,
+      "status": "presupunere",
+      "note": "Cât merge linkul cu care proprietarul deschide cererea păstrată. Scurt, pentru că fișierul are CNP-ul și IBAN-ul. Alegere a noastră (docs/cerere-documents-google-map-plan.md §1.1)."
+    },
+    "orphan_file_hours": {
+      "value": 24,
+      "status": "presupunere",
+      "note": "După cât timp se șterge un fișier urcat a cărui hârtie nu s-a salvat. Alegere a noastră (docs/cerere-documents-google-map-plan.md §3.4)."
+    },
+    "match_amount_bani": {
+      "value": 100,
+      "status": "presupunere",
+      "note": "Cât pot să difere două sume ca să fie aceeași cheltuială sau vânzare: una de pe hârtie, una scrisă de mână (1 leu). Alegere a noastră (docs/apia-documents-autofill-plan.md §3.4)."
+    },
+    "match_days": {
+      "value": 3,
+      "status": "presupunere",
+      "note": "Câte zile pot fi între două date ca să fie aceeași cheltuială sau vânzare. Alegere a noastră (docs/apia-documents-autofill-plan.md §3.4)."
+    },
+    "max_pages_per_pile": {
+      "value": 80,
+      "status": "presupunere",
+      "note": "Câte pagini poate avea un teanc de hârtii urcat deodată (tot dosarul APIA scanat, de exemplu). Un dosar are 30–80 de pagini. Alegere a noastră (docs/apia-documents-autofill-plan.md §7)."
+    },
+    "max_papers_per_pile": {
+      "value": 30,
+      "status": "presupunere",
+      "note": "Câte hârtii citim dintr-un teanc. Ce trece peste se arată, dar nu se citește. Alegere a noastră (docs/apia-documents-autofill-plan.md §7)."
+    },
+    "piles_per_day": {
+      "value": 5,
+      "status": "presupunere",
+      "note": "Câte teancuri poate urca un fermier într-o zi. Protecție împotriva costului. Alegere a noastră (docs/apia-documents-autofill-plan.md §7)."
+    },
+    "pile_max_mb": {
+      "value": 30,
+      "status": "presupunere",
+      "note": "Cât poate avea un teanc, cu toate fișierele. Alegere a noastră (docs/apia-documents-autofill-plan.md §7)."
+    },
+    "classify_pages_per_call": {
+      "value": 20,
+      "status": "presupunere",
+      "note": "Câte pagini trimitem deodată când aflăm ce hârtie e fiecare pagină. Mai puține înseamnă cereri mai mici, mai multe înseamnă mai puține cereri. Alegere a noastră (docs/apia-documents-autofill-plan.md §3.1)."
     }
   },
   "sources": {

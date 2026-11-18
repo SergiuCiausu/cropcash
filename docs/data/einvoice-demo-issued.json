@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "description": "Facturile pe care contul demo le-a dat deja când începe pitch-ul (docs/facturi-plan.md pasul 6), puse de seed:demo prin API, pe simulator. Pe contul demo Ion e PFA, ca „Emise” să aibă ce arăta; ferma lui Ion fără cont (/ferma-lui-ion) rămâne persoană fizică. Cantitatea e hectarele de porumb ale lui Ion (demo-ion.json) × producția medie (crops-reference.json) × partea vândută pe factură; prețul pe tonă e prețul mediu din crops-reference.json. Ion nu e plătitor de TVA, deci rândurile sunt fără TVA (categoria O).",
+    "status": "exemplu-demo",
+    "note": "Cumpărătorul și CIF-urile sunt inventate (P9 în docs/11-open-questions.md): încep cu zerouri, ca să nu fie ale vreunei firme reale, cu cifra de control corectă. Partea vândută pe fiecare factură e o presupunere de demo, nu o cifră despre lume."
+  },
+  "profile": {
+    "legal_form": "pfa",
+    "name": "Ion (demo) PFA",
+    "cif": "00000043",
+    "vat_status": "not_registered",
+    "city": "Măldăeni",
+    "county": "TR"
+  },
+  "series_prefix": "SIM-ION",
+  "buyers": [
+    { "key": "cereale", "name": "Cereale Exemplu SRL (demo)", "cif": "RO00000051", "city": "Alexandria", "county": "TR" }
+  ],
+  "items": [
+    {
+      "number": 1,
+      "buyer": "cereale",
+      "crop_id": "porumb",
+      "sold_share_pct": 20,
+      "issue_date": "2026-10-05",
+      "description": "Porumb boabe",
+      "story": "rejected_then_resent",
+      "note": "Prima trimitere e respinsă de simulator (semnul de respingere din einvoice-sim.json), apoi e trimisă din nou și trece."
+    },
+    {
+      "number": 2,
+      "buyer": "cereale",
+      "crop_id": "porumb",
+      "sold_share_pct": 15,
+      "issue_date": "2026-10-20",
+      "description": "Porumb boabe",
+      "story": "accepted"
+    },
+    {
+      "number": 3,
+      "buyer": "cereale",
+      "crop_id": "porumb",
+      "sold_share_pct": 5,
+      "issue_date": "2026-10-27",
+      "description": "Porumb boabe",
+      "story": "storno",
+      "storno_date": "2026-10-29",
+      "note": "Primită de ANAF, apoi anulată prin stornare: factura rămâne „Anulată”, stornarea „Primită de ANAF”."
+    }
+  ]
+}

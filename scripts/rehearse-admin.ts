@@ -1,12 +1,14 @@
 /*
  * npm run admin:rehearse   (docs/admin-panel-plan.md step 8)
  * The admin panel's rehearsal against the real Supabase, through the routes the phone calls, as the
- * demo account (an admin when ADMIN_EMAILS is unset):
+ * demo account (an admin through its app_roles row, which seed:demo grants; migration 035):
  *   seed:demo → the salary and forecast as they are → publish a new wheat price → the forecast moves,
  *   the salary the server (and Stripe) uses follows → publish a higher wheat cost → the salary drops →
  *   a stale publish is refused (409) → go back a version → go back to where it started.
  * It leaves the version that was in force at the start in force again. Every version it publishes
  * has a note starting "Repetiție:", so they're easy to tell apart in the history.
+ * Before publishing, it also reads „Oportunități și surse” the way the tab does (straight from Supabase, as
+ * the demo account) and checks it sees every call, the hidden ones too, and every source.
  * Ion's farm without an account (/ferma-lui-ion) never reads any of this; that's checked in the browser.
  */
 import { execSync } from 'node:child_process';
@@ -18,14 +20,15 @@ import { supabaseRepo } from '../apps/api/src/db/repo';
 import { supabaseFactory } from '../apps/api/src/db/supabase';
 import { supabasePredictions } from '../apps/api/src/db/predictions';
 import { supabaseTokenVerifier } from '../apps/api/src/middleware/auth';
+import { supabaseRoles } from '../apps/api/src/middleware/admin';
 import { createDataSource, liveData } from '../apps/api/src/predictions/source';
+import { adminCalls, loadAdminMonitor, sourceGroups, supabaseAdminReader } from '../web/lib/cc/admin-opportunities';
 
 const env = process.env as Record<string, string>;
 const files = loadData();
 const wheat = files.crops.crops.find((c) => c.id === 'grau')!;
 const PRICE = 'crops.crops[id=grau].price_lei_per_kg.mean';
 const COST = 'crops.crops[id=grau].cost_lei_per_ha.mean';
-const admins = (env.ADMIN_EMAILS || env.DEMO_EMAIL).split(',').map((e) => e.trim().toLowerCase());
 
 const lei = (bani: number) => Math.round(bani / 100).toLocaleString('ro-RO');
 const fail = (msg: string): never => {
@@ -38,7 +41,6 @@ const check = (ok: boolean, msg: string) => {
 
 async function main() {
   const t0 = Date.now();
-  if (!admins.includes(env.DEMO_EMAIL.toLowerCase())) fail('DEMO_EMAIL is not in ADMIN_EMAILS: the demo account cannot open the panel');
   console.log('seed:demo…');
   execSync('npm run seed:demo', { stdio: 'ignore' });
 
@@ -51,12 +53,15 @@ async function main() {
     verifyToken: supabaseTokenVerifier(env.SUPABASE_URL),
     repo: supabaseRepo(db),
     data: liveData(source),
-    predictions: { store, source, admins },
+    predictions: { store, source, roles: supabaseRoles(db) },
   });
 
   const c = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
   const { data: s, error } = await c.auth.signInWithPassword({ email: env.DEMO_EMAIL, password: env.DEMO_PASSWORD });
   if (error) throw error;
+  const isAdmin = await c.rpc('is_admin');
+  if (isAdmin.error) throw isAdmin.error;
+  if (isAdmin.data !== true) fail('the demo account has no admin row in app_roles: it cannot open the panel (seed:demo grants it)');
   const server = app.listen(0);
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
   const call = async (method: string, path: string, body?: object, expect = [200, 201]) => {
@@ -85,6 +90,22 @@ async function main() {
   const inForce = (path: string) => startSet.find((o) => o.path === path)?.value as number | undefined;
   const factors = await get('/admin/factors');
   check(factors.factors.some((f: { path: string }) => f.path === PRICE), `/admin/factors lists ${factors.factors.length} figures, wheat's price among them`);
+
+  // „Oportunități și surse” (docs/admin-opportunities-plan.md step 7): read as the tab reads it, straight from
+  // Supabase with the demo account's session, and compared with what the service key sees.
+  const monitor = await loadAdminMonitor(supabaseAdminReader(c), new Date());
+  const all = async (table: string, filter?: [string, string]) => {
+    let q = db.admin().from(table).select('*', { count: 'exact', head: true });
+    if (filter) q = q.eq(...filter);
+    const { count, error: e } = await q;
+    if (e) throw e;
+    return count ?? 0;
+  };
+  const [calls, hidden, sourcesCount] = await Promise.all([all('opportunities'), all('opportunities', ['relevance', 'not_relevant']), all('sources')]);
+  check(monitor.opportunities.length > 0 && monitor.opportunities.length === calls, `the tab reads every funding call (${calls})`);
+  check(monitor.opportunities.filter((o) => o.relevance === 'not_relevant').length === hidden, `including the ${hidden} farmers never see`);
+  check(monitor.sources.length > 0 && monitor.sources.length === sourcesCount, `and every official source (${sourcesCount}), ${sourceGroups(monitor.sources).filter((g) => g.problem).reduce((n, g) => n + g.sources.length, 0)} of them with problems`);
+  check(adminCalls(monitor.opportunities, {}, new Date().toISOString().slice(0, 10)).length === calls, 'the list shows them all before any filter');
 
   let version = start.version as number;
   const publish = async (overrides: Override[], note: string) => {

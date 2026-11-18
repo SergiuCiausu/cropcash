@@ -1,0 +1,27 @@
+{
+  "paper": "P8",
+  "kind": "fuel_prior_request",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Cerere de acord pentru finanțare (OMADR 1727/2015, Anexa 1b, natural person) + Anexa 2 „Situația suprafețelor și a structurii estimative a culturilor…”; norms from HG 1174/2014 annex (cereale 78 l/ha); filed by 22.12.2025 for 2026",
+  "checked": "official",
+  "printed": {
+    "title": "CERERE DE ACORD PENTRU FINANȚARE",
+    "anul": "2026",
+    "data": "15.12.2025",
+    "anexa_2": [
+      { "cultura": "Cereale pentru boabe (grâu)", "suprafata_ha": "8,00", "consum_normat_l_ha": "78", "cantitate_l": "624" },
+      { "cultura": "Cereale pentru boabe (porumb)", "suprafata_ha": "7,00", "consum_normat_l_ha": "78", "cantitate_l": "546" }
+    ],
+    "total_cantitate_l": "1.170"
+  },
+  "expected": {
+    "year": 2026,
+    "date": "2025-12-15",
+    "rows": [
+      { "group": "cereale", "areaAri": 800, "normLitresPerHa": 78, "litresCl": 62400 },
+      { "group": "cereale", "areaAri": 700, "normLitresPerHa": 78, "litresCl": 54600 }
+    ],
+    "totalLitresCl": 117000
+  }
+}

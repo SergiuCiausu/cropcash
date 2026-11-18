@@ -26,5 +26,21 @@
     "value": 300,
     "status": "presupunere",
     "note": "Câte bucăți de hartă (tile-uri) ține telefonul de la ultimele vizite, ca harta din jurul fermei să se vadă și fără internet (docs/harta-plan.md, pasul 11). Cele mai vechi pleacă primele. Satelitul nu se păstrează. Nu e o cifră de bani, doar de spațiu pe telefon."
+  },
+  "overview_max_farms": {
+    "value": 20,
+    "status": "presupunere",
+    "note": "Câte ferme arată cel mult „Toate fermele” pe /harta (docs/cerere-documents-google-map-plan.md §6.2, G7). Fiecare fermă e o cerere în plus la server; peste atât, harta spune că arată doar primele. Nu e o cifră de bani."
+  },
+  "map_3d_min_memory_gb": {
+    "value": 4,
+    "status": "presupunere",
+    "note": "Harta 3D de la Google (docs/cerere-documents-google-map-plan.md §8.4) e grea pe telefoanele ieftine. Sub atâta memorie (navigator.deviceMemory, în GB) sau fără WebGL2, /harta pornește pe harta 2D din satelit; „Vedere 3D” o schimbă oricând. Nu e o cifră de bani."
+  },
+  "google_maps_cost": {
+    "value": null,
+    "status": "DE-VERIFICAT",
+    "source": "https://mapsplatform.google.com/pricing/",
+    "note": "Cât costă o încărcare de hartă Google (Dynamic Maps, 3D Maps) și câte sunt gratuite pe lună. Nu le scriem din memorie: se verifică pe pagina oficială de prețuri înainte de orice demo public, iar în Cloud Console se pun o alertă de buget și o limită zilnică (G12)."
   }
 }

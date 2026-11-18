@@ -1,0 +1,21 @@
+{
+  "paper": "P7",
+  "kind": "coupled_sales_proof",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Sale invoice, proof of sale for coupled support PD-09 soia (at least 1.500 kg/ha; Ord. MADR 106/2024 as amended by Ord. 44/2026 pt. 62–63); due 31.03.2027 for campaign 2026",
+  "checked": "described",
+  "printed": {
+    "factura": {
+      "furnizor": "POPESCU ION PFA",
+      "cumparator": "CEREALE SINTETICE SA",
+      "numar": "PIP 7",
+      "data": "28.09.2026",
+      "linii": [{ "denumire": "Soia boabe", "cantitate": "6.150", "um": "kg", "pret_unitar": "1,95", "valoare": "11.992,50" }],
+      "total_de_plata": "11.992,50 lei"
+    }
+  },
+  "expected": {
+    "sale": { "cropId": "apia-203", "kg": 6150, "amountBani": 1199250, "date": "2026-09-28", "docNo": "PIP 7", "counterparty": "CEREALE SINTETICE SA" }
+  }
+}

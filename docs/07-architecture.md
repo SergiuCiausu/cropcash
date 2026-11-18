@@ -51,7 +51,10 @@ cropcash/
 
 | Entitate | Câmpuri principale | Relații |
 |---|---|---|
-| `Farmer` | id, user_id (auth), name, birth_year, county, stripe_account_id, stripe_customer_id, test_clock_id, start_balance_bani, created_at | 1–N Parcel, ExpectedPayment, Envelope, Transaction, Payout, FuelLog; 0–1 PensionPlan |
+| `Farmer` (= o fermă) | id, user_id (proprietarul; `transfer_farm` îl mută), client_id, name, birth_year, county, stripe_account_id, stripe_customer_id, test_clock_id, start_balance_bani, created_at | 1–N FarmMember, Parcel, ExpectedPayment, Envelope, Transaction, Payout, FuelLog; 0–1 PensionPlan |
+| `FarmMember` (035, 040) | id, farmer_id, user_id, role (owner, manager, worker, accountant, viewer), employee_id?, created_at | N–1 Farmer, N–1 cont; 0–1 Employee (omul din lista de salarii). **Accesul vine de aici**, nu din `farmers.user_id` (`docs/workspaces-plan.md`) |
+| `Profile` (035) | user_id, last_farm_id? | 1–1 cont. Ferma deschisă ultima dată, pentru următoarea intrare |
+| `FarmInvite` (028, 040) | id, farmer_id, role, code_hash, invited_by, expires_at | link de invitație pentru orice rol în afară de proprietar |
 | `Parcel` | id, farmer_id, crop_id, area_ari (sutimi de ha), is_arable, unproductive_ari | N–1 Farmer, N–1 Crop. De la migrarea 020 e **totalul pe cultură** din anul de recoltă al planului: e mereu suma `PlotSeason` din anul ăla (vezi mai jos) |
 | `Plot` (parcelă = o bucată de pământ, 020) | id, farmer_id, name?, county, siruta?, village_siruta?, bloc_fizic?, parcel_no?, lpis_fbid?, land_use?, geometry (GeoJSON)?, shape (desenul)?, centroid, geometry_source (lpis/drawn/coords/approx/none), auto_crop_id?, archived_at? | N–1 Farmer, 1–N PlotSeason, PlotOperation, Transaction |
 | `PlotSeason` (020) | plot_id, harvest_year (= anul campaniei APIA), crop_id?, apia_crop_code?, area_ari, sown_on?, harvested_on?, second_crop_id? | N–1 Plot. Istoricul pe ani al aceleiași bucăți de pământ |
@@ -184,11 +187,22 @@ create table funding_opportunities (
   extracted_at timestamptz not null default now()
 );
 
--- RLS: fiecare fermier își vede doar datele lui
-alter table farmers enable row level security;
-create policy own_farmer on farmers for all using (user_id = auth.uid());
--- aceeași politică pe celelalte tabele, prin farmer_id in (select id from farmers where user_id = auth.uid())
+-- RLS (de la 035; schița de mai sus e cea de la început): accesul vine din farm_members.
+--   my_farm_ids(roles)   fermele mele, eventual doar cu anumite roluri
+--   my_farmer_ids()      fermele unde sunt proprietar sau administrator: ele văd tabelele fermei
+--   require_farm_role(p_farm, roles)   prima linie a fiecărei funcții care primește ferma
+create policy farmers_team_read on farmers for select using (id in (select my_farmer_ids()));
+-- aceeași regulă pe celelalte tabele: farmer_id in (select my_farmer_ids())
+-- lucrătorul (042) citește doar parcelele, lucrările și motorina notată de el; contabilul, rapoartele (/contabil)
 ```
+
+**O persoană, mai multe ferme; o fermă, mai mulți oameni** (`docs/workspaces-plan.md`, pașii 1–8). Nicio funcție și
+nicio politică nu mai caută „ferma mea” după `farmers.user_id = auth.uid()` (pasul 8, `043` a scos ultimele
+semnături vechi). Ferma vine din cerere: header-ul `X-Farm-Id` în API, `p_farmer_id` în funcțiile SQL. Ce mai citește
+`user_id = auth.uid()` e propriul rând al cuiva: `farmers_own` (proprietarul își vede ferma, și o poate crea înainte
+să existe rândul lui din `farm_members`), `farm_members_self`, `profiles`, `app_roles`. Fiecare rând din
+`transactions`, `fuel_logs`, `farm_events`, `plot_operations` și `task_completions` ține `created_by`, pus de baza
+de date, nu de cine scrie (042).
 
 ## 4. Algoritmul de netezire (salariul lunar)
 
@@ -335,7 +349,7 @@ Fondul pentru ani proști a fost scos pe 7 nov 2026, la cererea echipei. Anul sl
 | POST | `/api/notifications/subscriptions` | (pasul 9f, nefăcut) salvează abonamentul Web Push al telefonului |
 | POST | `/api/webhooks/stripe` | webhooks (platformă și Connect) |
 
-Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Supabase>`. API-ul verifică token-ul și scoate `user_id` din el.
+Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Supabase>`. API-ul verifică token-ul și scoate `user_id` din el. Ferma vine din header-ul `X-Farm-Id` (`pickFarm`, `apps/api/src/middleware/farm.ts`). Fără el, e singura fermă pe care o conduci; dacă ai mai multe, `409 farm_required`. `repo.getFarm(token, farmId)` o citește ca utilizatorul, deci RLS hotărăște dacă ai voie. Rolul îl dă `repo.myRole`, iar `/api/me` răspunde după rol (`farmViewFor`). Lucrătorul are rutele lui: `GET /api/worker`, `POST /api/worker/work/:id/done`, `POST /api/worker/fuel`; proprietarul și administratorii, `GET /api/farm/noted`.
 
 **Hârtiile și datele personale (din 14 nov 2026).** AI-ul copiază doar ce e tipărit, iar codul face restul (`packages/shared/src/documents`). Dintr-o factură, o hârtie de vânzare sau o decizie nu se citesc nume, CNP, cont sau adresă. Din **cererea de plată** se citesc numele (câmpurile 01–02, sau 09–10 la PFA/II/firmă), CNP-ul (03 sau 11) și județul (26, altfel 15). Reguli:
 - CNP-ul nu iese din API. `normalizeReading` verifică cifra de control, scoate din el vârsta la ziua citirii (P32) și îl aruncă. `DocumentReading` nu are câmp pentru CNP, iar testele verifică că nu apare în răspuns, în reluarea din `ReplayCache` sau în log.
@@ -357,9 +371,9 @@ Toate rutele în afară de webhooks cer header-ul `Authorization: Bearer <JWT Su
 1. **Aplicația:** service worker-ul (`web/out/sw.js`, scris de `npm run build` prin `web/scripts/write-sw.mjs`) pune în cache paginile, JS, CSS, fonturile, manifestul, iconițele și **JSON-urile din `docs/data/`**, incluse în bundle. Copia fermei, a oportunităților și outbox-ul stau în localStorage, nu în IndexedDB, iar butoanele care cer net au `data-needs-net`, oprite de `web/legacy/app.js` (în loc de `<NeedsInternet>`). Punctele 2–4 de mai jos descriu planul inițial cu IndexedDB și TanStack Query; principiile (copie pe telefon, calcule locale, outbox, banii nu intră în coadă) sunt aceleași.
 2. **Datele fermierului:** fiecare răspuns de la API (profil, plăți așteptate, plicuri, tranzacții, plan) e salvat în IndexedDB, cu TanStack Query persistat și `networkMode: 'offlineFirst'`. La deschidere se afișează imediat ultima versiune, apoi se actualizează dacă e net.
 3. **Calculele rulează pe telefon:** motorul de subvenții, netezirea, scenariile și pensia sunt în `packages/shared`, adică funcții pure importate și în frontend. Offline poți schimba scenariul sau slider-ul de pensie și vezi rezultatul imediat.
-4. **Scrierile mărunte** (sarcină „Am făcut”, o intrare la motorină) intră într-o **outbox** în IndexedDB și se trimit automat când revine netul. Există un singur utilizator pe cont, deci nu apar conflicte reale. Regula: câștigă ultima scriere.
+4. **Scrierile mărunte** (sarcină „Am făcut”, o intrare la motorină) intră într-o **outbox** în IndexedDB și se trimit automat când revine netul. Regula: câștigă ultima scriere. Coada e una pentru toate fermele de pe telefon: fiecare înregistrare își ține ferma și pleacă la ea, oricare fermă e deschisă (`web/lib/live/outbox.ts`). Datele fiecărei ferme stau sub cheile ei, `cropcash-f-<id>-…` (`farmStore`, `web/lib/cc/storage.ts`). Lucrătorul are coada lui, la fel făcută (`cropcash-work-queue`, `web/lib/worker.ts`).
 5. **Tot ce mișcă bani** (confirmarea plicurilor, pornirea pensiei, simularea avansului, avansarea timpului) **cere net**. Nu punem bani în coadă. Înregistrarea unei vânzări sau cheltuieli nu mută bani, doar notează ce s-a întâmplat, așa că intră în outbox (`docs/f4-screens.md`).
-6. **Harta** (`docs/harta-plan.md`, pasul 11). Parcelele vin din copia de pe telefon (`cropcash-plots`), deci lista, cele două vederi, filtrele și cardurile merg fără net. Lucrările pe parcele (`add_operation`, `update_operation`) și desenul unei parcele (`update_plot`) intră în outbox, pentru că doar notează ce s-a făcut pe pământ. Pagina le arată imediat (`withPendingPlotWrites`), cu „se trimite când ai internet”, iar după trimitere parcelele se cer din nou. O lucrare încă în coadă, marcată apoi „făcut”, se schimbă direct în coadă. O lucrare notată offline odată cu o cheltuială nu e legată de ea, pentru că cheltuiala nu are încă id. Service worker-ul ține ultimele ~300 de bucăți din harta de bază (OpenFreeMap și relieful, cache-first, cele mai vechi pleacă primele; `plots-params.json` → `map_tile_cache_max`), deci zona fermei se vede de obicei și fără net. Stilul hărții vine întâi din rețea, apoi din copie. Satelitul nu se păstrează, ca să nu consume cota MapTiler. Fără bucăți de hartă, parcelele se desenează pe fundal gol, cu „Harta are nevoie de internet”.
+6. **Harta** (`docs/harta-plan.md`, pasul 11). Parcelele vin din copia de pe telefon (`cropcash-plots`), deci lista, cele două vederi, filtrele și cardurile merg fără net. Lucrările pe parcele (`add_operation`, `update_operation`) și desenul unei parcele (`update_plot`) intră în outbox, pentru că doar notează ce s-a făcut pe pământ. Pagina le arată imediat (`withPendingPlotWrites`), cu „se trimite când ai internet”, iar după trimitere parcelele se cer din nou. O lucrare încă în coadă, marcată apoi „făcut”, se schimbă direct în coadă. O lucrare notată offline odată cu o cheltuială nu e legată de ea, pentru că cheltuiala nu are încă id. Service worker-ul ține ultimele ~300 de bucăți din harta de bază (OpenFreeMap și relieful, cache-first, cele mai vechi pleacă primele; `plots-params.json` → `map_tile_cache_max`), deci zona fermei se vede de obicei și fără net. Stilul hărții vine întâi din rețea, apoi din copie. Satelitul nu se păstrează, ca să nu consume cota MapTiler. Fără bucăți de hartă, parcelele se desenează pe fundal gol, cu „Harta are nevoie de internet”. **Cu harta Google** (`VITE_GOOGLE_MAPS_KEY` + `VITE_GOOGLE_MAP_ID`, `docs/cerere-documents-google-map-plan.md` §8): service worker-ul nu atinge nimic de la Google (scriptul, bucățile de hartă, 3D, imaginile), pentru că termenii Google Maps Platform nu permit păstrarea lor. Pagina deschisă fără net, o cheie refuzată sau un script care nu se încarcă dau harta MapLibre de mai sus, deci parcelele se văd tot pe fundal gol sau pe bucățile OpenFreeMap păstrate.
 
 ### Când rețeaua merge prost
 
@@ -430,6 +444,19 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 - **Modul se citește din adresă** (`web/lib/paths.ts`). Link-urile între pagini trec prin `appHref`, iar cheile salvate prin `storageKey`. O scanare din `web/lib/paths.test.ts` oprește un link care nu trece pe acolo.
 - **Prima pagină** e pentru vizitatori: „Fă-ți cont”, „Intră în cont” și „Vezi ferma lui Ion”. Cine are deja sesiune pe telefon vede „Mergi la ferma ta”.
 
+### Mai multe ferme și oamenii fermei
+Un cont poate fi pe mai multe ferme, cu câte un rol pe fiecare (`docs/workspaces-plan.md`). Ferma deschisă stă în `cropcash-active-farm` și pleacă în `X-Farm-Id` la fiecare apel. Unde ajungi după login hotărăște `pickLanding` (`web/lib/live/farms.ts`):
+
+| Contul | Unde ajunge |
+|---|---|
+| conduce o singură fermă (proprietar sau administrator), sau cea deschisă pe telefon e încă a lui | ferma, pe `/acasa` |
+| conduce mai multe și nu e clar care | `/ferme`, alege |
+| e doar lucrător | `/lucru`: ce e de făcut, „Am terminat”, motorina în litri. Fără bani. Merge offline cu ultima listă și cu coada lui |
+| e doar contabil sau „doar vede” | `/contabil`, rapoartele |
+| nu e pe nicio fermă | onboarding |
+
+`/ferme`, `/lucru`, `/contabil` și `/invitatie` sunt pagini de cont: nu sunt în `SCREENS`, nu au geamăn pe ferma lui Ion și nu cer copia fermei. Proprietarul și administratorul invită pe `/oameni` („Cine folosește aplicația”), cu un link pentru WhatsApp; tot acolo văd „Ce au notat oamenii”.
+
 ### Paza de la intrare
 `guardTarget` (`web/lib/live/auth.ts`) e o funcție pură, cu teste, care decide **înainte să pornească pagina**. O folosește `web/components/app/Guard.tsx`. Citește sesiunea și copia fermei din `localStorage`, deci merge și fără net.
 
@@ -438,7 +465,7 @@ Componenta `<NeedsInternet feature="...">` înfășoară butoanele care cer net:
 | Ferma lui Ion, prima pagină, `/login` | se deschid pentru oricine |
 | Fără sesiune | `/login?next=<pagina>`, iar după login te întoarce acolo. De pe `/onboarding`, simplu `/login` |
 | Sesiune și copia fermei pe telefon | pagina pornește, și offline |
-| Sesiune, fără copie, cu net | aduce ferma de la `/api/me`; dacă nu ai fermă încă, mergi la onboarding |
+| Sesiune, fără copie, cu net | aduce ferma deschisă de la `/api/me`; dacă nu ai fermă încă, mergi la onboarding; dacă ai mai multe sau alt rol, unde spune tabelul de mai sus |
 | Sesiune, fără copie, fără net | ecranul „Pornește internetul o dată” |
 | Ferma nu se poate aduce | „Nu am putut aduce ferma”, cu „Încearcă din nou” |
 
@@ -511,9 +538,11 @@ Planul și starea pașilor sunt în `docs/admin-panel-plan.md`. Pe scurt:
 - **Ferma lui Ion fără cont (`/ferma-lui-ion`):** rămâne mereu pe fișiere și nu cheamă API-ul.
 
 **Cine e administrator.**
-- Emailurile din `ADMIN_EMAILS`, sau `DEMO_EMAIL` dacă lista e goală. API-ul verifică token-ul la fiecare apel (`requireAdmin`).
+- Cine are rândul `admin` în tabelul `app_roles` din Supabase (migrația 035). Fără Clerk și fără liste în `.env`.
+- Postgres decide: `has_role()` / `is_admin()` sunt aceeași verificare în politicile RLS și în API. API-ul o cere cu token-ul utilizatorului la fiecare apel (`requireRole`, `middleware/admin.ts`) și ține răspunsul un minut.
+- Nimeni nu își dă singur un rol: utilizatorul își citește doar rândurile lui, iar rândurile se scriu din dashboard, din SQL sau cu cheia de serviciu.
 - Telefonul arată linkul „Administrare” doar când `/api/prediction-data` spune `admin: true`.
-- Administratorii pot adăuga și îngrășăminte în catalog. `CATALOGUE_EDITORS` adaugă oameni care pot edita catalogul fără să fie administratori.
+- Rolul `catalogue_editor` poate adăuga îngrășăminte în catalog fără să fie administrator. Administratorii îl au și pe acesta.
 
 **Offline.**
 - Cifrele și ciorna (`cropcash-admin-draft`) merg fără net. Previzualizarea „Acum / Cu ciorna”, pe ferma ta sau a lui Ion, se calculează pe telefon cu aceeași funcție ca API-ul.

@@ -61,7 +61,7 @@ CropCash turns APIA subsidies and harvest money for small farms into a monthly s
 | RD-6 | `search_documents`, `list_tasks` | Surse, assistant cards | DEP-1 | No | legacy/surse.js:148, assistant.js:128 |
 | RD-7 | Page chunks (`import()` in boot) | every page | DEP-5, DEP-10 | Cached by SW | lib/boot.ts:446 |
 | RD-8 | `GET /api/plots` | /harta, Acasă reminders, Recolte's parcel picker, calendar form; the mini-map only once opened | DEP-1 | Yes, from DS-10, labelled on /harta | components/plots/usePlots.ts |
-| RD-9 | Map base (style, tiles), satellite, APIA bloc overlay | /harta, mini-map, drawing | DEP-12, DEP-13, DEP-11 | Base tiles from DS-11; otherwise a plain background | components/map/FarmMap.tsx, style.ts |
+| RD-9 | Map base (style, tiles), satellite, APIA bloc overlay | /harta, mini-map, drawing | DEP-12, DEP-13, DEP-11; Google Maps Platform when its key and Map ID are set | Base tiles from DS-11; otherwise a plain background. Google's map is never kept on the phone: offline it is the MapLibre map | components/map/FarmMap.tsx, style.ts; components/map/google/ (FarmMapGoogle, editor-surface, loader) |
 
 ## Async work
 | ID | Job / consumer / cron | Trigger / schedule | Does | Delivery semantics (if known) | Source |

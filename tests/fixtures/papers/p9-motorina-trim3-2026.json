@@ -1,0 +1,31 @@
+{
+  "paper": "P9",
+  "kind": "fuel_quarter_request",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "OMADR 1727/2015 Anexa 7 „Cerere de plată pentru rambursare” + Anexa 9 „Situația centralizatoare a cantităților de motorină utilizate și a documentelor fiscale de achiziție” (columns from the 2015–2019 model; current .docx unverified, open question #39) + invoice copies; Q3 2026 due by 31.10.2026",
+  "checked": "official",
+  "printed": {
+    "anexa_7": { "title": "CERERE DE PLATĂ PENTRU RAMBURSARE", "perioada": "trimestrul III 2026", "data": "20.10.2026" },
+    "anexa_9": {
+      "rows": [
+        { "nr_crt": "1", "furnizorul": "CARBURANȚI SINTETICI SRL", "nr_facturii": "CS 2201", "data_facturii": "08.07.2026", "cantitate_facturata_l": "300", "cantitate_utilizata_l": "300" },
+        { "nr_crt": "2", "furnizorul": "CARBURANȚI SINTETICI SRL", "nr_facturii": "CS 2290", "data_facturii": "29.07.2026", "cantitate_facturata_l": "250", "cantitate_utilizata_l": "250" }
+      ],
+      "total_l": "550"
+    },
+    "facturi": [
+      { "furnizor": "CARBURANȚI SINTETICI SRL", "numar": "CS 2201", "data": "08.07.2026", "cantitate": "300,00 l", "total_de_plata": "2.250,00 lei" },
+      { "furnizor": "CARBURANȚI SINTETICI SRL", "numar": "CS 2290", "data": "29.07.2026", "cantitate": "250,00 l", "total_de_plata": "1.887,50 lei" }
+    ]
+  },
+  "expected": {
+    "quarter": { "year": 2026, "q": 3 },
+    "totalLitresCl": 55000,
+    "expenses": [
+      { "category": "diesel", "amountBani": 225000, "date": "2026-07-08", "docNo": "CS 2201", "counterparty": "CARBURANȚI SINTETICI SRL", "fuelLitersCl": 30000 },
+      { "category": "diesel", "amountBani": 188750, "date": "2026-07-29", "docNo": "CS 2290", "counterparty": "CARBURANȚI SINTETICI SRL", "fuelLitersCl": 25000 }
+    ],
+    "note": "The refund isn't in `expected`: it depends on the rate by invoice date (open question #15)."
+  }
+}

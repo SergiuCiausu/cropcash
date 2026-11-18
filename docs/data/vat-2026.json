@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "description": "Cotele de TVA pe care le pun facturile (docs/facturi-plan.md, D4). Cotele sunt în puncte de bază: 2100 = 21%. Fiecare factură ține cota cu care a fost făcută, deci o schimbare aici nu atinge facturile vechi.",
+    "status": "DE-VERIFICAT",
+    "checked": "2026-11-17"
+  },
+  "rates": {
+    "standard": {
+      "value_bp": 2100,
+      "valid_from": "2025-08-01",
+      "status": "din-presă",
+      "source": "Legea 141/2025 (de la 19% la 21%), după EY Tax News și ANAF",
+      "url": "https://taxnews.ey.com/news/2025-1622",
+      "note": "Cota pentru tot ce nu are o cotă redusă: lucrări agricole făcute de alții, piese, reparații, servicii."
+    },
+    "reduced": {
+      "value_bp": 1100,
+      "valid_from": "2025-08-01",
+      "status": "din-presă",
+      "source": "Legea 141/2025 (cotele de 5% și 9% devin o singură cotă de 11%), după EY Tax News",
+      "url": "https://taxnews.ey.com/news/2025-1622"
+    }
+  },
+  "uses": {
+    "agri_inputs": {
+      "rate": "reduced",
+      "status": "DE-VERIFICAT",
+      "source": "Codul fiscal art. 291, forma consolidată: 11% pentru îngrășăminte și pesticide folosite în agricultură, semințe și alte produse destinate însămânțării sau plantării",
+      "note": "Presa (Capital, Forbes, citând Camera Consultanților Fiscali) spune că Legea 141/2025 a scos cota redusă pentru unele semințe și plante. De citit textul legii: care semințe rămân la 11%. Întrebarea 26 din docs/11-open-questions.md."
+    },
+    "services": {
+      "rate": "standard",
+      "status": "din-presă"
+    },
+    "grain_to_vat_payer": {
+      "category": "AE",
+      "status": "din-presă",
+      "valid_until": "2026-12-31",
+      "source": "Codul fiscal art. 331 alin. (2) lit. c) și alin. (6): taxare inversă la livrarea de cereale și plante tehnice, inclusiv semințe oleaginoase și sfeclă de zahăr, între plătitori de TVA",
+      "url": "https://contabilul.manager.ro/a/26941/mecanismul-taxarii-inverse-a-fost-prorogat-pana-la-31-decembrie-2026.html",
+      "note": "Comisia Europeană a propus prelungirea până la 30 iunie 2030; până la adoptare, după 31 decembrie 2026 nu se mai aplică. Întrebarea 27."
+    },
+    "grain_to_others": {
+      "rate": null,
+      "status": "DE-VERIFICAT",
+      "note": "Cereale vândute cuiva care nu e plătitor de TVA: 11% sau 21% după Legea 141/2025? Întrebarea 28."
+    },
+    "special_agri_scheme": {
+      "rate": null,
+      "status": "DE-VERIFICAT",
+      "source": "Codul fiscal art. 315¹, regimul special pentru agricultori",
+      "note": "Cine intră în regim, ce scrie pe factură și cu ce cotă de compensare. Întrebarea 29."
+    }
+  }
+}

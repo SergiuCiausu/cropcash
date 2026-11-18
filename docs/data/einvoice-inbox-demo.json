@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "description": "Facturile de la furnizori pe care simulatorul le pune la „Primite” pe ferma lui Ion și pe contul demo (docs/facturi-plan.md §3). Suma nu e scrisă aici: e costul pe ha al culturii din crops-reference.json, înmulțit cu ponderea lunii din expense_months și cu hectarele lui Ion din demo-ion.json, adică exact cât are deja planul pentru acea lună. TVA-ul vine din vat-2026.json.",
+    "status": "exemplu-demo",
+    "note": "Furnizorii sunt inventați, ca exemplu de demo (P9 în docs/11-open-questions.md). CIF-urile încep cu zerouri, ca să nu fie ale vreunei firme reale; cifra de control e totuși corectă, ca facturile să treacă de verificări."
+  },
+  "series_prefix": "SIM-FZ",
+  "suppliers": [
+    { "key": "seminte", "name": "Semințe Exemplu SRL (demo)", "cif": "RO00000019", "city": "Alexandria", "county": "TR" },
+    { "key": "lucrari", "name": "Lucrări Agricole Exemplu SRL (demo)", "cif": "RO00000027", "city": "Roșiorii de Vede", "county": "TR" },
+    { "key": "fitosanitare", "name": "Fitosanitare Exemplu SRL (demo)", "cif": "RO00000035", "city": "Turnu Măgurele", "county": "TR" }
+  ],
+  "items": [
+    {
+      "number": 1,
+      "supplier": "lucrari",
+      "crop_id": "grau",
+      "month": 9,
+      "issue_date": "2026-09-30",
+      "description": "Arat și pregătit terenul, grâu",
+      "category": "field_work",
+      "vat_use": "services"
+    },
+    {
+      "number": 2,
+      "supplier": "seminte",
+      "crop_id": "grau",
+      "month": 10,
+      "issue_date": "2026-10-08",
+      "description": "Sămânță grâu de toamnă și semănat",
+      "category": "seeds",
+      "vat_use": "agri_inputs"
+    },
+    {
+      "number": 3,
+      "supplier": "fitosanitare",
+      "crop_id": "porumb",
+      "month": 6,
+      "issue_date": "2026-06-12",
+      "description": "Tratamente porumb (fungicid, insecticid)",
+      "category": "treatments",
+      "vat_use": "agri_inputs"
+    }
+  ]
+}

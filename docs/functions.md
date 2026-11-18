@@ -224,13 +224,24 @@ Until INS data exists, county results are labelled "date ilustrative".
 
 | Function | Button or screen | Input | Returns | Access | Runs | Status |
 |---|---|---|---|---|---|---|
-| `save_plots` | „Parcelele din cerere” sheet, „Le pun pe hartă” | harvest year, 1 to 500 parcels (bloc, number, SIRUTA, outline, season) | parcel ids; the crop totals follow the parcels | `user` | `api` | Built (step 3); sheet not on a page yet |
+| `save_plots` | „Parcelele din cerere” sheet, „Le pun pe hartă”; „Salvează parcela” after „Desenează o parcelă” on `/harta` | harvest year, 1 to 500 parcels (bloc, number, SIRUTA, outline, season); a new parcel may bring its own id (migration 044) | parcel ids; the crop totals follow the parcels | `user` | `api`, waits in the queue without internet (a drawn parcel carries the id the phone gave it, so it is one parcel however often it is sent) | Built (step 3); drawn parcels: cerere-documents-google-map-plan step 7 |
 | `update_plot` | Parcel card on `/harta`: name, redraw, season | parcel id, harvest year, the fields that change | parcel id | `user` | `api` | Built (step 3) |
 | `add_operation` | Parcel card: „Notează o lucrare” | parcel, year, kind, done or planned, date, product, dose | operation id; sent again with the same client id, the same one | `user` | `api` | Built (step 3) |
 | `update_operation` | Parcel card: „Am făcut-o” on a planned one | operation id, the fields that change | none | `user` | `api` | Built (step 3) |
 | `remove_operation` | Parcel card, after a mistaken note | operation id | none; 404 counts as done | `user` | `api` | Built (step 3) |
 
 Reading the parcels is `GET /api/plots?year=`, outside the registry: a read function runs on the farm the phone already has, and parcels aren't part of it. These are `user` until the parcel card exists; giving the assistant `add_operation` („am stropit azi grâul”) is a later choice. None of them waits in the offline queue yet.
+
+### The kept cerere de plată (docs/cerere-documents-google-map-plan.md)
+
+| Function | Button or screen | Input | Returns | Access | Runs | Status |
+|---|---|---|---|---|---|---|
+| `keep_cerere` | „Încarcă cererea de plată” (`/documente`, `/harta`, after onboarding) | client id, keep the file or not, the pages, optional `replaces` | the cerere: fields, rows, problems; 409 `cerere_exists` with the current one's id | `user` | `api` | Built (step 3); screen in step 4 |
+| `edit_cerere` | Cerere screen: a field, a row, „Adaugă un rând”, „Scoate rândul”, „Am verificat” | cerere id, only the fields and rows that change, `checked` | the cerere after the change; 400 `invalid_edit` with what's wrong | `user` | `api` | Built (step 3); meant for the offline queue in step 4 |
+| `apply_cerere` | „Pune pe hartă” on `/documente`, „Adaugă parcele din cererea APIA” on `/harta` (the review sheet) | cerere id, harvest year, one `save_plots` parcel per row | `{row: parcel id}` | `user` | `api` | Built (step 3); on both pages (step 5) |
+| `delete_document` | „Șterge documentul” / „Șterge doar fișierul” (owner) | paper id, `onlyFiles` | none; 404 counts as done | `user` | `api` | Built (step 3) |
+
+Reading is `GET /api/farm-documents?kind=&year=` and `GET /api/farm-documents/:id`, outside the registry. A stored page opens through `GET /api/farm-documents/:id/files/:n`, a signed link that works for `documents.file_link_seconds` (owner only). Owner and manager read and edit; only the owner keeps, opens or deletes files. `edit_cerere` sends only what changed and the API puts it on the newest copy, so it can wait offline without undoing someone else's edit.
 
 ## 8. Risk fund and pension
 
@@ -317,6 +328,7 @@ These read the monitor's `opportunities` table.
 | `list_opportunity_changes` | "Noutăți" tab | days | new calls, changed deadlines and budgets | `read` | `api` | Built |
 | `follow_opportunity` | "Pune în calendar" | stable key | task in the calendar | `confirm` | `api` for now | Built. The outbox comes with step 9b |
 | `unfollow_opportunity` | "Scoate din calendar" | stable key | none | `user` | `api` for now | Built. The outbox comes with step 9b |
+| `mark_opportunity_applied` | "Am depus dosarul" / "N-am depus încă" | stable key, applied | none (stops the call's closing alerts, step 4) | `user` | `api`, never queued | Built (docs/ce-mai-poti-primi-plan.md, step 2). No deadline needed |
 
 The last saved list stays readable offline, with a line saying when it was saved (`lib/savedRead.ts`, until step 9b). Calls followed stay in the calendar offline, because they come with the farm.
 
@@ -527,7 +539,7 @@ All new tables need explicit grants, because of Supabase's 30 October change. Mi
 | `kind`, `category`, `crop_id`, `note`, `envelope_taken_bani` on `transactions` (migration 010) | `record_sale`, `add_expense`, `undo_transaction` |
 | `set_envelopes` counts recorded income and expenses (migration 010) | Section 5 |
 | `task_completions` (migration 010) | `complete_task` |
-| `opportunity_follows` | `follow_opportunity` |
+| `opportunity_follows` | `follow_opportunity`, `mark_opportunity_applied` |
 | Read policy and `select` grant to `authenticated` on `opportunities` | Section 12 |
 | `source_changes`: source, date, kind, short diff, written by the monitor | Section 13 |
 | `documents`: passages with Romanian full-text search, written by the monitor | `search_documents` |

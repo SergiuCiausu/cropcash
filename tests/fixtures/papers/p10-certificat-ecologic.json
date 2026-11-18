@@ -1,0 +1,22 @@
+{
+  "paper": "P10",
+  "kind": "organic_cert",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Certificate + annex issued by the control body (Ord. MADR 312/2021), for DR-04 / DR-05; filed by 15.10.2026. The layout of the certificate isn't standardised here",
+  "checked": "described",
+  "printed": {
+    "title": "CERTIFICAT",
+    "organism_de_control": "CONTROL ECO SINTETIC SRL",
+    "operator": "POPESCU ION",
+    "valabil": "01.01.2026–31.12.2026",
+    "anexa": [
+      { "nr_bloc_fizic": "286", "cultura": "grâu", "suprafata_ha": "8,00", "statut": "conversie anul 2" }
+    ]
+  },
+  "expected": {
+    "validFrom": "2026-01-01",
+    "validTo": "2026-12-31",
+    "parcels": [{ "blocFizic": "286", "cropId": "grau", "areaAri": 800, "status": "conversion", "conversionYear": 2 }]
+  }
+}

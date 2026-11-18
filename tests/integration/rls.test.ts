@@ -116,6 +116,7 @@ describe('Row Level Security', () => {
   it('a user can save a parcel on the map, and the crop total follows it', async () => {
     const year = (await a.client.rpc('farm_harvest_year', { p_farmer: farmA })).data as number;
     const { data, error } = await a.client.rpc('save_plots', {
+      p_farmer_id: farmA,
       p_harvest_year: year,
       p_plots: [{ siruta: 153277, bloc_fizic: '286', parcel_no: '1a', geometry_source: 'approx', season: { crop_id: 'grau', area_ari: 900 } }],
     });
@@ -132,14 +133,14 @@ describe('Row Level Security', () => {
     expect(season.error).not.toBeNull();
     const op = await b.client.from('plot_operations').insert({ plot_id: plotA, farmer_id: farmA, harvest_year: 2031, kind: 'herbicide', status: 'planned' });
     expect(op.error).not.toBeNull();
-    const save = await b.client.rpc('save_plots', { p_harvest_year: 2031, p_plots: [{ id: plotA, season: { crop_id: 'grau', area_ari: 10 } }] });
+    const save = await b.client.rpc('save_plots', { p_farmer_id: farmA, p_harvest_year: 2031, p_plots: [{ id: plotA, season: { crop_id: 'grau', area_ari: 10 } }] });
     expect(save.error).not.toBeNull();
   });
 
   it('the parcel store reads, adds work once per client id, changes and removes it, and hides other farms', async () => {
     const store = supabasePlots(supabaseFactory(url, anonKey, serviceKey));
     const year = (await a.client.rpc('farm_harvest_year', { p_farmer: farmA })).data as number;
-    const listed = await store.list(a.token, year);
+    const listed = await store.list(a.token, farmA, year);
     expect(listed.plots.map((p) => p.id)).toContain(plotA);
     expect(listed.seasons).toContainEqual(expect.objectContaining({ plot_id: plotA, crop_id: 'grau', area_ari: 900 }));
 
@@ -148,7 +149,7 @@ describe('Row Level Security', () => {
     const opId = await store.addOperation(a.token, row);
     expect(await store.addOperation(a.token, row)).toBe(opId);
     await store.updateOperation(a.token, opId, { status: 'done', on_date: '2026-11-14', product: 'Fungicid test' });
-    expect((await store.list(a.token, year)).operations).toEqual([expect.objectContaining({ id: opId, status: 'done', on_date: '2026-11-14' })]);
+    expect((await store.list(a.token, farmA, year)).operations).toEqual([expect.objectContaining({ id: opId, status: 'done', on_date: '2026-11-14' })]);
     await expect(store.updateOperation(a.token, opId, { on_date: null })).rejects.toMatchObject({ status: 400 });
 
     await expect(store.addOperation(b.token, { ...row, client_id: crypto.randomUUID() })).rejects.toMatchObject({ status: 404, code: 'not_found' });
@@ -157,8 +158,9 @@ describe('Row Level Security', () => {
     expect(await store.removeOperation(a.token, opId)).toBe(true);
     expect(await store.removeOperation(a.token, opId)).toBe(false);
 
-    await expect(store.save(b.token, year, [{ id: plotA, name: 'furat' }])).rejects.toMatchObject({ status: 404 });
-    await expect(store.save(a.token, year, [{ id: plotA, season: { crop_id: 'grau', area_ari: 0 } }])).rejects.toMatchObject({ status: 400 });
+    // B names A's farm: not one B runs (require_farm_role, migration 036).
+    await expect(store.save(b.token, farmA, year, [{ id: plotA, name: 'furat' }])).rejects.toMatchObject({ status: 404 });
+    await expect(store.save(a.token, farmA, year, [{ id: plotA, season: { crop_id: 'grau', area_ari: 0 } }])).rejects.toMatchObject({ status: 400 });
   });
 });
 
@@ -178,7 +180,7 @@ describe('API with real Supabase tokens', () => {
 
     const resB = await request(app).get('/api/me').set('Authorization', `Bearer ${b.token}`);
     expect(resB.status).toBe(200);
-    expect(resB.body).toEqual({ userId: b.id, farmer: null });
+    expect(resB.body).toEqual({ userId: b.id, farmer: null, role: null });
   });
 
   it('onboarding via POST /api/farmers creates farm, parcels and 6 envelopes (payroll since 030)', async () => {
@@ -191,6 +193,7 @@ describe('API with real Supabase tokens', () => {
         { cropId: 'grau', areaHa: 8 },
         { cropId: 'porumb', areaHa: 7 },
       ],
+      clientId: crypto.randomUUID(),
     };
     const res = await request(app).post('/api/farmers').set('Authorization', `Bearer ${b.token}`).send(ion);
     expect(res.status).toBe(201);
@@ -203,8 +206,10 @@ describe('API with real Supabase tokens', () => {
     const parcels = await b.client.from('parcels').select('crop_id, area_ari');
     expect(parcels.data).toHaveLength(2);
 
+    // The same tap again (an answer lost on the way back): the same farm, not a second one (migration 039).
     const again = await request(app).post('/api/farmers').set('Authorization', `Bearer ${b.token}`).send(ion);
-    expect(again.status).toBe(409);
+    expect(again.status).toBe(201);
+    expect(again.body.farmerId).toBe(res.body.farmerId);
 
     const subs = await request(app).get('/api/subsidies').set('Authorization', `Bearer ${b.token}`);
     expect(subs.body.totals.advanceLei).toBe(1264932);
@@ -351,6 +356,50 @@ describe('API with real Supabase tokens', () => {
     await a.client.from('farmers').update({ pension_fund_id: 'nn-optim' }).eq('id', farm!.id);
     const after = await request(app).get('/api/me').set(owner);
     expect(after.body.farmer.pension_fund_id).toBe('stabil');
+  });
+
+  it('applied to a call (migration 037): the owner sets it, nobody else can, and only status columns move', async () => {
+    const owner = { Authorization: `Bearer ${b.token}` };
+    // A call with no deadline: following would refuse it, applying must not.
+    const key = `rls-test:${stamp}`;
+    const made = await admin.from('opportunities').insert({
+      stable_key: key,
+      kind: 'afir',
+      programme: 'RLS test',
+      title: 'RLS test call',
+      status: 'open',
+      url: 'https://example.test/call',
+      relevance: 'direct',
+      confidence: 'high',
+    });
+    expect(made.error).toBeNull();
+    try {
+      const follow = (body: object) => request(app).post('/api/opportunities/applied').set(owner).send({ key, ...body });
+      const row = async () => {
+        const me = await request(app).get('/api/me').set(owner);
+        return me.body.farmer.opportunity_follows.find((f: { stable_key: string }) => f.stable_key === key);
+      };
+
+      expect((await follow({ applied: true })).status).toBe(200);
+      expect(await row()).toMatchObject({ status: 'applied', applied_at: expect.any(String) });
+      // Twice is fine: the row is there, it stays applied.
+      expect((await follow({ applied: true })).status).toBe(200);
+
+      // Another user can't take it back: RLS hides the row, so nothing changes.
+      await a.client.from('opportunity_follows').update({ status: 'following', applied_at: null }).eq('stable_key', key);
+      expect((await row()).status).toBe('applied');
+
+      // The owner can't move the key columns, nor set a status without its date.
+      const moved = await b.client.from('opportunity_follows').update({ stable_key: 'other' }).eq('stable_key', key);
+      expect(moved.error).not.toBeNull();
+      const undated = await b.client.from('opportunity_follows').update({ applied_at: null }).eq('stable_key', key);
+      expect(undated.error).not.toBeNull();
+
+      expect((await follow({ applied: false })).status).toBe(200);
+      expect(await row()).toMatchObject({ status: 'following', applied_at: null });
+    } finally {
+      await admin.from('opportunities').delete().eq('stable_key', key);
+    }
   });
 
   it('harvests: saved for the owner only', async () => {

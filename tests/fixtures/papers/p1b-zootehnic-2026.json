@@ -1,0 +1,37 @@
+{
+  "paper": "P1b",
+  "kind": "apia_cerere",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "CERERE DE PLATĂ 2026, field 47 and section III „DECLARAȚIE PRIVIND SECTORUL ZOOTEHNIC pentru care se solicită intervenții/măsuri – 2026 – AGI-Online” (Ord. MADR 67/2026, Anexa 1, p. ~4 and ~13–20)",
+  "checked": "official",
+  "printed": {
+    "47_efective": {
+      "bovine_peste_2_ani": "4",
+      "bovine_6_luni_2_ani": "1",
+      "bovine_sub_6_luni": "2",
+      "ecvidee_peste_6_luni": "0",
+      "ecvidee_sub_6_luni": "0",
+      "ovine": "0",
+      "caprine": "0",
+      "scroafe_reproductie_peste_50_kg": "0",
+      "alte_porcine": "0",
+      "gaini_ouatoare": "0",
+      "alte_pasari": "0"
+    },
+    "49_exploatatie": { "cod_exploatatie_ansvsa": "RO153277000123", "interventii_bifate": ["PD-21 VL"] },
+    "51_valorificare_lapte": { "perioada": "14.06.2025–05.06.2026", "cantitate_tone": "18,400", "prim_cumparator": "LACTATE SINTETICE SRL" },
+    "52_lista_animale": [
+      { "crotalie": "RO0000000000001", "specia": "BOVINE", "sex": "F", "data_fatarii": "12.03.2020", "interventie": "PD-21" },
+      { "crotalie": "RO0000000000002", "specia": "BOVINE", "sex": "F", "data_fatarii": "02.05.2021", "interventie": "PD-21" },
+      { "crotalie": "RO0000000000003", "specia": "BOVINE", "sex": "F", "data_fatarii": "20.01.2022", "interventie": "PD-21" },
+      { "crotalie": "RO0000000000004", "specia": "BOVINE", "sex": "F", "data_fatarii": "09.09.2022", "interventie": "PD-21" }
+    ]
+  },
+  "expected": {
+    "animals": { "cattleOver2y": 4, "cattle6mTo2y": 1, "cattleUnder6m": 2, "sheep": 0, "goats": 0 },
+    "dairyCows": 4,
+    "schemes": ["PD-21"],
+    "milkSoldKg": 18400
+  }
+}

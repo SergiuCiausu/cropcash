@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "description": "Cum vorbește CropCash cu Oblio (docs/facturi-plan.md pasul 7). Adresele, limitele și codurile e-Factura sunt din documentația publică Oblio, citită pe 17 nov 2026. Ce nu scrie acolo e marcat DE-VERIFICAT și se verifică cu `npm run test:oblio` pe un cont adevărat.",
+    "status": "din-documentatie",
+    "source": "https://www.oblio.eu/api",
+    "checked": "2026-11-17"
+  },
+  "base_url": "https://www.oblio.eu/api",
+  "token": {
+    "path": "/authorize/token",
+    "lifetime_s": { "value": 3600, "status": "din-documentatie", "note": "expires_in din exemplul din documentație. Nu scrie dacă sunt secunde; CropCash ia tokenul din nou cu margin_s înainte." },
+    "margin_s": { "value": 120, "status": "setare", "note": "Cât de devreme cerem alt token, ca să nu expire în mijlocul unei cereri." }
+  },
+  "rate_limits": {
+    "documents": { "requests": 30, "per_s": 100, "status": "din-documentatie", "note": "„30 de cereri la 100 de secunde pentru cererile care genereaza documente”." },
+    "other": { "requests": 30, "per_s": 10, "status": "din-documentatie", "note": "„30 de cereri la 10 secunde pentru orice tip de cerere care nu presupune generarea unui document”." }
+  },
+  "timeout_s": { "value": 20, "status": "setare", "note": "Cât așteptăm un răspuns de la Oblio. Fără răspuns, factura rămâne „Respinsă” cu „Oblio nu a răspuns” și se poate trimite din nou: cheia idempotencyKey (id-ul facturii) o oprește să apară de două ori." },
+  "check_interval_s": { "value": 60, "status": "setare", "note": "O factură trimisă e întrebată la Oblio cel mult o dată pe minut, oricât de des se deschide lista: limita de mai sus e mică." },
+  "einvoice_codes": {
+    "status": "din-documentatie",
+    "note": "Codul din einvoiceStatus (lista de facturi cu withEinvoiceStatus) și din răspunsul la trimiterea în SPV: -1 netrimisă, 0 în prelucrare, 1 trimisă cu succes, 2 cu erori, netrimisă. Ce înseamnă „trimisă cu succes” față de „validată de ANAF” e DE-VERIFICAT.",
+    "map": { "-1": "sent_to_spv", "0": "in_processing", "1": "accepted", "2": "rejected" }
+  },
+  "units": {
+    "status": "DE-VERIFICAT",
+    "note": "measuringUnit e text liber în Oblio (implicit „buc”). Cuvintele de aici sunt cele uzuale; Oblio poate avea altele în nomenclator.",
+    "map": { "KGM": "kg", "TNE": "tona", "LTR": "litru", "C62": "buc", "H87": "buc", "HUR": "ora", "HAR": "ha" }
+  },
+  "vat_names": {
+    "status": "DE-VERIFICAT",
+    "note": "Numele cotelor fără procent (taxare inversă, scutit, neplătitor). Documentația arată doar „Normala”, „Redusa” și „SFDD” (0%). CIF-ul firmei are cotele lui în /nomenclature/vat_rates: se alege primul nume de aici care e acolo; pentru S se caută după procent.",
+    "by_category": {
+      "O": ["SDD", "SFDD", "Neplatitor"],
+      "AE": ["Taxare inversa", "TI"],
+      "E": ["Scutit", "SFDD"],
+      "Z": ["Cota zero", "SFDD"]
+    }
+  }
+}

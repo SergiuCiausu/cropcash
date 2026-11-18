@@ -62,13 +62,14 @@ afterAll(async () => {
 });
 
 describe('Stripe money flow (sandbox)', () => {
-  it('sets up a farmer account with no Stripe dashboard, a demo clock and a customer', async () => {
+  it('sets up a farmer account with no Stripe dashboard and a demo clock', async () => {
     const res = await request(app).post('/api/stripe/setup').set(auth()).send({});
     expect(res.status).toBe(200);
     const farm = await admin.farmByUser(userId);
     expect(farm?.stripe_account_id).toMatch(/^acct_/);
     expect(farm?.test_clock_id).toMatch(/^clock_/);
-    expect(farm?.stripe_customer_id).toMatch(/^cus_/);
+    // No customer: it existed only for the pension (docs/remove-pension-plan.md).
+    expect(farm?.stripe_customer_id).toBeNull();
     const acct = await stripe.accounts.retrieve(farm!.stripe_account_id!);
     expect(acct.settings?.payouts?.schedule?.interval).toBe('manual');
     // Setup is idempotent.
@@ -98,14 +99,7 @@ describe('Stripe money flow (sandbox)', () => {
     expect(computeFarmPlan(await me(), data).startBalance).toBe(3_500_000 + amount);
   });
 
-  it('starts a 200 lei/month pension (first contribution paid now)', async () => {
-    const res = await request(app).post('/api/pension').set(auth()).send({ monthlyLei: 200 });
-    expect(res.status).toBe(201);
-    const farm = await me();
-    expect(farm.transactions.filter((t: { kind: string }) => t.kind === 'pension')).toHaveLength(1);
-  });
-
-  it('6 months forward: 6 salaries paid out, 6 more pension contributions, APIA balance in March', async () => {
+  it('6 months forward: 6 salaries paid out, APIA balance in March', async () => {
     const from = (await me()).demo_now;
     const res = await request(app).post('/api/demo/advance').set(auth()).send({ months: 6, from });
     expect(res.status).toBe(200);
@@ -114,9 +108,6 @@ describe('Stripe money flow (sandbox)', () => {
     expect(salaries).toHaveLength(6);
     expect(salaries.every((e) => e.ok && e.amount > 0 && e.amount % 5_000 === 0)).toBe(true);
     expect(events.filter((e) => e.type === 'income').map((e) => e.kind)).toEqual(['apia_balance']);
-    const pensions = events.filter((e) => e.type === 'pension').length;
-    expect(pensions).toBeGreaterThanOrEqual(5);
-    expect(pensions).toBeLessThanOrEqual(6);
 
     // The same tap sent again moves nothing (IDEM-01).
     const again = await request(app).post('/api/demo/advance').set(auth()).send({ months: 6, from });
@@ -133,30 +124,4 @@ describe('Stripe money flow (sandbox)', () => {
     expect(plan.timelines.medium.months[0]!.key > '2027-04').toBe(true);
     expect(plan.received.map((r) => r.kind).sort()).toEqual(['apia_advance', 'apia_balance']);
   }, 240_000);
-
-  it('changes the pension to 300 lei: the next contribution is 300 lei and the salary is fixed again', async () => {
-    expect((await request(app).put('/api/pension').set(auth()).send({ monthlyLei: 300 })).status).toBe(204);
-    const farm = (await admin.farmByUser(userId))!;
-    const plan = [farm.pension_plans ?? []].flat()[0]!;
-    expect(plan).toMatchObject({ monthly_bani: 30_000, status: 'active' });
-    expect(farm.salary_bani).toBe(computeFarmPlan(farm, data).salary.salary);
-    // An invoice Stripe drafted before the change, on the day the clock stopped, is still 200 lei (docs/08 §1c).
-    const res = await request(app).post('/api/demo/advance').set(auth()).send({ months: 2 });
-    const amounts = (res.body.events as AdvanceEvent[]).filter((e) => e.type === 'pension').map((e) => e.amount);
-    expect(amounts.at(-1)).toBe(30_000);
-    expect(amounts.filter((a) => a !== 30_000).length).toBeLessThanOrEqual(1);
-  }, 120_000);
-
-  it('stops the pension: Stripe cancels it, nothing more is taken, and the salary goes back up', async () => {
-    const before = (await admin.farmByUser(userId))!;
-    const subId = ([before.pension_plans ?? []].flat()[0] as { stripe_subscription_id: string }).stripe_subscription_id;
-    expect((await request(app).delete('/api/pension').set(auth())).status).toBe(204);
-    expect((await stripe.subscriptions.retrieve(subId)).status).toBe('canceled');
-    const farm = (await admin.farmByUser(userId))!;
-    expect([farm.pension_plans ?? []].flat()[0]).toMatchObject({ status: 'stopped' });
-    expect(farm.salary_bani).toBe(computeFarmPlan(farm, data).salary.salary);
-    expect(farm.salary_bani).toBeGreaterThanOrEqual(before.salary_bani ?? 0);
-    const res = await request(app).post('/api/demo/advance').set(auth()).send({ months: 1 });
-    expect((res.body.events as AdvanceEvent[]).filter((e) => e.type === 'pension' && e.date > before.demo_now!.slice(0, 10))).toEqual([]);
-  }, 120_000);
 });

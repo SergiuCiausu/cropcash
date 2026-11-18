@@ -2,19 +2,25 @@
  * npm run demo:rehearse [-- runs]   (default 3, docs/10 step 9)
  * Runs the pitch script (docs/09 §3) against the real Supabase + Stripe sandbox,
  * through the same API routes the phone calls: seed → subsidy → APIA advance →
- * envelopes → credit → 6 months forward → drought → pension. Fails loudly if a
+ * envelopes → credit → 6 months forward → drought. Fails loudly if a
  * step breaks; prints the figures the presenter will say, next to what the app shows.
  */
 import { execSync } from 'node:child_process';
 import type { AddressInfo } from 'node:net';
 import { createClient } from '@supabase/supabase-js';
-import { computeFarmPlan, loadData, simulatePensionScenarios } from '../packages/shared/src';
+import { computeFarmPlan, loadData } from '../packages/shared/src';
 import { createApp } from '../apps/api/src/app';
 import { supabaseRepo } from '../apps/api/src/db/repo';
 import { supabaseAdminRepo } from '../apps/api/src/db/admin';
 import { supabaseFactory } from '../apps/api/src/db/supabase';
 import { supabaseTokenVerifier } from '../apps/api/src/middleware/auth';
 import { createStripe, MoneyService, type AdvanceEvent } from '../apps/api/src/stripe/money';
+import { randomUUID } from 'node:crypto';
+import demoIon from '../docs/data/demo-ion.json';
+import { issuedDemoInvoices, loadInvoicingData, loadIssuedDemo, type InvoiceView, type InvoicingView } from '../packages/shared/src/invoices/index';
+import { supabaseInvoices } from '../apps/api/src/db/invoices';
+import { InvoicingService } from '../apps/api/src/invoicing/service';
+import { simulatedProvider } from '../apps/api/src/invoicing/simulated';
 
 const env = process.env as Record<string, string>;
 const runs = Number(process.argv[2] ?? 3);
@@ -34,6 +40,10 @@ const app = createApp({
     demoMode: true,
     data,
   },
+  invoicing: (() => {
+    const store = supabaseInvoices(db);
+    return { store, service: new InvoicingService({ store, providers: { simulated: simulatedProvider(loadInvoicingData(), data) }, now: () => new Date() }) };
+  })(),
 });
 
 const lei = (bani: number, step = 1) => (Math.round(bani / 100 / step) * step).toLocaleString('ro-RO');
@@ -87,22 +97,25 @@ async function rehearse(n: number) {
     p = await plan();
     say('Salariul după credit', '2.950 lei', `${lei(p.monthlySalary)} lei`);
 
-    // 2:40 Pension: started before moving time, so its contributions show up month by month.
-    await call('POST', '/pension', { monthlyLei: 200 });
-    const sim = simulatePensionScenarios(p.age, 20_000, p.pension) ?? fail('no pension simulation');
-    say('Pensia 200 lei', 'cam 29.000 lei la 65', `cam ${lei(sim.atTarget.probable, 1000)} lei la ${p.pension.targetAge}`);
+    // „Fă factura” (docs/facturi-plan.md step 6): Ion, a PFA on the demo account, invoices maize on the demo date. An
+    // invoice alone doesn't change the plan, so the figures above and below stay the pitch's. The jump below moves it on.
+    const info = (await call('GET', '/invoicing')) as InvoicingView;
+    if (info.profile?.legalForm !== 'pfa') fail(`demo account is not a PFA: ${JSON.stringify(info.profile)}`);
+    const series = info.series.find((x) => x.simulated && !x.archived) ?? fail('no simulated series');
+    const sample = issuedDemoInvoices(loadIssuedDemo(), loadInvoicingData().sim, data.crops.crops, demoIon.parcels).find((x) => x.story === 'accepted') ?? fail('no sample invoice');
+    const issued = (await call('POST', '/invoices', { seriesId: series.id, issueDate: p.today, buyer: sample.buyer, lines: sample.lines, clientId: randomUUID() })) as { id: string; docId: string };
+    const before = ((await call('GET', `/invoices/${issued.id}`)) as { invoice: InvoiceView }).invoice;
+    if (before.status !== 'sent_to_spv' && before.status !== 'in_processing') fail(`new invoice ${issued.docId}: ${before.status}`);
 
     // 2:55 Six months forward.
     const t1 = Date.now();
     const ev = (await call('POST', '/demo/advance', { months: 6 })).events as AdvanceEvent[];
     const sal = ev.filter((e) => e.type === 'salary');
     if (sal.length !== 6 || !sal.every((e) => e.ok)) fail(`expected 6 paid salaries, got ${JSON.stringify(sal)}`);
-    const pensions = ev.filter((e) => e.type === 'pension').length;
-    if (pensions < 5) fail(`expected at least 5 pension contributions, got ${pensions}`);
     say(
       '6 luni înainte',
-      '5 × 2.700, mai: 2.450; pensia',
-      `${sal.map((e) => `${e.date.slice(5, 7)}: ${lei(e.amount)}`).join(', ')}; ${pensions} × pensie; ` +
+      '5 × 2.700, mai: 2.450',
+      `${sal.map((e) => `${e.date.slice(5, 7)}: ${lei(e.amount)}`).join(', ')}; ` +
         `${ev.filter((e) => e.type === 'income').map((e) => e.kind).join(', ')} · ${((Date.now() - t1) / 1000).toFixed(0)}s`,
     );
     p = await plan();
@@ -111,6 +124,29 @@ async function rehearse(n: number) {
     const yearIn = (sc: 'bad' | 'medium') => p.projection[sc].years.find((x) => x.year === 2027)?.in ?? 0;
     say('Secetă: venit 2027', '~79.000 lei (vs ~98.000)', `${lei(yearIn('bad'), 1000)} lei (vs ${lei(yearIn('medium'), 1000)})`);
     say('Secetă: salariul sigur', '0 lei', `${lei(p.salaries.bad.salary)} lei`);
+
+    // „Fă factura → Primită de ANAF”: six months on the farm's clock is well past the simulator's delays.
+    const after = ((await call('GET', `/invoices/${issued.id}`)) as { invoice: InvoiceView }).invoice;
+    if (after.status !== 'accepted') fail(`${issued.docId} after the jump: ${after.status}`);
+    const out = ((await call('GET', '/invoices?direction=out')) as { invoices: InvoiceView[] }).invoices;
+    say('Facturi emise', '4 primite, 1 anulată, + cea nouă', `${out.map((i) => `${i.docId} ${i.status}`).join(', ')}`);
+
+    // „Primite → Notează cheltuiala”, last, so the expense doesn't move the figures the pitch reads out above.
+    const inbox = ((await call('GET', '/invoices?direction=in')) as { invoices: InvoiceView[] }).invoices;
+    const first = inbox.find((i) => i.status === 'new' && i.proposal?.category) ?? fail(`no supplier invoice to note: ${inbox.map((i) => i.status).join(', ')}`);
+    const pr = first.proposal!;
+    const exp = (await call('POST', '/expenses', {
+      category: pr.category,
+      amountLei: pr.amountBani / 100,
+      date: pr.date,
+      docNo: pr.docNo,
+      ...(pr.counterparty ? { counterparty: pr.counterparty } : {}),
+      clientId: randomUUID(),
+    })) as { id: string };
+    await call('POST', `/einvoice/inbox/${first.id}/link`, { transactionId: exp.id });
+    const noted = ((await call('GET', `/invoices/${first.id}`)) as { invoice: InvoiceView }).invoice;
+    if (noted.status !== 'recorded' || noted.transactionId !== exp.id) fail(`${first.docId}: ${noted.status}, linked to ${noted.transactionId}`);
+    say('Factură primită', `${inbox.length} de la furnizori`, `${first.docId} → cheltuială ${lei(pr.amountBani)} lei (${pr.category})`);
   } finally {
     server.close();
     console.log(`\n── Repetiția ${n}/${runs} · ${((Date.now() - t0) / 1000).toFixed(0)}s`);

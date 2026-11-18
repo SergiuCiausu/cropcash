@@ -183,3 +183,12 @@ These parts fill in later, after the page is ready, so each gets its own placeho
 1. **"Ferma lui Ion" is the local demo** from `docs/data/demo-ion.json`: no account, offline. The seeded `DEMO_EMAIL` account stays for the live Stripe part of the pitch, through `/login`.
 2. **Visitors can change Ion's farm**, saved only on their device (`cropcash-demo-*`), with a "Pornește din nou" button that clears it.
 3. **`bani` is in the demo, with mock data** (balance, the money pots, payouts, transactions) instead of Stripe. Following the rules, the mock figures live in `docs/data/` (a `bani` section for Ion), not in the page. Every action that moves money is disabled there and says it's an example. So the demo pages are the 10 above **plus `bani`**.
+
+## Since then: several farms and the people on them (docs/workspaces-plan.md, steps 1–8, 2026-11-17)
+The guard above still decides before a page starts, and still works offline. What changed around it:
+- **A4, step 2:** `Live.landingPage(next)` asks `/api/farms` first and lets `pickLanding` (`web/lib/live/farms.ts`) choose: the farm open on this phone if it's still one you run, then your only farm, then the one opened last; otherwise `/ferme`. Only then is `/api/me` read, for that farm (`X-Farm-Id`).
+- **Who lands where:** a worker-only account lands on `/lucru` with its farm open; an accountant or viewer on `/contabil`; nobody on any farm on `/onboarding`.
+- **Account pages:** `/ferme`, `/lucru`, `/contabil` and `/invitatie?cod=…` need a session but no farm copy. They aren't in `SCREENS`, have no Ion twin, and `safeNext` sends a sign-in straight back to them (`isAccountPage`).
+- **The farm copy is per farm:** `cropcash-me` and every other farm key is stored as `cropcash-f-<farmId>-…` (`farmStore`, step 5). "Has a farm copy" means a copy of the farm open now. Offline, `/ferme` opens only farms this phone holds (the owner's copy, or a worker's saved day).
+- **Sign-out** clears every farm's keys but keeps the outbox and the worker's queue for the same account, as before.
+- Ion's farm is untouched: it never reads the farm keys, the farm list or the header.

@@ -1,0 +1,28 @@
+{
+  "paper": "D5",
+  "kind": "apia_credit_cert",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "APIA certificate for bridge loans (Ord. MADR 703/2013 + the 2026 agreements). No public model: content from the APIA releases of 7, 22 and 27 May 2026. Whether an amount is printed is open (#35); this sample prints areas only",
+  "checked": "described",
+  "printed": {
+    "title": "ADEVERINȚĂ",
+    "text": "Prin prezenta se adeverește că POPESCU ION a depus cererea de plată pentru anul 2026 și nu se află în situații de excludere de la plată.",
+    "suprafata_determinata_la_plata": [
+      { "interventie": "PD-01 (BISS)", "suprafata_ha": "15,00" },
+      { "interventie": "PD-02 (CRISS)", "suprafata_ha": "15,00" },
+      { "interventie": "PD-04", "suprafata_ha": "15,00" }
+    ],
+    "data": "12.05.2026"
+  },
+  "expected": {
+    "year": 2026,
+    "date": "2026-05-12",
+    "determined": [
+      { "scheme": "PD-01", "areaAri": 1500 },
+      { "scheme": "PD-02", "areaAri": 1500 },
+      { "scheme": "PD-04", "areaAri": 1500 }
+    ],
+    "amountBani": null
+  }
+}

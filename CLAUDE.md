@@ -26,6 +26,8 @@ npm run typecheck
 npm run seed:demo    # datele lui Ion (docs/data/demo-ion.json), ceasul la 15 nov 2026, ~20 s
 npm run demo:rehearse  # scriptul din 09 §3 de 3 ori, pe Supabase + Stripe reale (~6 min); apoi iar seed:demo
 npm run admin:rehearse # panoul de admin pe Supabase-ul real (~30 s): publică, verifică salariul, revine; lasă cifrele ca la început
+npm run admin:grant -- email@x.ro [admin|catalogue_editor]  # rolurile stau în tabelul app_roles din Supabase (fără Clerk, fără liste în .env)
+npm run admin:revoke -- email@x.ro [rol]   ·   npm run admin:list
 stripe listen --events payment_intent.succeeded,invoice.paid,payout.paid,payout.failed --forward-to localhost:3001/api/webhooks/stripe --forward-connect-to localhost:3001/api/webhooks/stripe
 npm run test:stripe  # flux cap-coadă pe sandbox-ul Stripe (lent, ~1-2 min)
 npm run test:assistant  # cele 20 de întrebări de test pe Claude-ul real (~20 s, costă bani)

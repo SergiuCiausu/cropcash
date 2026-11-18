@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "description": "Cum se poartă simulatorul de e-Factura până la legarea API-urilor (docs/facturi-plan.md §3). Nu sunt cifre despre lume: sunt setările simulării. Timpul merge cu ceasul demo-ului, deci „Dăm timpul înainte” mută și facturile.",
+    "status": "presupunere"
+  },
+  "delays_minutes": {
+    "to_in_processing": 2,
+    "to_accepted": 10,
+    "note": "Cât stă o factură simulată „Trimisă la ANAF” și apoi „În verificare la ANAF”. ANAF-ul real răspunde de obicei în câteva minute, uneori în ore."
+  },
+  "triggers": [
+    {
+      "marker": "#sim-respinge",
+      "outcome": "rejected",
+      "message": "Factura a fost respinsă de ANAF (simulare).",
+      "note": "Scris în nota facturii, o trimite la „Respinsă”, ca ecranul de eroare să poată fi încercat."
+    },
+    {
+      "marker": "#sim-blocat",
+      "outcome": "stuck",
+      "stuck_hours": 24,
+      "message": "ANAF n-a răspuns la timp (simulare).",
+      "note": "O ține „În verificare” atâtea ore, apoi o trimite la „Respinsă” cu mesajul de mai sus."
+    }
+  ]
+}

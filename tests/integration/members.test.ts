@@ -94,8 +94,8 @@ describe('the accountant’s access', () => {
 
   it('the farmer sees them and takes the access back', async () => {
     const list = (await request(app()).get('/api/farm/members').set(as(farmer))).body;
-    expect(list.members).toEqual([expect.objectContaining({ role: 'accountant', email: `members-accountant-${stamp}@cropcash.test` })]);
-    expect((await request(app()).delete(`/api/farm/members/${list.members[0].id}`).set(as(farmer))).status).toBe(204);
+    expect(list.members).toEqual([expect.objectContaining({ role: 'owner' }), expect.objectContaining({ role: 'accountant', email: `members-accountant-${stamp}@cropcash.test` })]);
+    expect((await request(app()).delete(`/api/farm/members/${list.members[1].id}`).set(as(farmer))).status).toBe(204);
     expect((await request(app()).get(`/api/memberships/${farmId}`).set(as(accountant))).status).toBe(404);
   });
 });

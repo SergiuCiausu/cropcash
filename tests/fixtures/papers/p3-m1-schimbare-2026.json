@@ -1,0 +1,21 @@
+{
+  "paper": "P3",
+  "kind": "apia_cerere_change",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Formular M1 2026 „Schimbarea declarației de suprafață” (apia.org.ro/formulare); area changes without adding area are allowed until 30.09.2026 (Ord. 106/2024 art. 16(2)(c) as amended by Ord. 44/2026)",
+  "checked": "described",
+  "printed": {
+    "title": "SCHIMBAREA DECLARAȚIEI DE SUPRAFAȚĂ",
+    "data_depunerii": "10.07.2026",
+    "randuri": [
+      { "cod_siruta": "153277", "nr_bloc_fizic": "293", "nr_parcela_agricola": "1", "cod_cultura_initial": "108", "cod_cultura_nou": "201", "nume_cultura_nou": "FLOAREA-SOARELUI", "suprafata_ha": "7,00" }
+    ]
+  },
+  "expected": {
+    "date": "2026-07-10",
+    "changes": [
+      { "siruta": 153277, "blocFizic": "293", "parcelNo": "1", "fromCode": 108, "toCode": 201, "toCropId": "floarea-soarelui", "areaAri": 700 }
+    ]
+  }
+}

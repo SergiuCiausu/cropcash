@@ -1,0 +1,26 @@
+{
+  "paper": "P4",
+  "kind": "lease",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Private lease contract (Codul civil art. 1836–1850). There's no official model: private leases aren't attached to the 2026 cerere, they reach APIA through the registru agricol certificate (Ord. 106/2024 art. 5(2))",
+  "checked": "described",
+  "printed": {
+    "title": "CONTRACT DE ARENDARE nr. 12 / 01.10.2024",
+    "arendator": { "nume": "IONESCU MARIA", "cnp": "2700523340017", "domiciliu": "Sat Măldăeni, str. Fictivă nr. 1, jud. Teleorman" },
+    "arendas": { "nume": "POPESCU ION" },
+    "teren": [{ "categorie": "arabil", "nr_bloc_fizic": "293", "tarla_parcela": "T 12 / P 3", "suprafata_ha": "3,00" }],
+    "durata": "5 ani, de la 01.10.2024 la 30.09.2029",
+    "pretul_arendei": "800 kg grâu/ha/an, plătibil până la 15 octombrie a fiecărui an",
+    "inregistrat_primarie": "nr. 345 / 05.10.2024"
+  },
+  "expected": {
+    "lessorName": "Maria Ionescu",
+    "areaAri": 300,
+    "blocFizic": "293",
+    "start": "2024-10-01",
+    "end": "2029-09-30",
+    "rent": { "kind": "in_kind", "cropId": "grau", "kgPerHa": 800 },
+    "paymentDay": { "month": 10, "day": 15 }
+  }
+}

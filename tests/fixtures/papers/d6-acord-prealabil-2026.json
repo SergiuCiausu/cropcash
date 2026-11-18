@@ -1,0 +1,21 @@
+{
+  "paper": "D6",
+  "kind": "fuel_prior_approval",
+  "synthetic": true,
+  "campaign": 2026,
+  "form": "Acord prealabil pentru finanțare (OMADR 1727/2015, Anexa 6b, natural person), issued by the county APIA centre by 1 March",
+  "checked": "official",
+  "printed": {
+    "title": "ACORD PREALABIL PENTRU FINANȚARE",
+    "nr_data": "nr. 418 / 20.02.2026",
+    "anul": "2026",
+    "sectorul_vegetal": { "suprafata_totala_ha": "15,00", "cantitate_anuala_l": "1.170" },
+    "cantitatea_de_motorina_determinata_anual_l": "1.170"
+  },
+  "expected": {
+    "year": 2026,
+    "date": "2026-02-20",
+    "areaAri": 1500,
+    "annualLitresCl": 117000
+  }
+}
