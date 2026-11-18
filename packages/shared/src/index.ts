@@ -1,0 +1,23 @@
+// Pure domain logic shared by web and api. No I/O, no hardcoded figures:
+// all numbers come from docs/data/*.json via loadData().
+export const APP_NAME = 'CropCash';
+
+export * from './money';
+export * from './data';
+export * from './subsidies';
+export * from './documents';
+export * from './farm';
+export * from './cashflow';
+export * from './pension';
+export * from './currency';
+export * from './functions';
+export * from './weather';
+export * from './opportunities';
+export * from './lists/paginate';
+export * from './plots';
+export * from './fertilizers';
+export * from './calendar/events';
+export * from './reports';
+export * from './payroll';
+export * from './arenda';
+export * from './members';

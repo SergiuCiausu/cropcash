@@ -1,0 +1,36 @@
+/* /rapoarte's "Cine mai vede rapoartele" and the accountant's /contabil and /invitatie (migration 028). */
+
+.share-card { display: flex; flex-direction: column; gap: 12px; }
+.share-list { margin: 0; padding: 0; list-style: none; }
+.share-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hair); }
+.share-list li > span { min-width: 0; }
+.share-list b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.share-list small { display: block; font-size: 13px; color: var(--text-2); }
+.share-list .ob-small { margin-right: 0; flex: none; }
+
+.share-form { display: flex; flex-direction: column; gap: 12px; }
+.share-form fieldset { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.share-form legend { margin-bottom: 4px; font-size: 13px; color: var(--text-2); }
+.share-role { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--hair-2); border-radius: 12px; cursor: pointer; }
+.share-role:has(input:checked) { border-color: var(--text-1); background: var(--tint-a); }
+.share-role input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; accent-color: var(--text-1); }
+.share-role b { display: block; font-weight: 600; }
+.share-role small { display: block; font-size: 13px; line-height: 1.4; color: var(--text-2); }
+.share-form .btn { align-self: flex-start; }
+
+.share-made { display: flex; flex-direction: column; gap: 10px; }
+.share-made p { margin: 0; }
+.share-link { width: 100%; min-height: 44px; padding: 0 10px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--bg); font: inherit; font-size: 14px; color: var(--text-1); }
+.share-made .ob-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* /contabil: the app's look, without the farmer's menu. */
+.member-page { min-height: 100dvh; padding: calc(16px + var(--safe-t)) 16px calc(32px + var(--safe-b)); background: var(--bg); }
+.member-wrap { width: min(1100px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.member-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.member-top nav { display: flex; flex-wrap: wrap; gap: 0 4px; }
+.member-top .auth-brand { margin: 0; }
+.member-farm { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px; }
+.member-farm .ob-field { flex: 1 1 260px; margin: 0; }
+.member-page .offline { margin: 0; }
+.invite-actions { display: flex; flex-direction: column; gap: 10px; }
+.invite-actions .btn { width: 100%; justify-content: center; }

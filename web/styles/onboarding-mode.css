@@ -1,0 +1,19 @@
+/* Onboarding: „Cum lucrezi pământul?” and the people step (docs/employees-arenda-plan.md §2). */
+.ob-mode { margin: 0; padding: 0; border: 0; min-width: 0; }
+.ob-mode legend { padding: 0; }
+.ob-mode legend h2 { font-size: 16px; line-height: 1.4; }
+.ob-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 12px; }
+.ob-mode-opt { display: block; min-height: 72px; padding: 14px 16px; border: 1px solid var(--hair-2); border-radius: 16px; background: var(--surface); text-align: left; color: var(--text-1); }
+.ob-mode-opt b { display: block; font-size: 16px; font-weight: 600; }
+.ob-mode-opt small { display: block; margin-top: 2px; font-size: 14px; color: var(--text-2); }
+.ob-mode-opt[aria-pressed="true"] { border-color: transparent; background: var(--tint-a); box-shadow: inset 0 0 0 2px var(--ink-a); }
+.ob-mode-opt:focus-visible { outline-offset: 2px; }
+.ob-mode .note { margin-top: 10px; }
+.ob-mode .chips { margin-top: 12px; }
+.ob-person { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--hair); }
+.ob-person .ob-field { margin-top: 12px; }
+.ob-person-x { min-height: 52px; }
+@media (max-width: 640px) {
+  .ob-person { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .ob-person-x { justify-self: start; min-height: 44px; }
+}

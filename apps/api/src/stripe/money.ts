@@ -1,0 +1,508 @@
+import { randomUUID } from 'node:crypto';
+import Stripe from 'stripe';
+import {
+  computeFarmPlan,
+  loadData,
+  simulationSteps,
+  type AppData,
+  type SimStep,
+} from '@cropcash/shared';
+import type { AdminRepo, MoneyFarm } from '../db/admin';
+import { countyCity } from './kyc';
+
+/**
+ * The money flow from docs/08-stripe.md (§1b, verified on the sandbox):
+ * farmer = Accounts v2 recipient (no Stripe dashboard), APIA payment = test destination
+ * charge, salary = manual payout, pension = subscription on a Test Clock customer.
+ */
+
+const RO_TEST_IBAN = 'RO49AAAA1B31007593840000';
+/** Stripe can't move a test clock more than two billing periods at once. */
+const MAX_CLOCK_STEP_MONTHS = 2;
+
+export function createStripe(secretKey: string): Stripe {
+  if (!secretKey.startsWith('sk_test_')) {
+    throw new Error('CropCash only runs Stripe in test mode: STRIPE_SECRET_KEY must start with sk_test_');
+  }
+  return new Stripe(secretKey);
+}
+
+const iso = (unix: number) => new Date(unix * 1000).toISOString();
+const unix = (isoDate: string) => Math.floor(Date.parse(isoDate) / 1000);
+
+/**
+ * A Stripe idempotency key from what the call is about, never a random value: the same salary,
+ * income or setup step asked for twice is done once (docs/idempotency-plan.md, M3). Stripe keeps
+ * these for 24 h; past that, the DB guards in each operation stop a duplicate.
+ */
+export const idem = (...parts: (string | number | null | undefined)[]) => `cc:${parts.map((p) => p ?? '-').join(':')}`;
+
+/** True when Stripe answered from an earlier call with the same idempotency key. */
+const replayed = (obj: unknown) =>
+  (obj as { lastResponse?: { headers?: Record<string, string> } }).lastResponse?.headers?.['idempotent-replayed'] === 'true';
+
+export function addMonthsIso(isoDate: string, months: number): string {
+  const d = new Date(isoDate);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  return d.toISOString();
+}
+
+export interface AdvanceEvent {
+  type: SimStep['type'] | 'pension';
+  date: string;
+  amount: number;
+  kind?: string;
+  /** Stripe object id (invoice for pension rows). */
+  id?: string;
+  ok: boolean;
+  note?: string;
+}
+
+export class MoneyService {
+  constructor(
+    private stripe: Stripe,
+    private repo: AdminRepo,
+    private data: AppData = loadData(),
+    private sleep = (ms: number) => new Promise((r) => setTimeout(r, ms)),
+    /** Optional progress log (tests, debugging the demo). */
+    private log: (msg: string) => void = () => {},
+  ) {}
+
+  /**
+   * Creates (once) the farmer's Stripe account, demo clock and customer. Callers hold the
+   * 'stripe_setup' lease, so two of these never run at once for a farm. A retry after a failure
+   * part way reuses what Stripe already made: every create sends a key built from the farm id.
+   * Calls whose body holds "now" (the ToS date, the clock time) send no key; they are sets, or
+   * (the clock) saved right after they are made.
+   * `startAt` (unix seconds) fixes the demo clock's start; the seed uses it, the app uses now.
+   */
+  async setup(farm: MoneyFarm, email: string | undefined, ip: string, startAt?: number): Promise<MoneyFarm> {
+    let { stripe_account_id: acct, test_clock_id: clock, stripe_customer_id: customer } = farm;
+    const [given, ...rest] = farm.name.trim().split(/\s+/);
+
+    if (!acct) {
+      const account = await this.stripe.v2.core.accounts.create(
+        {
+          display_name: farm.name,
+          // Required for recipient accounts; a placeholder keeps demo accounts without email working.
+          contact_email: email ?? `fermier-${farm.id.slice(0, 8)}@cropcash.test`,
+          identity: { country: 'ro', entity_type: 'individual' },
+          configuration: { recipient: { capabilities: { stripe_balance: { stripe_transfers: { requested: true } } } } },
+          defaults: { currency: 'ron', responsibilities: { fees_collector: 'application', losses_collector: 'application' } },
+          dashboard: 'none',
+          metadata: { farmer_id: farm.id },
+        },
+        { idempotencyKey: idem('setup-account', farm.id) },
+      );
+      acct = account.id;
+      // Test identity data (docs/08 §1b): the farmer never sees Stripe.
+      await this.stripe.v2.core.accounts.update(acct, {
+        defaults: { profile: { business_url: 'https://cropcash.test', product_description: 'Fermier (cont de test CropCash)' } },
+        identity: {
+          attestations: { terms_of_service: { account: { date: new Date().toISOString(), ip } } },
+          individual: {
+            given_name: given ?? farm.name,
+            surname: rest.join(' ') || 'Test',
+            date_of_birth: { day: 1, month: 1, year: 1901 },
+            address: { country: 'ro', line1: 'address_full_match', city: countyCity(farm.county), postal_code: '000000' },
+          },
+        },
+      });
+      await this.stripe.accounts.createExternalAccount(
+        acct,
+        { external_account: { object: 'bank_account', country: 'RO', currency: 'ron', account_number: RO_TEST_IBAN } },
+        { idempotencyKey: idem('setup-bank', farm.id) },
+      );
+      // Salaries only when the app asks (default would pay out the whole balance daily).
+      await this.stripe.accounts.update(acct, { settings: { payouts: { schedule: { interval: 'manual' } } } });
+      await this.repo.setStripeIds(farm.id, { stripe_account_id: acct });
+    }
+
+    if (!clock) {
+      const now = startAt ?? Math.floor(Date.now() / 1000);
+      const tc = await this.stripe.testHelpers.testClocks.create({ frozen_time: now, name: `CropCash ${farm.id.slice(0, 8)}` });
+      clock = tc.id;
+      await this.repo.setStripeIds(farm.id, { test_clock_id: clock, demo_now: iso(now) });
+    }
+
+    if (!customer) {
+      const c = await this.stripe.customers.create(
+        { name: farm.name, email, test_clock: clock, metadata: { farmer_id: farm.id } },
+        { idempotencyKey: idem('setup-customer', farm.id, clock) },
+      );
+      const pm = await this.stripe.paymentMethods.attach('pm_card_visa', { customer: c.id }, { idempotencyKey: idem('setup-pm', c.id) });
+      await this.stripe.customers.update(c.id, { invoice_settings: { default_payment_method: pm.id } });
+      customer = c.id;
+      await this.repo.setStripeIds(farm.id, { stripe_customer_id: customer });
+    }
+
+    return (await this.repo.farmBy('id', farm.id))!;
+  }
+
+  /**
+   * A simulated income (APIA, harvest) paid to the farmer's account. The key is the income itself
+   * (kind, date, crop or payment), so a retry after a crash gets the same PaymentIntent back.
+   */
+  async income(farm: MoneyFarm, step: Extract<SimStep, { type: 'income' }>): Promise<AdvanceEvent> {
+    if (!farm.stripe_account_id) throw new Error('no stripe account');
+    const before = await this.available(farm.stripe_account_id);
+    const pi = await this.stripe.paymentIntents.create(
+      {
+        amount: step.amount,
+        currency: 'ron',
+        payment_method: 'pm_card_bypassPending',
+        confirm: true,
+        automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+        transfer_data: { destination: farm.stripe_account_id },
+        description: `Simulare ${step.kind} (test)`,
+        metadata: { farmer_id: farm.id, kind: step.kind, demo_date: step.date, crop_id: step.cropId ?? '' },
+      },
+      { idempotencyKey: idem('income', farm.id, step.kind, step.date, step.cropId ?? step.paymentId) },
+    );
+    await this.repo.recordTransaction({
+      farmer_id: farm.id,
+      amount_bani: step.amount,
+      kind: step.kind,
+      occurred_at: `${step.date}T09:00:00Z`,
+      source: 'stripe_transfer',
+      stripe_object_id: pi.id,
+      crop_id: step.cropId ?? null,
+      expected_payment_id: step.paymentId ?? null,
+    });
+    // The transfer shows up in the farmer's balance a few seconds later: wait, so a salary
+    // paid right after (same "Dăm timpul înainte") finds the money. A replay is already there.
+    for (let i = 0; !replayed(pi) && i < 30 &&(await this.available(farm.stripe_account_id)) < before + step.amount; i++) {
+      await this.sleep(1000);
+    }
+    return { type: 'income', kind: step.kind, date: step.date, amount: step.amount, ok: pi.status === 'succeeded' };
+  }
+
+  private async available(account: string): Promise<number> {
+    const balance = await this.stripe.balance.retrieve({}, { stripeAccount: account });
+    return balance.available.find((b) => b.currency === 'ron')?.amount ?? 0;
+  }
+
+  /** A declared credit repaid from the farmer's bank: recorded once, no Stripe. */
+  async repayment(farm: MoneyFarm, step: Extract<SimStep, { type: 'repayment' }>): Promise<AdvanceEvent> {
+    await this.repo.recordTransaction({
+      farmer_id: farm.id,
+      amount_bani: -step.amount,
+      kind: 'loan_repayment',
+      occurred_at: `${step.date}T09:00:00Z`,
+      source: 'manual',
+      stripe_object_id: `sim:${farm.id}:repay:${step.paymentId}`,
+      expected_payment_id: step.paymentId,
+    });
+    return { type: 'repayment', kind: 'loan_repayment', date: step.date, amount: step.amount, ok: true };
+  }
+
+  /** A planned farm cost that is now paid. The farmer pays it from their bank: no Stripe call. */
+  async expense(farm: MoneyFarm, step: Extract<SimStep, { type: 'expense' }>): Promise<AdvanceEvent> {
+    await this.repo.recordTransaction({
+      farmer_id: farm.id,
+      amount_bani: -step.amount,
+      kind: 'expense',
+      occurred_at: `${step.date}T12:00:00Z`,
+      source: 'manual',
+      // Deterministic id: the same planned cost is never recorded twice.
+      stripe_object_id: `sim:${farm.id}:${step.id}`,
+      crop_id: step.cropId,
+    });
+    return { type: 'expense', kind: step.cropId, date: step.date, amount: step.amount, ok: true };
+  }
+
+  /**
+   * The monthly salary: the plan's safe amount on payday, paid out to the test IBAN.
+   * The payday is claimed in `payouts` first. A claim already there means this month was handled;
+   * one left at 'creating' (a crash) is finished with the same Stripe key, so it is paid once.
+   */
+  async salary(farm: MoneyFarm, payday: string): Promise<AdvanceEvent> {
+    if (!farm.stripe_account_id) throw new Error('no stripe account');
+    const plan = computeFarmPlan({ ...farm, demo_now: `${payday}T00:00:00Z` }, this.data);
+    // The fixed salary, lowered only if the money would run out (step 9).
+    const amount = plan.monthlySalary;
+    if (amount <= 0) return { type: 'salary', date: payday, amount: 0, ok: false, note: 'no_salary' };
+
+    const claimed = await this.repo.claimPayout({ farmer_id: farm.id, amount_bani: amount, scheduled_for: payday });
+    if (claimed && claimed.status !== 'creating') {
+      return { type: 'salary', date: payday, amount, ok: claimed.status !== 'failed', note: 'already_paid' };
+    }
+
+    // A transfer just made can take a few seconds to become available: wait while it is pending.
+    let available = 0;
+    for (let i = 0; i < 10; i++) {
+      const balance = await this.stripe.balance.retrieve({}, { stripeAccount: farm.stripe_account_id });
+      available = balance.available.find((b) => b.currency === 'ron')?.amount ?? 0;
+      const pending = balance.pending.find((b) => b.currency === 'ron')?.amount ?? 0;
+      if (available >= amount || available + pending < amount) break;
+      await this.sleep(1000);
+    }
+    // A claim left by a crash may already have its payout, and then the balance no longer holds
+    // the money: don't call it short, ask Stripe with the same key instead.
+    if (available < amount && !claimed) {
+      await this.repo.finishPayout(farm.id, payday, { stripe_payout_id: null, status: 'failed' });
+      return { type: 'salary', date: payday, amount, ok: false, note: 'insufficient_stripe_balance' };
+    }
+    const payout = await this.stripe.payouts.create(
+      { amount, currency: 'ron', description: `Salariu CropCash ${payday.slice(0, 7)}`, metadata: { farmer_id: farm.id, month: payday.slice(0, 7) } },
+      { stripeAccount: farm.stripe_account_id, idempotencyKey: idem('salary', farm.id, payday) },
+    );
+    await this.repo.finishPayout(farm.id, payday, { stripe_payout_id: payout.id, status: 'pending' });
+    await this.repo.recordTransaction({
+      farmer_id: farm.id,
+      amount_bani: -amount,
+      kind: 'salary',
+      occurred_at: `${payday}T08:00:00Z`,
+      source: 'payout',
+      stripe_object_id: payout.id,
+    });
+    return { type: 'salary', date: payday, amount, ok: true };
+  }
+
+  /**
+   * Monthly pension contribution (simulated Pilon III) as a subscription on the demo clock.
+   * Callers hold the 'pension' lease. A subscription of this farm already running in Stripe (left by
+   * a crash before the DB write) is taken over, never doubled. `startKey` is the phone's key.
+   */
+  async startPension(farm: MoneyFarm, monthlyBani: number, startKey: string | null = null): Promise<void> {
+    if (!farm.stripe_customer_id) throw new Error('no stripe customer');
+    const running = await this.stripe.subscriptions.list({ customer: farm.stripe_customer_id, status: 'active', limit: 10 });
+    let sub = running.data.find((s) => s.metadata?.farmer_id === farm.id);
+    if (!sub) {
+      const key = startKey ?? randomUUID();
+      const price = await this.stripe.prices.create(
+        {
+          unit_amount: monthlyBani,
+          currency: 'ron',
+          recurring: { interval: 'month' },
+          product_data: { name: 'Contribuție pensie (simulare Pilon III)' },
+        },
+        { idempotencyKey: idem('pension-price', farm.id, key) },
+      );
+      sub = await this.stripe.subscriptions.create(
+        {
+          customer: farm.stripe_customer_id,
+          items: [{ price: price.id }],
+          metadata: { farmer_id: farm.id, start_key: startKey ?? '' },
+        },
+        { idempotencyKey: idem('pension-sub', farm.id, key) },
+      );
+    }
+    await this.repo.upsertPension({
+      farmer_id: farm.id,
+      monthly_bani: sub.items?.data?.[0]?.price?.unit_amount ?? monthlyBani,
+      stripe_subscription_id: sub.id,
+      started_at: (farm.demo_now ?? new Date().toISOString()).slice(0, 10),
+      start_key: startKey,
+    });
+    await this.syncPensionInvoices(farm);
+  }
+
+  /**
+   * A new monthly amount from the next invoice on. No proration: the month already paid stays as it was,
+   * and nothing is charged or given back for it.
+   */
+  async changePension(farm: MoneyFarm, monthlyBani: number): Promise<void> {
+    const subId = runningSubscription(farm);
+    const sub = await this.stripe.subscriptions.retrieve(subId);
+    const item = sub.items.data[0]!;
+    /* IDEM-09: one price per amount, found by its lookup key, so a retry leaves no orphan prices.
+       The update is "set to this price" and is skipped when Stripe already has it; it gets no key,
+       because a change back and forth within 24 h would replay an old answer and change nothing. */
+    if (item.price?.unit_amount !== monthlyBani) {
+      const lookupKey = `cc-pension-${monthlyBani}`;
+      const found = await this.stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 });
+      const price =
+        found.data[0] ??
+        (await this.stripe.prices.create(
+          {
+            unit_amount: monthlyBani,
+            currency: 'ron',
+            recurring: { interval: 'month' },
+            lookup_key: lookupKey,
+            product_data: { name: 'Contribuție pensie (simulare Pilon III)' },
+          },
+          { idempotencyKey: idem('pension-price-amount', monthlyBani) },
+        ));
+      await this.stripe.subscriptions.update(subId, {
+        items: [{ id: item.id, price: price.id }],
+        proration_behavior: 'none',
+      });
+    }
+    await this.repo.updatePension(farm.id, { monthly_bani: monthlyBani });
+  }
+
+  /**
+   * Stops the contributions now. What was paid stays paid; nothing is given back.
+   * 'stopping' is written first, so a crash after Stripe cancels is finished by the next call
+   * instead of asking Stripe to cancel a subscription that is already gone.
+   */
+  async stopPension(farm: MoneyFarm): Promise<void> {
+    const subId = runningSubscription(farm, ['active', 'stopping']);
+    await this.repo.updatePension(farm.id, { status: 'stopping' });
+    const sub = await this.stripe.subscriptions.retrieve(subId);
+    if (sub.status !== 'canceled') {
+      await this.stripe.subscriptions.cancel(subId, { prorate: false }, { idempotencyKey: idem('pension-cancel', subId) });
+    }
+    await this.repo.updatePension(farm.id, { status: 'stopped' });
+  }
+
+  /** Records every paid pension invoice (idempotent): works with or without webhooks. */
+  async syncPensionInvoices(farm: MoneyFarm): Promise<AdvanceEvent[]> {
+    if (!farm.stripe_customer_id) return [];
+    const out: AdvanceEvent[] = [];
+    for await (const inv of this.stripe.invoices.list({ customer: farm.stripe_customer_id, status: 'paid', limit: 100 })) {
+      if (!inv.amount_paid) continue;
+      const paidAt = inv.status_transitions?.paid_at ?? inv.created;
+      await this.repo.recordTransaction({
+        farmer_id: farm.id,
+        amount_bani: -inv.amount_paid,
+        kind: 'pension',
+        occurred_at: iso(paidAt),
+        source: 'subscription',
+        stripe_object_id: inv.id!,
+      });
+      out.push({ type: 'pension', id: inv.id!, date: iso(paidAt).slice(0, 10), amount: inv.amount_paid, ok: true });
+    }
+    return out;
+  }
+
+  /**
+   * "Dăm timpul înainte": for each step of at most two months, pay what falls in it
+   * (incomes, salary on the 1st), move the Stripe Test Clock, then record the pension
+   * invoices it produced. The demo clock (farmers.demo_now) follows the Test Clock.
+   */
+  async advance(farmerId: string, months: number): Promise<AdvanceEvent[]> {
+    const farm = await this.repo.farmBy('id', farmerId);
+    if (!farm?.test_clock_id || !farm.demo_now) throw new Error('stripe not set up');
+    return this.advanceTo(farmerId, addMonthsIso(farm.demo_now, months));
+  }
+
+  /**
+   * Moves the demo to `target`, an absolute date. Run again after a crash, it goes on from where
+   * `demo_now` stopped, and every step on the way is safe to repeat: incomes and salaries carry
+   * Stripe keys and salaries are claimed first; costs and repayments have fixed ids. Callers hold
+   * the 'demo_money' lease.
+   */
+  async advanceTo(farmerId: string, target: string): Promise<AdvanceEvent[]> {
+    const events: AdvanceEvent[] = [];
+    let farm = await this.repo.farmBy('id', farmerId);
+    if (!farm?.test_clock_id || !farm.demo_now) throw new Error('stripe not set up');
+    // Compare instants, not strings: the DB returns "+00:00" while toISOString() gives ".000Z".
+    const seenInvoices = new Set((await this.syncPensionInvoices(farm)).map((e) => e.id));
+
+    while (Date.parse(farm.demo_now!) < Date.parse(target)) {
+      const next = addMonthsIso(farm.demo_now!, MAX_CLOCK_STEP_MONTHS);
+      const stepTo = Date.parse(next) < Date.parse(target) ? next : target;
+      for (const step of simulationSteps(farm, this.data, stepTo)) {
+        const t0 = Date.now();
+        events.push(
+          step.type === 'income'
+            ? await this.income(farm, step)
+            : step.type === 'expense'
+              ? await this.expense(farm, step)
+              : step.type === 'repayment'
+                ? await this.repayment(farm, step)
+                : await this.salary(farm, step.date),
+        );
+        this.log(`${step.type} ${step.date}: ${JSON.stringify(events.at(-1))} (${Date.now() - t0} ms)`);
+        farm = (await this.repo.farmBy('id', farmerId))!;
+      }
+      const t1 = Date.now();
+      // A run that crashed after moving the clock already got it there, and Stripe won't go back.
+      const clock = await this.stripe.testHelpers.testClocks.retrieve(farm.test_clock_id!);
+      if (clock.frozen_time < unix(stepTo)) {
+        await this.stripe.testHelpers.testClocks.advance(farm.test_clock_id!, { frozen_time: unix(stepTo) });
+      }
+      await this.waitForClock(farm.test_clock_id!);
+      this.log(`clock -> ${stepTo} (${Date.now() - t1} ms)`);
+      await this.repo.setStripeIds(farmerId, { demo_now: stepTo });
+      farm = (await this.repo.farmBy('id', farmerId))!;
+      for (const p of await this.syncPensionInvoices(farm)) {
+        if (!seenInvoices.has(p.id)) {
+          seenInvoices.add(p.id);
+          events.push(p);
+        }
+      }
+      farm = (await this.repo.farmBy('id', farmerId))!;
+    }
+    await this.syncPayouts(farm);
+    return events.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  /**
+   * Salary payout statuses straight from Stripe. In test mode a payout can be paid before
+   * we've stored it, so the payout.paid webhook may arrive too early; this closes the gap.
+   */
+  async syncPayouts(farm: MoneyFarm): Promise<void> {
+    if (!farm.stripe_account_id) return;
+    for await (const po of this.stripe.payouts.list({ limit: 100 }, { stripeAccount: farm.stripe_account_id })) {
+      if (po.status === 'paid' || po.status === 'failed') await this.markPayout(po.id, po.status);
+    }
+  }
+
+  /** A salary is booked as gone when it's sent, so a failed one has to give the money back. */
+  private async markPayout(id: string, status: 'paid' | 'failed'): Promise<number> {
+    const updated = await this.repo.setPayoutStatus(id, status);
+    if (updated > 0 && status === 'failed') await this.repo.removePayoutTransaction(id);
+    return updated;
+  }
+
+  private async waitForClock(id: string): Promise<void> {
+    for (let i = 0; i < 60; i++) {
+      const c = await this.stripe.testHelpers.testClocks.retrieve(id);
+      if (c.status === 'ready') return;
+      if (c.status === 'internal_failure') throw new Error('test clock failed');
+      await this.sleep(1000);
+    }
+    throw new Error('test clock did not finish advancing');
+  }
+
+  /** Webhooks (docs/08 §3). Every write is idempotent, so replays are harmless. */
+  async handleEvent(event: Stripe.Event): Promise<void> {
+    switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const pi = event.data.object;
+        const farmerId = pi.metadata?.farmer_id;
+        const kind = pi.metadata?.kind;
+        if (!farmerId || !(kind === 'apia_advance' || kind === 'apia_balance' || kind === 'crop_sale')) return;
+        await this.repo.recordTransaction({
+          farmer_id: farmerId,
+          amount_bani: pi.amount,
+          kind,
+          occurred_at: `${pi.metadata.demo_date || iso(pi.created).slice(0, 10)}T09:00:00Z`,
+          source: 'stripe_transfer',
+          stripe_object_id: pi.id,
+          crop_id: pi.metadata.crop_id || null,
+        });
+        return;
+      }
+      case 'invoice.paid': {
+        const customer = typeof event.data.object.customer === 'string' ? event.data.object.customer : event.data.object.customer?.id;
+        if (!customer) return;
+        const farm = await this.repo.farmBy('stripe_customer_id', customer);
+        if (farm) await this.syncPensionInvoices(farm);
+        return;
+      }
+      case 'payout.paid':
+      case 'payout.failed': {
+        // The webhook can beat our own insert (test payouts settle almost instantly): retry briefly.
+        const status = event.type === 'payout.paid' ? 'paid' : 'failed';
+        for (let i = 0; i < 5; i++) {
+          if ((await this.markPayout(event.data.object.id, status)) > 0) return;
+          await this.sleep(1000);
+        }
+        return;
+      }
+      default:
+        return;
+    }
+  }
+}
+
+/** The Stripe subscription of the pension that is running. Throws if there is none. */
+function runningSubscription(farm: MoneyFarm, statuses: string[] = ['active']): string {
+  const plan = [farm.pension_plans ?? []].flat().find((p) => statuses.includes(p.status)) as { stripe_subscription_id?: string | null } | undefined;
+  if (!plan?.stripe_subscription_id) throw new Error('no running pension');
+  return plan.stripe_subscription_id;
+}

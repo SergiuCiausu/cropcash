@@ -1,0 +1,110 @@
+/* Parcels and the map (docs/harta-plan.md). The review sheet sits on dialog.h-sheet (subsidies.css). */
+dialog.plots-review { width: min(520px, calc(100vw - 32px)); }
+.plots-review .hint { color: var(--text-2); }
+.pr-warn { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--tint-b); color: var(--ink-b); font-size: 14px; line-height: 1.45; }
+.pr-list { display: grid; gap: 8px; max-height: min(52vh, 480px); margin: 12px 0 0; padding: 0; overflow-y: auto; list-style: none; overscroll-behavior: contain; }
+.pr-row { padding: 12px; border: 1px solid var(--hair); border-radius: 14px; }
+.pr-row.off { background: color-mix(in srgb, var(--hair) 40%, transparent); }
+.pr-row.off .pr-main { color: var(--text-2); }
+.pr-pick { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 10px; cursor: pointer; }
+.pr-pick input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ink-a); }
+.pr-main { display: grid; gap: 2px; min-width: 0; font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+.pr-main b { font-weight: 600; }
+.pr-where { font-size: 13px; color: var(--text-2); }
+.pr-ask { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0 30px; padding: 0; border: 0; font-size: 14px; }
+.pr-ask legend { margin-bottom: 4px; padding: 0; color: var(--text-1); line-height: 1.4; }
+.pr-ask label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer; }
+.pr-issue { margin: 6px 0 0 30px; font-size: 13px; line-height: 1.4; color: var(--text-2); }
+@media (max-width: 640px) {
+  dialog.plots-review { width: 100%; }
+  .pr-list { max-height: 50vh; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pr-row { transition: background-color 160ms ease-out; }
+}
+.pr-where-map { margin: 6px 0 0 30px; font-size: 13px; line-height: 1.4; color: var(--ink-a); }
+
+/* The drawing editor (web/components/map/ShapeEditor.tsx): map on top, tools in a panel below. */
+/* Sized by its own width, not the screen's: it may open inside a narrow sheet on a wide screen. */
+.shape-editor { container-type: inline-size; height: min(100dvh, 900px); background: var(--surface); color: var(--text-1); }
+.se-grid { display: grid; grid-template-rows: auto minmax(280px, 1fr) auto; height: 100%; }
+.se-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--hair); }
+.se-head h2 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.se-head .btn { width: auto; margin: 0; }
+.se-map { position: relative; min-height: 280px; background: color-mix(in srgb, var(--tint-a) 50%, var(--surface)); }
+.se-note { margin: 0; padding: 8px 16px; background: var(--tint-b); color: var(--ink-b); font-size: 14px; }
+.se-panel { display: grid; align-content: start; gap: 10px; max-height: 46dvh; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); overflow-y: auto; border-top: 1px solid var(--hair); }
+.se-panel .hint { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.se-panel .btn { margin: 0; }
+.se-start, .se-paste, .se-adding { display: grid; gap: 8px; }
+.se-paste textarea { display: block; width: 100%; margin-top: 6px; padding: 10px; border: 1px solid var(--hair-2); border-radius: 12px; font: 15px/1.4 ui-monospace, monospace; resize: vertical; }
+.se-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.se-row .btn { flex: 1 1 auto; width: auto; }
+.se-area { margin: 0; font-size: 15px; font-variant-numeric: tabular-nums; }
+.se-tools { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 14px; }
+.se-slider { display: grid; gap: 6px; font-size: 14px; }
+.se-slider input { width: 100%; min-height: 44px; accent-color: var(--ink-a); }
+.se-done { width: 100%; min-height: 52px; font-size: 17px; }
+
+/* Map handles: 44 px to touch, a small dot to see. */
+.se-v, .se-mid, .se-h { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: grab; touch-action: none; }
+.se-v::after { content: ''; width: 16px; height: 16px; border: 3px solid #fff; border-radius: 50%; background: #2F6B12; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); }
+.se-v.round::after { border-style: double; }
+.se-v.on::after { width: 22px; height: 22px; background: #7C5CFC; }
+.se-mid { color: #2F6B12; font: 600 18px/1 system-ui, sans-serif; cursor: pointer; }
+.se-mid::before { content: ''; position: absolute; width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, .85); box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+.se-mid.on::before { background: #ECE8FF; outline: 2px solid #7C5CFC; }
+.se-h::after { content: ''; width: 14px; height: 14px; transform: rotate(45deg); border: 2px solid #fff; background: #7C5CFC; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+.se-v:focus-visible, .se-mid:focus-visible, .se-h:focus-visible { outline: 3px solid #7C5CFC; outline-offset: -6px; border-radius: 50%; }
+/* MapLibre places markers with position: absolute; never override it here. */
+.se-mid { isolation: isolate; }
+.se-mid::before { z-index: -1; }
+@container (min-width: 760px) {
+  .se-grid { grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: auto 1fr auto; }
+  .se-head { grid-column: 1 / -1; }
+  .se-map { grid-column: 1; grid-row: 2; }
+  .se-panel { grid-column: 2; grid-row: 2 / span 2; max-height: none; border-top: 0; border-left: 1px solid var(--hair); }
+  .se-note { grid-column: 1; grid-row: 3; }
+}
+
+/* Parcel filters (web/components/plots/PlotFilters.tsx): count, controls, chips, and the „Filtre” sheet. */
+.pf { display: grid; gap: 10px; }
+.pf-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pf-count { margin: 0; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pf-clear { min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ink-a); font: inherit; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pf-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.pf-controls .btn { width: auto; margin: 0; }
+.pf-group .pf-seg { justify-self: start; }
+.pf-seg { display: inline-flex; padding: 3px; border: 1px solid var(--hair-2); border-radius: 999px; background: var(--surface); }
+.pf-seg button { min-height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--text-2); font: inherit; font-size: 14px; cursor: pointer; }
+.pf-seg button[aria-pressed='true'] { background: var(--text-1); color: var(--surface); }
+.pf-select { display: grid; gap: 2px; font-size: 12px; color: var(--text-2); }
+.pf-select select, .pf-between select { min-height: 44px; padding: 0 10px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--surface); color: var(--text-1); font: inherit; font-size: 14px; }
+.pf-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pf-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; max-width: 100%; padding: 0 6px 0 12px; border: 1px solid color-mix(in srgb, var(--ink-a) 30%, transparent); border-radius: 999px; background: var(--tint-a); color: var(--text-1); font: inherit; font-size: 14px; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.pf-chip span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: var(--ink-a); font-size: 18px; line-height: 1; }
+@media (hover: hover) and (pointer: fine) { .pf-chip:hover span { background: color-mix(in srgb, var(--ink-a) 14%, transparent); } }
+
+dialog.pf-sheet { width: min(480px, calc(100vw - 32px)); max-height: min(88dvh, 900px); }
+.pf-form { display: grid; gap: 14px; }
+.pf-form h2 { margin: 0; }
+.pf-group { display: grid; gap: 8px; margin: 0; padding: 0 0 14px; border: 0; border-bottom: 1px solid var(--hair); }
+.pf-group legend { margin-bottom: 6px; padding: 0; font-size: 15px; font-weight: 600; }
+.pf-checks { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.pf-check { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: 15px; cursor: pointer; }
+.pf-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink-a); }
+.pf-between { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+.pf-between label { display: grid; min-width: 0; gap: 2px; font-size: 13px; color: var(--text-2); }
+.pf-between input, .pf-between select { width: 100%; min-width: 0; }
+.pf-between input, .pf-field input { min-height: 44px; padding: 0 12px; border: 1px solid var(--hair-2); border-radius: 12px; background: var(--surface); color: var(--text-1); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; }
+.pf-between input[aria-invalid='true'] { border-color: #B3261E; }
+.pf-unit { padding-bottom: 12px; font-size: 14px; color: var(--text-2); }
+.pf-field { display: grid; gap: 4px; font-size: 15px; font-weight: 600; }
+.pf-field input { font-weight: 400; }
+.pf-form .btn { margin: 0; }
+/* The answer stays in reach at the end of a long sheet. */
+.pf-actions { position: sticky; bottom: -20px; display: grid; gap: 8px; margin: 0 -20px -20px; padding: 12px 20px 20px; border-top: 1px solid var(--hair); background: var(--surface); }
+.pf-row { display: flex; gap: 8px; }
+.pf-row .btn { flex: 1 1 0; }
+@media (max-width: 640px) { dialog.pf-sheet { width: 100%; } }
+@media (prefers-reduced-motion: no-preference) { .pf-seg button, .pf-chip { transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out); } }
