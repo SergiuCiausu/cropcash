@@ -13,6 +13,8 @@ import type { ApiInit } from '../live/client';
 import type { WriteOptions } from '../live/functions';
 import { saveCurrency, saveRates } from './currency';
 import { readFarmState, type FarmState, type MeFarm } from './farm';
+import type { LocalDecisions } from './contracts';
+import type { ContractDecision } from '../../../packages/shared/src/contracts/model';
 import { currentHarvest, saveHarvests, type HarvestState } from './harvests';
 import { EMPTY_SNAPSHOT, fetchMonitor, isFresh, monitorChanged, monitorView, type MonitorSnapshot, type MonitorView } from './monitor';
 import { createNet, type NetDeps } from './net';
@@ -490,6 +492,18 @@ export function createStore(deps: StoreDeps) {
     reload();
   }
 
+  /**
+   * „Am hotărât” about a contract's end (docs/contracts-plan.md §3.2). Signed in it is sent, or waits in the queue:
+   * it only notes a decision. On Ion's farm it stays on the phone.
+   */
+  async function decideContract(input: { id: string; source: 'contract' | 'arenda'; decision: ContractDecision | null; decidedOn: string }) {
+    const farm = farmOrThrow();
+    if (farm.me) return send(({ write }) => write('decide_contract', input));
+    const saved = readJson<LocalDecisions>(store, farmKeys(mode).contractDecisions) ?? {};
+    writeJson(store, farmKeys(mode).contractDecisions, { ...saved, [input.id]: { decision: input.decision, decidedOn: input.decidedOn } });
+    reload();
+  }
+
   /** Follows calls. Signed in it's saved on the farm and needs internet (never queued). */
   async function setFollow(keys: string[], on: boolean) {
     if (farmOrThrow().me) {
@@ -593,6 +607,7 @@ export function createStore(deps: StoreDeps) {
     setOwnPension,
     setTaskDone,
     eventWrite,
+    decideContract,
     setFollow,
     setCurrency,
     setRates,

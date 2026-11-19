@@ -30,6 +30,9 @@ export const QUEUEABLE = [
   'add_operation',
   'update_operation',
   'update_plot',
+  /* „Am hotărât” about a contract's end (docs/contracts-plan.md §3.2): it notes a decision, no money moves. Adding
+     or changing a contract needs internet: a queued one couldn't name a party added offline. */
+  'decide_contract',
 ] as const;
 export type QueueableName = (typeof QUEUEABLE)[number];
 export const isQueueable = (name: string): name is QueueableName => (QUEUEABLE as readonly string[]).includes(name);
@@ -238,7 +241,9 @@ export function withOutbox<T extends MeFarm | null>(me: T, items: OutboxItem[]):
   let done = [...(me.task_completions ?? [])];
   let plan: Partial<MeFarm> = {};
   let events: StoredEvent[] = me.farm_events ?? [];
+  let decided: Partial<MeFarm> = {};
   for (const item of items) {
+    if (item.name === 'decide_contract') decided = { ...decided, ...withDecision({ ...me, ...decided }, item.input) };
     if (item.name === 'confirm_occurrence') {
       /* The plan stops counting the planned sum, so the real one counts from now, as a record does. */
       const i = item.input as { eventId: string; amountLei: number; date: string };
@@ -260,7 +265,15 @@ export function withOutbox<T extends MeFarm | null>(me: T, items: OutboxItem[]):
     if (item.name === 'complete_task' && !done.some((t) => t.task_id === id)) done = [...done, { task_id: id }];
     if (item.name === 'reopen_task') done = done.filter((t) => t.task_id !== id);
   }
-  return { ...me, ...plan, transactions, task_completions: done, farm_events: events };
+  return { ...me, ...plan, ...decided, transactions, task_completions: done, farm_events: events };
+}
+
+/** A waiting „Am hotărât”, on the contract it names, so the card shows it already. */
+function withDecision(me: MeFarm, input: Record<string, unknown>): Partial<MeFarm> {
+  const i = input as { id: string; source: 'contract' | 'arenda'; decision: string | null; decidedOn: string };
+  const set = <T extends { id: string }>(rows: T[] | undefined) =>
+    rows?.map((r) => (r.id === i.id ? { ...r, decision: i.decision, decided_on: i.decision ? i.decidedOn : null } : r));
+  return i.source === 'arenda' ? { lease_contracts: set(me.lease_contracts) } : { contracts: set(me.contracts) as MeFarm['contracts'] };
 }
 
 /** A waiting update_farm in the shape of the saved copy, so the pages show it already. */

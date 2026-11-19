@@ -42,6 +42,8 @@ export const SaleInputSchema = z
     counterparty: Counterparty,
     /** The parcel it came from (docs/harta-plan.md step 10). Without one, it is the whole crop's. */
     plotId: z.uuid().optional(),
+    /** The sale contract it was delivered under (migration 048): it replaces that contract's planned money of its month. */
+    contractId: z.uuid().optional(),
   })
   .refine((s) => (s.totalLei !== undefined) !== (s.tonnes !== undefined && s.pricePerKgLei !== undefined), {
     message: 'a total, or tonnes with a price',
@@ -104,6 +106,8 @@ export const ExpenseInputSchema = z.strictObject({
   counterparty: Counterparty,
   /** On a diesel expense, for the excise refund (migration 027). */
   fuelLiters: z.number().positive().max(100_000).optional(),
+  /** The contract it was paid under (migration 048): a leasing rate, a premium, a service. */
+  contractId: z.uuid().optional(),
 }).refine((e) => e.fuelLiters === undefined || e.category === 'diesel', {
   message: 'litres go on a diesel expense',
   path: ['fuelLiters'],
@@ -175,6 +179,8 @@ export interface StoredTransaction {
   doc_no?: string | null;
   counterparty?: string | null;
   fuel_liters_cl?: number | null;
+  /** The contract it was paid under (migration 048): it replaces that contract's planned money of its month. */
+  contract_id?: string | null;
 }
 
 export interface StoredPayout {
@@ -222,7 +228,8 @@ export function recordedFromStored(rows: MovedMoney[]): RecordedItem[] {
     amount: Math.abs(r.amount_bani),
     date: r.occurred_at.slice(0, 10),
     cropId: r.crop_id ?? undefined,
-    replacesPlanned: r.kind === 'sale' ? !!r.crop_id : replacesPlannedCost(r) || !!r.employee_id || r.category === 'rent',
+    replacesPlanned: !!r.contract_id || (r.kind === 'sale' ? !!r.crop_id : replacesPlannedCost(r) || !!r.employee_id || r.category === 'rent'),
+    ...(r.contract_id ? { contractId: r.contract_id } : {}),
     ...(r.employee_id ? { employeeId: r.employee_id } : {}),
     ...(r.kind === 'expense' && r.category === 'rent' ? { rent: true } : {}),
   }));

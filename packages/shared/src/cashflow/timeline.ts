@@ -20,6 +20,9 @@ import { plannedMoney, type PlannedMoney, type StoredEvent } from '../calendar/e
 import { payrollMonth, type StoredEmployee } from '../payroll';
 import { rentPayments, type PlannedRent } from '../arenda/schedule';
 import type { StoredContract } from '../arenda/contracts';
+import type { StoredContractPayment, StoredFarmContract, StoredParty } from '../contracts/model';
+import { fromContract } from '../contracts/view';
+import { UNKNOWN_TAX_PROFILE, type TaxProfile } from '../contracts/taxes';
 
 /** Which values to use: good year, normal year, bad (drought) year. See docs/07 §5. */
 export type AmountScenario = 'good' | 'medium' | 'bad';
@@ -44,6 +47,11 @@ export type EntryKind =
   | 'rent_tax'
   /** Rent the farm receives for land it gives (D5): money, or grain to sell. */
   | 'rent_in'
+  /** Money with the other side of a contract (docs/contracts-plan.md §5.1): an advance, a delivery, a rate, a premium. */
+  | 'contract_in'
+  | 'contract_out'
+  /** A contract's taxes and VAT: VAT that moves with an invoice, the D300 settling it, an SRL's micro tax. */
+  | 'contract_tax'
   | 'deadline'
   | 'admin'
   /** A sum the farmer planned in the calendar (calendar/events.ts). */
@@ -78,7 +86,7 @@ export interface TimelineEntry {
   overdue?: boolean;
   /** On a payroll entry: whose pay it is. `what` holds their name. */
   employeeId?: string;
-  /** On a rent entry: the contract. `what` holds the landowner's name. */
+  /** On a rent or contract entry: the contract. `what` holds the landowner's or the other side's name. */
   contractId?: string;
   /** On rent in grain (to buy, or received): the kg. */
   rentKg?: number;
@@ -145,6 +153,8 @@ export interface RecordedItem {
   employeeId?: string;
   /** A rent expense: it takes the planned money rent of its month off the plan. */
   rent?: boolean;
+  /** A sale or expense filed under a contract (migration 048): it takes that contract's planned money of its month off. */
+  contractId?: string;
 }
 
 export interface TimelineInput {
@@ -169,6 +179,15 @@ export interface TimelineInput {
   employees?: StoredEmployee[];
   /** The farm's lease contracts (migration 033), its county (for the in-kind prices) and the landowners' names. */
   rent?: RentInput;
+  /** The farm's other contracts (migration 048), their schedules and parties, and what the farm told us for its taxes. */
+  contracts?: ContractsInput;
+}
+
+export interface ContractsInput {
+  contracts: readonly StoredFarmContract[];
+  payments: readonly StoredContractPayment[];
+  parties?: Readonly<Record<string, Pick<StoredParty, 'name' | 'kind' | 'cui'>>>;
+  profile?: TaxProfile;
 }
 
 export interface RentInput {
@@ -304,9 +323,13 @@ function withoutRecorded(entries: TimelineEntry[], recorded: RecordedItem[]): Ti
     const apia = r.kind === 'apia_advance' || r.kind === 'apia_balance';
     const pay = r.kind === 'expense' && !!r.employeeId;
     const rent = r.kind === 'expense' && !!r.rent;
-    const kind = pay ? 'payroll' : rent ? 'rent' : r.kind === 'sale' ? 'crop_sale' : r.kind === 'expense' ? 'input_cost' : r.kind;
+    const contract = !!r.contractId;
+    const plain: EntryKind = pay ? 'payroll' : rent ? 'rent' : r.kind === 'sale' ? 'crop_sale' : r.kind === 'expense' ? 'input_cost' : r.kind;
+    const kind: EntryKind = contract ? (r.kind === 'expense' ? 'contract_out' : 'contract_in') : plain;
     const matches = (e: TimelineEntry) =>
-      pay
+      contract
+        ? e.contractId === r.contractId && monthKey(e.date) === monthKey(r.date)
+        : pay
         ? e.employeeId === r.employeeId && monthKey(e.date) === monthKey(r.date)
         : rent
         ? monthKey(e.date) === monthKey(r.date)
@@ -324,7 +347,7 @@ function withoutRecorded(entries: TimelineEntry[], recorded: RecordedItem[]): Ti
   return entries.filter((e) => e.value > 0 || !CAN_BE_RECORDED.has(e.kind));
 }
 
-const CAN_BE_RECORDED = new Set<EntryKind>(['crop_sale', 'input_cost', 'apia_advance', 'apia_balance', 'payroll', 'rent']);
+const CAN_BE_RECORDED = new Set<EntryKind>(['crop_sale', 'input_cost', 'apia_advance', 'apia_balance', 'payroll', 'rent', 'contract_in', 'contract_out']);
 
 /** Events that only apply when something else exists (e.g. a declared credit). */
 const CONDITIONAL_EVENTS = new Set(['credit-adeverinta-scadenta']);
@@ -503,6 +526,10 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
     entries.push(...rentEntries(payments, entries, input.rent.owners ?? {}, crops, years, opts.amounts, to));
   }
 
+  if (input.contracts?.contracts.length) {
+    entries.push(...contractEntries(input.contracts, entries, data, crops, years, opts.amounts, from, to));
+  }
+
   for (const f of input.followed ?? []) {
     if (f.date < from || f.date > to) continue;
     entries.push({
@@ -541,13 +568,29 @@ function grainCostRange(crop: Crop, kg: number, years: YearKinds): Range {
  * Returns the kg left over. `entries` are changed in place.
  */
 function takeFromSales(entries: TimelineEntry[], crop: Crop, kg: number, payDay: IsoDate, years: YearKinds, amounts: AmountScenario): number {
-  const perKg = pick(storedGrainRange(crop, 1000, years), 'in', amounts) / 1000;
-  if (!(perKg > 0)) return kg;
   const sales = entries.filter((e) => e.kind === 'crop_sale' && e.cropId === crop.id && e.value > 0);
   const order = [
     ...sales.filter((e) => e.date <= payDay).sort((a, b) => b.date.localeCompare(a.date)),
     ...sales.filter((e) => e.date > payDay).sort((a, b) => a.date.localeCompare(b.date)),
   ];
+  return takeFrom(order, crop, kg, years, amounts);
+}
+
+/**
+ * Tonnes a sale contract sold at its own price come off the forecast's sale of the harvest they're from, so the
+ * forecast sells at the market only what's left (docs/contracts-plan.md §5.1). Returns the kg the forecast didn't have.
+ */
+function takeFromHarvest(entries: TimelineEntry[], crop: Crop, kg: number, harvest: number, years: YearKinds, amounts: AmountScenario): number {
+  const order = entries
+    .filter((e) => e.kind === 'crop_sale' && e.cropId === crop.id && e.value > 0 && e.id.startsWith('sale:') && saleHarvestYear(crop, monthKey(e.date)) === harvest)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return takeFrom(order, crop, kg, years, amounts);
+}
+
+/** Lowers the sales in `order`, first ones first, by `kg` at the plan's price. Returns the kg they didn't cover. */
+function takeFrom(order: TimelineEntry[], crop: Crop, kg: number, years: YearKinds, amounts: AmountScenario): number {
+  const perKg = pick(storedGrainRange(crop, 1000, years), 'in', amounts) / 1000;
+  if (!(perKg > 0)) return kg;
   let left = kg;
   for (const e of order) {
     if (left <= 0) break;
@@ -597,6 +640,78 @@ function rentEntries(
     }
     if (!given && p.taxBani && p.taxDueOn && p.taxDueOn <= to) {
       out.push({ ...base, id: `rent-tax:${p.contractId}:${p.date}`, kind: 'rent_tax', direction: 'out', date: p.taxDueOn, amount: exact(p.taxBani), value: p.taxBani, estimated: false });
+    }
+  }
+  return out;
+}
+
+/**
+ * The plan's entries for the farm's other contracts (docs/contracts-plan.md §5.1):
+ * - money with the other side on its days, while the contract runs (end.ts: renewals, decisions, archive);
+ * - a sale's tonnes sold at its price come off the market sale of their harvest; a delivery with no price stays
+ *   in the forecast at the market price;
+ * - grain paid in kind lowers that crop's sale, as rent in kind does; what no sale covers is grain to buy;
+ * - taxes with an amount: VAT moves with the invoice and the D300 settles it on its due day; VAT the farm can't get
+ *   back is a cost; the micro tax on its day. Lines with no amount aren't planned (the Taxe tab counts them).
+ */
+function contractEntries(
+  input: ContractsInput,
+  entries: TimelineEntry[],
+  data: AppData,
+  crops: Map<string, Crop>,
+  years: YearKinds,
+  amounts: AmountScenario,
+  from: IsoDate,
+  to: IsoDate,
+): TimelineEntry[] {
+  const out: TimelineEntry[] = [];
+  const inside = (d: IsoDate | null | undefined): d is IsoDate => !!d && d >= from && d <= to;
+  const cropOf = (id: string | null) => (id ? crops.get(id) : undefined);
+  for (const c of input.contracts) {
+    const party = input.parties?.[c.party_id] ?? { name: '', kind: 'company' as const, cui: null };
+    const view = fromContract(c, input.payments, party, data, { today: from, from, to }, input.profile ?? UNKNOWN_TAX_PROFILE);
+    const base = { window: null, what: party.name || undefined, contractId: c.id, estimated: false, unverified: false };
+
+    for (const f of view.flows) {
+      const id = `contract:${c.id}:${f.paymentId ?? f.label ?? 'x'}:${f.date}`;
+      const cropId = f.cropId ?? (c.kind === 'sale' ? c.crop_id : null) ?? undefined;
+      if (f.amountBani) {
+        out.push({ ...base, id, kind: f.direction === 'in' ? 'contract_in' : 'contract_out', direction: f.direction, amount: exact(f.amountBani), value: f.amountBani, date: f.date, cropId });
+      }
+      const crop = cropOf(f.cropId);
+      if (!crop || !(f.kg > 0)) continue;
+      if (f.direction === 'in' && c.kind === 'sale' && f.amountBani) {
+        takeFromHarvest(entries, crop, f.kg, saleHarvestYear(crop, monthKey(f.date)), years, amounts);
+      } else if (f.direction === 'out') {
+        const left = takeFromSales(entries, crop, f.kg, f.date, years, amounts);
+        if (left > 0) {
+          const amount = grainCostRange(crop, left, years);
+          out.push({ ...base, id: `contract-buy:${id}`, kind: 'contract_out', direction: 'out', amount, value: pick(amount, 'out', amounts), date: f.date, cropId: crop.id, rentKg: left });
+        }
+      }
+    }
+
+    // A sale that names its tonnes but delivers none in kind on its schedule: they come from the harvest of its last day.
+    const saleCrop = c.kind === 'sale' ? cropOf(c.crop_id) : undefined;
+    const pricedIn = view.flows.filter((f) => f.direction === 'in' && f.amountBani);
+    if (saleCrop && c.quantity_kg && pricedIn.length && !view.flows.some((f) => f.direction === 'in' && f.kg > 0)) {
+      const last = c.ends_on ?? pricedIn[pricedIn.length - 1]!.date;
+      takeFromHarvest(entries, saleCrop, c.quantity_kg, saleHarvestYear(saleCrop, monthKey(last)), years, amounts);
+    }
+
+    for (const l of view.taxes) {
+      if (!l.amountBani || l.effect === 'other_side') continue;
+      const tax = { ...base, kind: 'contract_tax' as const, amount: exact(l.amountBani), value: l.amountBani, unverified: l.status === 'DE-VERIFICAT' };
+      const key = `${c.id}:${l.tax}:${l.invoicedOn ?? l.dueOn}`;
+      // VAT collected from the buyer, or paid to the supplier, with the invoice.
+      if (l.tax === 'vat' && l.effect !== 'cost' && inside(l.invoicedOn)) {
+        out.push({ ...tax, id: `contract-vat:${key}`, direction: l.effect === 'owed' ? 'in' : 'out', date: l.invoicedOn });
+      }
+      if (l.effect === 'cost' && inside(l.invoicedOn)) out.push({ ...tax, id: `contract-vat-cost:${key}`, direction: 'out', date: l.invoicedOn });
+      // Paid to the state, or got back, on the due day.
+      if ((l.effect === 'owed' || l.effect === 'withheld' || l.effect === 'deductible') && inside(l.dueOn)) {
+        out.push({ ...tax, id: `contract-tax:${key}`, direction: l.effect === 'deductible' ? 'in' : 'out', date: l.dueOn });
+      }
     }
   }
   return out;

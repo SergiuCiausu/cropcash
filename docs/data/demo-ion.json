@@ -96,5 +96,174 @@
       { "id": "demo-porumb-arat", "crop_id": "porumb", "kind": "soil_work", "status": "done", "on_date": "2026-11-10" },
       { "id": "demo-porumb-semanat", "crop_id": "porumb", "kind": "sowing", "status": "planned", "on_date": "2027-04-15" }
     ]
+  },
+  "contracts": {
+    "status": "presupunere",
+    "note": "Exemple de demo pentru ecranul Contracte (docs/contracts-plan.md pasul 6): o vânzare de grâu cu preț fix, leasingul tractorului și asigurarea culturilor care se termină pe 15 decembrie. Părțile, sumele și datele sunt scrise de fermier în contractele lui, nu cifre din lege; CUI-urile sunt de test. Ion e persoană fizică, neînregistrată în scopuri de TVA (presupunere de demo, P9).",
+    "tax_profile": {
+      "legal_form": "pf",
+      "vat_status": "not_registered",
+      "micro_tax": null
+    },
+    "parties": [
+      {
+        "id": "demo-cereale",
+        "name": "Cereale Câmpia SRL",
+        "kind": "company",
+        "cui": "RO12345678",
+        "locality": "Alexandria",
+        "phone": null,
+        "note": null,
+        "archived_at": null
+      },
+      {
+        "id": "demo-leasing",
+        "name": "Agro Leasing IFN",
+        "kind": "company",
+        "cui": "RO87654321",
+        "locality": null,
+        "phone": null,
+        "note": null,
+        "archived_at": null
+      },
+      {
+        "id": "demo-asigurari",
+        "name": "Asigurarea culturilor",
+        "kind": "company",
+        "cui": null,
+        "locality": null,
+        "phone": null,
+        "note": "agentul din Alexandria",
+        "archived_at": null
+      }
+    ],
+    "contracts": [
+      {
+        "id": "demo-k-grau",
+        "party_id": "demo-cereale",
+        "kind": "sale",
+        "title": "Grâu din recolta 2027",
+        "number": "112",
+        "signed_on": "2026-11-05",
+        "starts_on": "2026-11-05",
+        "ends_on": "2027-08-31",
+        "auto_renews": false,
+        "notice_days": null,
+        "renew_months": null,
+        "plot_ids": [],
+        "area_ari": null,
+        "crop_id": "grau",
+        "quantity_kg": 20000,
+        "employee_id": null,
+        "credit_group_id": null,
+        "vat_bp": null,
+        "residual_bani": null,
+        "decision": null,
+        "decided_on": null,
+        "archived_at": null
+      },
+      {
+        "id": "demo-k-tractor",
+        "party_id": "demo-leasing",
+        "kind": "leasing",
+        "title": "Tractorul",
+        "number": "L-2024-0331",
+        "signed_on": "2024-03-01",
+        "starts_on": "2024-03-15",
+        "ends_on": "2028-02-15",
+        "auto_renews": false,
+        "notice_days": 30,
+        "renew_months": null,
+        "plot_ids": [],
+        "area_ari": null,
+        "crop_id": null,
+        "quantity_kg": null,
+        "employee_id": null,
+        "credit_group_id": null,
+        "vat_bp": 2100,
+        "residual_bani": 1500000,
+        "decision": null,
+        "decided_on": null,
+        "archived_at": null
+      },
+      {
+        "id": "demo-k-asigurare",
+        "party_id": "demo-asigurari",
+        "kind": "insurance",
+        "title": "Grâul și porumbul, grindină și secetă",
+        "number": "P-58210",
+        "signed_on": "2025-12-10",
+        "starts_on": "2025-12-16",
+        "ends_on": "2026-12-15",
+        "auto_renews": false,
+        "notice_days": null,
+        "renew_months": null,
+        "plot_ids": [],
+        "area_ari": 1500,
+        "crop_id": null,
+        "quantity_kg": null,
+        "employee_id": null,
+        "credit_group_id": null,
+        "vat_bp": null,
+        "residual_bani": null,
+        "decision": null,
+        "decided_on": null,
+        "archived_at": null
+      }
+    ],
+    "contract_payments": [
+      {
+        "id": "demo-p-avans",
+        "contract_id": "demo-k-grau",
+        "direction": "in",
+        "label": "Avans",
+        "first_on": "2026-12-15",
+        "repeat": "none",
+        "times": null,
+        "amount_bani": 400000,
+        "per_ha": false,
+        "kg": null,
+        "crop_id": null
+      },
+      {
+        "id": "demo-p-livrare",
+        "contract_id": "demo-k-grau",
+        "direction": "in",
+        "label": "La livrare",
+        "first_on": "2027-07-20",
+        "repeat": "none",
+        "times": null,
+        "amount_bani": 1800000,
+        "per_ha": false,
+        "kg": 20000,
+        "crop_id": "grau"
+      },
+      {
+        "id": "demo-p-rata",
+        "contract_id": "demo-k-tractor",
+        "direction": "out",
+        "label": "Rata",
+        "first_on": "2024-03-15",
+        "repeat": "monthly",
+        "times": 48,
+        "amount_bani": 210000,
+        "per_ha": false,
+        "kg": null,
+        "crop_id": null
+      },
+      {
+        "id": "demo-p-prima",
+        "contract_id": "demo-k-asigurare",
+        "direction": "out",
+        "label": "Prima",
+        "first_on": "2025-12-20",
+        "repeat": "yearly",
+        "times": null,
+        "amount_bani": 6000,
+        "per_ha": true,
+        "kg": null,
+        "crop_id": null
+      }
+    ]
   }
 }

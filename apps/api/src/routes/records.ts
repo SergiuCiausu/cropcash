@@ -24,6 +24,9 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
   /* A farm's own crops count as known, for that farm only (P30). */
   const knownCrop = (id: string | undefined, farm: { harvests?: { ownCrops?: { id: string }[] } | null }) =>
     id === undefined || data.crops.crops.some((c) => c.id === id) || !!farm.harvests?.ownCrops?.some((c) => c.id === id);
+  /* A contract is checked before anything is saved: the farm's own (migration 048). An ended one too: a last
+     payment can come after the end. */
+  const knownContract = (id: string | undefined, farm: { contracts?: { id: string }[] }) => id === undefined || !!farm.contracts?.some((c) => c.id === id);
   const todayFor = (farm: { demo_now?: string | null }) => farmToday(farm, todayInRomania(now()));
   const planFor = async (token: string) => {
     const farm = await repo.getMyFarm(token);
@@ -51,10 +54,14 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
       res.status(400).json({ error: 'future_date' });
       return;
     }
+    if (!knownContract(sale.contractId, farm)) {
+      res.status(404).json({ error: 'unknown_contract' });
+      return;
+    }
     const amountBani = saleAmountBani(sale);
     let id: string;
     try {
-      id = await repo.addSale(token, farm.id, { amountBani, date: sale.date, cropId: sale.cropId, harvestYear: sale.harvestYear, note: sale.note, clientId: sale.clientId, docs: { docNo: sale.docNo, counterparty: sale.counterparty }, plotId: sale.plotId });
+      id = await repo.addSale(token, farm.id, { amountBani, date: sale.date, cropId: sale.cropId, harvestYear: sale.harvestYear, note: sale.note, clientId: sale.clientId, docs: { docNo: sale.docNo, counterparty: sale.counterparty }, plotId: sale.plotId, contractId: sale.contractId });
     } catch (err) {
       if (err instanceof RepoError && err.code === 'not_found') {
         res.status(404).json({ error: 'unknown_plot' });
@@ -87,6 +94,10 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
       res.status(400).json({ error: 'future_date' });
       return;
     }
+    if (!knownContract(expense.contractId, farm)) {
+      res.status(404).json({ error: 'unknown_contract' });
+      return;
+    }
     try {
       const id = await repo.addExpense(token, {
         amountBani: leiToBani(expense.amountLei),
@@ -101,6 +112,7 @@ export function recordsRouter(repo: Repo, data: AppData, params: SubsidyParams, 
         plotId: expense.plotId,
         docs: { docNo: expense.docNo, counterparty: expense.counterparty, fuelLitersCl: expense.fuelLiters === undefined ? undefined : litresToCl(expense.fuelLiters) },
         employeeId: expense.employeeId,
+        contractId: expense.contractId,
       });
       const plan = await planFor(token);
       res.status(201).json({ id, salary: plan?.salary.salary ?? null });

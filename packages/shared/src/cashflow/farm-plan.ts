@@ -22,7 +22,8 @@ import { costsByCrop, cropEconomics, payrollShortMonths, springNeed } from './in
 import { rollingYears } from './scenarios';
 import { plannedFigures, withFarmerHarvest } from './seasons';
 import { maxSafeSalary, salaryToPay, suggestCredit, type SmoothingOptions } from './smoothing';
-import { buildTimeline, nextHarvestYear, type AmountScenario, type RentInput, type Timeline } from './timeline';
+import { buildTimeline, nextHarvestYear, type AmountScenario, type ContractsInput, type RentInput, type Timeline } from './timeline';
+import { taxProfileOf, type TaxProfile } from '../contracts/taxes';
 
 /**
  * The day of a payment window the plan counts on. The last day by default, so the plan holds when the
@@ -41,6 +42,13 @@ export interface PlanFarm extends Omit<StoredFarm, 'transactions'> {
   /** County code (e.g. 'TR'), for the county yield history. */
   county?: string | null;
   transactions?: MovedMoney[];
+  /**
+   * The farm's legal form, VAT status and micro tax, for the contracts' taxes (taxes.ts). Left out, it's read from
+   * the row's `legal_form` / `vat_status` / `micro_tax` (migration 049). Until the farmer answers, VAT on what the
+   * farm pays counts as a cost (the safe side: not got back), and VAT on its sales and the micro tax have no amount
+   * and stay out of the plan.
+   */
+  tax_profile?: TaxProfile;
 }
 
 /**
@@ -155,7 +163,13 @@ export function timelineInput(farm: PlanFarm, data: AppData, params?: SubsidyPar
     county: farm.county ?? null,
     owners: Object.fromEntries((farm.landowners ?? []).map((o) => [o.id, o.name])),
   };
-  return { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent };
+  const contracts: ContractsInput = {
+    contracts: farm.contracts ?? [],
+    payments: farm.contract_payments ?? [],
+    parties: Object.fromEntries((farm.parties ?? []).map((p) => [p.id, p])),
+    profile: farm.tax_profile ?? taxProfileOf(farm),
+  };
+  return { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent, contracts };
 }
 
 /**
@@ -204,7 +218,7 @@ export function afterBadHarvest(farm: PlanFarm, baseData: AppData, { month, para
  */
 export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params }: FarmPlanOptions) {
   const data = farmData(farm, baseData);
-  const { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent } = timelineInput(farm, data, params);
+  const { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent, contracts } = timelineInput(farm, data, params);
   const opts = { start: month, months: data.params.forecast.plan_months.value, timing: planTiming(data) };
   const build = (amounts: AmountScenario, withExtras = true) =>
     buildTimeline(
@@ -220,6 +234,7 @@ export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params
         lossShare,
         employees,
         rent,
+        contracts,
       },
       data,
       { ...opts, amounts },

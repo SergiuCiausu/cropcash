@@ -40,6 +40,8 @@ export function farmKeys(mode: Mode) {
     follows: storageKey('cropcash-follows', mode),
     done: storageKey('cropcash-done', mode),
     events: storageKey('cropcash-events', mode),
+    /** Ion's farm only: „Am hotărât” about his example contracts (lib/cc/contracts.ts). */
+    contractDecisions: storageKey('cropcash-contract-decisions', mode),
   };
 }
 

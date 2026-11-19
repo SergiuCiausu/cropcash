@@ -33,6 +33,18 @@ export function dayInMonth(key: MonthKey, day: number): IsoDate {
   return `${key}-${pad(day)}`;
 }
 
+/** `date` moved by `n` months (back when negative); a day past the month's end falls on its last day. */
+export function addMonthsToDate(date: IsoDate, n: number): IsoDate {
+  const key = addMonths(monthKey(date), n);
+  const last = Number(lastDay(key).slice(8));
+  return `${key}-${pad(Math.min(Number(date.slice(8, 10)), last))}`;
+}
+
+/** `date` moved by `n` days (back when negative). */
+export function addDaysToDate(date: IsoDate, n: number): IsoDate {
+  return new Date(toUtc(date) + n * 86_400_000).toISOString().slice(0, 10);
+}
+
 export function addYears(date: IsoDate, n: number): IsoDate {
   return `${Number(date.slice(0, 4)) + n}${date.slice(4)}`;
 }

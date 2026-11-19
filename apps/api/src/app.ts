@@ -23,6 +23,8 @@ import type { EventStore } from './db/events';
 import { employeesRouter } from './routes/employees';
 import { arendaRouter } from './routes/arenda';
 import type { ArendaStore } from './db/arenda';
+import { contractsRouter } from './routes/contracts';
+import type { ContractStore } from './db/contracts';
 import type { EmployeeStore } from './db/employees';
 import { membersRouter } from './routes/members';
 import type { MemberStore } from './db/members';
@@ -68,6 +70,8 @@ export interface AppDeps {
   /** The farm's people. Without it, those routes don't exist. */
   employees?: EmployeeStore;
   arenda?: ArendaStore;
+  /** The farm's other contracts (migration 048). Without it, those routes don't exist. */
+  contracts?: ContractStore;
   /** Who else sees the farm's reports (migration 028). Without it, those routes don't exist. */
   members?: MemberStore;
   /**
@@ -98,6 +102,7 @@ export function createApp({
   events,
   employees,
   arenda,
+  contracts,
   members,
   predictions,
 }: AppDeps) {
@@ -134,6 +139,7 @@ export function createApp({
   if (events) app.use('/api', eventsRouter(repo, events, data, subsidyParams ?? {}, now));
   if (employees) app.use('/api', employeesRouter(repo, employees, now));
   if (arenda) app.use('/api', arendaRouter(repo, arenda, now));
+  if (contracts) app.use('/api', contractsRouter(repo, contracts, data, now));
   if (members) app.use('/api', membersRouter({ repo, members, webOrigins: corsOrigins, now }));
   if (money) app.use('/api', moneyRouter(money));
   if (predictions) app.use('/api', predictionsRouter(predictions));

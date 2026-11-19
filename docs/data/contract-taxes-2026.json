@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "description": "Taxele la stat pe care le aduc contractele fermei (docs/contracts-plan.md §4; legea în docs/16-contracts-law.md §6). Cotele sunt în puncte de bază (100 = 1%), sumele în bani sau eurocenți, numere întregi. Cotele de TVA și impozitul pe arendă nu se repetă aici: stau în vat-2026.json și arenda-prices-2026.json, iar regulile de mai jos trimit la ele.",
+    "status": "parțial",
+    "checked": "2026-11-18",
+    "source_url": "https://static.anaf.ro/static/10/Anaf/legislatie/Cod_fiscal_norme_2023.htm",
+    "code_version": "Legea 227/2015, ultima actualizare: Legea nr. 204/2026 (versiunea ANAF citită integral pe 2026-11-18)"
+  },
+  "vat": {
+    "rates_file": "vat-2026.json",
+    "standard_bp": {
+      "value": 2100,
+      "source": "Codul fiscal art. 291 (1)",
+      "status": "confirmat",
+      "note": "Aceeași cifră ca vat-2026.json → rates.standard."
+    },
+    "reduced_bp": {
+      "value": 1100,
+      "source": "Codul fiscal art. 291 (2): apa de irigații (lit. d), îngrășăminte, pesticide, semințe de însămânțat și servicii agricole din ordinul comun MF–MADR (lit. e), îngrășăminte și pesticide chimice (lit. f, până la 31.12.2031, alin. (3^3))",
+      "status": "confirmat",
+      "note": "Aceeași cifră ca vat-2026.json → rates.reduced."
+    },
+    "agri_services_reduced": {
+      "value": null,
+      "status": "DE-VERIFICAT",
+      "source": "Codul fiscal art. 291 (2) lit. e): doar serviciile din ordinul comun MF–MADR",
+      "note": "Ordinul nu e citit (docs/11 #46). Până atunci, un contract de servicii folosește cota standard, iar fermierul poate schimba cota."
+    },
+    "reverse_charge_grain": {
+      "applies_until": "2026-12-31",
+      "both_vat_registered": true,
+      "goods": "cereale și plante tehnice, inclusiv semințe oleaginoase și sfeclă de zahăr, care nu sunt în principiu destinate ca atare consumatorilor finali",
+      "domestic_only": true,
+      "source": "Codul fiscal art. 331 (1), (2) lit. c), (3), (5), (6)",
+      "status": "confirmat",
+      "note": "Codurile NC pe cultură sunt în normele metodologice, necitite (docs/11 #47). După 31.12.2026: docs/11 #27.",
+      "goods_in_app": {
+        "apia_headings": ["CEREALE PENTRU BOABE"],
+        "apia_codes": [201, 202, 2020, 203, 2037, 2038, 204, 205, 215, 216, 217, 218, 219, 220, 2207, 226, 301, 3017],
+        "status": "DE-VERIFICAT",
+        "note": "Alegerea noastră din tabelul APIA până citim codurile NC din norme (#47): toate cerealele pentru boabe, plantele oleaginoase (floarea-soarelui, rapiță, soia, in pentru ulei, arahide, mac, ricin, susan, șofrănel, cânepă pentru ulei, camelină, alte oleaginoase) și sfecla de zahăr. Plantele tehnice fără ulei (in și cânepă pentru fibră, tutun) nu sunt puse: cota lor rămâne cea din contract."
+      }
+    },
+    "farmer_flat_rate": {
+      "compensation_bp": {
+        "value": 800,
+        "valid_from_year": 2019,
+        "source": "Codul fiscal art. 315^1 (2)",
+        "status": "confirmat"
+      },
+      "who": "persoana fizică, PFA, II sau IF care face producție agricolă și alte activități doar sub plafonul de scutire (art. 310)",
+      "applies_to": "produsele și serviciile agricole vândute altor persoane impozabile decât agricultorii din regimul special; plătită de cumpărător, pe preț fără TVA",
+      "no_vat_collected": true,
+      "no_vat_deducted": true,
+      "no_vat_return": true,
+      "source": "Codul fiscal art. 315^1 (1) lit. b), (3), (4), (7), (8)",
+      "status": "confirmat"
+    },
+    "small_business_threshold_bani": {
+      "value": 39500000,
+      "source": "Codul fiscal art. 310 (1): 395.000 lei cifră de afaceri anuală",
+      "status": "confirmat"
+    },
+    "exempt": {
+      "credit": {
+        "value": true,
+        "source": "Codul fiscal art. 292 (2) lit. a) pct. 1",
+        "status": "confirmat"
+      },
+      "insurance": {
+        "value": true,
+        "source": "Codul fiscal art. 292 (2) lit. b)",
+        "status": "confirmat"
+      }
+    },
+    "leasing_rate": {
+      "value": "standard",
+      "source": "Codul fiscal art. 291 (1): fără o regulă specială găsită în Titlul VII",
+      "status": "DE-VERIFICAT",
+      "note": "Rata și valoarea reziduală la 21%, după presă. docs/11 #48."
+    },
+    "return": {
+      "form": "300",
+      "due_day": 25,
+      "month_offset": 1,
+      "period": {
+        "value": "month",
+        "status": "DE-VERIFICAT",
+        "note": "Perioada fiscală poate fi și trimestrul (art. 322, necitit). docs/11 #48."
+      },
+      "source": "Codul fiscal art. 323 (1) și 326 (1); formularul 300 din OPANAF 591/2017",
+      "status": "confirmat"
+    }
+  },
+  "micro_tax": {
+    "rate_bp": {
+      "value": 100,
+      "source": "Codul fiscal art. 51 (1)",
+      "status": "confirmat"
+    },
+    "revenue_ceiling_eurocents": {
+      "value": 10000000,
+      "source": "Codul fiscal art. 47 (1) lit. c): 100.000 euro, cu veniturile firmelor legate (alin. (1^1)), la cursul de la închiderea exercițiului",
+      "status": "confirmat"
+    },
+    "min_employees": {
+      "value": 1,
+      "source": "Codul fiscal art. 47 (1) lit. g), art. 51 (4)",
+      "status": "confirmat"
+    },
+    "due": {
+      "period": "quarter",
+      "day": 25,
+      "month_offset": 1,
+      "source": "Codul fiscal art. 56 (1)",
+      "status": "confirmat"
+    },
+    "form": {
+      "value": null,
+      "status": "DE-VERIFICAT",
+      "note": "Presa spune D100. docs/11 #49."
+    }
+  },
+  "income_tax_on_norm": {
+    "per_contract": false,
+    "note": "PF, PFA, II la normă de venit: impozitul e pe hectare, o dată pe an (docs/05-taxes-pension.md §1). O vânzare nu aduce impozit separat.",
+    "status": "confirmat"
+  },
+  "land_tax": {
+    "payer": "proprietarul, către bugetul local al comunei unde e terenul",
+    "instalments": [
+      { "due": "03-31", "share_pct": 50 },
+      { "due": "09-30", "share_pct": 50 }
+    ],
+    "early_payment_discount_max_pct": {
+      "value": 10,
+      "rule": "pentru tot anul, plătit până pe 31 martie; procentul îl hotărăște consiliul local",
+      "source": "Codul fiscal art. 467 (2)",
+      "status": "confirmat"
+    },
+    "small_amount_bani": {
+      "value": 5000,
+      "rule": "până la 50 lei pe aceeași primărie se plătește tot până la prima rată",
+      "source": "Codul fiscal art. 467 (3)",
+      "status": "confirmat"
+    },
+    "amount": {
+      "value": null,
+      "note": "Cotele sunt pe localitate. Suma o scrie fermierul din decizia de impunere."
+    },
+    "source": "Codul fiscal art. 463 (1), (3), art. 467 (1)",
+    "status": "confirmat"
+  },
+  "rent": {
+    "rules_file": "arenda-prices-2026.json",
+    "note": "Impozitul reținut pe arendă și CASS-ul proprietarului: docs/15-arenda.md §3–4, în cod rentTax."
+  },
+  "no_state_tax": {
+    "insurance": "TVA scutit (art. 292 (2) lit. b)); fără altă linie (C6)",
+    "credit": "TVA scutit (art. 292 (2) lit. a) pct. 1); dobânda e un cost",
+    "comodat": "gratuit; doar impozitul pe teren al proprietarului"
+  },
+  "payroll": {
+    "value": null,
+    "status": "DE-VERIFICAT",
+    "note": "Contractul de muncă vine mai târziu (C3). Cotele (impozit, CAS, CASS, CAM) și formularul 112 nu sunt citite."
+  }
+}

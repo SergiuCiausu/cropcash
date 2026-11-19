@@ -20,6 +20,7 @@ import type { CurrencyChoice } from './currency';
 import { loadCurrency } from './currency';
 import type { MonitorCopy } from './monitor';
 import { savedMonitor } from './monitor';
+import { ionContracts, meContracts, NO_CONTRACTS, type FarmContracts, type LocalDecisions } from './contracts';
 
 /** A farm as the pages show it: the shape app.js has always called FARM. */
 export interface PageFarm {
@@ -83,6 +84,8 @@ export interface FarmState {
   refused: OutboxItem[];
   monitor: MonitorCopy | null;
   currency: CurrencyChoice;
+  /** Every contract, arendă included, and what the farm is for taxes (docs/contracts-plan.md). */
+  contracts: FarmContracts;
 }
 
 function ownCrops(store: KeyStore, mode: Mode, me: MeFarm | null): OwnCrop[] {
@@ -136,5 +139,6 @@ export function readFarmState(mode: Mode, store: KeyStore, base: AppData, now: D
     refused: mode === 'farm' ? readOutbox(readJson(store, KEYS.refused)) : [],
     monitor: me ? savedMonitor(store) : null,
     currency: loadCurrency(store),
+    contracts: me ? meContracts(me) : mode === 'demo' ? ionContracts(readJson<LocalDecisions>(store, keys.contractDecisions) ?? {}) : NO_CONTRACTS,
   };
 }

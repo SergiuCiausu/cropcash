@@ -36,7 +36,7 @@ export interface ArendaStore {
 export const LANDOWNER_COLUMNS = 'id, name, locality, phone, payment, note, archived_at';
 export const CONTRACT_COLUMNS =
   'id, landowner_id, direction, area_ari, locality, plot_ids, starts_on, ends_on, rent_bani_per_ha, rent_kg_per_ha, rent_crop_id, ' +
-  'pay_month, land_tax_by, registration_no, registration_date, archived_at';
+  'pay_month, land_tax_by, registration_no, registration_date, decision, decided_on, archived_at';
 
 /** bigint comes back as a number or a string, depending on its size. */
 export const contractFromRow = (r: Record<string, unknown>): StoredContract =>

@@ -41,6 +41,7 @@ import { PLOT_FUNCTIONS } from './plots';
 import { EVENT_FUNCTIONS } from './events';
 import { EMPLOYEE_FUNCTIONS } from './employees';
 import { ARENDA_FUNCTIONS } from './arenda';
+import { CONTRACT_FUNCTIONS } from './contracts';
 import { addDays, eventItems } from '../calendar/events';
 import type { TimelineEntry } from '../cashflow/timeline';
 import { checkPurchase, peopleCost, whatIfCredit, whatIfHire, whatIfPension, whatIfSubsidy } from './whatIf';
@@ -1004,6 +1005,7 @@ export const FUNCTIONS: readonly (ReadFunction | WriteFunction)[] = [
   ...EVENT_FUNCTIONS,
   ...EMPLOYEE_FUNCTIONS,
   ...ARENDA_FUNCTIONS,
+  ...CONTRACT_FUNCTIONS,
 ];
 
 export function findFunction(name: string): ReadFunction | WriteFunction | undefined {

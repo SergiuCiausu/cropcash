@@ -139,6 +139,14 @@ export interface StoredFarm {
   lease_contracts?: import('../arenda/contracts').StoredContract[];
   /** „Câți proprietari ai?” (migration 033). Null: not asked. */
   landowner_count?: number | null;
+  /** The farm's other contracts, their parties and money schedules, archived ones too (migration 048). */
+  parties?: import('../contracts/model').StoredParty[];
+  contracts?: import('../contracts/model').StoredFarmContract[];
+  contract_payments?: import('../contracts/model').StoredContractPayment[];
+  /** What the farm is for taxes (migration 049). Null: not asked yet. */
+  legal_form?: import('../contracts/taxes').LegalForm | null;
+  vat_status?: import('../contracts/taxes').VatStatus | null;
+  micro_tax?: boolean | null;
   plot_seasons?: import('../plots/model').StoredSeason[];
   plot_operations?: import('../plots/model').StoredOperation[];
 }

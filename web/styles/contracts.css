@@ -1,0 +1,23 @@
+/* Contracte (components/pages/Contracte.tsx). Rows, sheets, chips and facts come from events.css, people.css and arenda.css. */
+.ct-due { display: grid; gap: 12px; }
+.ct-card { display: flex; flex-direction: column; gap: 10px; }
+.ct-card.late { box-shadow: inset 4px 0 0 var(--ink-c); }
+.ct-head { display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ct-head .r-main { display: flex; flex-direction: column; min-width: 0; }
+.ct-head small { color: var(--text-2); }
+.ct-line { margin: 0; line-height: 1.45; }
+.ct-decide { display: flex; flex-direction: column; gap: 8px; }
+.ct-decide .chips { margin-top: 0; gap: 8px; }
+.ct-decide .btn { min-height: 48px; }
+.ct-decided { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 500; }
+.ct-letter { margin-top: 8px; width: fit-content; }
+.ct-impact { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.45; }
+.ct-flow { cursor: default; }
+.ct-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 8px; }
+.ct-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 96px; padding: 14px; border: 1px solid var(--hair); border-radius: 16px; background: var(--surface); color: inherit; font: inherit; font-weight: 500; text-align: left; text-decoration: none; cursor: pointer; }
+.ct-tile:hover { border-color: var(--text-2); }
+.ct-pay { padding: 12px 0; border-bottom: 1px solid var(--hair); }
+.ct-pay-x { width: fit-content; }
+.ct-q { margin: 8px 0 0; padding: 0; border: 0; }
+.ct-q legend { padding: 0; font-size: 14px; font-weight: 500; }
+.ct-letter-text { width: 100%; box-sizing: border-box; margin: 8px 0; padding: 12px; border: 1px solid var(--hair); border-radius: 12px; font: 14px/1.55 Georgia, serif; resize: vertical; background: var(--surface); color: inherit; }

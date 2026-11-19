@@ -21,6 +21,7 @@ export const DEMO_PAGES = [
   '/harta',
   '/oameni',
   '/arenda',
+  '/contracte',
 ] as const;
 
 export type Mode = 'demo' | 'farm';

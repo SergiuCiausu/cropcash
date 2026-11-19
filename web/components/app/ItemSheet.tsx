@@ -32,6 +32,8 @@ import {
 
 export type SheetItem = Omit<PlanItem, "icon"> & {
   follow?: boolean;
+  /** A contract's day or money (docs/contracts-plan.md §3.4): it links to Contracte. */
+  contract?: boolean;
   url?: string;
   keys?: string[];
   budgets?: (number | null | undefined)[];
@@ -58,6 +60,9 @@ export const monthName = (key: string) => {
   return `${MONTH_NAMES[+m - 1]} ${y}`;
 };
 
+const fromContract = (i: SheetItem) =>
+  !!i.contract || String(i.kind).startsWith("contract_");
+
 function explain(i: SheetItem) {
   const w = i.window;
   if (i.kind === "apia_balance")
@@ -67,6 +72,8 @@ function explain(i: SheetItem) {
   if (i.kind === "input_cost" || i.kind === "crop_sale")
     return "Suma și luna sunt estimate după culturile tale. Le poți schimba când ai cifrele tale.";
   if (i.follow) return "Termenul vine de la sursa oficială.";
+  if (fromContract(i))
+    return "Vine din contractele tale. Le vezi și le schimbi la Contracte.";
   if (i.estimated)
     return "Termenul pentru anul viitor nu e anunțat. Am pus data de anul ăsta.";
   return "";
@@ -335,6 +342,11 @@ export function ItemActions({
       {i.follow && (
         <a className="btn btn-line" href={href("/oportunitati")}>
           Vezi oportunitățile
+        </a>
+      )}
+      {fromContract(i) && (
+        <a className="btn btn-line" href={href("/contracte")}>
+          Vezi la Contracte
         </a>
       )}
       {canCalendar && <ToPhoneCalendar item={i} view={view} />}

@@ -17,6 +17,7 @@ import { LPIS_SERVICE_URL } from '@cropcash/shared';
 import { supabaseEvents } from './db/events';
 import { supabaseEmployees } from './db/employees';
 import { supabaseArenda } from './db/arenda';
+import { supabaseContracts } from './db/contracts';
 import { supabaseMembers } from './db/members';
 import { loadEnv } from './env';
 import { supabaseTokenVerifier } from './middleware/auth';
@@ -103,6 +104,7 @@ const app = createApp({
   events: supabaseEvents(db),
   employees: supabaseEmployees(db),
   arenda: supabaseArenda(db),
+  contracts: supabaseContracts(db),
   members: supabaseMembers(db),
   predictions: { store: predictionStore, source: predictionSource, admins: env.adminEmails },
 });

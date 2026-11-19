@@ -8,6 +8,7 @@ import { activePensionMonthly, finishedCost, harvestCosts, isOwnCrop, latestFini
 import { afterBadHarvest as afterBadHarvestFor, buildFarmPlan, farmData as farmDataFor, grainInBarn as grainInBarnFor, longForecast as longForecastFor, type FarmPlan } from '../../../packages/shared/src/functions/plan';
 import { withCountyYields } from '../../../packages/shared/src/cashflow/county-yields';
 import type { PlanFarm } from '../../../packages/shared/src/cashflow/farm-plan';
+import { contractImpact } from '../../../packages/shared/src/contracts/impact';
 import type { MonthPlan, Timeline, TimelineEntry } from '../../../packages/shared/src/cashflow/timeline';
 import type { FarmState, PageFarm } from './farm';
 import { between, date, group, MONTHS } from './format';
@@ -31,7 +32,7 @@ import {
 export type { FarmPlan };
 
 /** Pages that show the whole farm, whatever harvest is picked. The others follow the picker. */
-export const WHOLE_FARM_PAGES = ['/acasa', '/bani', '/salariu', '/date-plan', '/pensie', '/oportunitati', '/surse', '/rapoarte', '/harta', '/oameni', '/arenda', '/admin'] as const;
+export const WHOLE_FARM_PAGES = ['/acasa', '/bani', '/salariu', '/date-plan', '/pensie', '/oportunitati', '/surse', '/rapoarte', '/harta', '/oameni', '/arenda', '/contracte', '/admin'] as const;
 export type Scope = 'farm' | 'picked';
 export const scopeOf = (page: string): Scope => ((WHOLE_FARM_PAGES as readonly string[]).includes(page) ? 'farm' : 'picked');
 
@@ -130,6 +131,10 @@ export function farmView(state: FarmState, scope: Scope) {
       apia_decision: me?.apia_decision ?? null,
       /* The farmer's own planned sums: in a crop's project, only that crop's. */
       farm_events: selectedCrop ? state.events.filter((e) => e.crop_id === selectedCrop) : state.events,
+      /* Ion's example contracts (a signed-in farm plans from its copy above). Not in one crop's project. */
+      ...(state.isIon && !selectedCrop
+        ? { parties: state.contracts.parties, contracts: state.contracts.contracts, contract_payments: state.contracts.payments, tax_profile: state.contracts.profile }
+        : {}),
     } as PlanFarm;
   });
   const planMonth = () => (paidFarm ? today.slice(0, 7) : harvestMonth(scoped.year));
@@ -150,6 +155,8 @@ export function farmView(state: FarmState, scope: Scope) {
       { month: planMonth() },
     );
   }
+  /** What one contract weighs: per year, its share, the salary without it, what's left (docs/contracts-plan.md §5.2). */
+  const contractImpactOf = (id: string) => contractImpact(storedFarm(), data(), id, { month: planMonth() });
   /** Each kind of year, repeated, for the slider on Prognoză. */
   const longForecast = once(() => longForecastFor(storedFarm(), data(), { month: planMonth() }));
   /** What a bad harvest does in the spring after it. */
@@ -181,6 +188,26 @@ export function farmView(state: FarmState, scope: Scope) {
       };
     }
     if (e.kind === 'rent_tax') return { ...item, title: `Impozitul reținut din arenda lui ${e.what ?? 'un proprietar'}`, sub: `Îl plătești statului până pe ${date(e.date)}. Formularul ți-l spune contabilul`, icon: 'cal', tone: 'c', task: false, exactDay: true };
+    if (e.kind === 'contract_in' || e.kind === 'contract_out') {
+      const who = e.what ?? 'cealaltă parte';
+      if (e.rentKg) return { ...item, title: `Contractul cu ${who}: ${group(e.rentKg)} kg ${cropName(e.cropId!).toLowerCase()} de cumpărat`, sub: 'Recolta nu ajunge pentru plata în natură. Sumă estimată', icon: 'up', tone: 'c', task: false, exactDay: false };
+      return e.kind === 'contract_in'
+        ? { ...item, title: `Bani de la ${who}`, sub: 'Din contract, fără TVA', icon: 'down', tone: '', task: false, exactDay: true }
+        : { ...item, title: `Plata către ${who}`, sub: 'Din contract, fără TVA', icon: 'up', tone: 'c', task: false, exactDay: true };
+    }
+    if (e.kind === 'contract_tax') {
+      const who = e.what ?? 'cealaltă parte';
+      const tax = { ...item, icon: 'cal', tone: 'c' as PlanItem['tone'], task: false, exactDay: true };
+      if (e.id.startsWith('contract-vat-cost:')) return { ...tax, title: `TVA pe factura de la ${who}`, sub: 'Nu-l primești înapoi: e un cost' };
+      if (e.id.startsWith('contract-vat:'))
+        return e.direction === 'in'
+          ? { ...tax, title: `TVA încasat de la ${who}`, sub: 'Îl dai statului cu decontul, pe 25 a lunii de după' }
+          : { ...tax, title: `TVA plătit lui ${who}`, sub: 'Îl primești înapoi prin decont' };
+      if (e.id.includes(':micro_tax:')) return { ...tax, title: 'Impozitul micro', sub: `Pe vânzările către ${who}. Îl plătești până pe ${date(e.date)}` };
+      return e.direction === 'in'
+        ? { ...tax, tone: '', title: 'TVA înapoi de la stat', sub: `Pentru contractul cu ${who}, din decontul 300` }
+        : { ...tax, title: 'TVA de plătit statului', sub: `Pentru contractul cu ${who}, decontul 300, până pe ${date(e.date)}` };
+    }
     if (e.kind === 'input_cost') return { ...item, title: `${cropName(e.cropId!)}: ${e.what}`, sub: 'Sumă estimată, în cursul lunii', icon: 'tool', tone: 'c', task: false, exactDay: false };
     const admin = e.kind === 'admin';
     const taskId = `${e.eventId}:${(e.window?.end ?? e.date).slice(0, 4)}`;
@@ -332,6 +359,7 @@ export function farmView(state: FarmState, scope: Scope) {
     storedFarm,
     farmPlan,
     previewPlan,
+    contractImpact: contractImpactOf,
     longForecast,
     afterBadHarvest,
     planItem,

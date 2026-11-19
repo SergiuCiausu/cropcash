@@ -18,6 +18,7 @@ import { CHEVRON, Icon, OfflineNote, useHref, Verify } from '../app/bits';
 import { ItemActions, ItemDetail, ItemSheet, MONTH_NAMES, monthName, type SheetItem } from '../app/ItemSheet';
 import { EventActions, findOccurrence } from '../app/EventActions';
 import { FutureNote } from '../app/PageNotes';
+import { contractDays, contractViews, contractWindow } from '../../lib/cc/contracts';
 import { PageLink } from '../app/Frame';
 
 const MONTH_SHORT = ['ian.', 'feb.', 'mar.', 'apr.', 'mai', 'iun.', 'iul.', 'aug.', 'sept.', 'oct.', 'nov.', 'dec.'];
@@ -51,7 +52,7 @@ type Item = SheetItem & { icon: IconName; doneOwn?: boolean; op?: boolean; categ
 const FILTER: Record<Tab, (i: Item) => boolean> = {
   all: () => true,
   money: (i) => i.direction !== 'none',
-  todo: (i) => !!i.task || !!i.follow || (!!i.ev && i.direction === 'none') || !!i.op,
+  todo: (i) => !!i.task || !!i.follow || (!!i.ev && i.direction === 'none') || !!i.op || (!!i.contract && i.direction === 'none'),
   work: (i) => i.kind === 'input_cost' || !!i.op || i.category === 'crop',
   mine: (i) => !!i.ev || !!i.op,
 };
@@ -175,8 +176,34 @@ export default function Calendar() {
       return p?.name ?? (p?.bloc_fizic ? `Bloc ${p.bloc_fizic}` : 'Parcelă');
     };
     const own = (crop ? forCrop(all, crop.id, seasons) : all).filter((x) => x.direction === 'none' || x.done).map((x) => ownItem(x, plotName, view.cropName));
-    return [...list, ...own, ...followed].sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
-  }, [view, months, monitor.followed, crop, TODAY, farm.events, plots]);
+    /* A contract's last day to act and its end (docs/contracts-plan.md §3.4): the whole farm's, not one crop's. */
+    const contractItems = crop
+      ? []
+      : contractDays(contractViews(farm.contracts, data, contractWindow(TODAY, months.length)), from, to).map(
+          (d) =>
+            ({
+              id: d.id,
+              kind: 'contract_day',
+              title: d.title,
+              date: d.date,
+              month: d.date.slice(0, 7),
+              window: undefined,
+              amount: undefined,
+              value: 0,
+              direction: 'none',
+              estimated: false,
+              unverified: false,
+              event: null,
+              sub: `Pe ${date(d.date)}. Hotărăști la Contracte`,
+              icon: 'check',
+              tone: 'b',
+              task: false,
+              contract: true,
+              exactDay: true,
+            }) as unknown as Item,
+        );
+    return [...list, ...own, ...followed, ...contractItems].sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
+  }, [view, months, monitor.followed, crop, TODAY, farm.events, farm.contracts, data, plots]);
   const isDone = (i: Item) => (i.ev || i.op ? !!i.doneOwn : !!i.task && done.has(i.id));
 
   /* ---- State that a fresh load used to reset ---- */

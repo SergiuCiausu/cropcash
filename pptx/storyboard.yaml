@@ -1,0 +1,455 @@
+# CropCash pitch deck: 4 minutes, built with the demo-deck skill from the Next.js app in web/.
+# Structure follows the workshop photos in this folder: problem and user (0:00-0:45),
+# one workflow input -> processing -> output -> meaning (0:45-2:30), how we built it (2:30-3:15),
+# value and next step (3:15-4:00). Figures in the text come from docs/09-demo-pitch.md and
+# must match what the app shows in the recordings (checked on the keyframes).
+#
+# Recording order matters: the money flows change Ion's account. Run ./record.sh, not `capture`.
+deck:
+  title: CropCash
+  output: cropcash-pitch.pptx
+  video_export: true
+  size: [1920, 1080]
+  fps: 30
+  url_label: cropcash.netlify.app
+  end_hold: 1.5
+  budget_mb: 150
+  brand:
+    font: Geist
+    display_font: Geist
+    font_faces:
+      - { family: Geist, src: fonts/Geist.ttf, weight: "100 900" }
+    bg: "#18201C"
+    surface: "#222B26"
+    ink: "#F8F8F3"
+    muted: "#A3AEA7"
+    accent: "#B4E85C"
+    logo: ../web/public/icons/icon-192.png
+
+app:
+  base_url: http://localhost:5173
+  viewport: [1280, 800]
+  scale: 1
+  storage_state: build/demo-login.json
+  hide: ["nextjs-portal", ".ac-env:nth-child(3)"]  # the deck leaves out the debts envelope; the app keeps it
+  mask: []
+
+flows:
+  # 0:15 The problem: money arrives in waves, spring is empty.
+  calendar-gap:
+    start: /calendar
+    steps:
+      - wait: 600
+      - click: "button.chip:has-text('Bani')"
+        label: money
+      - highlight: "#m-2026-11"
+        ms: 1300
+        label: advance
+      - scroll: 520
+        pause: 300
+      - highlight: "section.month.hard"
+        ms: 1800
+        label: spring
+
+  # 0:45 Input: the farm, typed in two minutes. Stops before saving, so Ion's account is untouched.
+  onboarding:
+    start: /onboarding
+    steps:
+      - wait: 500
+      - type: "#name"
+        text: Ion
+        label: name
+      - type: "#age"
+        text: "55"
+      - select: "#county"
+        value: TR
+      - click: "button[type=submit]:has-text('Mai departe')"
+        label: next
+      - click: "input[aria-label='Hectare Grâu']"
+        label: crops
+        pause: 150
+      - press: Control+A
+        pause: 100
+      - press: "8"
+        pause: 400
+      - click: "input[aria-label='Hectare Porumb']"
+        pause: 150
+      - press: Control+A
+        pause: 100
+      - press: "7"
+        pause: 500
+      - highlight: ".farm.glass"
+        ms: 1800
+        label: live
+
+  # 1:00 Processing: the subsidy as a range.
+  subsidy-range:
+    start: /subventii
+    steps:
+      - wait: 600
+      - hover: "section.hero-card .amount"
+        label: total
+      - highlight: "section.hero-card .range"
+        ms: 1600
+        label: range
+      - highlight: ".card.s6 .crow"
+        ms: 1400
+        label: advance
+      - scroll: 520
+        pause: 300
+      - hover: "section.card.s7:not(.bone-card)"
+        label: schemes
+        pause: 900
+
+  # 1:15 Output: the APIA advance lands in Stripe, split into envelopes.
+  advance-in:
+    start: /bani
+    steps:
+      - wait: 600
+      - click: "button:has-text('Simulează avansul APIA')"
+        label: income
+        pause: 600
+      - wait_for: "dialog.h-sheet[open] .ac-envs"
+        cut: true
+        timeout: 90000
+      - wait: 500
+        label: arrived
+      - hover: "dialog.h-sheet .ac-envs"
+        pause: 1800
+        label: bars
+      - click: "dialog.h-sheet button:has-text('Bine așa')"
+        label: accept
+        pause: 500
+      - wait_for: "section.card.s7 .ac-envs"
+        cut: true
+        timeout: 90000
+      - highlight: "section.card.s7 .ac-envs"
+        ms: 1600
+        label: envelopes
+
+  # 1:35 Output: the pension, started from the salary.
+  pension-start:
+    start: /pensie
+    steps:
+      - wait: 600
+      - fill: "input[type=range]"
+        value: "200"
+        label: slider
+        pause: 700
+      - highlight: "section.hero-card .amount"
+        ms: 1600
+        label: at65
+      - click: "button:has-text('Pornesc')"
+        label: start
+      - wait_for: "dialog.h-sheet[open] button:has-text('Da, pornesc')"
+      - wait: 900
+        label: ask
+      - click: "dialog.h-sheet button:has-text('Da, pornesc')"
+        label: yes
+        pause: 400
+      - wait_for: "button:has-text('Opresc pensia')"
+        cut: true
+        timeout: 90000
+      - highlight: "section.hero-card .amount"
+        ms: 1300
+        label: running
+
+  # 1:50 Meaning: six months forward on a Stripe Test Clock (several minutes, cut out; the app waits up to 600 s).
+  time-forward:
+    start: /bani
+    tail_ms: 600
+    steps:
+      - wait: 500
+      - click: "button:has-text('Dăm timpul înainte: 6 luni')"
+        label: forward
+        pause: 900
+      - wait_for: "h3:text('Ce s-a întâmplat')"
+        cut: true
+        timeout: 620000
+      - wait: 400
+        label: done
+      - highlight: ".card.s5 .ac-list"
+        ms: 1900
+        label: salaries
+      - scroll: 700
+        pause: 300
+      - highlight: ".card.s12 .ac-list"
+        ms: 2200
+        label: events
+
+  # 2:15 Meaning: a dry year, seen in November.
+  drought:
+    # Ion's example farm: read-only, no API, so this clip never needs a reseed.
+    start: /ferma-lui-ion/prognoza
+    steps:
+      - wait: 600
+      - click: "button.chip:has-text('An slab') >> nth=0"
+        label: bad
+        pause: 900
+      - hover: "#fc"
+        label: chart
+        pause: 1000
+      - scroll: 700
+        pause: 300
+      - highlight: "#bad"
+        ms: 3200
+        label: card
+
+  # 2:30 How it's built: the assistant answers from the farm's own figures (Claude API).
+  assistant:
+    start: /acasa
+    steps:
+      - wait: 600
+      - click: ".ask-fab"
+        label: open
+        pause: 700
+      - click: ".ask-chip >> nth=1"
+        label: question
+        pause: 600
+      - wait_for: ".ask-msg.ai:not(.wait), .ask-msg.card"
+        cut: true
+        timeout: 90000
+      - wait: 600
+        label: answer
+      - hover: ".ask-msg.ai:not(.wait), .ask-msg.card"
+        pause: 2400
+        label: card
+
+slides:
+  - id: open
+    layout: title
+    kicker: Stripe · Rethinking Financial Futures
+    title: CropCash face din subvenție și recoltă un salariu lunar
+    subtitle: Pentru Ion, 15 ha în Teleorman. Banii îi vin de 3 ori pe an, dar îi cheltuie în fiecare lună.
+    duration: 7
+    notes: |
+      Am construit CropCash ca să-l ajutăm pe Ion, fermier cu 15 hectare de grâu și porumb în Teleorman,
+      să știe în fiecare lună cât poate cheltui. Azi e greu, pentru că banii îi vin în 2–3 valuri pe
+      parcursul a până la 15 luni: subvenția APIA în tranșe și recolta vara și toamna. Cheltuie lunar și
+      mai ales primăvara, deci trăiește din „bani mulți, apoi nimic”, fără nimic deoparte pentru ani proști.
+      Și pentru că venitul agricol nu cere CAS, cei mai mulți nu-și strâng pensie.
+
+  - id: insolvency
+    layout: metric
+    kicker: Problema
+    value: "226"
+    label: de firme agricole au intrat în insolvență în primul semestru din 2026
+    subtitle: Cu aproape 80% mai multe decât cele 127 din 2025. Deși pentru 2025 se estima cea mai mare recoltă de grâu din 1997.
+    duration: 7
+    notes: |
+      Potrivit CITR, 226 de firme agricole au intrat în insolvență în primele șase luni din 2026, față de 127
+      în aceeași perioadă din 2025. Iar în iulie 2025, Asociația Fermierilor estima cea mai mare recoltă de
+      grâu din 1997. Un fermier din Călărași spune: 2022, 2023, 2024 și 2025 au fost ani secetoși, aproape an după an. Cifra e despre firme; Ion,
+      persoană fizică, nu apare în ea, dar trăiește același ciclu.
+
+  - id: problem
+    layout: demo-right
+    kicker: Problema
+    title: Banii vin în valuri. Cheltuielile, în fiecare lună.
+    bullets:
+      - text: "Martie–iunie: cheltuieli mari și cererea APIA"
+        at: calendar-gap:advance
+      - text: Recolta, apoi APIA în tranșe, pe până la 15 luni
+        at: calendar-gap:spring
+      - text: "Februarie–mai: golul, când banii de toamnă s-au terminat"
+        at: calendar-gap:spring+1.2
+    demo:
+      flow: calendar-gap
+      at: 0.9
+    notes: |
+      Recolta vine din iulie până în octombrie, avansul APIA între 16 octombrie și 30 noiembrie, restul din
+      decembrie până în iunie. Cererea s-a depus între 16 martie și 5 iunie.
+      În februarie–mai Ion rămâne fără bani. N-are nimic deoparte
+      pentru secetă și n-are pensie. Ca el sunt sute de mii: 671.334 de cereri APIA în 2026.
+
+  - id: input
+    layout: demo-right
+    kicker: Demo · ce primește aplicația
+    title: Ferma se completează în două minute
+    bullets:
+      - text: Nume, vârstă, județ
+        at: onboarding:name
+      - text: Hectarele pe culturi, sau poza hârtiei APIA
+        at: onboarding:crops
+      - text: Subvenția apare pe loc
+        at: onboarding:live
+    demo:
+      flow: onboarding
+      at: 0.9
+      zooms:
+        - target: live
+          scale: 1.5
+          hold: 1.4
+    notes: |
+      Fără formulare APIA, fără termeni financiari. Trei pași: despre tine, culturile, banii de acum.
+
+  - id: subsidy
+    layout: demo-right
+    kicker: Demo · ce calculează
+    title: Subvenția ca interval, nu ca promisiune
+    bullets:
+      - text: Un buget fix, împărțit la toate hectarele declarate în țară
+        at: subsidy-range:range
+      - text: Cu cât se declară mai mult, cu atât iese mai puțin pe hectar
+        at: subsidy-range:advance
+      - text: Avansul e anunțat dinainte; restul vine în tranșe și nu se știe exact
+        at: subsidy-range:schemes
+    demo:
+      flow: subsidy-range
+      at: 0.9
+      zooms:
+        - target: range
+          scale: 1.6
+          hold: 1.3
+    notes: |
+      Alte aplicații îți dau o cifră. Noi îți spunem adevărul: cuantumul depinde de câți fermieri declară.
+      Anul trecut, sprijinul de bază a ieșit cu 10% sub plan. O eco-schemă promisă la 58,18 euro pe hectar
+      s-a stabilit la 32,94. Avansul de 75% e sigur, restul nu. Calculul: hectare ori suma pe hectar, pe
+      fiecare schemă, la cursul de schimb. Intervalul vine din cât s-a abătut suma reală de la cea planificată
+      în anii trecuți. Doar sprijinul de bază are acest istoric; celelalte scheme îi folosesc intervalul.
+
+  - id: advance
+    layout: demo-right
+    kicker: Demo · ce primește Ion
+    title: Au intrat 12.649 lei. CropCash propune împărțirea.
+    bullets:
+      - text: O plată de test, prin Stripe Connect
+        at: advance-in:arrived
+      - text: "Plicuri: fermă, salariu, pensie"
+        at: advance-in:bars
+      - text: Un singur „Bine așa”
+        at: advance-in:accept
+    demo:
+      flow: advance-in
+      at: 0.9
+    notes: |
+      Avansul a intrat în contul lui Ion, prin Stripe Connect. Aplicația propune împărțirea: cheltuielile
+      fermei, salariul, pensia. Ion poate scoate sigur 1.050 lei pe lună și știe asta din noiembrie.
+
+  - id: pension
+    layout: demo-right
+    kicker: Demo · ce primește Ion
+    title: Pensia pornește din salariu, cu 200 lei pe lună
+    bullets:
+      - text: Vede suma de la 65 de ani înainte să pornească
+        at: pension-start:at65
+      - text: Plată lunară automată, în Stripe test mode
+        at: pension-start:ask
+      - text: "CAS-ul opțional: peste 12.000 lei pe an"
+        at: pension-start:running
+    demo:
+      flow: pension-start
+      at: 0.9
+    notes: |
+      CAS-ul opțional costă peste 12.000 de lei pe an, aproape cât primește Ion din subvenție. Pilonul III pornește de la sume mici. Din 2027 vine și CEI.
+      Pensia iese din salariu, deci salariul plătit devine 800 lei.
+
+  - id: forward
+    layout: demo-full
+    kicker: Demo · ce înseamnă
+    title: Dăm timpul înainte 6 luni
+    subtitle: Șase salarii și pensia, plătite prin Stripe, în test mode, pe un Test Clock.
+    demo:
+      flow: time-forward
+      at: 0.9
+      zooms:
+        - target: salaries
+          scale: 1.5
+          hold: 0.6  # the zoom has to end before the page scrolls to the events
+    notes: |
+      Haideți acum să dăm timpul înainte cu șase luni. Nu e o animație: sunt plăți și abonamente care rulează
+      în Stripe, pe un Test Clock. Uitați-vă la salarii: șase luni la rând, câte 800 de lei, plus pensia.
+      Ion își primește salariul și în lunile în care din fermă nu intră nimic.
+
+  - id: drought
+    layout: demo-right
+    kicker: Demo · cum calculăm prognoza
+    title: Prognoza pornește din recoltele reale ale județului
+    subtitle: Un an slab se simte în primăvara de după.
+    bullets:
+      - text: "Slab, normal, bun: din ultimele 15 recolte ale județului (INS)"
+        at: drought:bad
+      - text: Se schimbă recolta și restul de la APIA; prețul și costurile, nu
+        at: drought:chart
+      - text: Linia plină e anul ales, punctatele sunt ceilalți doi ani
+        at: drought:card
+    demo:
+      flow: drought
+      at: 0.9
+      trim: [0.5, null]  # the chart has drawn by then
+    notes: |
+      Anul slab e media celor mai slabi 3 ani din ultimele 15 recolte din județ, anul normal e mediana, anul
+      bun e media celor mai buni 3. Dacă Ion își notează recolta, ea devine anul lui normal. Prețul și costurile
+      rămân la fel: prețurile INS abia urmează recolta, iar costurile se plătesc înainte să știi ce iese.
+      Pe ecran: 12 luni, lună de lună, înainte de salariu și pensie, apoi „Următorii ani”, până la 10, cu același
+      fel de an, la cifrele de azi. Într-un an slab, lui Ion îi intră cu 29.757 de lei mai puțin. Lovește în
+      primăvara de după: în iunie 2028 îi lipsesc 12.242 de lei. Limite: e o medie pe județ, nu folosește vremea
+      și spune ce s-a întâmplat, nu ce va fi. Calculul pe 24 de luni repetă anul slab de două ori.
+
+  - id: built
+    layout: demo-right
+    kicker: Cum l-am construit
+    title: Întrebi în română. Răspunde din cifrele fermei tale.
+    subtitle: Next.js, PWA · motor APIA cu Vitest · Stripe Connect, Test Clocks · Claude + Zod
+    bullets:
+      - text: Cifrele vin din funcțiile testate ale aplicației
+        at: assistant:open
+      - text: Arată efectul; decizia rămâne a lui Ion
+        at: assistant:question
+      - text: "Nu salvează nimic: Ion apasă pe un card"
+        at: assistant:answer
+    demo:
+      flow: assistant
+      at: 0.9
+      trim: [2.4, null]  # starts after the chart tooltip, which held figures from before the county yields
+    notes: |
+      Interfața e o aplicație Next.js care merge offline. Logica e în funcții pure, testate: motorul de
+      subvenții, netezirea salariului. API-ul e Express pe Supabase. Stripe Connect, payouts, subscriptions,
+      webhooks și Test Clocks, funcționale cap-coadă. „Întreabă” folosește Claude: cheamă funcțiile aplicației,
+      iar cardurile sunt completate din ele, prin cod. Textul răspunsului are regula să folosească doar
+      rezultatele lor; nu îl verificăm automat cifră cu cifră, dar avem un set de 20 de întrebări de test.
+      Nu salvează nimic singur: Ion apasă pe un card cu valorile exacte. Pensia, care mută bani, rămâne pe ecranul ei.
+
+  - id: real
+    layout: closing
+    kicker: Ce e real și ce nu
+    title: Spunem deschis ce e simulat
+    bullets:
+      - "Funcționează: plățile Stripe, cap-coadă, în test mode"
+      - "Simulat: încasările APIA și istoricul județului"
+      - "De verificat: câteva cifre din Planul PAC, marcate în aplicație"
+    cta: Banii reali cer un partener licențiat. APIA plătește prin Trezorerie, nu prin Stripe.
+    duration: 9
+    notes: |
+      În demo, avansul APIA e o plată de test. În producție, CropCash ar vedea plata în banca fermierului
+      prin open banking, iar Stripe ar rămâne pentru abonament și contribuțiile automate prin partener.
+      Nu există API public APIA. Nu e consultanță financiară: pensia folosește randamente presupuse.
+
+  - id: why
+    layout: closing
+    kicker: De ce noi
+    title: Nimeni nu planifică banii fermei mici
+    bullets:
+      - "Agricover Pay: fără un plan pe tot anul"
+      - "AGRIVI, Crop360: pentru ferme mari, nu pentru fermier"
+      - "Figured, Harvest Profit: nu știu de APIA și tranșe"
+    cta: "CropCash: salariu și pensie din subvenție, fără limbaj financiar"
+    duration: 9
+    notes: |
+      Nimeni nu-i arată fermierului mic banii pe tot anul. Adopția vine prin fiica
+      fermierului și prin asociații.
+
+  - id: close
+    layout: closing
+    kicker: Ce urmează
+    title: Ion nu are nevoie de mai mulți bani. Are nevoie să-i vadă pe un an.
+    bullets:
+      - Un partener licențiat, pentru bani reali
+      - Plata APIA citită din bancă, prin open banking
+      - Adopție prin asociații de fermieri
+    cta: cropcash.netlify.app
+    qr: ../cropcash-qr.png
+    duration: 8
+    notes: |
+      Mulțumim. Aplicația e live la cropcash.netlify.app. Surse: economedia.ro, forbes.ro, economica.net,
+      financiarul.ro, agrointel.ro, capital.ro, contapp.ro, bugetul.ro, alba24.ro, comunicatul APIA din 27 mai 2026.

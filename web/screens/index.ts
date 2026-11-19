@@ -10,6 +10,7 @@ import { prognoza } from './prognoza';
 import { harta } from './harta';
 import { oameni } from './oameni';
 import { arenda } from './arenda';
+import { contracte } from './contracte';
 import { rapoarte } from './rapoarte';
 import { recolte } from './recolte';
 import { salariu } from './salariu';
@@ -36,4 +37,5 @@ export const SCREENS = {
   admin,
   oameni,
   arenda,
+  contracte,
 } satisfies Record<ScreenName, ScreenDef>;

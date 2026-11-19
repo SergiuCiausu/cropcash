@@ -20,4 +20,5 @@ export * from './calendar/events';
 export * from './reports';
 export * from './payroll';
 export * from './arenda';
+export * from './contracts';
 export * from './members';

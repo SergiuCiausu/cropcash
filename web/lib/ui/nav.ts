@@ -20,6 +20,7 @@ export const TABS: { path: string; icon: IconName; label: string; railOnly?: tru
   { path: '/pensie', icon: 'hourglass', label: 'Pensie', railOnly: true },
   { path: '/oameni', icon: 'people', label: 'Oameni', railOnly: true },
   { path: '/arenda', icon: 'land', label: 'Arendă', railOnly: true, modes: ['arendas'] },
+  { path: '/contracte', icon: 'check', label: 'Contracte', railOnly: true },
   { path: '/rapoarte', icon: 'doc', label: 'Rapoarte', railOnly: true },
 ];
 
@@ -60,6 +61,6 @@ export const CROP_TAB_PAGES: readonly string[] = ['/acasa', '/subventii', '/cale
  * page load; a link to a legacy page loads it, because its scripts run once per load (lib/boot.ts).
  * screens.test.ts checks this list against web/screens.
  */
-export const REACT_PAGES: readonly string[] = ['/salariu', '/date-plan', '/subventii', '/calendar', '/recolte', '/prognoza', '/pensie', '/bani', '/oportunitati', '/surse', '/acasa', '/rapoarte', '/harta', '/oameni', '/arenda', '/admin'];
+export const REACT_PAGES: readonly string[] = ['/salariu', '/date-plan', '/subventii', '/calendar', '/recolte', '/prognoza', '/pensie', '/bani', '/oportunitati', '/surse', '/acasa', '/rapoarte', '/harta', '/oameni', '/arenda', '/contracte', '/admin'];
 
 export const isReactPage = (page: string) => REACT_PAGES.includes(page);

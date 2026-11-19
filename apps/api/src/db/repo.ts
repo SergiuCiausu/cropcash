@@ -1,6 +1,7 @@
 import { EVENT_COLUMNS, OCCURRENCE_COLUMNS } from './events';
 import { EMPLOYEE_COLUMNS, employeeFromRow } from './employees';
 import { CONTRACT_COLUMNS, LANDOWNER_COLUMNS, contractFromRow } from './arenda';
+import { FARM_CONTRACT_COLUMNS, PARTY_COLUMNS, PAYMENT_COLUMNS, farmContractFromRow, paymentsFromRows } from './contracts';
 import type { ApiaDecision, EnvelopeKind, farmSetupRow, Envelopes, FertilizerUse, HarvestsInput, StoredFarm } from '@cropcash/shared';
 import type { SupabaseFactory } from './supabase';
 
@@ -41,6 +42,8 @@ export interface NewSale {
   docs?: RecordDocs;
   /** The parcel it came from. The (plot_id, farmer_id) key refuses another farm's parcel. */
   plotId?: string;
+  /** The contract it was delivered under (migration 048). The (contract_id, farmer_id) key refuses another farm's. */
+  contractId?: string;
 }
 
 /** For the accountant and the diesel refund (migration 027). Litres in hundredths. */
@@ -73,6 +76,8 @@ export interface NewExpense {
   /** Whose pay it was (migration 026). Only on a salaries expense. */
   employeeId?: string;
   docs?: RecordDocs;
+  /** The contract it was paid under (migration 048). */
+  contractId?: string;
 }
 
 export class RepoError extends Error {
@@ -122,11 +127,11 @@ const parcelRow = (p: NewFarm['parcels'][number]) => ({
 });
 
 export const FARM_SELECT = [
-  'id, name, county, birth_year, start_balance_bani, pension_fund_id, demo_now, stripe_account_id, salary_bani, harvests, harvests_version, apia_decision, own_field_work, farm_mode, leased_in_ari, leased_out_ari, landowner_count',
+  'id, name, county, birth_year, start_balance_bani, pension_fund_id, demo_now, stripe_account_id, salary_bani, harvests, harvests_version, apia_decision, own_field_work, farm_mode, leased_in_ari, leased_out_ari, landowner_count, legal_form, vat_status, micro_tax',
   'parcels (crop_id, area_ari, is_arable, planted_month)',
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
-  'transactions (id, kind, category, crop_id, plot_id, amount_bani, occurred_at, note, source, expected_payment_id, harvest_year, fertilizer_product_id, fertilizer_qty, fertilizer_unit, doc_no, counterparty, fuel_liters_cl, employee_id)',
+  'transactions (id, kind, category, crop_id, plot_id, amount_bani, occurred_at, note, source, expected_payment_id, harvest_year, fertilizer_product_id, fertilizer_qty, fertilizer_unit, doc_no, counterparty, fuel_liters_cl, employee_id, contract_id)',
   'task_completions (task_id)',
   'payouts (id, amount_bani, scheduled_for, status)',
   'pension_plans (monthly_bani, status)',
@@ -138,6 +143,10 @@ export const FARM_SELECT = [
   // Landowners and arendă contracts (migration 033), archived ones too.
   `landowners (${LANDOWNER_COLUMNS})`,
   `lease_contracts (${CONTRACT_COLUMNS})`,
+  // The other contracts, their parties and schedules (migration 048), archived ones too.
+  `parties (${PARTY_COLUMNS})`,
+  `contracts (${FARM_CONTRACT_COLUMNS})`,
+  `contract_payments (${PAYMENT_COLUMNS})`,
 ].join(', ');
 
 export function supabaseRepo(db: SupabaseFactory): Repo {
@@ -165,11 +174,18 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
       const { data, error } = await db.forUser(token).from('farmers').select(FARM_SELECT).maybeSingle();
       if (error) throw new RepoError('db_error', error.message);
       if (!data) return null;
-      const farm = data as unknown as FarmRow & { employees?: Record<string, unknown>[]; lease_contracts?: Record<string, unknown>[] };
+      const farm = data as unknown as FarmRow & {
+        employees?: Record<string, unknown>[];
+        lease_contracts?: Record<string, unknown>[];
+        contracts?: Record<string, unknown>[];
+        contract_payments?: Record<string, unknown>[];
+      };
       return {
         ...farm,
         ...(farm.employees ? { employees: farm.employees.map(employeeFromRow) } : {}),
         ...(farm.lease_contracts ? { lease_contracts: farm.lease_contracts.map(contractFromRow) } : {}),
+        ...(farm.contracts ? { contracts: farm.contracts.map(farmContractFromRow) } : {}),
+        ...(farm.contract_payments ? { contract_payments: paymentsFromRows(farm.contract_payments) } : {}),
       } as FarmRow;
     },
 
@@ -238,6 +254,7 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
           note: s.note ?? null,
           client_id: s.clientId ?? null,
           plot_id: s.plotId ?? null,
+          ...(s.contractId ? { contract_id: s.contractId } : {}),
           ...docColumns(s.docs),
         })
         .select('id')
@@ -277,7 +294,8 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
       }
       /* record_expense stays as in 024: the document and the litres go on the row it just made.
          Sent again, the same values land on the same row. */
-      const docs = docColumns(e.docs);
+      // The contract goes on the same way (migration 048 grants that one column); another farm's is refused (23503).
+      const docs = { ...docColumns(e.docs), ...(e.contractId ? { contract_id: e.contractId } : {}) };
       if (Object.keys(docs).length) {
         const set = await db.forUser(token).from('transactions').update(docs).eq('id', data as string).eq('source', 'manual');
         if (set.error) throw new RepoError('db_error', set.error.message);

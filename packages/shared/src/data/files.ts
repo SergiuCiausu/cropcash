@@ -9,7 +9,11 @@ import pensionFundsJson from '../../../../docs/data/pension-funds.json';
 import pensionOptionsJson from '../../../../docs/data/pension-options.json';
 import fundingGuidesJson from '../../../../docs/data/funding-guides.json';
 import arendaJson from '../../../../docs/data/arenda-prices-2026.json';
+import contractTypesJson from '../../../../docs/data/contract-types.json';
+import contractTaxesJson from '../../../../docs/data/contract-taxes-2026.json';
 import { ArendaPricesSchema, type ArendaPrices } from '../arenda/prices';
+import { ContractTypesSchema, type ContractTypes } from '../contracts/types';
+import { ContractTaxesSchema, type ContractTaxes } from '../contracts/taxes';
 import {
   CalendarFileSchema,
   CountiesFileSchema,
@@ -52,6 +56,10 @@ export interface AppData {
   fundingGuides: FundingGuidesFile;
   /** The tax on rent and the county prices for rent in kind (docs/15-arenda.md). */
   arenda: ArendaPrices;
+  /** How each kind of contract ends, its default notice and reminder days (docs/16-contracts-law.md). */
+  contractTypes: ContractTypes;
+  /** The taxes to the state contracts bring: VAT, micro tax, land tax (docs/16-contracts-law.md §6). */
+  contractTaxes: ContractTaxes;
 }
 
 /**
@@ -70,6 +78,8 @@ export const RAW_FILES = {
   pensionOptions: pensionOptionsJson,
   fundingGuides: fundingGuidesJson,
   arenda: arendaJson,
+  contractTypes: contractTypesJson,
+  contractTaxes: contractTaxesJson,
 } as const;
 
 export type FileName = keyof typeof RAW_FILES;
@@ -94,6 +104,8 @@ export function buildData(raw: RawFiles): AppData {
     pensionOptions: PensionOptionsFileSchema.parse(raw.pensionOptions),
     fundingGuides: FundingGuidesFileSchema.parse(raw.fundingGuides),
     arenda: ArendaPricesSchema.parse(raw.arenda),
+    contractTypes: ContractTypesSchema.parse(raw.contractTypes),
+    contractTaxes: ContractTaxesSchema.parse(raw.contractTaxes),
   };
 }
 

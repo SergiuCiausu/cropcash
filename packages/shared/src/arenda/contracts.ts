@@ -6,7 +6,7 @@
  * Money is integer bani, area integer ari, rent in kind whole kg.
  */
 import { z } from 'zod';
-import type { IsoDate } from '../cashflow/dates';
+import { addMonthsToDate, type IsoDate } from '../cashflow/dates';
 import { MAX_FARM_HA } from '../farm';
 import { areaTimesRate, haToAri, leiToBani, type Ari, type Bani } from '../money';
 import type { PlotTenure } from '../plots/model';
@@ -128,6 +128,9 @@ export interface StoredContract {
   registration_no: string | null;
   registration_date: IsoDate | null;
   archived_at: string | null;
+  /** What the farmer decided about its end (migration 048, docs/contracts-plan.md §3.2); absent before 048. */
+  decision?: 'renew' | 'end' | 'renegotiate' | null;
+  decided_on?: IsoDate | null;
 }
 
 export function landownerRow(l: z.output<typeof LandownerInputSchema>): Omit<StoredLandowner, 'id' | 'archived_at'> {
@@ -176,14 +179,7 @@ export function rentDue(c: Pick<StoredContract, 'area_ari' | 'rent_bani_per_ha' 
 }
 
 /** `day` moved back `months` months; the 31st falls on the month's last day. */
-function monthsBefore(day: IsoDate, months: number): IsoDate {
-  const [y, m, d] = day.split('-').map(Number) as [number, number, number];
-  const index = y * 12 + (m - 1) - months;
-  const year = Math.floor(index / 12);
-  const month = (index % 12) + 1;
-  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  return `${year}-${String(month).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`;
-}
+const monthsBefore = (day: IsoDate, months: number): IsoDate => addMonthsToDate(day, -months);
 
 /**
  * The last day to refuse renewal in writing (Codul civil art. 1848): a year before the end, half that for a

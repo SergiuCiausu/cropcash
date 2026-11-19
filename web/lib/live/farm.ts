@@ -36,6 +36,14 @@ export interface MeFarm {
   landowners?: import('../../../packages/shared/src/arenda/contracts').StoredLandowner[];
   lease_contracts?: import('../../../packages/shared/src/arenda/contracts').StoredContract[];
   landowner_count?: number | null;
+  /** The farm's other contracts, their parties and money schedules, archived ones too (migration 048). */
+  parties?: import('../../../packages/shared/src/contracts/model').StoredParty[];
+  contracts?: import('../../../packages/shared/src/contracts/model').StoredFarmContract[];
+  contract_payments?: import('../../../packages/shared/src/contracts/model').StoredContractPayment[];
+  /** What the farm is for taxes (migration 049). Null: not asked yet. */
+  legal_form?: import('../../../packages/shared/src/contracts/taxes').LegalForm | null;
+  vat_status?: import('../../../packages/shared/src/contracts/taxes').VatStatus | null;
+  micro_tax?: boolean | null;
 }
 
 const list = (names: string[]) =>

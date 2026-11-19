@@ -271,6 +271,17 @@ const Arenda = () => (
   </div>
 );
 
+/** The header figures, the three tabs, then the cards of „De hotărât”. */
+const Contracte = () => (
+  <>
+    <VTabs n={3} />
+    <div className="bento">
+      <BoneCard span="s12" lines={2} />
+      <ListCard span="s12" n={4} />
+    </div>
+  </>
+);
+
 const Rapoarte = () => (
   <>
     <VTabs n={2} />
@@ -344,6 +355,7 @@ export const SCREEN_SKELETONS = {
   harta: Harta,
   oameni: Oameni,
   arenda: Arenda,
+  contracte: Contracte,
   admin: Admin,
 } satisfies Record<ScreenName, ComponentType>;
 
