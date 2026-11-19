@@ -391,8 +391,9 @@ export function cropMarginsReport(ctx: ReportContext, crops: CropMarginInput[], 
 
 export function fuelExciseReport(ctx: ReportContext, records: ReportRecord[], rate: FuelExcise, period: Period): ReportModel {
   const f = fuelLines(records, rate);
-  const perLitre = `${(rate.refund_bani_per_10_l.value / 1000).toFixed(3).replace('.', ',')} lei pe litru`;
-  const unverified = rate.refund_bani_per_10_l.status === 'DE-VERIFICAT';
+  const lei = (baniPer10l: number) => `${(baniPer10l / 1000).toFixed(3).replace('.', ',')} lei`;
+  /* One rate in the period: name it. Several: each line has the rate of the day it was bought. */
+  const perLitre = f.rates.length === 1 ? `${lei(f.rates[0]!.bani_per_10_l!)} pe litru` : 'cota zilei în care ai cumpărat';
   return {
     ...header(ctx, 'fuel-excise', period, 'motorina'),
     sections: [
@@ -404,6 +405,7 @@ export function fuelExciseReport(ctx: ReportContext, records: ReportRecord[], ra
           { label: 'Plătit pe ei', value: leiCents(f.paidBani) },
           { label: `Acciză de primit înapoi (${perLitre})`, value: leiCents(f.refundBani), strong: true },
           ...(f.missing.length ? [{ label: 'Cheltuieli pe motorină fără litri', value: String(f.missing.length) }] : []),
+          ...(f.noRate.length ? [{ label: 'Bonuri din zile fără cotă cunoscută', value: String(f.noRate.length) }] : []),
         ],
       },
       {
@@ -420,7 +422,7 @@ export function fuelExciseReport(ctx: ReportContext, records: ReportRecord[], ra
         ],
         rows: [
           ...f.lines.map((l, i) => ({
-            cells: [String(i + 1), dayNumeric(l.record.date), l.record.docNo ?? '', l.record.counterparty ?? '', litres(l.record.fuelLitersCl!), cell(-l.record.amountBani), cell(l.refundBani)],
+            cells: [String(i + 1), dayNumeric(l.record.date), l.record.docNo ?? '', l.record.counterparty ?? '', litres(l.record.fuelLitersCl!), cell(-l.record.amountBani), l.refundBani === null ? '—' : cell(l.refundBani)],
           })),
           ...(f.lines.length ? [{ tone: 'total' as const, cells: ['', '', '', 'Total', litres(f.litresCl), cell(f.paidBani), cell(f.refundBani)] }] : []),
         ],
@@ -444,7 +446,8 @@ export function fuelExciseReport(ctx: ReportContext, records: ReportRecord[], ra
         : []),
     ],
     notes: [
-      `Acciza e socotită cu ${perLitre}${unverified ? ', o cifră încă de verificat' : ''}. Suma de primit e o estimare: cea exactă se stabilește la depunerea cererii, pe baza facturilor.`,
+      `Acciza e socotită cu ${perLitre}${f.rates.length > 1 ? ` (${f.rates.map((r) => lei(r.bani_per_10_l!)).join(', ')} pe litru)` : ''}${f.unverified ? ', cu cifre încă de verificat' : ''}. Suma de primit e o estimare: cea exactă se stabilește la depunerea cererii, pe baza facturilor.`,
+      ...(f.noRate.length ? ['Pentru unele zile nu se știe încă cât e acciza: bonurile lor au „—” în coloana acciză și nu intră în sumă.'] : []),
       'Intră doar cheltuielile pe motorină la care s-au notat litrii. Cele fără litri sunt în tabelul „De completat”.',
       ...commonNotes(ctx),
     ],

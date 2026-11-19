@@ -28,7 +28,7 @@ describe('navigation', () => {
     expect(sectionOf('/date-plan')).toBe('/salariu');
     expect(sectionOf('/calendar')).toBe('/calendar');
     // On a phone these sit under "Mai mult"; the bar keeps Acasă, Subvenții, Recolte and Salariu.
-    expect(TABS.filter((t) => t.railOnly).map((t) => t.path)).toEqual(['/calendar', '/prognoza', '/harta', '/pensie', '/oameni', '/arenda', '/contracte', '/rapoarte']);
+    expect(TABS.filter((t) => t.railOnly).map((t) => t.path)).toEqual(['/calendar', '/de-raportat', '/prognoza', '/harta', '/pensie', '/oameni', '/arenda', '/contracte', '/rapoarte']);
     expect(TABS.filter((t) => !t.railOnly).map((t) => t.path)).toEqual(['/acasa', '/subventii', '/recolte', '/salariu']);
   });
 

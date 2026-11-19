@@ -61,6 +61,16 @@
     "status": "presupunere",
     "note": "Cu câte zile înainte sună alarma unui termen pus în calendarul telefonului (P31)."
   },
+  "obligation_due_days": {
+    "value": 14,
+    "status": "presupunere",
+    "note": "Cu câte zile înainte apare pe Acasă un termen de pe „De raportat” (o cerere la APIA, registrul agricol)."
+  },
+  "obligation_horizon_days": {
+    "value": 365,
+    "status": "presupunere",
+    "note": "Cât de departe în viitor arată „De raportat” termenele."
+  },
   "calendar_reminder_hour": {
     "value": 9,
     "status": "presupunere",

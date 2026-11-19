@@ -15,6 +15,7 @@ import { saveCurrency, saveRates } from './currency';
 import { readFarmState, type FarmState, type MeFarm } from './farm';
 import type { LocalDecisions } from './contracts';
 import type { ContractDecision } from '../../../packages/shared/src/contracts/model';
+import type { ContractPaperReading } from '../../../packages/shared/src/contracts/paper';
 import { currentHarvest, saveHarvests, type HarvestState } from './harvests';
 import { EMPTY_SNAPSHOT, fetchMonitor, isFresh, monitorChanged, monitorView, type MonitorSnapshot, type MonitorView } from './monitor';
 import { createNet, type NetDeps } from './net';
@@ -621,6 +622,12 @@ export function createStore(deps: StoreDeps) {
       if (mode === 'demo') throw demoError();
       if (!net.isOnline()) throw offlineError();
       return withFreshSession(() => live.write('read_document', { files })) as Promise<PaperReading>;
+    },
+    /** Reads a contract's paper (read_contract_paper, contracts step 8). Saves nothing, like readDocument. */
+    readContractPaper(files: { mediaType: string; data: string }[]) {
+      if (mode === 'demo') throw demoError();
+      if (!net.isOnline()) throw offlineError();
+      return withFreshSession(() => live.write('read_contract_paper', { files })) as Promise<ContractPaperReading>;
     },
   };
 }

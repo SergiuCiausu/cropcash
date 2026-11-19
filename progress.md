@@ -97,6 +97,10 @@ Needs a hosted Supabase project.
 - The EC API page confirms the API is public, but no usage limits were found. The client waits 2 seconds between requests.
 - AFIR components have no applicant text, so all are labelled direct.
 
+## Obligations to re-check (2026-11-19)
+
+The app's „De raportat” page shows the diesel excise refund and the other deadlines from `docs/data/fuel-excise.json` and `docs/data/calendar-2026.json`. Each lists the official pages it rests on in `watch_urls`, and those pages are sources here (7 added: APIA press releases, the 2025 diesel page and guide, the 2026 claim page, two press releases, and HG 1174/2014 on legislatie.just.ro in a new §4.13). When a watched page changes, goes, comes back, or gets a new link about diesel, cost reports or registers, the daily report has a section „Obligații de re-verificat”, right after the farmer digest. Nothing is stored: a person updates the JSON. A test fails if a `watch_url` isn't in the spec (`src/obligations.ts`, `tests/obligations.test.ts`). **To do:** run `npm run seed -w subventii-monitor` on the machine that has the monitor's `.env`, so the 7 new sources are in the database.
+
 ## Daily schedule
 
 Windows task "Subventii Monitor" runs `scripts/daily.cmd` every day at 07:00, with one retry after a crash. Logs are in `subventii-monitor/data/logs/monitor.log`. If the PC is off at 07:00, it runs when the PC is next on and the user is logged in.

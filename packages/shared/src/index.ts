@@ -22,3 +22,4 @@ export * from './payroll';
 export * from './arenda';
 export * from './contracts';
 export * from './members';
+export * from './obligations';

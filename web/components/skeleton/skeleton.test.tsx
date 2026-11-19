@@ -51,9 +51,9 @@ describe('screen skeletons', () => {
   });
 
   it('draws one rail row per tab', () => {
-    // Ten on the rail, six of them only there, and "Mai mult" for a phone.
-    expect(page('acasa').match(/class="sk-tab/g)).toHaveLength(11);
-    expect(page('acasa').match(/sk-tab rail-only/g)).toHaveLength(6);
+    // Twelve on the rail, eight of them only there, and "Mai mult" for a phone.
+    expect(page('acasa').match(/class="sk-tab/g)).toHaveLength(13);
+    expect(page('acasa').match(/sk-tab rail-only/g)).toHaveLength(8);
     expect(page('acasa').match(/sk-tab more-tab/g)).toHaveLength(1);
   });
 

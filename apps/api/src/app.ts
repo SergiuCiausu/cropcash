@@ -7,6 +7,7 @@ import type { MonitorReader } from './monitor/reader';
 import { opportunitiesRouter } from './routes/opportunities';
 import { exchangeRatesProvider, type RatesProvider } from './fx/rates';
 import type { DocumentReader } from './ai/documents';
+import type { ContractReader } from './ai/contract';
 import type { Assistant } from './ai/assistant';
 import { assistantRouter } from './routes/assistant';
 import { documentsRouter } from './routes/documents';
@@ -23,7 +24,7 @@ import type { EventStore } from './db/events';
 import { employeesRouter } from './routes/employees';
 import { arendaRouter } from './routes/arenda';
 import type { ArendaStore } from './db/arenda';
-import { contractsRouter } from './routes/contracts';
+import { allFarmsContracts, contractsRouter } from './routes/contracts';
 import type { ContractStore } from './db/contracts';
 import type { EmployeeStore } from './db/employees';
 import { membersRouter } from './routes/members';
@@ -53,6 +54,8 @@ export interface AppDeps {
   sources?: SourcesDeps;
   /** Reads uploaded papers. Without it, that route answers 503. */
   readDocument?: DocumentReader;
+  /** Contract papers (step 8). Without it, POST /api/documents/read-contract answers 503 reader_off. */
+  readContract?: ContractReader;
   /** The Stripe flow. Without it, the routes that move money don't exist. */
   money?: MoneyDeps;
   /** The "Întreabă" assistant. Without it, that route answers 503. */
@@ -93,6 +96,7 @@ export function createApp({
   monitor,
   sources,
   readDocument,
+  readContract,
   money,
   assistant,
   assistantDailyLimit = 5,
@@ -106,7 +110,7 @@ export function createApp({
   members,
   predictions,
 }: AppDeps) {
-  const reads = { repo, data, params: subsidyParams, now, getRates, monitor };
+  const reads = { repo, data, params: subsidyParams, now, getRates, monitor, allFarms: contracts ? (token: string) => allFarmsContracts(contracts, data, now, token) : undefined };
   const app = express();
   app.set('trust proxy', 'loopback');
 
@@ -114,7 +118,7 @@ export function createApp({
   // Before express.json(): the signature covers the raw body. Stripe has no session to send.
   if (money) app.use('/api', webhookRouter(money));
   // Before express.json() too: a paper is bigger than its limit. The session is checked first.
-  app.use('/api', documentsRouter({ verifyToken, read: readDocument, data, now }));
+  app.use('/api', documentsRouter({ verifyToken, read: readDocument, readContract, data, now }));
   app.use(express.json({ limit: '100kb' }));
 
   app.get('/api/health', (_req, res) => {

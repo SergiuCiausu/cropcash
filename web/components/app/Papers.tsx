@@ -13,6 +13,7 @@ import { FAIL_TEXT } from '../../lib/live/fail-text';
 import { useSheetHistory } from './bits';
 import { useFarm, useFarmState, useStore } from '../../lib/cc/react';
 import type { PaperReading } from '../../lib/cc/store';
+import type { ContractPaperReading } from '../../../packages/shared/src/contracts/paper';
 import { pageKeys } from '../../lib/cc/storage';
 import { FrameContext } from './context';
 import { ErrorLine } from './bits';
@@ -96,6 +97,8 @@ interface PickOptions {
 }
 interface PapersApi {
   pick(o: PickOptions): Promise<PaperReading | null>;
+  /** A contract's paper (contracts step 8), every value checked; null when the farmer stopped or it isn't a contract. */
+  pickContract(): Promise<ContractPaperReading | null>;
   tell(title: string, text: string): Promise<string>;
   confirmDecision(reading: PaperReading, effect?: (bani: number) => string): Promise<number | null>;
 }
@@ -112,68 +115,92 @@ export function PapersProvider({ children }: { children: ReactNode }) {
   const ask = useCallback((title: string, text: string, buttons: [string, string][]) => new Promise<string>((done) => setSheet({ kind: 'ask', title, text, buttons, done })), []);
   const tell = useCallback((title: string, text: string) => ask(title, text, [['ok', 'Închide']]), [ask]);
 
+  /** Consent (once per phone), the pages, the size: the files to send, or null when the farmer stopped. */
+  async function gather(pages: boolean, hint?: string): Promise<File64[] | null> {
+    if (!store || !limits) return null;
+    /* Asked once per phone: the paper goes to an AI reader. */
+    const asked = pageKeys(mode).paperOk;
+    let ok = false;
+    try {
+      ok = !!localStorage.getItem(asked);
+    } catch {
+      /* asks every time */
+    }
+    if (!ok) {
+      const answer = await ask('Citim hârtia cu un program AI', 'Hârtia ajunge la serviciul care o citește și poate avea numele, CNP-ul sau contul tău. Din cererea APIA luăm numele, vârsta (o aflăm din CNP), județul și hectarele. Nu păstrăm CNP-ul, contul sau hârtia, ci doar ce confirmi tu.', [
+        ['yes', 'Bine așa'],
+        ['no', 'Renunță'],
+      ]);
+      if (answer !== 'yes') return null;
+      try {
+        localStorage.setItem(asked, '1');
+      } catch {
+        /* asks again next time */
+      }
+    }
+    /* A long paper in photos comes page by page, because the camera takes one at a time. */
+    const files: File64[] = [];
+    try {
+      for (;;) {
+        for (const f of await chooseFiles(pages)) files.push(await prepare(f, limits.photo_long_side_px.value));
+        if (!files.length || files.some((f) => f.mediaType === 'application/pdf') || !pages || files.length >= limits.max_pages.value) break;
+        const more = await ask(files.length === 1 ? 'Ai o pagină' : `Ai ${files.length} pagini`, hint ?? 'Dacă hârtia are mai multe pagini, adaugă-le pe toate.', [
+          ['read', 'Citește hârtia'],
+          ['more', 'Mai adaug o pagină'],
+          ['stop', 'Renunță'],
+        ]);
+        if (more === 'stop') return null;
+        if (more === 'read') break;
+      }
+    } catch {
+      await tell('Nu am putut citi hârtia', ERRORS.bad_file);
+      return null;
+    }
+    if (!files.length) return null;
+    if (files.reduce((s, f) => s + f.bytes, 0) > limits.max_mb.value * 1024 * 1024) {
+      await tell('Nu am putut citi hârtia', ERRORS.too_large);
+      return null;
+    }
+    return files;
+  }
+  /** Sends the files while the „Citesc hârtia…” sheet shows; a refusal comes back as the words to tell. */
+  async function send<T>(read: () => Promise<T>): Promise<{ reading: T } | { problem: string }> {
+    setSheet({ kind: 'wait' });
+    try {
+      return { reading: await read() };
+    } catch (e) {
+      const code = (e as { code?: string })?.code ?? '';
+      return { problem: ERRORS[code] ?? (code === 'timeout' ? FAIL_TEXT.timeout.paper : SEEN.other) };
+    } finally {
+      setSheet(null);
+    }
+  }
+
   const api = useRef<PapersApi>(null as never);
   api.current = {
     tell,
     async pick({ accepts, pages = false, hint, seen }) {
-      if (!store || !limits) return null;
-      /* Asked once per phone: the paper goes to an AI reader. */
-      const asked = pageKeys(mode).paperOk;
-      let ok = false;
-      try {
-        ok = !!localStorage.getItem(asked);
-      } catch {
-        /* asks every time */
-      }
-      if (!ok) {
-        const answer = await ask('Citim hârtia cu un program AI', 'Hârtia ajunge la serviciul care o citește și poate avea numele, CNP-ul sau contul tău. Din cererea APIA luăm numele, vârsta (o aflăm din CNP), județul și hectarele. Nu păstrăm CNP-ul, contul sau hârtia, ci doar ce confirmi tu.', [
-          ['yes', 'Bine așa'],
-          ['no', 'Renunță'],
-        ]);
-        if (answer !== 'yes') return null;
-        try {
-          localStorage.setItem(asked, '1');
-        } catch {
-          /* asks again next time */
-        }
-      }
-      /* A long paper in photos comes page by page, because the camera takes one at a time. */
-      const files: File64[] = [];
-      try {
-        for (;;) {
-          for (const f of await chooseFiles(pages)) files.push(await prepare(f, limits.photo_long_side_px.value));
-          if (!files.length || files.some((f) => f.mediaType === 'application/pdf') || !pages || files.length >= limits.max_pages.value) break;
-          const more = await ask(files.length === 1 ? 'Ai o pagină' : `Ai ${files.length} pagini`, hint ?? 'Dacă hârtia are mai multe pagini, adaugă-le pe toate.', [
-            ['read', 'Citește hârtia'],
-            ['more', 'Mai adaug o pagină'],
-            ['stop', 'Renunță'],
-          ]);
-          if (more === 'stop') return null;
-          if (more === 'read') break;
-        }
-      } catch {
-        await tell('Nu am putut citi hârtia', ERRORS.bad_file);
-        return null;
-      }
-      if (!files.length) return null;
-      if (files.reduce((s, f) => s + f.bytes, 0) > limits.max_mb.value * 1024 * 1024) {
-        await tell('Nu am putut citi hârtia', ERRORS.too_large);
-        return null;
-      }
-      setSheet({ kind: 'wait' });
-      let reading: PaperReading | null = null;
-      let problem: string | null = null;
-      try {
-        reading = await store.readDocument(files.map(({ mediaType, data }) => ({ mediaType, data })));
-        if (!accepts.includes(reading.kind)) problem = seen?.[reading.kind] ?? SEEN[reading.kind];
-      } catch (e) {
-        const code = (e as { code?: string })?.code ?? '';
-        problem = ERRORS[code] ?? (code === 'timeout' ? FAIL_TEXT.timeout.paper : SEEN.other);
-      }
-      setSheet(null);
-      if (!problem) return reading;
-      await tell('Nu am putut folosi hârtia', problem);
+      const files = await gather(pages, hint);
+      if (!files || !store) return null;
+      const got = await send(() => store.readDocument(files.map(({ mediaType, data }) => ({ mediaType, data }))));
+      const problem = 'problem' in got ? got.problem : accepts.includes(got.reading.kind) ? null : (seen?.[got.reading.kind] ?? SEEN[got.reading.kind]);
+      if (!problem && 'reading' in got) return got.reading;
+      await tell('Nu am putut folosi hârtia', problem!);
       return null;
+    },
+    async pickContract() {
+      const files = await gather(true, 'Fă poză la fiecare pagină a contractului, cu anexele în care sunt plățile.');
+      if (!files || !store) return null;
+      const got = await send(() => store.readContractPaper(files.map(({ mediaType, data }) => ({ mediaType, data }))));
+      if ('problem' in got) {
+        await tell('Nu am putut folosi hârtia', got.problem);
+        return null;
+      }
+      if (!got.reading.kind) {
+        await tell('Nu pare un contract', 'Nu am găsit un contract în poze. Fă poze la toate paginile contractului, sau scrie-l de mână.');
+        return null;
+      }
+      return got.reading;
     },
     confirmDecision(reading, effect) {
       const campaign = farm!.farmData.subsidies.meta.campaign_year;
@@ -183,6 +210,7 @@ export function PapersProvider({ children }: { children: ReactNode }) {
   };
   const stable = useRef<PapersApi>({
     pick: (o) => api.current.pick(o),
+    pickContract: () => api.current.pickContract(),
     tell: (t, x) => api.current.tell(t, x),
     confirmDecision: (r, e) => api.current.confirmDecision(r, e),
   });

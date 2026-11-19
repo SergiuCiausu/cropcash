@@ -81,6 +81,12 @@ describe('the assistant loop', () => {
     expect(Object.keys((add.input_schema as { properties: object }).properties)).not.toContain('clientId');
   });
 
+  it('offers the contract reads, and only „Am hotărât” and archiving as contract cards (step 9)', () => {
+    const names = assistantTools().tools.map((t) => t.name);
+    expect(names).toEqual(expect.arrayContaining(['list_contracts', 'get_contract_taxes', 'get_contract_impact', 'get_contracts_all_farms', 'decide_contract', 'archive_contract']));
+    for (const hidden of ['add_contract', 'update_contract', 'add_party', 'update_party', 'archive_party', 'set_tax_profile', 'read_contract_paper']) expect(names).not.toContain(hidden);
+  });
+
   it('offers the cost tools, and refuses a figure and a harvest together', async () => {
     const names = assistantTools().tools.map((t) => t.name);
     expect(names).toEqual(expect.arrayContaining(['get_crop_costs', 'get_cost_per_hectare', 'set_crop_cost']));

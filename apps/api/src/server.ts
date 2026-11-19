@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { supabasePredictions } from './db/predictions';
 import { createDataSource, liveData } from './predictions/source';
 import { cleanSourceUrl, pageFields, pageReader } from 'subventii-monitor/pages';
+import { createContractReader } from './ai/contract';
 import { createDocumentReader } from './ai/documents';
 import { createAnthropicAssistant } from './ai/assistant';
 import { createApp } from './app';
@@ -94,6 +95,7 @@ const app = createApp({
   monitor: supabaseMonitor(db),
   sources,
   readDocument: env.anthropicApiKey ? createDocumentReader(env.anthropicApiKey, data) : undefined,
+  readContract: env.anthropicApiKey ? createContractReader(env.anthropicApiKey, data) : undefined,
   money,
   assistant: env.anthropicApiKey ? createAnthropicAssistant(env.anthropicApiKey, env.anthropicModel, data.crops.crops) : undefined,
   assistantDailyLimit: env.assistantDailyLimit,

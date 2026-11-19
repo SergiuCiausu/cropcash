@@ -21,3 +21,12 @@
 .ct-q { margin: 8px 0 0; padding: 0; border: 0; }
 .ct-q legend { padding: 0; font-size: 14px; font-weight: 500; }
 .ct-letter-text { width: 100%; box-sizing: border-box; margin: 8px 0; padding: 12px; border: 1px solid var(--hair); border-radius: 12px; font: 14px/1.55 Georgia, serif; resize: vertical; background: var(--surface); color: inherit; }
+/* „Din poză” (step 8): a field read from the paper waits for „E bine”. */
+.ct-paper { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+.ct-paper .paper-btn { width: fit-content; }
+.ct-read { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -4px 0 4px; padding: 8px 10px; border-left: 3px solid var(--ink-c); border-radius: 0 10px 10px 0; background: var(--surface); line-height: 1.4; }
+.ct-read small { flex: 1 1 200px; color: var(--text-2); }
+.ct-read .btn { min-height: 36px; padding: 0 14px; }
+.ct-sides { display: grid; gap: 10px; margin-top: 8px; }
+.ct-sides .ct-tile { min-height: 64px; }
+.ct-sides small { color: var(--text-2); font-weight: 400; }

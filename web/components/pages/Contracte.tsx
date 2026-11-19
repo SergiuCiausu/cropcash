@@ -33,6 +33,8 @@ import {
   inForce,
   KIND_ICONS,
   kindName,
+  paperDraft,
+  paperKind,
   LEGAL_FORM_WORDS,
   refusalLetter,
   taxCsv,
@@ -46,6 +48,9 @@ import {
 import { date, exact, failText, ha } from '../../lib/cc/format';
 import { useFarm, useOnline, useStore, useView } from '../../lib/cc/react';
 import { newIntentKey } from '../../lib/live/intent';
+import { AllFarms, severalFarms, useAllFarms } from '../app/AllFarms';
+import { PaperButton, usePapers } from '../app/Papers';
+import type { ContractPaperReading } from '../../../packages/shared/src/contracts/paper';
 import { ErrorLine, Icon, NetButton, OfflineNote, Sheet, useHref, Verify } from '../app/bits';
 import { FrameContext } from '../app/context';
 import { PageLink } from '../app/Frame';
@@ -71,6 +76,10 @@ export default function Contracte() {
   const summary = useMemo(() => farmSummary(views, today), [views, today]);
   const [tab, setTab] = useState<Tab>(due.length ? 'decide' : 'all');
   const [open, setOpen] = useState<Open>(null);
+  // „Toate fermele” (step 7): asked of the server, so only for a signed-in farm with internet.
+  const allFarms = useAllFarms(!!farm.me && !farm.isIon);
+  const [scope, setScope] = useState<'farm' | 'all'>('farm');
+  const showAll = scope === 'all' && severalFarms(allFarms.summary);
   const cropName = (id: string) => data.crops.crops.find((c) => c.id === id)?.name_ro ?? data.catalogue.find((c) => c.id === id)?.name_ro ?? id;
   const opened = open && 'view' in open ? views.find((v) => v.id === open.view) : open && 'letter' in open ? views.find((v) => v.id === open.letter) : null;
   const editing = open && 'edit' in open ? fc.contracts.find((c) => c.id === open.edit) : null;
@@ -92,57 +101,82 @@ export default function Contracte() {
       </header>
       {farm.isIon && <p className="note">Pe ferma lui Ion, contractele sunt exemple. Ce hotărăști aici rămâne doar pe telefonul ăsta.</p>}
 
-      <section className="card" aria-labelledby="ct-sum">
-        <h2 id="ct-sum" className="sr-only">
-          Pe scurt
-        </h2>
-        <dl className="ar-facts">
-          <div>
-            <dt>În vigoare</dt>
-            <dd>{summary.count}</dd>
-          </div>
-          <div>
-            <dt>Primești, în {months} luni</dt>
-            <dd>{exact(summary.inBani)} lei</dd>
-          </div>
-          <div>
-            <dt>Plătești, în {months} luni</dt>
-            <dd>{exact(summary.outBani)} lei</dd>
-          </div>
-          <div>
-            <dt>Bani la stat</dt>
-            <dd>{exact(summary.taxes.toStateBani)} lei</dd>
-          </div>
-        </dl>
-        {summary.taxes.unknown > 0 && <p className="note">Plus {summary.taxes.unknown === 1 ? 'o sumă pe care n-o știm încă' : `${summary.taxes.unknown} sume pe care nu le știm încă`}: vezi Taxe.</p>}
-        {summary.next && <p className="note">Următorul de hotărât: {summary.next.party}. {dueLine(summary.next, today)}</p>}
-      </section>
-
-      <div className="vtabs" role="group" aria-label="Ce arată pagina">
-        {(
-          [
-            ['decide', due.length ? `De hotărât (${due.length})` : 'De hotărât'],
-            ['all', 'Toate'],
-            ['taxes', 'Taxe'],
-          ] as [Tab, string][]
-        ).map(([t, label]) => (
-          <button key={t} type="button" className="chip" aria-pressed={tab === t} onClick={() => setTab(t)}>
-            {label}
+      {severalFarms(allFarms.summary) && (
+        <div className="vtabs" role="group" aria-label="Ce ferme arată">
+          <button type="button" className="chip" aria-pressed={!showAll} onClick={() => setScope('farm')}>
+            Doar ferma asta
           </button>
-        ))}
-      </div>
-
-      {tab === 'decide' && (
-        <div className="ct-due">
-          {due.length === 0 ? (
-            <p className="empty">Nimic de hotărât acum. Îți spunem din timp, aici și pe Acasă.</p>
-          ) : (
-            due.map((v) => <DueCard key={v.id} v={v} onOpen={() => setOpen({ view: v.id })} onLetter={() => setOpen({ letter: v.id })} />)
-          )}
+          <NetButton
+            reason="Toate fermele se văd când ai internet."
+            className="chip"
+            aria-pressed={showAll}
+            onClick={() => {
+              setScope('all');
+              allFarms.reload();
+            }}
+          >
+            Toate fermele
+          </NetButton>
         </div>
       )}
-      {tab === 'all' && <AllContracts views={views} cropName={cropName} onOpen={(id) => setOpen({ view: id })} />}
-      {tab === 'taxes' && <Taxes views={views} />}
+
+      {showAll ? (
+        <AllFarms summary={allFarms.summary} failed={allFarms.failed} />
+      ) : (
+        <>
+          <section className="card" aria-labelledby="ct-sum">
+            <h2 id="ct-sum" className="sr-only">
+              Pe scurt
+            </h2>
+            <dl className="ar-facts">
+              <div>
+                <dt>În vigoare</dt>
+                <dd>{summary.count}</dd>
+              </div>
+              <div>
+                <dt>Primești, în {months} luni</dt>
+                <dd>{exact(summary.inBani)} lei</dd>
+              </div>
+              <div>
+                <dt>Plătești, în {months} luni</dt>
+                <dd>{exact(summary.outBani)} lei</dd>
+              </div>
+              <div>
+                <dt>Bani la stat</dt>
+                <dd>{exact(summary.taxes.toStateBani)} lei</dd>
+              </div>
+            </dl>
+            {summary.taxes.unknown > 0 && <p className="note">Plus {summary.taxes.unknown === 1 ? 'o sumă pe care n-o știm încă' : `${summary.taxes.unknown} sume pe care nu le știm încă`}: vezi Taxe.</p>}
+            {summary.next && <p className="note">Următorul de hotărât: {summary.next.party}. {dueLine(summary.next, today)}</p>}
+          </section>
+
+          <div className="vtabs" role="group" aria-label="Ce arată pagina">
+            {(
+              [
+                ['decide', due.length ? `De hotărât (${due.length})` : 'De hotărât'],
+                ['all', 'Toate'],
+                ['taxes', 'Taxe'],
+              ] as [Tab, string][]
+            ).map(([t, label]) => (
+              <button key={t} type="button" className="chip" aria-pressed={tab === t} onClick={() => setTab(t)}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'decide' && (
+            <div className="ct-due">
+              {due.length === 0 ? (
+                <p className="empty">Nimic de hotărât acum. Îți spunem din timp, aici și pe Acasă.</p>
+              ) : (
+                due.map((v) => <DueCard key={v.id} v={v} onOpen={() => setOpen({ view: v.id })} onLetter={() => setOpen({ letter: v.id })} />)
+              )}
+            </div>
+          )}
+          {tab === 'all' && <AllContracts views={views} cropName={cropName} onOpen={(id) => setOpen({ view: id })} />}
+          {tab === 'taxes' && <Taxes views={views} />}
+        </>
+      )}
 
       <OfflineNote>Fără internet vezi contractele, termenele și taxele, și poți nota ce ai hotărât. Ca să adaugi sau să schimbi un contract, ai nevoie de internet.</OfflineNote>
 
@@ -681,11 +715,71 @@ function TaxProfileCard() {
 
 // ── Adaugă / schimbă ──────────────────────────────────────────────────────────────
 
+type Paper = { reading: ContractPaperReading; mine: string | null };
+
 function AddContract({ onClose, cropName, arendaHref }: { onClose: () => void; cropName: (id: string) => string; arendaHref: string }) {
   const view = useView('farm')!;
   const data = view.data();
+  const papers = usePapers();
   const [kind, setKind] = useState<ContractKind | null>(null);
-  if (kind) return <ContractForm kind={kind} contract={null} cropName={cropName} onClose={onClose} onBack={() => setKind(null)} />;
+  const [paper, setPaper] = useState<Paper | null>(null);
+  const [sides, setSides] = useState<ContractPaperReading | null>(null);
+
+  function open(reading: ContractPaperReading, mine: string | null) {
+    setPaper({ reading, mine });
+    setSides(null);
+    setKind(paperKind(reading, data));
+  }
+  /* Step 8: the paper fills the form, and the farmer confirms each field there. Nothing is saved before „Adaugă”. */
+  async function fromPaper() {
+    const reading = await papers.pickContract();
+    if (!reading) return;
+    if (reading.kind === 'arenda') {
+      await papers.tell('E un contract de arendă', 'Arenda o treci la Arendă, cu proprietarul și parcelele lui.');
+      return;
+    }
+    if (reading.sides.length >= 2) setSides(reading);
+    else open(reading, null);
+  }
+
+  if (kind)
+    return (
+      <ContractForm
+        kind={kind}
+        contract={null}
+        paper={paper}
+        cropName={cropName}
+        onClose={onClose}
+        onBack={() => {
+          setKind(null);
+          setPaper(null);
+        }}
+      />
+    );
+  if (sides)
+    return (
+      <div className="ev-form">
+        <div className="top">
+          <h2 tabIndex={-1} autoFocus>
+            Care parte ești tu?
+          </h2>
+          <button type="button" className="x" aria-label="Înapoi" onClick={() => setSides(null)}>
+            ×
+          </button>
+        </div>
+        <p className="note">Pe contract sunt {sides.sides.length} părți. Spune-ne care e ferma ta, ca să știm cine plătește și cui.</p>
+        <div className="ct-sides">
+          {sides.sides.map((side, i) => (
+            <button key={`${side.role}:${i}`} type="button" className="ct-tile" onClick={() => open(sides, side.role)}>
+              <span>
+                {side.role.charAt(0).toUpperCase() + side.role.slice(1)}
+                {side.name && <small> · {side.name}</small>}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   return (
     <div className="ev-form">
       <div className="top">
@@ -695,6 +789,10 @@ function AddContract({ onClose, cropName, arendaHref }: { onClose: () => void; c
         <button type="button" className="x" aria-label="Închide" onClick={onClose}>
           ×
         </button>
+      </div>
+      <div className="ct-paper">
+        <PaperButton label="Citește-l din poză" onClick={() => void fromPaper()} />
+        <p className="note">Sau alege felul lui și scrie-l de mână:</p>
       </div>
       <div className="ct-tiles">
         {offeredKinds(data.contractTypes).map((k) =>
@@ -715,7 +813,24 @@ function AddContract({ onClose, cropName, arendaHref }: { onClose: () => void; c
   );
 }
 
-type PayRow = { label: string; firstOn: string; repeat: PaymentRepeat; times: string; lei: string; kg: string };
+type PayRow = { label: string; firstOn: string; repeat: PaymentRepeat; times: string; lei: string; kg: string; note?: string | null; unchecked?: boolean };
+/** The form's fields a paper may fill; each waits for „E bine” (step 8). */
+type ReadKey = 'party' | 'direction' | 'startsOn' | 'endsOn' | 'signedOn' | 'title' | 'number' | 'autoRenews' | 'notice' | 'vat' | 'residual' | 'area' | 'cropId' | 'tonnes';
+const DETAIL_KEYS: ReadKey[] = ['title', 'number', 'signedOn', 'notice', 'vat', 'residual', 'area'];
+const PARTY_FIELDS = ['partyId', 'newName', 'newKind', 'newCui'];
+
+/** Under a field read from the paper: what to check, and „E bine”. */
+function FromPaper({ on, note, onOk }: { on: boolean; note?: string | null; onOk: () => void }) {
+  if (!on) return null;
+  return (
+    <p className="ct-read">
+      <small>{note ?? 'Citit din poză. Verifică-l cu hârtia.'}</small>
+      <button type="button" className="btn" onClick={onOk}>
+        E bine
+      </button>
+    </p>
+  );
+}
 const REPEAT_WORDS: Record<PaymentRepeat, string> = { none: 'o dată', monthly: 'în fiecare lună', quarterly: 'o dată la 3 luni', yearly: 'în fiecare an' };
 const LABEL_HINT: Partial<Record<ContractKind, string>> = { sale: 'Avans, La livrare', supply: 'La recoltă', leasing: 'Rata', insurance: 'Prima', service: 'Factura' };
 const toLei = (bani: number | null) => (bani === null ? '' : String(Math.round(bani / 100)));
@@ -738,7 +853,21 @@ function problemOf(path: readonly PropertyKey[]): string {
   return 'Ceva nu se potrivește. Verifică datele și sumele.';
 }
 
-function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: ContractKind; contract: StoredFarmContract | null; cropName: (id: string) => string; onClose: () => void; onBack?: () => void }) {
+function ContractForm({
+  kind,
+  contract,
+  paper = null,
+  cropName,
+  onClose,
+  onBack,
+}: {
+  kind: ContractKind;
+  contract: StoredFarmContract | null;
+  paper?: Paper | null;
+  cropName: (id: string) => string;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
   const farm = useFarm()!;
   const view = useView('farm')!;
   const store = useStore()!;
@@ -749,34 +878,67 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
   const parties = farm.contracts.parties.filter((p) => !p.archived_at || p.id === c?.party_id);
   const payments = c ? farm.contracts.payments.filter((p) => p.contract_id === c.id) : [];
   const vatDefault = defaultVatBp(kind, data.contractTaxes).bp;
+  /* From the paper (step 8): only what it gave and this kind's form shows. */
+  const [d] = useState(() => (paper ? paperDraft(paper.reading, paper.mine, kind, parties, data.crops.crops.map((x) => x.id)) : null));
+  const [unchecked, setUnchecked] = useState<Set<ReadKey>>(() => {
+    if (!d) return new Set();
+    const read: [ReadKey, unknown][] = [
+      ['party', d.party],
+      ['direction', d.direction],
+      ['startsOn', d.startsOn],
+      ['endsOn', d.endsOn],
+      ['signedOn', d.signedOn],
+      ['title', d.title],
+      ['number', d.number],
+      ['autoRenews', d.autoRenews],
+      ['notice', d.notice],
+      ['vat', d.vat],
+      ['residual', d.residual],
+      ['area', d.area],
+      ['cropId', d.cropId],
+      ['tonnes', d.tonnes],
+    ];
+    return new Set(read.filter(([, v]) => v !== null).map(([k]) => k));
+  });
+  const [more, setMore] = useState(() => DETAIL_KEYS.some((k) => unchecked.has(k)));
+  const dParty = d?.party ?? null;
   const [f, setF] = useState({
-    partyId: c?.party_id ?? (parties[0]?.id ?? ''),
-    newName: '',
-    newKind: 'company' as PartyKind,
-    newCui: '',
-    startsOn: c?.starts_on ?? view.today,
-    endsOn: c?.ends_on ?? '',
-    direction: (payments[0]?.direction ?? (kind === 'sale' ? 'in' : 'out')) as 'in' | 'out',
-    pays: payments.length ? payments.map(payRowOf) : [{ label: '', firstOn: c?.starts_on ?? view.today, repeat: (kind === 'leasing' ? 'monthly' : kind === 'insurance' ? 'yearly' : 'none') as PaymentRepeat, times: '', lei: '', kg: '' }],
-    autoRenews: c ? c.auto_renews : (null as boolean | null),
-    cropId: c?.crop_id ?? (kind === 'sale' ? 'grau' : ''),
-    tonnes: c?.quantity_kg ? String(c.quantity_kg / 1000).replace('.', ',') : '',
-    title: c?.title ?? '',
-    number: c?.number ?? '',
-    signedOn: c?.signed_on ?? '',
-    notice: c?.notice_days != null ? String(c.notice_days) : '',
-    vat: c?.vat_bp != null ? String(c.vat_bp / 100).replace('.', ',') : '',
-    residual: toLei(c?.residual_bani ?? null),
-    area: c?.area_ari ? String(c.area_ari / 100).replace('.', ',') : '',
+    partyId: c?.party_id ?? (dParty ? ('id' in dParty ? dParty.id : '') : (parties[0]?.id ?? '')),
+    newName: dParty && 'name' in dParty ? dParty.name : '',
+    newKind: (dParty && 'kind' in dParty ? dParty.kind : 'company') as PartyKind,
+    newCui: dParty && 'cui' in dParty ? dParty.cui : '',
+    startsOn: c?.starts_on ?? d?.startsOn ?? view.today,
+    endsOn: c?.ends_on ?? d?.endsOn ?? '',
+    direction: (payments[0]?.direction ?? d?.direction ?? (kind === 'sale' ? 'in' : 'out')) as 'in' | 'out',
+    pays: payments.length ? payments.map(payRowOf) : d?.pays.length ? d.pays.map((x): PayRow => ({ ...x, unchecked: true })) : [{ label: '', firstOn: c?.starts_on ?? view.today, repeat: (kind === 'leasing' ? 'monthly' : kind === 'insurance' ? 'yearly' : 'none') as PaymentRepeat, times: '', lei: '', kg: '' }],
+    autoRenews: c ? c.auto_renews : (d?.autoRenews ?? (null as boolean | null)),
+    cropId: c?.crop_id ?? d?.cropId ?? (kind === 'sale' ? 'grau' : ''),
+    tonnes: c?.quantity_kg ? String(c.quantity_kg / 1000).replace('.', ',') : (d?.tonnes ?? ''),
+    title: c?.title ?? d?.title ?? '',
+    number: c?.number ?? d?.number ?? '',
+    signedOn: c?.signed_on ?? d?.signedOn ?? '',
+    notice: c?.notice_days != null ? String(c.notice_days) : (d?.notice ?? ''),
+    vat: c?.vat_bp != null ? String(c.vat_bp / 100).replace('.', ',') : (d?.vat ?? ''),
+    residual: c ? toLei(c.residual_bani ?? null) : (d?.residual ?? ''),
+    area: c?.area_ari ? String(c.area_ari / 100).replace('.', ',') : (d?.area ?? ''),
   });
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const clientIds = useRef({ party: newIntentKey(), contract: newIntentKey() });
-  const set = (patch: Partial<typeof f>) => setF({ ...f, ...patch });
-  const setPay = (i: number, patch: Partial<PayRow>) => set({ pays: f.pays.map((p, j) => (j === i ? { ...p, ...patch } : p)) });
+  const ok = (...keys: ReadKey[]) =>
+    setUnchecked((u) => {
+      const next = new Set(u);
+      keys.forEach((k) => next.delete(k));
+      return next;
+    });
+  const set = (patch: Partial<typeof f>) => {
+    setF({ ...f, ...patch });
+    ok(...Object.keys(patch).map((k) => (PARTY_FIELDS.includes(k) ? 'party' : k) as ReadKey));
+  };
+  const setPay = (i: number, patch: Partial<PayRow>) => set({ pays: f.pays.map((p, j) => (j === i ? { ...p, ...patch, unchecked: false } : p)) });
   const newParty = f.partyId === '' || !parties.some((p) => p.id === f.partyId);
   const inKind = kind === 'sale' || kind === 'supply';
-  const cropIds = [...new Set([...(farm.me?.parcels ?? []).map((p) => p.crop_id), 'grau', 'porumb', 'floarea-soarelui'])];
+  const cropIds = [...new Set([...(d?.cropId ? [d.cropId] : []), ...(farm.me?.parcels ?? []).map((p) => p.crop_id), 'grau', 'porumb', 'floarea-soarelui'])];
 
   function input(partyId: string) {
     const tonnes = optionalNumber(f.tonnes);
@@ -815,6 +977,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
   }
 
   function check(): string | null {
+    if (unchecked.size || f.pays.some((p) => p.unchecked)) return 'Verifică ce am citit din poză: apasă „E bine” la fiecare câmp marcat, sau schimbă-l.';
     if (newParty && !f.newName.trim()) return 'Scrie cu cine e contractul.';
     if (!f.startsOn) return 'Alege de când e contractul.';
     if (kind === 'sale' && !f.cropId) return 'Alege cultura pe care o vinzi.';
@@ -865,6 +1028,12 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
         </button>
       </div>
 
+      {paper && (
+        <p className="note">
+          Am citit contractul din poză. Ia hârtia în mână și verifică fiecare câmp marcat: apasă „E bine” sau schimbă-l. Poza n-o păstrăm.
+          {paper.reading.kind && paper.reading.kind !== 'arenda' && paper.reading.kind !== kind && ` Pe hârtie e „${kindName(data, paper.reading.kind)}”: îl ținem la „${kindName(data, kind)}”.`}
+        </p>
+      )}
       <div className="ev-fields">
         <label className="ev-wide">
           Cu cine
@@ -906,6 +1075,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
             )}
           </>
         )}
+        <FromPaper on={unchecked.has('party')} note={newParty ? 'Cealaltă parte, citită din poză.' : 'Am găsit-o printre cele pe care le ai deja.'} onOk={() => ok('party')} />
         <label>
           De pe
           <input type="date" value={f.startsOn} onChange={(e) => set({ startsOn: e.target.value })} />
@@ -914,6 +1084,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
           Până pe <small>(cum scrie în contract)</small>
           <input type="date" min={f.startsOn} value={f.endsOn} onChange={(e) => set({ endsOn: e.target.value })} />
         </label>
+        <FromPaper on={unchecked.has('startsOn') || unchecked.has('endsOn')} note="Datele, citite din poză." onOk={() => ok('startsOn', 'endsOn')} />
         {kind === 'sale' && (
           <>
             <fieldset className="ev-wide">
@@ -930,9 +1101,10 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
               Câte tone
               <input inputMode="decimal" autoComplete="off" value={f.tonnes} onChange={(e) => set({ tonnes: e.target.value })} />
             </label>
+            <FromPaper on={unchecked.has('cropId') || unchecked.has('tonnes')} note="Cultura și tonele, citite din poză." onOk={() => ok('cropId', 'tonnes')} />
           </>
         )}
-        {kind === 'other' && (
+        {(kind === 'other' || paper) && (
           <fieldset>
             <legend>Banii</legend>
             <div className="chips">
@@ -949,6 +1121,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
             </div>
           </fieldset>
         )}
+        <FromPaper on={unchecked.has('direction')} note="Cine plătește, după hârtie și după partea pe care ai ales-o." onOk={() => ok('direction')} />
         {(kind === 'service' || kind === 'other') && (
           <fieldset>
             <legend>Se reînnoiește singur?</legend>
@@ -966,6 +1139,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
             </div>
           </fieldset>
         )}
+        <FromPaper on={unchecked.has('autoRenews')} note="Ce scrie despre reînnoire, citit din poză." onOk={() => ok('autoRenews')} />
       </div>
 
       <fieldset className="ar-contracts">
@@ -1006,6 +1180,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
                 <input inputMode="numeric" autoComplete="off" value={p.times} onChange={(e) => setPay(i, { times: e.target.value })} />
               </label>
             )}
+            <FromPaper on={!!p.unchecked} note={p.note ? `Plata, citită din poză. ${p.note}` : 'Plata, citită din poză.'} onOk={() => set({ pays: f.pays.map((x, j) => (j === i ? { ...x, unchecked: false } : x)) })} />
             {f.pays.length > 1 && (
               <button type="button" className="btn ct-pay-x" onClick={() => set({ pays: f.pays.filter((_, j) => j !== i) })}>
                 Scoate plata
@@ -1018,7 +1193,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
         </button>
       </fieldset>
 
-      <details className="more">
+      <details className="more" open={more} onToggle={(e) => setMore(e.currentTarget.open)}>
         <summary>Mai multe detalii</summary>
         <div className="ev-fields">
           <label>
@@ -1055,6 +1230,7 @@ function ContractForm({ kind, contract, cropName, onClose, onBack }: { kind: Con
             Hectare <small>(dacă e pe teren)</small>
             <input inputMode="decimal" autoComplete="off" value={f.area} onChange={(e) => set({ area: e.target.value })} />
           </label>
+          <FromPaper on={DETAIL_KEYS.some((k) => unchecked.has(k))} note="Detaliile de mai sus, citite din poză." onOk={() => ok(...DETAIL_KEYS)} />
         </div>
       </details>
       {kind === 'sale' && f.tonnes.trim() !== '' && <p className="note">Tonele din contract nu mai sunt în vânzarea la piață din plan: le vinzi la prețul din contract.</p>}

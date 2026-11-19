@@ -2,7 +2,19 @@
    its money schedule, and the decision about a contract's end (arendă's too). Every call acts as the farmer, so RLS
    decides what they may see and change. Reading them comes with the farm (FARM_SELECT in repo.ts). */
 import type { PostgrestError } from '@supabase/supabase-js';
-import { decisionsFor, type ContractDecision, type StoredContractPayment, type StoredFarmContract, type StoredParty, type TaxProfile } from '@cropcash/shared';
+import {
+  decisionsFor,
+  NO_CONTRACTS,
+  taxProfileOf,
+  type ContractDecision,
+  type FarmContracts,
+  type StoredContractPayment,
+  type StoredFarmContract,
+  type StoredLandowner,
+  type StoredParty,
+  type TaxProfile,
+} from '@cropcash/shared';
+import { CONTRACT_COLUMNS, LANDOWNER_COLUMNS, contractFromRow } from './arenda';
 import type { SupabaseFactory } from './supabase';
 
 export class ContractError extends Error {
@@ -35,6 +47,21 @@ export interface ContractStore {
   decide(token: string, source: 'contract' | 'arenda', id: string, decision: ContractDecision | null, decidedOn: string): Promise<boolean>;
   /** „Ce fel de fermă ești?” (migration 049): the farm's legal form, VAT status and micro tax. */
   setTaxProfile(token: string, farmerId: string, profile: TaxProfile): Promise<void>;
+  /** Every farm I'm on, with my role (my_farms(), migration 039). */
+  myFarms(token: string): Promise<MyFarm[]>;
+  /**
+   * One farm's contracts, as I may read them (step 7, the cross-farm summary). An owner or manager reads everything;
+   * an accountant reads the contracts, parties and schedules (048) but not the arendă or the farm row: then
+   * `arenda` is false and the tax answers are unknown.
+   */
+  farmContracts(token: string, farmId: string): Promise<{ contracts: FarmContracts; arenda: boolean; demoNow: string | null }>;
+}
+
+export interface MyFarm {
+  farmId: string;
+  name: string;
+  county: string | null;
+  role: string;
 }
 
 export const PARTY_COLUMNS = 'id, name, kind, cui, locality, phone, note, archived_at';
@@ -158,6 +185,48 @@ export function supabaseContracts(db: SupabaseFactory): ContractStore {
         .update({ legal_form: p.legalForm, vat_status: p.vatStatus, micro_tax: p.legalForm === 'srl' ? p.micro : null })
         .eq('id', farmerId);
       if (error) throw refusal(error);
+    },
+
+    async myFarms(token) {
+      const { data, error } = await db.forUser(token).rpc('my_farms');
+      if (error) throw refusal(error);
+      return ((data ?? []) as { farmer_id: string; name: string; county: string | null; role: string }[]).map((r) => ({ farmId: r.farmer_id, name: r.name, county: r.county, role: r.role }));
+    },
+
+    async farmContracts(token, farmId) {
+      const client = db.forUser(token);
+      const rows = async (table: string, columns: string) => {
+        const { data, error } = await client.from(table).select(columns).eq('farmer_id', farmId);
+        if (error) throw refusal(error);
+        return (data ?? []) as unknown as Record<string, unknown>[];
+      };
+      const [farm, parties, contracts, payments, landowners, leases] = await Promise.all([
+        client.from('farmers').select('id, county, demo_now, legal_form, vat_status, micro_tax').eq('id', farmId).maybeSingle(),
+        rows('parties', PARTY_COLUMNS),
+        rows('contracts', FARM_CONTRACT_COLUMNS),
+        rows('contract_payments', PAYMENT_COLUMNS),
+        rows('landowners', LANDOWNER_COLUMNS),
+        rows('lease_contracts', CONTRACT_COLUMNS),
+      ]);
+      if (farm.error) throw refusal(farm.error);
+      // No farm row: an accountant (RLS). The arendă tables come back empty for them too, so leave them out.
+      const row = farm.data as { county: string | null; demo_now: string | null; legal_form: null; vat_status: null; micro_tax: null } | null;
+      const profileRow = row ? { legal_form: row.legal_form, vat_status: row.vat_status, micro_tax: row.micro_tax } : {};
+      return {
+        arenda: !!row,
+        demoNow: row?.demo_now ?? null,
+        contracts: {
+          ...NO_CONTRACTS,
+          parties: parties as unknown as StoredParty[],
+          contracts: contracts.map(farmContractFromRow),
+          payments: paymentsFromRows(payments),
+          landowners: row ? (landowners as unknown as StoredLandowner[]) : [],
+          leases: row ? leases.map(contractFromRow) : [],
+          profileRow,
+          profile: taxProfileOf(profileRow),
+          county: row?.county ?? null,
+        },
+      };
     },
   };
 }

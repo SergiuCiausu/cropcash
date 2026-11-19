@@ -166,12 +166,39 @@ export const CalendarEventSchema = z.object({
   note: z.string().optional(),
   status: StatusSchema,
   source_url: z.string().url().nullable(),
+  /** The last date the event repeats on: past it, the yearly projection stops (a scheme that ends). */
+  repeat_until: IsoDate.optional(),
+  /** Something the farmer must report or file (the „De raportat” screen). */
+  obligation: z.boolean().optional(),
+  /** Who it's for. Missing: every farm. `fallow`: farms with teren necultivat. `livestock`: farms with animals. */
+  applies_to: z.enum(['crops', 'fallow', 'livestock']).optional(),
+  /** Where it's filed, when not at APIA's own deadline list (primărie, …). */
+  authority: z.string().optional(),
+  /** The quarter a quarterly claim is for, as in reports/period.ts: "2026-Q4". */
+  period: z.string().regex(/^\d{4}-Q[1-4]$/).optional(),
+  documents_ro: z.array(z.string()).optional(),
+  how_ro: z.string().optional(),
+  /** The report in /rapoarte that prepares it (web/lib/reports/build.ts ReportId). */
+  report: z.string().optional(),
+  /** Official pages whose change puts this event up for re-checking (subventii-monitor daily report). */
+  watch_urls: z.array(z.string().url()).optional(),
 });
 export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
+
+export const RecordToKeepSchema = z.object({
+  id: z.string(),
+  title_ro: z.string(),
+  detail_ro: z.string(),
+  report: z.string().nullable(),
+});
 
 export const CalendarFileSchema = z.object({
   meta: z.object({ campaign_year: z.number().int() }).passthrough(),
   events: z.array(CalendarEventSchema),
+  /** What the farmer keeps written all year (registers), for „De raportat”. */
+  records: z
+    .object({ note: z.string(), status: StatusSchema, source_url: z.string().url(), items: z.array(RecordToKeepSchema) })
+    .optional(),
 });
 export type CalendarFile = z.infer<typeof CalendarFileSchema>;
 
@@ -213,6 +240,9 @@ export const PlanParamsFileSchema = z.object({
   pension_suggest_min_lei: PositiveParam,
   calendar_reminder_days: PositiveParam,
   calendar_reminder_hour: PositiveParam,
+  /** „De raportat” (docs/04-farmer-reports.md): when a deadline shows on Acasă, and how far ahead the page lists. */
+  obligation_due_days: PositiveParam,
+  obligation_horizon_days: PositiveParam,
   /** The farmer's own events (docs/calendar-events-plan.md). */
   farmer_events: z.object({
     carry_days: PositiveParam,

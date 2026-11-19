@@ -4,6 +4,7 @@ import { admin } from './admin';
 import { bani } from './bani';
 import { calendar } from './calendar';
 import { datePlan } from './date-plan';
+import { deRaportat } from './de-raportat';
 import { oportunitati } from './oportunitati';
 import { pensie } from './pensie';
 import { prognoza } from './prognoza';
@@ -33,6 +34,7 @@ export const SCREENS = {
   'date-plan': datePlan,
   bani,
   rapoarte,
+  'de-raportat': deRaportat,
   harta,
   admin,
   oameni,

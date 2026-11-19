@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
-import { loadData } from '@cropcash/shared';
+import { loadData, NO_CONTRACTS, type FarmContracts } from '@cropcash/shared';
 import { createApp } from './app';
 import { FARM_SELECT, type FarmRow, type Repo } from './db/repo';
 import { ContractError, farmContractFromRow, paymentsFromRows, type ContractStore } from './db/contracts';
@@ -25,6 +25,8 @@ function setup(store: Partial<ContractStore> = {}) {
     archiveContract: vi.fn(async (_t: string, id: string) => id === CONTRACT),
     decide: vi.fn(async (_t: string, _s: string, id: string) => id === CONTRACT || id === LEASE),
     setTaxProfile: vi.fn(async () => undefined),
+    myFarms: vi.fn(async () => []),
+    farmContracts: vi.fn(async () => ({ contracts: NO_CONTRACTS, arenda: true, demoNow: null })),
     ...store,
   };
   const repo = { getMyFarm: vi.fn(async (token: string) => (token === 'ana' ? farm : null)) } as unknown as Repo;
@@ -178,5 +180,98 @@ describe('a sale or expense recorded under a contract', () => {
     const stranger = await request(app).post('/api/expenses').set(as('ana')).send({ category: 'other', amountLei: 3500, date: '2026-11-10', contractId: LEASE });
     expect([stranger.status, stranger.body]).toEqual([404, { error: 'unknown_contract' }]);
     expect(repo.addExpense).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GET /api/farms/contracts-summary (step 7)', () => {
+  const farms = [
+    { farmId: 'a', name: 'Ferma Ana', county: 'TR', role: 'owner' },
+    { farmId: 'b', name: 'Ferma Vida', county: 'OT', role: 'manager' },
+    { farmId: 'w', name: 'La vecin', county: 'TR', role: 'worker' },
+  ];
+  const lease = (id: string, direction: 'taken' | 'given', area_ari: number) =>
+    ({ id, landowner_id: 'o', direction, area_ari, locality: null, plot_ids: [], starts_on: '2024-10-01', ends_on: '2029-09-30', rent_bani_per_ha: 100_000, rent_kg_per_ha: null, rent_crop_id: null, pay_month: 10, land_tax_by: null, registration_no: null, registration_date: null, archived_at: null }) as FarmContracts['leases'][number];
+  const owner = { id: 'o', name: 'Maria', locality: null, phone: null, payment: null, note: null, archived_at: null };
+  const byFarm: Record<string, FarmContracts> = {
+    a: { ...NO_CONTRACTS, landowners: [owner], leases: [lease('la', 'taken', 500)] },
+    b: { ...NO_CONTRACTS, landowners: [owner], leases: [lease('lb', 'given', 200)] },
+  };
+
+  it('needs a session', async () => {
+    expect((await request(setup().app).get('/api/farms/contracts-summary')).status).toBe(401);
+  });
+
+  it('two farms: the total is their sum; the farm where I’m a worker is left out', async () => {
+    const farmContracts = vi.fn(async (_t: string, id: string) => ({ contracts: byFarm[id]!, arenda: true, demoNow: null }));
+    const { app } = setup({ myFarms: vi.fn(async () => farms), farmContracts });
+    const res = await request(app).get('/api/farms/contracts-summary').set(as('ana'));
+    expect(res.status).toBe(200);
+    expect(res.body.farms.map((f: { farmId: string; role: string }) => [f.farmId, f.role])).toEqual([
+      ['a', 'owner'],
+      ['b', 'manager'],
+    ]);
+    expect(farmContracts.mock.calls.map((c) => c[1])).toEqual(['a', 'b']);
+    const [a, b] = res.body.farms;
+    expect(res.body.total).toMatchObject({ count: a.count + b.count, outBani: a.outBani + b.outBani, inBani: a.inBani + b.inBani, takenAri: 500, givenAri: 200, landowners: 2 });
+    expect(a.outBani).toBeGreaterThan(0);
+    expect(b.inBani).toBeGreaterThan(0);
+    expect(res.body.missing).toEqual([]);
+  });
+
+  it('a worker only: nothing at all', async () => {
+    const farmContracts = vi.fn();
+    const { app } = setup({ myFarms: vi.fn(async () => [farms[2]!]), farmContracts });
+    const res = await request(app).get('/api/farms/contracts-summary').set(as('ana'));
+    expect(res.body).toMatchObject({ farms: [], due: [], taxMonths: [], missing: [], total: { count: 0, inBani: 0, outBani: 0 } });
+    expect(farmContracts).not.toHaveBeenCalled();
+  });
+
+  it('a farm that can’t be read is named, not guessed', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const farmContracts = vi.fn(async (_t: string, id: string) => {
+      if (id === 'b') throw new Error('boom');
+      return { contracts: byFarm[id]!, arenda: true, demoNow: null };
+    });
+    const { app } = setup({ myFarms: vi.fn(async () => farms), farmContracts });
+    const res = await request(app).get('/api/farms/contracts-summary').set(as('ana'));
+    expect(res.body.farms.map((f: { farmId: string }) => f.farmId)).toEqual(['a']);
+    expect(res.body.missing).toEqual(['Ferma Vida']);
+    err.mockRestore();
+  });
+
+  it('an accountant: no arendă, and the summary says so', async () => {
+    const { app } = setup({
+      myFarms: vi.fn(async () => [{ ...farms[0]!, role: 'accountant' }]),
+      farmContracts: vi.fn(async () => ({ contracts: NO_CONTRACTS, arenda: false, demoNow: null })),
+    });
+    const res = await request(app).get('/api/farms/contracts-summary').set(as('ana'));
+    expect(res.body.farms[0]).toMatchObject({ role: 'accountant', arenda: false });
+  });
+
+  it('the arendă paid is its own total (rentOutBani)', async () => {
+    const farmContracts = vi.fn(async (_t: string, id: string) => ({ contracts: byFarm[id]!, arenda: true, demoNow: null }));
+    const res = await request(setup({ myFarms: vi.fn(async () => farms), farmContracts }).app).get('/api/farms/contracts-summary').set(as('ana'));
+    expect(res.body.farms[0].rentOutBani).toBe(res.body.farms[0].outBani);
+    expect(res.body.farms[0].rentOutBani).toBeGreaterThan(0);
+    expect(res.body.total.rentOutBani).toBe(res.body.farms[0].rentOutBani + res.body.farms[1].rentOutBani);
+    expect(res.body.total.rentOutKg).toEqual([]);
+  });
+
+  it('the assistant’s get_contracts_all_farms gets the same answer, with the farmer’s token (step 9)', async () => {
+    const farmContracts = vi.fn(async (_t: string, id: string) => ({ contracts: byFarm[id]!, arenda: true, demoNow: null }));
+    const { app } = setup({ myFarms: vi.fn(async () => farms), farmContracts });
+    const summary = await request(app).get('/api/farms/contracts-summary').set(as('ana'));
+    const read = await request(app).post('/api/functions/get_contracts_all_farms').set(as('ana')).send({});
+    expect(read.status).toBe(200);
+    expect(read.body.data).toEqual(summary.body);
+    expect(farmContracts.mock.calls.every((c) => c[0] === 'ana')).toBe(true);
+  });
+
+  it('when the farms can’t be listed, the read says so instead of a number', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { app } = setup({ myFarms: vi.fn(async () => Promise.reject(new Error('down'))) });
+    const read = await request(app).post('/api/functions/get_contracts_all_farms').set(as('ana')).send({});
+    expect([read.status, read.body]).toEqual([503, { error: 'farms_unavailable' }]);
+    err.mockRestore();
   });
 });

@@ -8,12 +8,15 @@
 
 > Făcut (14 nov 2026) ca raport PDF în /rapoarte: litrii se notează pe cheltuiala de motorină (Recolte → Mai multe detalii), nu într-un jurnal separat. Cota vine din `docs/data/fuel-excise.json`. Vezi `docs/rapoarte-pdf-plan.md` §7 faza 2.
 
+> **Verificat pe 19 nov 2026** (HG 1174/2014, forma consolidată la 18.09.2026). Toate cifrele stau în `docs/data/fuel-excise.json`, iar termenele în `docs/data/calendar-2026.json`. Ecranul **„De raportat”** (`/de-raportat`) le arată fermierului, cu litrii din trimestru, acciza de primit și ce duce la APIA.
+
 | Ce | Valoare | Status |
 |---|---|---|
-| Suma rambursată | 2,213 lei/l | DE-VERIFICAT (din brief) |
-| Frecvența | trimestrial | DE-VERIFICAT (din brief) |
-| Acordul prealabil | până la 20 decembrie | DE-VERIFICAT (din brief) |
-| Cantitatea maximă pe ha și cultură | — | DE-VERIFICAT (lipsește) |
+| Suma rambursată | depinde de data facturii: 2,697 lei/l (1 ian–6 apr 2026 și din 1 iul), 2,397 (7 apr–30 iun), 1,996–2,557 în criza carburanților; 2,213 / 2,444 în 2025 | confirmat în HG; perioadele din criză sunt DE-VERIFICAT (întrebarea 15) |
+| Frecvența | trimestrial: cererea de plată până la sfârșitul lunii de după trimestru | regula e confirmată, datele sunt socotite (întrebarea 51) |
+| Acordul prealabil | până pe 20 decembrie, mutat după weekend (22 dec 2025 pentru 2026) | confirmat; 2027 nu e anunțat, schema se termină pe 31.12.2026 (întrebarea 50) |
+| Cantitatea maximă pe ha și cultură | cereale, oleaginoase, leguminoase 78 l/ha; cartof 150; vie 125 etc. (anexa HG), pe grupele din tabelul APIA | confirmat |
+| Ce se depune | facturile, situația centralizatoare (Anexa 9, OMADR 1727/2015), extrasul SPV; la animale și Anexa 10 | confirmat |
 
 **Ce date îi trebuie aplicației (`FuelLog`):** data, litrii, numărul facturii, furnizorul, cultura sau lucrarea și parcela (opțional).
 
@@ -23,6 +26,8 @@
 - un memento în calendar pentru acordul prealabil și pentru depunerea pe fiecare trimestru.
 
 **Ce nu face:** nu depune la APIA, iar formatul oficial al situației e DE-VERIFICAT. În MVP generăm un tabel cu structura logică, nu formularul oficial.
+
+**Monitorul:** paginile oficiale pe care stau aceste cifre sunt în `watch_urls` (în ambele fișiere) și în `subventii-surse.md`. Când una se schimbă, raportul zilnic al monitorului are secțiunea „Obligații de re-verificat”, cu ce trebuie citit din nou. Actualizarea JSON-ului o face un om.
 
 ## 2. Registrul de tratamente fitosanitare
 

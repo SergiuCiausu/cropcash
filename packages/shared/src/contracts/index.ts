@@ -5,3 +5,6 @@ export * from './schedule';
 export * from './view';
 export * from './taxes';
 export * from './impact';
+export * from './farm';
+export * from './totals';
+export * from './paper';

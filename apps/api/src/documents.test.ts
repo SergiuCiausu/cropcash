@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
-import { loadData, type DocumentExtraction } from '@cropcash/shared';
+import { loadData, type ContractPaper, type DocumentExtraction } from '@cropcash/shared';
 import { createApp } from './app';
+import type { ContractReader } from './ai/contract';
 import type { DocumentReader } from './ai/documents';
 import type { FarmRow, Repo } from './db/repo';
 
@@ -13,7 +14,7 @@ const invoice: DocumentExtraction = { kind: 'invoice', year: null, crops: [], am
 
 const farm = (): FarmRow => ({ id: 'f1', name: 'Ion', birth_year: 1971, parcels: [{ crop_id: 'grau', area_ari: 800, is_arable: true }] }) as unknown as FarmRow;
 
-function setup({ read, hasFarm = true }: { read?: DocumentReader; hasFarm?: boolean } = {}) {
+function setup({ read, readContract, hasFarm = true }: { read?: DocumentReader; readContract?: ContractReader; hasFarm?: boolean } = {}) {
   const row = farm();
   const setApiaDecision = vi.fn(async () => {});
   const repo = { getMyFarm: vi.fn(async () => (hasFarm ? row : null)), setApiaDecision } as unknown as Repo;
@@ -21,7 +22,7 @@ function setup({ read, hasFarm = true }: { read?: DocumentReader; hasFarm?: bool
     if (!token.startsWith('good')) throw new Error('bad token');
     return { userId: `user-${token}` };
   };
-  const app = createApp({ corsOrigins: [], verifyToken, repo, data, readDocument: read, now: () => new Date('2026-11-07T10:00:00Z') });
+  const app = createApp({ corsOrigins: [], verifyToken, repo, data, readDocument: read, readContract, now: () => new Date('2026-11-07T10:00:00Z') });
   return { app, repo, setApiaDecision };
 }
 
@@ -208,5 +209,66 @@ describe('the payment decision', () => {
     const { app, setApiaDecision } = setup();
     expect((await request(app).delete('/api/farmers/me/apia-decision').set(auth)).status).toBe(204);
     expect(setApiaDecision).toHaveBeenCalledWith('good', 'f1', null);
+  });
+});
+
+describe('POST /api/documents/read-contract (contracts step 8)', () => {
+  const contract: ContractPaper = {
+    is_contract: true,
+    kind: 'sale',
+    title: 'Vânzare grâu 2027',
+    number: '112',
+    signed_on: '2027-03-01',
+    starts_on: '2027-03-01',
+    ends_on: '2027-08-31',
+    renews_itself: null,
+    notice_days: null,
+    renew_months: null,
+    sides: [
+      { role: 'vânzător', name: 'Ion Popescu, CNP 1710512340012', cui: null, is_company: false },
+      { role: 'cumpărător', name: 'Cereale Câmpia SRL', cui: 'RO12345678', is_company: true },
+    ],
+    crop_id: 'grau',
+    quantity_tonnes: '200',
+    area_ha: null,
+    vat_percent: null,
+    residual_value: null,
+    payments: [{ label: 'Avans', payer_role: 'cumpărător', first_on: '2027-03-01', repeat: 'none', times: null, amount: '42.000', per_ha: false, kg: null, crop_id: null }],
+  };
+
+  it('needs a session, before it reads anything', async () => {
+    const readContract = vi.fn(async () => contract);
+    const { app } = setup({ readContract });
+    expect((await request(app).post('/api/documents/read-contract').send(paper)).status).toBe(401);
+    expect(readContract).not.toHaveBeenCalled();
+  });
+
+  it('returns the checked contract: bani, kg, roles; no CNP', async () => {
+    const { app } = setup({ readContract: async () => contract });
+    const res = await request(app).post('/api/documents/read-contract').set(auth).send(paper);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ kind: 'sale', startsOn: '2027-03-01', quantityKg: 200_000, cropId: 'grau' });
+    expect(res.body.payments[0]).toMatchObject({ payerRole: 'cumpărător', amountBani: 4_200_000 });
+    expect(JSON.stringify(res.body)).not.toContain('1710512340012');
+  });
+
+  it('answers 503 without a reader, 422 when the model gives nothing, 502 when it fails', async () => {
+    expect((await request(setup().app).post('/api/documents/read-contract').set(auth).send(paper)).body).toEqual({ error: 'reader_off' });
+    expect((await request(setup({ readContract: async () => null }).app).post('/api/documents/read-contract').set(auth).send(paper)).status).toBe(422);
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect((await request(setup({ readContract: async () => { throw new Error('down'); } }).app).post('/api/documents/read-contract').set(auth).send(paper)).body).toEqual({ error: 'read_failed' });
+    err.mockRestore();
+  });
+
+  it('shares the day’s reads with the other papers', async () => {
+    const { app } = setup({ read: async () => invoice, readContract: async () => contract });
+    const limit = data.params.documents.reads_per_day.value;
+    for (let i = 0; i < limit; i++) {
+      const files = { files: [{ mediaType: 'image/jpeg', data: `/9j/AA${String(i).padStart(2, 'A')}` }] };
+      const path = i % 2 ? '/api/documents/read' : '/api/documents/read-contract';
+      expect((await request(app).post(path).set(auth).send(files)).status).toBe(200);
+    }
+    const res = await request(app).post('/api/documents/read-contract').set(auth).send({ files: [{ mediaType: 'image/jpeg', data: '/9j/ZZZZ' }] });
+    expect([res.status, res.body]).toEqual([429, { error: 'too_many_reads' }]);
   });
 });

@@ -32,7 +32,7 @@ import {
 export type { FarmPlan };
 
 /** Pages that show the whole farm, whatever harvest is picked. The others follow the picker. */
-export const WHOLE_FARM_PAGES = ['/acasa', '/bani', '/salariu', '/date-plan', '/pensie', '/oportunitati', '/surse', '/rapoarte', '/harta', '/oameni', '/arenda', '/contracte', '/admin'] as const;
+export const WHOLE_FARM_PAGES = ['/acasa', '/bani', '/salariu', '/date-plan', '/pensie', '/oportunitati', '/surse', '/rapoarte', '/de-raportat', '/harta', '/oameni', '/arenda', '/contracte', '/admin'] as const;
 export type Scope = 'farm' | 'picked';
 export const scopeOf = (page: string): Scope => ((WHOLE_FARM_PAGES as readonly string[]).includes(page) ? 'farm' : 'picked');
 

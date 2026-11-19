@@ -1,17 +1,113 @@
 {
   "meta": {
-    "description": "Rambursarea accizei la motorina folosită în agricultură (docs/04-farmer-reports.md §1). Folosit de raportul de motorină din /rapoarte.",
-    "status": "DE-VERIFICAT"
+    "description": "Ajutorul de stat pentru reducerea accizei la motorina folosită în agricultură (docs/04-farmer-reports.md §1). Folosit de raportul de motorină din /rapoarte și de ecranul „De raportat”. Cercetat pe 19 nov 2026.",
+    "read_on": "2026-11-19",
+    "status": "confirmat-2026"
   },
-  "refund_bani_per_10_l": {
-    "value": 2213,
-    "note": "2,213 lei pe litru, scris ca bani la 10 litri ca să rămână număr întreg (221,3 bani/l).",
-    "status": "DE-VERIFICAT",
-    "source": "din brief, întrebarea 15 din docs/11-open-questions.md"
-  },
+  "legal_basis": [
+    {
+      "act": "HG nr. 1174/2014 (forma consolidată la 18.09.2026)",
+      "url": "https://legislatie.just.ro/Public/DetaliiDocument/164301",
+      "status": "confirmat-2026"
+    },
+    {
+      "act": "OMADR nr. 1727/2015 (procedura și formularele)",
+      "url": "https://apia.org.ro/wp-content/uploads/2025/01/Ghid-motorina-2023.pdf",
+      "status": "confirmat-2026"
+    }
+  ],
+  "rates_note": "Ajutorul e diferența dintre acciza standard și minimul UE (21 €/1000 l la cursul BNR din 1 octombrie al anului dinainte), deci depinde de data la care s-a cumpărat motorina. În criza carburanților (Legea 162/2026) acciza scade la două săptămâni cu 5–25%, și ajutorul scade odată cu ea. Cotele sunt în bani la 10 litri, ca să rămână numere întregi (2,697 lei/l = 2697).",
+  "rates": [
+    { "from": "2025-01-01", "to": "2025-07-31", "bani_per_10_l": 2213, "status": "confirmat", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "HG 1174/2014 art. 2 alin. (3^7) lit. a)" },
+    { "from": "2025-08-01", "to": "2025-12-31", "bani_per_10_l": 2444, "status": "confirmat", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301" },
+    { "from": "2026-01-01", "to": "2026-04-06", "bani_per_10_l": 2697, "status": "confirmat-2026", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "HG 1174/2014 art. 2 alin. (3^8), din HG 157/2026" },
+    { "from": "2026-04-07", "to": "2026-06-30", "bani_per_10_l": 2397, "status": "confirmat-2026", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "Acciza redusă prin OUG 24/2026." },
+    { "from": "2026-07-01", "to": "2026-08-15", "bani_per_10_l": 2697, "status": "DE-VERIFICAT", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "Cota întreagă: presa spune că în 1–15 august acciza n-a fost redusă. Neverificat într-un ordin oficial." },
+    { "from": "2026-08-16", "to": "2026-08-31", "bani_per_10_l": 2137, "status": "DE-VERIFICAT", "source_url": "https://agrointel.ro/357790/plata-subventiei-apia-la-motorina-cuantumul-per-litru-scade-dupa-reducerea-accizei-bugetul-creste", "note": "Acciza redusă cu 20% (din presă). Cota pentru 20% e în HG 1174/2014 art. 2 alin. (3^9)." },
+    { "from": "2026-09-01", "to": "2026-11-30", "bani_per_10_l": 1996, "status": "DE-VERIFICAT", "source_url": "https://pretcarburant.ro/blog/acciza-motorina-16-30-noiembrie-2026", "note": "Acciza redusă cu 25% (din presă, raportat până pe 30 noiembrie). Fiecare jumătate de lună din octombrie încoace n-a fost verificată separat." },
+    { "from": "2026-12-01", "to": "2026-12-31", "bani_per_10_l": null, "status": "DE-VERIFICAT", "source_url": null, "note": "Nu se știe încă reducerea accizei din decembrie. Ministerul Finanțelor a propus păstrarea ei până la 31 ianuarie 2027." }
+  ],
+  "crisis_rates_note": "Cotele din HG 1174/2014 art. 2 alin. (3^9), după cât e redusă acciza: 5% → 2,557; 10% → 2,417; 15% → 2,277; 20% → 2,137; 25% → 1,996 lei/l.",
   "frequency": {
     "value": "quarter",
-    "status": "DE-VERIFICAT",
-    "source": "din brief, întrebarea 15 din docs/11-open-questions.md"
-  }
+    "status": "confirmat-2026",
+    "source": "HG 1174/2014 și formularele APIA: cererile de plată se fac pe trimestru"
+  },
+  "scheme_end": {
+    "value": "2026-12-31",
+    "status": "confirmat-2026",
+    "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301",
+    "note": "Schema merge până la 31.12.2026 (prelungită prin HG 1228/2023). Pe 19 nov 2026 nu s-a găsit nicio prelungire pentru 2027."
+  },
+  "acord": {
+    "title_ro": "Ceri acordul pentru banii înapoi la motorină",
+    "rule_ro": "Până pe 20 decembrie al anului dinainte. Dacă pică în weekend, în prima zi lucrătoare de după. Se poate cere și în timpul anului, dar atunci primești litri doar pentru lunile rămase.",
+    "deadlines": [
+      { "for_year": 2026, "date": "2025-12-22", "status": "confirmat", "source_url": "https://apia.org.ro/comunicat-de-presa/ajutor-de-stat-pentru-motorina-2026-depuneri-pana-la-22-decembrie/" },
+      { "for_year": 2027, "date": null, "status": "DE-VERIFICAT", "source_url": null, "note": "Ar fi luni, 21 decembrie 2026, dar schema se termină pe 31.12.2026 și APIA n-a anunțat nimic pentru 2027." }
+    ],
+    "documents_ro": [
+      "Cererea de acord (Anexa 1a pentru PFA, II, IF sau firmă)",
+      "Copie după buletin și certificatul de înregistrare (CUI)",
+      "Situația suprafețelor și structura culturilor (Anexa 2)",
+      "Adeverința de la registrul agricol",
+      "Dovada contului de trezorerie"
+    ]
+  },
+  "claims": [
+    { "period": "2026-Q1", "deadline": "2026-04-30", "status": "DE-VERIFICAT", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "Socotit: până la sfârșitul lunii de după trimestru." },
+    { "period": "2026-Q2", "deadline": "2026-07-31", "status": "DE-VERIFICAT", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "Socotit: până la sfârșitul lunii de după trimestru." },
+    { "period": "2026-Q3", "deadline": "2026-11-02", "status": "DE-VERIFICAT", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "31 octombrie a picat sâmbătă, deci prima zi lucrătoare de după. Un site neoficial spune 31 octombrie." },
+    { "period": "2026-Q4", "deadline": "2027-02-01", "status": "DE-VERIFICAT", "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "note": "31 ianuarie 2027 pică duminică, deci luni, 1 februarie." }
+  ],
+  "claim_documents_ro": [
+    "Facturile sau bonurile de motorină pe numele fermei, cu CUI",
+    "Situația centralizatoare a cantităților de motorină (Anexa 9 din OMADR 1727/2015)",
+    "Extrasul din Spațiul Privat Virtual (SPV) de la ANAF cu facturile",
+    "Pentru animale: calculul efectivului mediu pe trimestru (Anexa 10), semnat de medicul veterinar"
+  ],
+  "how_ro": "La centrul APIA din județ, unde ai depus și cererea unică. Merge și prin poștă sau curier, ori pe e-mail, cu actele scanate și scris pe ele „conform cu originalul”. Nu există o depunere online pentru motorină.",
+  "eligibility_ro": "PFA, II, IF sau firmă cu ID de fermier, cu cel puțin 1 ha. Dacă ești persoană fizică, trebuie să-ți faci PFA sau II în 60 de zile lucrătoare de la acord.",
+  "payment_ro": "Banii nu au o dată fixă. Vin după ordinul ministerului, de obicei la 2–6 luni după trimestru (trimestrul I din 2026 s-a plătit de pe 31 iulie).",
+  "caps_note": "Cât poți cere cel mult pe an, din anexa la HG 1174/2014. Dacă ceri acordul în timpul anului, plafonul e doar pentru lunile rămase. Dacă toți fermierii cer peste 410 milioane de litri pe an, fiecare primește proporțional mai puțin.",
+  "caps_l_per_ha": [
+    { "id": "cereale", "label_ro": "Cereale", "headings": ["CEREALE PENTRU BOABE"], "value": 78 },
+    { "id": "orez", "label_ro": "Orez", "codes": [111, 1117], "value": 96 },
+    { "id": "porumb-siloz", "label_ro": "Plante de nutreț, inclusiv porumb siloz", "codes": [131, 1317, 451, 452, 453, 973, 9737, 9735, 974, 9748, 9749, 9745, 975, 9757, 9755, 302], "value": 130 },
+    { "id": "leguminoase", "label_ro": "Leguminoase pentru boabe", "headings": ["PLANTE PROTEICE (LEGUMINOASE PENTRU BOABE)"], "value": 78 },
+    { "id": "oleaginoase", "label_ro": "Plante oleaginoase și industriale", "headings": ["PLANTE INDUSTRIALE şi MEDICINALE"], "value": 78 },
+    { "id": "tutun", "label_ro": "Tutun", "codes": [208], "value": 140 },
+    { "id": "hamei", "label_ro": "Hamei", "codes": [750, 7507], "value": 140 },
+    { "id": "medicinale", "label_ro": "Plante medicinale", "codes": [213, 2013], "value": 100 },
+    { "id": "cartof", "label_ro": "Cartof", "headings": ["PLANTE TUBERCULIFERE"], "value": 150 },
+    { "id": "sfecla-zahar", "label_ro": "Sfeclă de zahăr", "codes": [301, 3017], "value": 139 },
+    { "id": "legume-camp", "label_ro": "Legume în câmp", "headings": ["LEGUME PROASPETE, PEPENI"], "value": 148 },
+    { "id": "pepeni", "label_ro": "Pepeni", "codes": [352], "value": 150 },
+    { "id": "legume-protejate", "label_ro": "Legume în sere și solarii", "headings": ["LEGUME DIN SOLARII", "LEGUME DIN SERE"], "value": 75 },
+    { "id": "flori", "label_ro": "Flori", "codes": [400, 401], "value": 100 },
+    { "id": "pajisti", "label_ro": "Pășuni, fânețe, pajiști temporare", "sections": ["II."], "codes": [450], "value": 30 },
+    { "id": "livezi", "label_ro": "Livezi", "headings": ["POMI FRUCTIFERI", "CASTANI, NUCI, ALUNI ŞI ALTE SPECII ÎNRUDITE"], "value": 130 },
+    { "id": "capsun-arbusti", "label_ro": "Căpșun și arbuști fructiferi", "headings": ["ARBUŞTI FRUCTIFERI"], "codes": [803, 8033], "value": 65 },
+    { "id": "vie", "label_ro": "Vie", "headings": ["VII"], "value": 125 },
+    { "id": "pepiniere", "label_ro": "Pepiniere", "headings": ["PEPINIERE"], "value": 40 },
+    { "id": "energetice", "label_ro": "Plante energetice", "headings": ["Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - TA", "Lista culturilor energetice destinate producţiei de biomasă, utilizată în scopul producerii energiei electrice - CP"], "value": 100 }
+  ],
+  "caps_status": "confirmat",
+  "caps_source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301",
+  "caps_l_per_uvm": [
+    { "id": "bovine", "label_ro": "Bovine", "value_cl": 5600 },
+    { "id": "pasari", "label_ro": "Păsări", "value_cl": 3900 },
+    { "id": "porcine", "label_ro": "Porcine", "value_cl": 600 },
+    { "id": "ovine-caprine", "label_ro": "Ovine și caprine", "value_cl": 675 },
+    { "id": "albine", "label_ro": "Albine (pe familie)", "value_cl": 1800 }
+  ],
+  "watch_urls": [
+    "https://legislatie.just.ro/Public/DetaliiDocument/164301",
+    "https://apia.org.ro/comunicate-de-presa",
+    "https://apia.org.ro/ajutoare-specifice/masuri-de-sprijin-finantate-de-la-bugetul-national/",
+    "https://apia.org.ro/ajutoare-specifice/masuri-de-sprijin-finantate-de-la-bugetul-national/ajutorul-de-stat-pentru-reducerea-accizei-la-motorina-utilizata-in-agricultura-pentru-anul-2025/",
+    "https://apia.org.ro/wp-content/uploads/2025/01/Ghid-motorina-2023.pdf",
+    "https://apia.org.ro/arhiva-masuri-finalizate/ajutor-de-stat-pentru-motorina-utilizata-in-agricultura/",
+    "https://www.madr.ro/proiecte-de-acte-normative.html"
+  ]
 }

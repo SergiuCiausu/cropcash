@@ -21,6 +21,8 @@ export interface ReportInput {
   events: RunEvent[];
   /** The farmer digest, already rendered. It leads the report. */
   digest?: string[];
+  /** „Obligații de re-verificat” (src/obligations.ts), already rendered. Right after the digest. */
+  obligations?: string[];
   /** Problems that belong to the run rather than to one source. */
   errors?: string[];
   /** Every source with a problem today, including older ones. */
@@ -112,6 +114,7 @@ export function renderReport(input: ReportInput): string {
   const errors = input.errors ?? [];
   const sections = [
     ...(input.digest ?? []),
+    ...(input.obligations ?? []),
     ...newLinks(of('new_link')),
     ...changed(of('changed')),
     ...list('Surse dispărute', of('gone')),

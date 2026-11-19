@@ -6,6 +6,7 @@ import {
   monthKey,
   todayInRomania,
   type AppData,
+  type CrossFarmSummary,
   type FunctionResult,
   type ReadFunction,
   type SubsidyParams,
@@ -21,17 +22,19 @@ export interface ReadDeps {
   now: () => Date;
   getRates: RatesProvider;
   monitor?: MonitorReader;
+  /** Every farm's contracts, for get_contracts_all_farms. Without it, those functions answer farms_unavailable. */
+  allFarms?: (token: string) => Promise<CrossFarmSummary & { missing: string[] }>;
 }
 
 export type ReadOutcome =
   | { ok: true; result: FunctionResult<unknown> }
-  | { ok: false; status: number; error: 'invalid_input' | 'no_farm' | 'monitor_unavailable' };
+  | { ok: false; status: number; error: 'invalid_input' | 'no_farm' | 'monitor_unavailable' | 'farms_unavailable' };
 
 /**
  * Runs read functions for one signed-in farmer. The farm and its plan load once, on the first
  * call, so the assistant can call several tools in one answer without reloading them.
  */
-export function readRunner({ repo, data, params, now, getRates, monitor }: ReadDeps, token: string) {
+export function readRunner({ repo, data, params, now, getRates, monitor, allFarms }: ReadDeps, token: string) {
   let loaded: Promise<{ farm: NonNullable<Awaited<ReturnType<Repo['getMyFarm']>>>; today: string; plan: ReturnType<typeof buildFarmPlan> } | null> | undefined;
   const load = () =>
     (loaded ??= repo.getMyFarm(token).then((farm) => {
@@ -61,8 +64,18 @@ export function readRunner({ repo, data, params, now, getRates, monitor }: ReadD
           return { ok: false, status: 503, error: 'monitor_unavailable' };
         }
       }
+      let farms;
+      if (fn.allFarms) {
+        try {
+          if (!allFarms) throw new Error('no farms reader');
+          farms = await allFarms(token);
+        } catch (err) {
+          console.error('[all farms]', err instanceof Error ? err.message : err);
+          return { ok: false, status: 503, error: 'farms_unavailable' };
+        }
+      }
       const rates = fn.usesRates ? await getRates() : undefined;
-      return { ok: true, result: fn.execute(input, { ...ctx, data, rates, monitor: monitorData }) };
+      return { ok: true, result: fn.execute(input, { ...ctx, data, rates, monitor: monitorData, allFarms: farms }) };
     },
   };
 }

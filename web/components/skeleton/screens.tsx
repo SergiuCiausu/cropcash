@@ -292,6 +292,15 @@ const Rapoarte = () => (
   </>
 );
 
+/** The quarter's cards, then the year's deadlines. */
+const DeRaportat = () => (
+  <div className="bento">
+    <ListCard span="s7" n={4} />
+    <ListCard span="s5" n={3} />
+    <ListCard span="s12" n={4} />
+  </div>
+);
+
 /** The filters bar, then the list beside the map (a phone stacks them). */
 const Harta = () => (
   <>
@@ -352,6 +361,7 @@ export const SCREEN_SKELETONS = {
   'date-plan': DatePlan,
   bani: withSalaryNav(Bani),
   rapoarte: Rapoarte,
+  'de-raportat': DeRaportat,
   harta: Harta,
   oameni: Oameni,
   arenda: Arenda,

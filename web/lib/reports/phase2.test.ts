@@ -57,12 +57,25 @@ describe('the diesel report', () => {
     const m = makeReport('fuel-excise', periodOf('quarter', '2026-Q4'), farm, view, NOW.getTime());
     const sum = facts(m.sections, 'Pe scurt').rows;
     expect(sum[0].value).toBe('1.000 l');
-    // 1.000 l × 2,213 lei
-    expect(sum[2]).toMatchObject({ label: 'Acciză de primit înapoi (2,213 lei pe litru)', value: '2.213,00 lei' });
+    // 1.000 l bought in November 2026, in the fuel crisis: × 1,996 lei
+    expect(sum[2]).toMatchObject({ label: 'Acciză de primit înapoi (1,996 lei pe litru)', value: '1.996,00 lei' });
     expect(table(m.sections, 'Facturile și bonurile')!.rows[0].cells.slice(2, 4)).toEqual(['PTR 123', 'Benzinăria din sat']);
     expect(table(m.sections, 'De completat: motorină fără litri')!.rows).toHaveLength(1);
     expect(m.notes[0]).toContain('de verificat');
     expect(m.fileName).toBe('cropcash-motorina-2026-T4');
+  });
+
+  it('names each rate when a period spans several, and leaves days with no known rate out of the sum', async () => {
+    const { farm, view } = await ionWith([
+      { id: 'n', date: '2026-11-04', kind: 'expense', category: 'diesel', amountBani: -70000, fuelLitersCl: 10000 },
+      { id: 'd', date: '2026-12-04', kind: 'expense', category: 'diesel', amountBani: -70000, fuelLitersCl: 10000 },
+    ]);
+    const m = makeReport('fuel-excise', periodOf('quarter', '2026-Q4'), farm, view, NOW.getTime());
+    const sum = facts(m.sections, 'Pe scurt').rows;
+    expect(sum.find((r) => r.label.startsWith('Acciză'))!.value).toBe('199,60 lei');
+    expect(sum.find((r) => r.label.startsWith('Bonuri din zile'))!.value).toBe('1');
+    expect(table(m.sections, 'Facturile și bonurile')!.rows[1].cells[6]).toBe('—');
+    expect(m.notes.some((n) => n.includes('nu se știe încă cât e acciza'))).toBe(true);
   });
 
   it('writes litres the way Romanians do', () => {

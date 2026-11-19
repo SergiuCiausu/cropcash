@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPORTS_DIR } from '../config.ts';
+import { CALENDAR_PATH, FUEL_PATH, REPORTS_DIR } from '../config.ts';
+import { loadWatchMap, obligationsSection } from '../obligations.ts';
 import type { RunStats, Store } from '../store.ts';
 import { renderReport } from './daily.ts';
 import { renderDigest } from './digest.ts';
@@ -8,13 +9,15 @@ import { renderDigest } from './digest.ts';
 /** Saves a run's report. A second run on the same day gets its own file. */
 export async function writeReport(store: Store, run: RunStats, dir: string = REPORTS_DIR): Promise<string> {
   const date = run.started.slice(0, 10);
+  const events = await store.runEvents(run.id);
   const content = renderReport({
     date,
     checked: run.checked,
     requests: run.requests,
     bytes: run.bytes,
     pendingLinks: await store.pendingLinkCount(),
-    events: await store.runEvents(run.id),
+    events,
+    obligations: obligationsSection(events, loadWatchMap(FUEL_PATH, CALENDAR_PATH)),
     errors: run.errors,
     problems: await store.problemSources(),
     digest: renderDigest({

@@ -1,0 +1,30 @@
+/* „De raportat” (components/pages/DeRaportat.tsx). */
+
+.ob-facts { margin: 0; padding: 0; list-style: none; }
+.ob-facts li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hair); }
+.ob-facts li:first-child { border-top: 0; }
+.ob-facts li > span:first-child { min-width: 0; color: var(--text-2); }
+.ob-facts b { font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.ob-facts .strong b { font-size: 18px; color: var(--ink-a); }
+
+.ob-warn { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--tint-c); color: var(--ink-c); font-size: 14px; line-height: 1.45; }
+
+.ob-list { margin: 0; padding: 0; list-style: none; }
+.ob-list > li { border-top: 1px solid var(--hair); }
+.ob-list > li:first-child { border-top: 0; }
+.ob-item summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 10px 0; cursor: pointer; list-style: none; }
+.ob-item summary::-webkit-details-marker { display: none; }
+.ob-item summary > span:first-child { min-width: 0; }
+.ob-item summary b { display: block; font-weight: 600; line-height: 1.35; }
+.ob-item summary small { display: block; margin-top: 2px; font-size: 13px; color: var(--text-2); }
+.ob-when { flex: none; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.ob-when.soon { color: var(--ink-c); }
+.ob-body { padding: 0 0 14px; font-size: 14px; line-height: 1.5; }
+.ob-body p { margin: 0 0 8px; }
+.ob-body h3 { margin: 10px 0 4px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.ob-body ul { margin: 0 0 8px; padding-left: 20px; }
+.ob-body li { margin: 2px 0; }
+
+.ob-docs { margin: 4px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+.ob-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ob-sub { margin: 16px 0 0; font-size: 14px; font-weight: 600; }

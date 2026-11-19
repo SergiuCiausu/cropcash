@@ -306,6 +306,8 @@ function occurrences(ev: CalendarEvent, from: IsoDate, to: IsoDate) {
   const out: { start: IsoDate; end: IsoDate; estimated: boolean }[] = [];
   for (let k = 0; addYears(start, k) <= to; k++) {
     const s = addYears(start, k);
+    // A scheme that ends isn't projected past its last date.
+    if (ev.repeat_until && s > ev.repeat_until) break;
     const e = addYears(ev.end, k);
     if (e >= from) out.push({ start: s, end: e, estimated: k > 0 });
   }
@@ -438,8 +440,16 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
     'apia-sold': byYear('in', years, (k) => totals.balanceLei[RANGE_KEY[k.apia_balance]]),
   };
 
+  /* Farms don't record animals, so livestock deadlines stay on „De raportat” only. */
+  const hasFallow = input.parcels.some((p) => {
+    const crop = crops.get(p.cropId);
+    return !!crop && isFallow(crop);
+  });
+  const appliesHere = (ev: CalendarEvent) =>
+    !ev.applies_to || ev.applies_to === 'crops' || (ev.applies_to === 'fallow' && hasFallow);
+
   for (const ev of data.calendar.events) {
-    if (CONDITIONAL_EVENTS.has(ev.id)) continue;
+    if (CONDITIONAL_EVENTS.has(ev.id) || !appliesHere(ev)) continue;
     for (const occ of occurrences(ev, from, to)) {
       if (ev.type === 'income') {
         const amount = subsidyAmount[ev.id];

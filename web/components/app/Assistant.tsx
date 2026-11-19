@@ -11,6 +11,7 @@ import { failText as sharedFailText } from '../../lib/live/fail-text';
 import { newIntentKey } from '../../lib/live/intent';
 import { useFarm, useMoney, useOnline, useStore, useView } from '../../lib/cc/react';
 import { pageKeys } from '../../lib/cc/storage';
+import { kindName } from '../../lib/cc/contracts';
 import { blocks, card, ERRORS, EXAMPLES, MAX_TURNS, NO_NET, withClientId, type Action, type Span, type Turn } from '../../lib/ui/assistant';
 import { DEMO_QUESTIONS, demoCard, type DemoContext } from '../../lib/ui/demo-assistant';
 import { AssistantCards } from '../assistant-cards';
@@ -97,7 +98,16 @@ function Card({ action }: { action: Action }) {
   const [intent] = useState(newIntentKey);
   const [error, setError] = useState<string | null>(null);
   const [taskTitle, setTaskTitle] = useState<string | null>(null);
-  const c = card(action, (id) => view?.cropName(id) || id, view ? { current: (id) => view.data().crops.crops.find((x) => x.id === id)?.cost_lei_per_ha.mean ?? null, fromHarvest: view.costFromHarvest } : undefined);
+  const farm = useFarm();
+  const contractName = (id: string) => {
+    const fc = farm?.contracts;
+    if (!fc || !farm) return null;
+    const c = fc.contracts.find((x) => x.id === id);
+    if (c) return `${kindName(farm.farmData, c.kind)} · ${fc.parties.find((p) => p.id === c.party_id)?.name ?? ''}`;
+    const l = fc.leases.find((x) => x.id === id);
+    return l ? `${kindName(farm.farmData, 'arenda')} · ${fc.landowners.find((o) => o.id === l.landowner_id)?.name ?? ''}` : null;
+  };
+  const c = card(action, (id) => view?.cropName(id) || id, view ? { current: (id) => view.data().crops.crops.find((x) => x.id === id)?.cost_lei_per_ha.mean ?? null, fromHarvest: view.costFromHarvest } : undefined, contractName);
 
   useEffect(() => {
     if (!c.task || !store) return;

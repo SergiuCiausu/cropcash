@@ -13,6 +13,8 @@ import { MAX_CARDS, createAnthropicAssistant, type AssistantReply } from '../../
 const key = process.env.ANTHROPIC_API_KEY;
 const model = process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-5-5';
 const data = loadData();
+const LEASING = '55555555-5555-4555-8555-555555555555';
+const INSURANCE = '66666666-6666-4666-8666-666666666666';
 const farm = {
   id: 'farm-1',
   name: 'Ion',
@@ -23,7 +25,20 @@ const farm = {
     { crop_id: 'grau', area_ari: 800, is_arable: true },
     { crop_id: 'porumb', area_ari: 700, is_arable: true },
   ],
-} as StoredFarm;
+  // Contracts (docs/contracts-plan.md step 9): a tractor on leasing, and an insurance that ends this year.
+  parties: [
+    { id: '11111111-1111-4111-8111-111111111111', name: 'Agro Leasing IFN', kind: 'company', cui: 'RO9876543', locality: null, phone: null, note: null, archived_at: null },
+    { id: '22222222-2222-4222-8222-222222222222', name: 'Groupama', kind: 'company', cui: 'RO6291812', locality: null, phone: null, note: null, archived_at: null },
+  ],
+  contracts: [
+    { id: LEASING, party_id: '11111111-1111-4111-8111-111111111111', kind: 'leasing', title: 'Leasing tractor', number: null, signed_on: '2026-03-01', starts_on: '2026-03-01', ends_on: '2030-02-28', auto_renews: false, notice_days: null, renew_months: null, crop_id: null, quantity_kg: null, area_ari: null, vat_bp: 2100, residual_bani: 1_000_000, decision: null, decided_on: null, archived_at: null, plot_ids: [], employee_id: null, credit_group_id: null },
+    { id: INSURANCE, party_id: '22222222-2222-4222-8222-222222222222', kind: 'insurance', title: 'Asigurare grâu', number: null, signed_on: '2026-01-10', starts_on: '2026-01-10', ends_on: '2026-12-31', auto_renews: false, notice_days: null, renew_months: null, crop_id: 'grau', quantity_kg: null, area_ari: 800, vat_bp: null, residual_bani: null, decision: null, decided_on: null, archived_at: null, plot_ids: [], employee_id: null, credit_group_id: null },
+  ],
+  contract_payments: [
+    { id: '33333333-3333-4333-8333-333333333333', contract_id: LEASING, label: 'Rata', direction: 'out', first_on: '2026-04-01', repeat: 'monthly', times: 48, amount_bani: 250_000, per_ha: false, kg: null, crop_id: null },
+    { id: '44444444-4444-4444-8444-444444444444', contract_id: INSURANCE, label: 'Prima', direction: 'out', first_on: '2026-01-10', repeat: 'yearly', times: null, amount_bani: 120_000, per_ha: false, kg: null, crop_id: null },
+  ],
+} as unknown as StoredFarm;
 const today = '2026-11-15';
 const yesterday = '2026-11-14';
 const plan = buildFarmPlan(farm, data, { month: '2026-11' });
@@ -112,6 +127,12 @@ const CASES: Case[] = [
   },
   { q: 'Pune porumbul înapoi la costul mediu.', actions: [{ function: 'set_crop_cost', input: { cropId: 'porumb', costLeiPerHa: null } }] },
   { q: 'Am dat 30.000 de lei pe grâu tot sezonul, schimbă costul din plan.', actions: [], check: (r) => expect(r).toMatch(/hectar/i) },
+  /* Contracts (docs/contracts-plan.md step 9). */
+  { q: 'Ce contracte îmi expiră anul ăsta?', tools: ['list_contracts'], actions: [], check: (r) => expect(r).toMatch(/Groupama|asigur/i) },
+  { q: 'Cât mă costă leasingul pe an?', tools: ['get_contract_impact', 'list_contracts'], actions: [], check: (r) => expect(r).toMatch(/\d/) },
+  { q: 'Cât plătesc la stat în decembrie din contracte?', tools: ['get_contract_taxes'], actions: [] },
+  { q: 'Am hotărât să reînnoiesc asigurarea de la Groupama. Notează.', actions: [{ function: 'decide_contract', input: { id: INSURANCE, source: 'contract', decision: 'renew' } }] },
+  { q: 'Adaugă un contract nou de vânzare cu Cereale SRL, 100 de tone de grâu.', actions: [], check: (r) => expect(r).toMatch(/Contracte/i) },
 ];
 
 describe.skipIf(!key)(`the assistant on ${model}: ${CASES.length} questions`, () => {

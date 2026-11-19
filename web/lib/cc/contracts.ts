@@ -2,33 +2,24 @@
    with the farm (the server's copy on the phone, or Ion's in docs/data/demo-ion.json), so the screen, the Acasă card
    and the calendar work the same without internet. */
 import demoIon from '../../../docs/data/demo-ion.json';
-import { addMonths, lastDay, monthKey, type IsoDate } from '../../../packages/shared/src/cashflow/dates';
+import type { IsoDate } from '../../../packages/shared/src/cashflow/dates';
 import type { AppData } from '../../../packages/shared/src/data/index';
 import type { StoredContract, StoredLandowner } from '../../../packages/shared/src/arenda/contracts';
-import type { ContractDecision, StoredContractPayment, StoredFarmContract, StoredParty } from '../../../packages/shared/src/contracts/model';
-import { fromContract, fromLease, type ContractView, type ViewWindow } from '../../../packages/shared/src/contracts/view';
+import { farmContractsOf, inForce, NO_CONTRACTS, uninsured, type FarmContracts } from '../../../packages/shared/src/contracts/farm';
+import type { ContractDecision, PartyKind, PaymentRepeat, StoredContractPayment, StoredFarmContract, StoredParty } from '../../../packages/shared/src/contracts/model';
+import { otherSide, paymentDirection, type ContractPaperReading } from '../../../packages/shared/src/contracts/paper';
+import type { ContractView } from '../../../packages/shared/src/contracts/view';
 import { taxMonths, taxProfileOf, taxTotals, type LegalForm, type TaxLine, type TaxProfile, type TaxProfileRow, type VatStatus } from '../../../packages/shared/src/contracts/taxes';
-import type { AnyContractKind, EndAction } from '../../../packages/shared/src/contracts/types';
+import type { AnyContractKind, ContractKind, EndAction } from '../../../packages/shared/src/contracts/types';
 import type { IconName } from '../ui/icons';
 import type { MeFarm } from './farm';
-import { date, exact, ha } from './format';
+import { cents, date, exact, ha } from './format';
 
-/** A farm's contracts as the pages read them: both tables, the parties, and what the farm is for taxes. */
-export interface FarmContracts {
-  parties: StoredParty[];
-  contracts: StoredFarmContract[];
-  payments: StoredContractPayment[];
-  landowners: StoredLandowner[];
-  leases: StoredContract[];
-  profileRow: TaxProfileRow;
-  profile: TaxProfile;
-  county: string | null;
-}
+// The farm-wide maths moved to packages/shared (step 7: the server sums farms with the same code).
+export { contractViews, contractWindow, farmSummary, inForce, NO_CONTRACTS, toDecide, uninsured, windowMoney, type FarmContracts } from '../../../packages/shared/src/contracts/farm';
 
 /** On Ion's farm a visitor's „Am hotărât” stays on the phone, per contract id. */
 export type LocalDecisions = Record<string, { decision: ContractDecision | null; decidedOn: IsoDate }>;
-
-export const NO_CONTRACTS: FarmContracts = { parties: [], contracts: [], payments: [], landowners: [], leases: [], profileRow: {}, profile: taxProfileOf({}), county: null };
 
 type IonFile = { tax_profile: TaxProfileRow; parties: StoredParty[]; contracts: StoredFarmContract[]; contract_payments: StoredContractPayment[] };
 
@@ -40,53 +31,7 @@ export function ionContracts(decisions: LocalDecisions): FarmContracts {
 }
 
 /** The signed-in farm's contracts, from its copy (with the queue already applied). */
-export function meContracts(me: MeFarm): FarmContracts {
-  const profileRow = { legal_form: me.legal_form ?? null, vat_status: me.vat_status ?? null, micro_tax: me.micro_tax ?? null };
-  return {
-    parties: me.parties ?? [],
-    contracts: me.contracts ?? [],
-    payments: me.contract_payments ?? [],
-    landowners: me.landowners ?? [],
-    leases: me.lease_contracts ?? [],
-    profileRow,
-    profile: taxProfileOf(profileRow),
-    county: me.county ?? null,
-  };
-}
-
-/** The plan's months from today's: the stretch the money and the taxes cover. */
-export function contractWindow(today: IsoDate, months: number): ViewWindow {
-  const first = monthKey(today);
-  return { today, from: `${first}-01`, to: lastDay(addMonths(first, months - 1)) };
-}
-
-type Data = Pick<AppData, 'crops' | 'catalogue' | 'arenda' | 'params' | 'contractTypes' | 'contractTaxes'>;
-
-/** Every contract, arendă first in its own table's order, archived ones too (their status is 'ended'). */
-export function contractViews(fc: FarmContracts, data: Data, w: ViewWindow): ContractView[] {
-  const landowner = (id: string) => fc.landowners.find((o) => o.id === id)?.name ?? '';
-  const party = (id: string) => fc.parties.find((p) => p.id === id) ?? { name: '', kind: 'company' as const, cui: null };
-  return [
-    ...fc.leases.map((c) => fromLease(c, landowner(c.landowner_id), fc.county, data, w, undefined, fc.profile)),
-    ...fc.contracts.map((c) => fromContract(c, fc.payments, party(c.party_id), data, w, fc.profile)),
-  ];
-}
-
-export const inForce = (v: ContractView) => v.end.status !== 'ended';
-
-/** An insurance that ended in the last 60 days with nothing decided: the crop isn't insured any more. */
-export function uninsured(v: ContractView, today: IsoDate): boolean {
-  if (v.kind !== 'insurance' || v.end.status !== 'ended' || v.end.decision || !v.end.endsOn) return false;
-  const days = (Date.parse(today) - Date.parse(v.end.endsOn)) / 86_400_000;
-  return days > 0 && days <= 60;
-}
-
-/** „De hotărât”: what's due soon or overdue, then the uninsured, the closest day first. */
-export function toDecide(views: readonly ContractView[], today: IsoDate): ContractView[] {
-  const due = views.filter((v) => v.end.status === 'decide_soon' || v.end.status === 'overdue' || uninsured(v, today));
-  const day = (v: ContractView) => v.end.actBy ?? v.end.endsOn ?? '9999';
-  return due.sort((a, b) => day(a).localeCompare(day(b)));
-}
+export const meContracts = (me: MeFarm): FarmContracts => farmContractsOf(me);
 
 // ── Words ─────────────────────────────────────────────────────────────────────────
 
@@ -172,32 +117,6 @@ export function dueLine(v: ContractView, today: IsoDate): string {
         ? `Până pe ${by} anunți dacă închei. Altfel continuă.${notice}`
         : `${late ? 'Trebuia să hotărăști' : 'Hotărăști'} până pe ${by} dacă îl mai vrei. Se termină pe ${date(e.endsOn ?? e.actBy, true)}.${notice}`;
   }
-}
-
-/** Money with the other side in the window. */
-export function windowMoney(v: Pick<ContractView, 'flows'>): { inBani: number; outBani: number; kg: number } {
-  let inBani = 0;
-  let outBani = 0;
-  let kg = 0;
-  for (const f of v.flows) {
-    if (f.direction === 'in') inBani += f.amountBani ?? 0;
-    else outBani += f.amountBani ?? 0;
-    kg += f.kg;
-  }
-  return { inBani, outBani, kg };
-}
-
-/** The header (§5.3): contracts in force, money in and out in the window, taxes, the next decision. */
-export function farmSummary(views: readonly ContractView[], today: IsoDate) {
-  const live = views.filter(inForce);
-  const money = live.map(windowMoney);
-  return {
-    count: live.length,
-    inBani: money.reduce((a, m) => a + m.inBani, 0),
-    outBani: money.reduce((a, m) => a + m.outBani, 0),
-    taxes: taxTotals(live.flatMap((v) => v.taxes)),
-    next: toDecide(views, today)[0] ?? null,
-  };
 }
 
 // ── Taxes ─────────────────────────────────────────────────────────────────────────
@@ -307,4 +226,107 @@ export function contractDays(views: readonly ContractView[], from: IsoDate, to: 
     if (inside(v.end.endsOn) && v.end.endsOn !== act) out.push({ id: `contract-end:${v.id}:${v.end.endsOn}`, date: v.end.endsOn, title: `Se termină contractul cu ${who}`, contractId: v.id });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// ── From the paper (step 8) ───────────────────────────────────────────────────────
+
+/** One payment row as the form holds it, from the paper. `note` says what the farmer should know (a rounding, a gap). */
+export interface PaperPayRow {
+  label: string;
+  firstOn: string;
+  repeat: PaymentRepeat;
+  times: string;
+  lei: string;
+  kg: string;
+  note: string | null;
+}
+
+/**
+ * What the form starts with when a contract comes from its paper: only the values the paper gave and the form shows
+ * for this kind. Every one of them waits for the farmer's „E bine” (the form marks them), so nothing read is saved
+ * unseen. `mine` is the role the farmer said is theirs; without it the money's direction and the other side are left
+ * for them to pick.
+ */
+export interface PaperDraft {
+  party: { id: string } | { name: string; kind: PartyKind; cui: string } | null;
+  direction: 'in' | 'out' | null;
+  startsOn: string | null;
+  endsOn: string | null;
+  signedOn: string | null;
+  title: string | null;
+  number: string | null;
+  autoRenews: boolean | null;
+  notice: string | null;
+  vat: string | null;
+  residual: string | null;
+  area: string | null;
+  cropId: string | null;
+  tonnes: string | null;
+  pays: PaperPayRow[];
+}
+
+const comma = (n: number) => String(n).replace('.', ',');
+const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const cuiDigits = (s: string | null) => s?.replace(/\D/g, '') ?? '';
+
+/** The kind the form opens with: what the paper says, if the screen offers it; otherwise „Alt contract”. */
+export function paperKind(r: Pick<ContractPaperReading, 'kind'>, data: Pick<AppData, 'contractTypes'>): ContractKind {
+  const k = r.kind;
+  return k && k !== 'arenda' && data.contractTypes.types[k].first_version ? k : 'other';
+}
+
+export function paperDraft(r: ContractPaperReading, mine: string | null, kind: ContractKind, parties: readonly StoredParty[], cropIds: readonly string[]): PaperDraft {
+  const side = mine ? otherSide(r, mine) : r.sides.length === 1 ? r.sides[0]! : null;
+  let party: PaperDraft['party'] = null;
+  if (side?.name) {
+    const live = parties.filter((p) => !p.archived_at);
+    const same = (side.cui && live.find((p) => cuiDigits(p.cui) === cuiDigits(side.cui))) || live.find((p) => plain(p.name) === plain(side.name!));
+    party = same ? { id: same.id } : { name: side.name, kind: side.kind, cui: side.cui ?? '' };
+  }
+  const payer = mine ? r.payments.find((p) => p.payerRole) : undefined;
+  const inKind = kind === 'sale' || kind === 'supply';
+  const crop = r.cropId && cropIds.includes(r.cropId) ? r.cropId : null;
+  const pays = r.payments
+    .filter((p) => p.firstOn || p.amountBani !== null || (inKind && p.kg))
+    .map((p): PaperPayRow => {
+      const notes: string[] = [];
+      let bani = p.amountBani;
+      if (bani !== null && p.perHa) {
+        if (r.areaAri) {
+          notes.push(`Pe hârtie: ${cents(bani)} lei pe hectar, pe ${ha(r.areaAri)} ha.`);
+          bani = Math.round((bani * r.areaAri) / 100);
+        } else {
+          notes.push(`Pe hârtie: ${cents(bani)} lei pe hectar. Scrie suma pentru toate hectarele.`);
+          bani = null;
+        }
+      }
+      if (bani !== null && bani % 100 !== 0) notes.push(`Am rotunjit ${cents(bani)} lei la leu.`);
+      if (!p.firstOn) notes.push('Data nu e pe hârtie: scrie-o tu.');
+      return {
+        label: p.label ?? '',
+        firstOn: p.firstOn ?? '',
+        repeat: p.repeat,
+        times: p.times ? String(p.times) : '',
+        lei: bani === null ? '' : String(Math.round(bani / 100)),
+        kg: inKind && p.kg ? String(p.kg) : '',
+        note: notes.join(' ') || null,
+      };
+    });
+  return {
+    party,
+    direction: payer?.payerRole ? paymentDirection(payer, mine!) : null,
+    startsOn: r.startsOn,
+    endsOn: r.endsOn,
+    signedOn: r.signedOn,
+    title: r.title,
+    number: r.number,
+    autoRenews: (kind === 'service' || kind === 'other') && r.endsOn ? r.autoRenews : null,
+    notice: kind !== 'sale' && kind !== 'supply' && r.noticeDays ? String(r.noticeDays) : null,
+    vat: kind !== 'insurance' && r.vatBp !== null ? comma(r.vatBp / 100) : null,
+    residual: kind === 'leasing' && r.residualBani ? String(Math.round(r.residualBani / 100)) : null,
+    area: r.areaAri ? comma(r.areaAri / 100) : null,
+    cropId: kind === 'sale' ? crop : null,
+    tonnes: kind === 'sale' && r.quantityKg ? comma(r.quantityKg / 1000) : null,
+    pays,
+  };
 }

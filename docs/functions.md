@@ -315,6 +315,19 @@ The refund rate, the quarterly schedule and the deadline are all `DE-VERIFICAT`.
 
 Income norms for Teleorman are missing (open question 13), so this returns `null` for Ion until the figure is verified. It must not use the Vrancea example.
 
+### Contracts (docs/contracts-plan.md, step 9)
+
+| Function | Button or screen | Input | Returns | Access | Runs | Status |
+|---|---|---|---|---|---|---|
+| `list_contracts` | Assistant | kind, `endingBy`, `includeEnded` (all optional) | each contract, arendă included: other side, end of the running term, last day to act, renews or not, decision, what can be decided, money in the plan's months | `read` | `phone` | Built |
+| `get_contract_taxes` | Assistant | month (optional) | the contracts' taxes by month, with `toStateBani`; `profileKnown` false while the farm's legal form and VAT are unanswered | `read` | `phone` | Built |
+| `get_contract_impact` | Assistant (the contract card computes the same) | `contractId` | per agricultural year, until it ends, the salary with and without it, per ha for arendă taken | `read` | `phone` | Built |
+| `get_contracts_all_farms` | Assistant (Contracte „Toate fermele” uses the same `GET /api/farms/contracts-summary`) | none | every farm the farmer owns, manages or keeps the books of, and the total (`rentOutBani` and `rentOutKg`: arendă paid in lei and in produce, by crop) | `read` | `api` | Built |
+| `decide_contract` | Contracte „Am hotărât”; assistant card | id, source, decision (or null), day | none; notes it, no money moves | `confirm` | `api` | Built |
+| `archive_contract` | Contracte; assistant card | id | none; the contract moves to the ended ones | `confirm` | `api` | Built |
+
+Adding or changing a contract (`add_contract`, `update_contract`, `add_party`) stays `user`: a contract has too many fields to check on one card, and its other side must exist first. The assistant sends the farmer to Contracte, where a photo can fill the form. `get_contracts_all_farms` is the only read that loads other farms (`allFarms` on the definition); the API loads them with the farmer's token, so RLS decides what comes back.
+
 ## 12. Funding opportunities
 
 These read the monitor's `opportunities` table.

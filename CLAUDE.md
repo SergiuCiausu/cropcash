@@ -67,6 +67,7 @@ Script separat, adus din repo-ul echipei. Urmărește ~179 de surse oficiale (li
 | `docs/12-deploy.md` | faci deploy (Netlify, VPS cu pm2 + Caddy, webhooks Stripe) |
 | `docs/11-open-questions.md` | folosești o cifră marcată DE-VERIFICAT |
 | `docs/15-arenda.md` + `data/arenda-prices-2026.json` | lucrezi la arendă (contracte, impozitul reținut, arenda în natură) |
-| `data/calendar-2026.json` | lucrezi la calendar sau termene |
+| `data/calendar-2026.json` | lucrezi la calendar sau termene (evenimentele cu `obligation` apar și în „De raportat”) |
+| `data/fuel-excise.json` + `docs/04-farmer-reports.md` | lucrezi la motorină, la „De raportat” sau la ce trebuie depus la APIA pe trimestru |
 | `data/crops-reference.json` | lucrezi la scenarii, cheltuieli pe luni sau prognoză |
 | `data/apia-crop-codes.json` + `docs/crops-catalog-plan.md` | atingi lista de culturi, codurile APIA sau numele culturilor (toate culturile din cererea APIA, numite ca la APIA) |

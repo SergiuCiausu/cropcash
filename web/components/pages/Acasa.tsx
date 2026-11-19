@@ -24,6 +24,7 @@ import FarmChart from '../app/FarmChart';
 import { PageLink } from '../app/Frame';
 import { PayrollWarn } from '../app/PayrollWarn';
 import { ContractsDue } from '../app/ContractsDue';
+import { ReportingDue } from '../app/ReportingDue';
 import { EventNudges } from '../app/EventNudges';
 
 const MAX_ROWS = 5;
@@ -312,6 +313,7 @@ export default function Acasa() {
           <>
             <PayrollWarn plan={plan} link />
             <ContractsDue />
+            <ReportingDue />
             <SalaryHero view={view} plan={plan} nextMoney={nextMoney} />
             <SideStats view={view} plan={plan} />
           </>

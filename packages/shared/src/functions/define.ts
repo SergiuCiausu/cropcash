@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { IsoDate } from '../cashflow';
+import type { CrossFarmSummary } from '../contracts/totals';
 import type { ExchangeRates } from '../currency';
 import type { AppData } from '../data';
 import type { StoredFarm } from '../farm';
@@ -49,6 +50,8 @@ export interface ReadContext {
   rates?: ExchangeRates | null;
   /** Only for functions with `needs`. Loaded by the API, because it lives in the database. */
   monitor?: MonitorData;
+  /** Only for functions with `allFarms`: every farm the farmer may see the contracts of (API only). */
+  allFarms?: CrossFarmSummary & { missing: string[] };
 }
 
 export interface ReadFunction<Input extends z.ZodType = z.ZodType, Output = unknown> extends FunctionDef<Input> {
@@ -56,6 +59,8 @@ export interface ReadFunction<Input extends z.ZodType = z.ZodType, Output = unkn
   runs: 'phone' | 'api';
   usesRates: boolean;
   needs: MonitorNeed[];
+  /** Reads every farm of the farmer, not only this one (docs/contracts-plan.md §6). */
+  allFarms: boolean;
   /** Validates the input, so a bad call throws instead of returning a wrong figure. */
   execute(rawInput: unknown, ctx: ReadContext): FunctionResult<Output>;
 }
@@ -74,8 +79,10 @@ export function defineRead<Input extends z.ZodType, Output>(def: {
   usesRates?: boolean;
   /** Monitor data to load before it runs. */
   needs?: MonitorNeed[];
+  /** The contracts of every farm, loaded before it runs. Needs runs: 'api'. */
+  allFarms?: boolean;
 }): ReadFunction<Input, Output> {
-  const { name, description, input, run, sources, unverified, runs = 'phone', usesRates = false, needs = [] } = def;
+  const { name, description, input, run, sources, unverified, runs = 'phone', usesRates = false, needs = [], allFarms = false } = def;
   return {
     name,
     description,
@@ -84,6 +91,7 @@ export function defineRead<Input extends z.ZodType, Output>(def: {
     runs,
     usesRates,
     needs,
+    allFarms,
     execute(rawInput, ctx) {
       const output = run(input.parse(rawInput) as z.output<Input>, ctx);
       return {

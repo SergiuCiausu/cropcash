@@ -8,10 +8,19 @@ import {
   SetTaxProfileInputSchema,
   UpdateFarmContractInputSchema,
   UpdatePartyInputSchema,
+  CONTRACTS_ROLES,
   contractPaymentRow,
   farmContractRow,
+  farmContractsSummary,
+  farmToday,
   partyRow,
+  sumFarms,
+  todayInRomania,
   type AppData,
+  type ContractData,
+  type CrossFarmSummary,
+  type ContractsRole,
+  type FarmContractsSummary,
 } from '@cropcash/shared';
 import { ContractError, type ContractStore } from '../db/contracts';
 import type { Repo } from '../db/repo';
@@ -21,7 +30,7 @@ import type { Repo } from '../db/repo';
  * (docs/contracts-plan.md §2, §3.2). Add, change, archive; never delete. All of it acts as the farmer, so RLS
  * decides what they may see and change (owner and manager write; the accountant only reads).
  */
-export function contractsRouter(repo: Repo, store: ContractStore, data: Pick<AppData, 'contractTypes'>, now: () => Date): Router {
+export function contractsRouter(repo: Repo, store: ContractStore, data: Pick<AppData, 'contractTypes'> & ContractData, now: () => Date): Router {
   const r = Router();
 
   /** Parses the body (plus the ids in the path), runs `act`, answers its errors. */
@@ -109,5 +118,42 @@ export function contractsRouter(repo: Repo, store: ContractStore, data: Pick<App
     }),
   );
 
+  /**
+   * „Toate fermele” (§6, step 7): the contracts of every farm I own, manage or keep the books for, each summed with
+   * the same code as its Contracte header, then added up. No farm header: it's the one route that spans farms.
+   * A worker's farms are left out. A farm that can't be read is named in `missing`, not guessed.
+   */
+  r.get('/farms/contracts-summary', async (_req, res) => {
+    res.json(await allFarmsContracts(store, data, now, res.locals.auth.token as string));
+  });
+
   return r;
+}
+
+/**
+ * Every farm the farmer may see the contracts of (owner, manager, accountant; not a worker's), and the total. The
+ * Contracte toggle and the assistant (get_contracts_all_farms) both use it. A farm that can't be read is named in
+ * `missing`, not guessed.
+ */
+export async function allFarmsContracts(
+  store: Pick<ContractStore, 'myFarms' | 'farmContracts'>,
+  data: ContractData,
+  now: () => Date,
+  token: string,
+): Promise<CrossFarmSummary & { missing: string[] }> {
+  const mine = (await store.myFarms(token)).filter((f): f is typeof f & { role: ContractsRole } => (CONTRACTS_ROLES as readonly string[]).includes(f.role));
+  const missing: string[] = [];
+  const perFarm: FarmContractsSummary[] = [];
+  for (const f of mine) {
+    try {
+      const got = await store.farmContracts(token, f.farmId);
+      const contracts = { ...got.contracts, county: got.contracts.county ?? f.county };
+      const today = farmToday({ demo_now: got.demoNow }, todayInRomania(now()));
+      perFarm.push(farmContractsSummary({ farmId: f.farmId, name: f.name, role: f.role }, contracts, data, today, got.arenda));
+    } catch (err) {
+      console.error('contracts-summary: farm %s: %s', f.farmId, err instanceof Error ? err.message : err);
+      missing.push(f.name);
+    }
+  }
+  return { ...sumFarms(perFarm), missing };
 }

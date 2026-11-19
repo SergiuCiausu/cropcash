@@ -94,6 +94,12 @@ Coloane: **Tip** = `index` (pagină care listează documente; monitorizează lin
 | Formulare | https://apia.org.ro/formulare1386829353/ | index | nu |
 | Centre județene | https://apia.org.ro/centre-judetene/ | pagina | nu |
 | Sesizează o fraudă | https://apia.org.ro/sesizeaza-un-caz-de-frauda-cu-fonduri-apia/ | pagina | nu |
+| Comunicate de presă | https://apia.org.ro/comunicate-de-presa | index | da |
+| Ajutor de stat motorină 2025: ghid și formulare | https://apia.org.ro/ajutoare-specifice/masuri-de-sprijin-finantate-de-la-bugetul-national/ajutorul-de-stat-pentru-reducerea-accizei-la-motorina-utilizata-in-agricultura-pentru-anul-2025/ | pagina | da |
+| Ghid motorină (ediția 2023) | https://apia.org.ro/wp-content/uploads/2025/01/Ghid-motorina-2023.pdf | pdf | da |
+| Cererea de plată 2026, sector vegetal și zootehnic | https://apia.org.ro/depune-cererea-de-plata-sector-vegetal-si-sector-zootehnic-campania-2026/ | pagina | da |
+| Comunicat: registrele și documentele de evidență (18.11.2026) | https://apia.org.ro/comunicat-de-presa/apia-reaminteste-fermierilor-obligatiile-privind-completarea-documentelor-de-evidenta-si-a-registrelor-specifice/ | pagina | da |
+| Comunicat: bunăstarea animalelor DR-06, porci și păsări (09.11.2026) | https://apia.org.ro/comunicat-de-presa/madr-peste-179-de-milioane-de-euro-pentru-bunastarea-animalelor-sprijin-ferm-pentru-fermierii-romani-din-sectoarele-suin-si-avicol/ | pagina | da |
 
 ### 4.3 AFIR – Agenția pentru Finanțarea Investițiilor Rurale
 
@@ -289,3 +295,11 @@ Toate sunt de tip `index` (site-urile publică anunțuri și sesiuni de informar
 | Vâlcea | https://dadrvalcea.ro/ | da |
 | Vaslui | https://dadrvs.madr.ro/ | da |
 | Vrancea | http://www.dajvrancea.ro/ | da (ultima actualizare 2018) |
+
+### 4.13 Legislație
+
+Textul consolidat al actelor pe care stau cifrele din aplicație (docs/data/fuel-excise.json). O modificare apare aici înaintea anunțului APIA.
+
+| Titlu | URL | Tip | Verificat |
+| --- | --- | --- | --- |
+| HG 1174/2014, ajutorul pentru acciza la motorină (forma consolidată) | https://legislatie.just.ro/Public/DetaliiDocument/164301 | pagina | da |

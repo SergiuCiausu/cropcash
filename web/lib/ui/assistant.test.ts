@@ -34,3 +34,23 @@ describe('the add_event card', () => {
     expect(a.input.clientId).toBe('id-1');
   });
 });
+
+describe('the contract cards (contracts step 9)', () => {
+  const name = (id: string) => (id === 'c1' ? 'Asigurare · Groupama' : null);
+  it('„Am hotărât” names the contract and the decision in words', () => {
+    const c = card({ function: 'decide_contract', input: { id: 'c1', source: 'contract', decision: 'renew', decidedOn: '2026-11-15' } }, (id) => id, undefined, name);
+    expect(c.title).toBe('Notez ce ai hotărât');
+    expect(c.rows).toEqual([
+      ['Contractul', 'Asigurare · Groupama'],
+      ['Ai hotărât', 'Îl reînnoiesc'],
+      ['Pe', '15 noiembrie 2026'],
+    ]);
+    const back = card({ function: 'decide_contract', input: { id: 'c1', source: 'contract', decision: null, decidedOn: '2026-11-15' } }, (id) => id, undefined, name);
+    expect(back.rows[1]).toEqual(['Ai hotărât', 'Scot hotărârea']);
+  });
+
+  it('archiving shows the contract, never a bare id', () => {
+    expect(card({ function: 'archive_contract', input: { id: 'c1' } }, (id) => id, undefined, name).rows).toEqual([['Contractul', 'Asigurare · Groupama']]);
+    expect(card({ function: 'archive_contract', input: { id: 'zz' } }, (id) => id, undefined, name).rows).toEqual([['Contractul', 'Contractul']]);
+  });
+});

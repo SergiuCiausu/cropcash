@@ -66,8 +66,19 @@ export interface CropCostLookup {
   fromHarvest(cropId: string, year: number): number | null;
 }
 
+/** A contract as the card names it: its kind and the other side ("Leasing · Agro Leasing"). Null: not on this farm. */
+export type ContractName = (id: string) => string | null;
+
+const DECISIONS: Record<string, string> = {
+  renew: 'Îl reînnoiesc',
+  end: 'Îl închei',
+  renegotiate: 'Renegociez',
+  buy_out: 'Cumpăr utilajul',
+  return: 'Dau utilajul înapoi',
+};
+
 /** What a card says: the exact values that will be saved. `task` is a task id whose title can be looked up. */
-export function card(action: Action, cropName: (id: string) => string, costs?: CropCostLookup): { title: string; rows: [string, string][]; task?: string } {
+export function card(action: Action, cropName: (id: string) => string, costs?: CropCostLookup, contractName?: ContractName): { title: string; rows: [string, string][]; task?: string } {
   const i = action.input as Record<string, string & number>;
   switch (action.function) {
     case 'set_crop_cost': {
@@ -126,6 +137,19 @@ export function card(action: Action, cropName: (id: string) => string, costs?: C
         ],
       };
     }
+    case 'decide_contract': {
+      const what = contractName?.(i.id) ?? 'Contractul';
+      return {
+        title: 'Notez ce ai hotărât',
+        rows: [
+          ['Contractul', what],
+          ['Ai hotărât', action.input.decision === null ? 'Scot hotărârea' : (DECISIONS[i.decision] ?? i.decision)],
+          ['Pe', day(i.decidedOn)],
+        ],
+      };
+    }
+    case 'archive_contract':
+      return { title: 'Mut contractul la cele încheiate', rows: [['Contractul', contractName?.(i.id) ?? 'Contractul']] };
     case 'follow_opportunity':
       return { title: 'Pun un apel de finanțare în calendar', rows: Object.entries(i).map(([k, v]) => [k, String(v)]) };
     default:

@@ -194,3 +194,52 @@ describe('who reaches the contracts', () => {
     expect((await owner.client.from('contracts').insert({ farmer_id: farmId, party_id: party.data!.id, kind: 'sale', starts_on: '2027-01-01' })).error?.code).toBe('23514');
   });
 });
+
+describe('across farms: GET /api/farms/contracts-summary (step 7)', () => {
+  beforeAll(async () => {
+    // The owner also manages the other farm, which gives 1 ha in arendă.
+    const joined = await admin.from('farm_members').insert({ farmer_id: otherFarm, user_id: owner.id, role: 'manager', invited_by: other.id });
+    if (joined.error) throw joined.error;
+    const ilie = await admin.from('landowners').insert({ farmer_id: otherFarm, name: 'Ilie' }).select('id').single();
+    if (ilie.error) throw ilie.error;
+    const given = await admin
+      .from('lease_contracts')
+      .insert({ farmer_id: otherFarm, landowner_id: ilie.data.id, direction: 'given', area_ari: 100, starts_on: '2024-10-01', ends_on: '2030-09-30', rent_bani_per_ha: 100_000, pay_month: 10 });
+    if (given.error) throw given.error;
+  });
+
+  type Farm = { farmId: string; role: string; arenda: boolean; count: number; inBani: number; outBani: number; takenAri: number; givenAri: number; landowners: number };
+  const summary = async (u: TestUser) => {
+    const res = await request(app()).get('/api/farms/contracts-summary').set(as(u));
+    expect(res.status).toBe(200);
+    return res.body as { farms: Farm[]; total: Omit<Farm, 'farmId' | 'role' | 'arenda'> & { due: number }; missing: string[] };
+  };
+
+  it('owner of one farm and manager of the other: both, and the total is their sum', async () => {
+    const s = await summary(owner);
+    expect(s.missing).toEqual([]);
+    expect(s.farms.map((f) => [f.farmId, f.role, f.arenda])).toEqual([
+      [farmId, 'owner', true],
+      [otherFarm, 'manager', true],
+    ]);
+    const sum = (k: 'count' | 'inBani' | 'outBani' | 'takenAri' | 'givenAri' | 'landowners') => s.farms.reduce((a, f) => a + f[k], 0);
+    expect(s.total).toMatchObject({ count: sum('count'), inBani: sum('inBani'), outBani: sum('outBani'), takenAri: sum('takenAri'), givenAri: 100, landowners: sum('landowners') });
+    expect(s.farms[1]).toMatchObject({ givenAri: 100, landowners: 1 });
+    expect(s.farms[1]!.inBani).toBeGreaterThan(0);
+  });
+
+  it('a worker on one of them sees nothing of it', async () => {
+    const s = await summary(worker);
+    expect(s.farms).toEqual([]);
+    expect(s.total).toMatchObject({ count: 0, inBani: 0, outBani: 0, takenAri: 0, givenAri: 0, landowners: 0, due: 0 });
+  });
+
+  it('the accountant: the contracts, not the arendă', async () => {
+    const s = await summary(accountant);
+    expect(s.farms).toEqual([expect.objectContaining({ farmId, role: 'accountant', arenda: false, takenAri: 0, landowners: 0 })]);
+  });
+
+  it('the other farm’s owner sees only their own farm', async () => {
+    expect((await summary(other)).farms.map((f) => f.farmId)).toEqual([otherFarm]);
+  });
+});

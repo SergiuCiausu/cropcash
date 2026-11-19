@@ -18,6 +18,7 @@ export const DEMO_PAGES = [
   '/date-plan',
   '/bani',
   '/rapoarte',
+  '/de-raportat',
   '/harta',
   '/oameni',
   '/arenda',
