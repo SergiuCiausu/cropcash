@@ -304,8 +304,11 @@ Tasks come from `calendar-2026.json`, so only completions are stored, in `task_c
 | `delete_fuel_log` | Row in the list | entry id | none | `user` | `outbox` | New, step 10a |
 | `get_fuel_refund` | Diesel screen | quarter | litres, refund estimate, `unverified` | `read` | `phone` | New, step 10a |
 | `export_fuel_report` | "Printează" | quarter | printable table | `read` | `phone` | New, step 10a |
+| `set_excise_enrollment` | „Accize” card on /subventii | scheme, year, status, acord date | none | `user` | `outbox` | Built (`docs/accize-plan.md`) |
 
 The refund rate, the quarterly schedule and the deadline are all `DE-VERIFICAT`. The report has a logical structure and isn't the official form.
+
+`set_excise_enrollment` may wait in the offline queue: it only notes the acord, no money moves. With an approved acord the refund on the noted litres joins the plan as `excise_refund` entries.
 
 ## 11. Tax
 

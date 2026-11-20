@@ -6,6 +6,7 @@ import {
   placeParcel,
   type LpisBloc,
   type LpisCommune,
+  type LpisTile,
   type MapPlacement,
   type PaperPlot,
   type Position,
@@ -43,6 +44,11 @@ export async function communeCentre(live: Api, siruta: number): Promise<Position
 /** The blocs under a point, for „Sunt aici acum” and a tap on the map. */
 export async function blocsAt(live: Api, [lng, lat]: Position): Promise<LpisBloc[]> {
   return (await live.api<{ blocs: LpisBloc[] }>(`/api/lpis/at?lng=${lng.toFixed(6)}&lat=${lat.toFixed(6)}`)).blocs;
+}
+
+/** The blocs in one square of the map's grid, for the „Blocuri APIA” outlines. */
+export async function blocsInTile(live: Api, { x, y }: LpisTile): Promise<LpisBloc[]> {
+  return (await live.api<{ blocs: LpisBloc[] }>(`/api/lpis/tile/${x}/${y}`)).blocs;
 }
 
 /** A county's UATs matching `q` (all of them without one), ignoring diacritics. */

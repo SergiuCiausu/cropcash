@@ -3,7 +3,7 @@
    Shared by /de-raportat and /ferma-lui-ion/de-raportat (screens/de-raportat.tsx). Everything comes
    from docs/data and the records on the phone, so it works without internet; only the links to the
    official pages need it. The diesel card counts the litres noted on diesel expenses in Recolte. */
-import { useMemo } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import type { ObligationItem, ObligationRule } from '../../../packages/shared/src/obligations/index';
 import { date, daysLeft, exact, zile } from '../../lib/cc/format';
 import { farmObligations, FUEL, type FarmObligations } from '../../lib/cc/obligations';
@@ -11,7 +11,12 @@ import { useFarm, useMoney, useView } from '../../lib/cc/react';
 import { litres } from '../../lib/reports/format';
 import { useHref, Verify } from '../app/bits';
 import { PageLink } from '../app/Frame';
+import { isReportId, ReportSheet } from '../reports/ReportSheet';
+import type { ReportId } from '../../lib/reports/build';
 import '../../styles/obligations.css';
+
+/** Opens a report in a sheet on this page, instead of going to /rapoarte. */
+const OpenReport = createContext<(id: ReportId) => void>(() => undefined);
 
 const ROMAN = ['I', 'II', 'III', 'IV'];
 const quarterName = (key: string) => `trimestrul ${ROMAN[+key.slice(-1) - 1]} din ${key.slice(0, 4)}`;
@@ -34,6 +39,7 @@ function whenText(days: number) {
 
 function DieselCard({ ob, today }: { ob: FarmObligations; today: string }) {
   const href = useHref();
+  const openReport = useContext(OpenReport);
   const { text: t } = useMoney();
   const f = ob.fuel;
   const lei = (bani: number) => t(`${exact(bani)} lei`);
@@ -119,9 +125,9 @@ function DieselCard({ ob, today }: { ob: FarmObligations; today: string }) {
       <p className="note">{FUEL.how_ro}</p>
       <p className="note">{FUEL.payment_ro}</p>
       <div className="ob-actions">
-        <PageLink className="btn btn-dark" path="/rapoarte" href={href('/rapoarte#r-fuel-excise')}>
+        <button type="button" className="btn btn-dark" onClick={() => openReport('fuel-excise')}>
           Fă situația motorinei (PDF)
-        </PageLink>
+        </button>
         <Source url={FUEL.legal_basis[0]!.url}>Legea (HG 1174/2014)</Source>
       </div>
     </section>
@@ -129,7 +135,8 @@ function DieselCard({ ob, today }: { ob: FarmObligations; today: string }) {
 }
 
 function ItemBody({ item }: { item: ObligationItem }) {
-  const href = useHref();
+  const openReport = useContext(OpenReport);
+  const report = isReportId(item.report) ? item.report : null;
   return (
     <div className="ob-body">
       {item.start && item.start !== item.end && (
@@ -155,11 +162,11 @@ function ItemBody({ item }: { item: ObligationItem }) {
         </>
       )}
       <p>
-        {item.report && (
+        {report && (
           <>
-            <PageLink path="/rapoarte" href={href(`/rapoarte#r-${item.report}`)}>
+            <button type="button" className="ob-link" onClick={() => openReport(report)}>
               Pregătește actele în Rapoarte
-            </PageLink>
+            </button>
             {item.sourceUrl ? ' · ' : ''}
           </>
         )}
@@ -219,11 +226,11 @@ function Rules({ rules }: { rules: ObligationRule[] }) {
 export default function DeRaportat() {
   const farm = useFarm()!;
   const view = useView('farm')!;
-  const href = useHref();
+  const [report, setReport] = useState<ReportId | null>(null);
   const ob = useMemo(() => farmObligations(view, farm), [view, farm]);
 
   return (
-    <>
+    <OpenReport.Provider value={setReport}>
       <header className="page-h">
         <div>
           <h1>De raportat</h1>
@@ -257,10 +264,10 @@ export default function DeRaportat() {
                   </p>
                   <p>
                     {r.detail_ro}{' '}
-                    {r.report && (
-                      <PageLink path="/rapoarte" href={href('/rapoarte')}>
+                    {isReportId(r.report) && (
+                      <button type="button" className="ob-link" onClick={() => setReport(r.report as ReportId)}>
                         Îl faci din Rapoarte
-                      </PageLink>
+                      </button>
                     )}
                   </p>
                 </li>
@@ -277,6 +284,7 @@ export default function DeRaportat() {
           </section>
         )}
       </div>
-    </>
+      <ReportSheet report={report} onClose={() => setReport(null)} />
+    </OpenReport.Provider>
   );
 }

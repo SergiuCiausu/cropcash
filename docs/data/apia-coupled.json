@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "description": "Sprijinul cuplat la culturi (PS PAC 2023–2027): ce cultură îl primește, cât trebuie produs sau vândut pe hectar și ce dovezi cere APIA. Citit de raportul „Dovezile pentru sprijinul cuplat” din /rapoarte → Pentru APIA (web/lib/reports/apia.ts). Codurile sunt cele din apia-crop-codes.json. Plan: docs/rapoarte-apia-plan.md, faza 2.",
+    "campaign_year": 2026,
+    "read_on": "2026-11-20",
+    "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+  },
+  "schemes": [
+    {
+      "id": "PD-09",
+      "name_ro": "Soia",
+      "codes": [127, 128, 129, 130, 203, 2037, 2038],
+      "minimum_kg_ha": 1500,
+      "minimum_ro": "Cel puțin 1.500 kg/ha vânduți, folosiți la animalele tale sau procesați în fermă.",
+      "minimum_status": "confirmat-2026",
+      "proof_ro": ["Facturile, bonurile fiscale sau carnetul de comercializare pentru ce ai vândut", "Sau notele de recepție, dacă ai folosit-o la animale", "Factura de sămânță certificată și certificatul lotului"],
+      "deadline": "2027-03-31",
+      "deadline_status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "PD-10",
+      "name_ro": "Lucernă",
+      "codes": [974, 9748, 9749],
+      "minimum_kg_ha": 7500,
+      "minimum_ro": "Cel puțin 7,5 t/ha fân (sau 30 t/ha masă verde, sau 200 kg/ha sămânță certificată). Peste 13 ha, doar dacă o dai la animalele tale (cel puțin 1 UVM/ha).",
+      "minimum_status": "confirmat-2026",
+      "proof_ro": ["Facturile sau carnetul de comercializare, dacă ai vândut (fermele de până la 13 ha)", "Dovada că ai animale, dacă ai folosit-o la ele"],
+      "deadline": "2027-03-31",
+      "deadline_status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "PD-16",
+      "name_ro": "Sfeclă de zahăr",
+      "codes": [301, 3017],
+      "minimum_kg_ha": 33000,
+      "minimum_ro": "Cel puțin 33.000 kg/ha livrați la fabrică.",
+      "minimum_status": "confirmat-2026",
+      "proof_ro": ["Contractul cu fabrica de zahăr, până pe 1 octombrie", "Facturile sau adeverința de la fabrică pentru cantitatea livrată"],
+      "deadline": "2027-03-31",
+      "deadline_status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "PD-26",
+      "name_ro": "Porumb siloz",
+      "codes": [131, 1317],
+      "minimum_kg_ha": 18000,
+      "minimum_ro": "Cel puțin 18 t/ha, pentru fermele cu cel puțin 3 UVM/ha bovine.",
+      "minimum_status": "DE-VERIFICAT",
+      "proof_ro": ["Factura de sămânță certificată și certificatul lotului", "Dovada animalelor din exploatație"],
+      "deadline": "2027-03-31",
+      "deadline_status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "PD-17",
+      "name_ro": "Legume în câmp (tomate, castraveți, ardei)",
+      "codes": [353, 3537, 354, 3547, 3507],
+      "minimum_kg_ha": null,
+      "minimum_ro": "Cantitatea minimă pe hectar e DE-VERIFICAT.",
+      "minimum_status": "DE-VERIFICAT",
+      "proof_ro": ["Facturile de răsaduri și documentele de sămânță certificată, până pe 31 martie 2027", "Facturile pentru ce ai vândut"],
+      "deadline": "2027-03-31",
+      "deadline_status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    }
+  ]
+}

@@ -5,6 +5,7 @@
 import { z } from 'zod';
 import lpisInfo from '../../../../docs/data/lpis.json';
 import { centroid } from './geometry';
+import { lpisTileBox, type LpisTile } from './lpis-tiles';
 import { PlotGeometrySchema, PositionSchema, type GeometrySource, type PlotGeometry, type Position } from './model';
 
 /** One bloc fizic as APIA has it. A bloc is not a parcel: one bloc can hold several farmers. */
@@ -86,6 +87,21 @@ export function lpisQueries(service: string) {
         outFields: 'fbid,siruta,judet,nume_com,fol_pr_trn,aria_neta',
         outSR: '4326',
         geometryPrecision: '6',
+        f: 'geojson',
+      });
+    },
+    /** The blocs in one square of the grid (lpis-tiles.ts), outlines simplified to about a metre. */
+    tile(t: LpisTile): string {
+      const b = lpisTileBox(t);
+      return query(service, {
+        geometry: `${b.west},${b.south},${b.east},${b.north}`,
+        geometryType: 'esriGeometryEnvelope',
+        inSR: '4326',
+        spatialRel: 'esriSpatialRelIntersects',
+        outFields: 'fbid,siruta,judet,nume_com,fol_pr_trn,aria_neta',
+        outSR: '4326',
+        geometryPrecision: '6',
+        maxAllowableOffset: '0.00001',
         f: 'geojson',
       });
     },

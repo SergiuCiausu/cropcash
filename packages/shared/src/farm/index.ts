@@ -120,6 +120,10 @@ export interface StoredFarm {
   harvests?: import('./harvests').HarvestsInput | null;
   /** The total from the farmer's payment decision. It replaces the estimate in the plan. */
   apia_decision?: import('../subsidies').ApiaDecision | null;
+  /** The answers on /rapoarte → „Pentru APIA” (migration 051). Null: nothing answered. */
+  apia_facts?: import('../reports/apia').ApiaAnswers | null;
+  /** The animals, the ANSVSA code and the hay (migration 053). Null: nothing noted. */
+  livestock?: import('../reports/livestock').Livestock | null;
   parcels: { crop_id: string; area_ari: number; is_arable: boolean; planted_month?: string | null }[];
   /** The farmer's own calendar events, with their occurrence rows (migration 023). */
   farm_events?: import('../calendar/events').StoredEvent[];

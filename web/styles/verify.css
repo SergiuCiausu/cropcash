@@ -1,0 +1,54 @@
+/* /verificari, „De verificat” (docs/admin-verificari-plan.md step 4). The counts on top double as filters;
+   one list below, each row opening in place with its facts, its answers and the form. */
+.vf-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+.card.vf-count { display: grid; gap: 2px; justify-items: start; padding: 14px 16px; text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 44px; }
+.card.vf-count b { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.card.vf-count span { font-size: 13px; color: var(--text-2); }
+.card.vf-count.on { outline: 2px solid var(--ink-b); outline-offset: -2px; }
+.card.vf-count:focus-visible { outline: 2px solid var(--b); outline-offset: 2px; }
+.card.vf-still { cursor: default; }
+
+.card.vf-hand { padding: 0; margin-bottom: 12px; }
+.vf-hand > summary { display: grid; gap: 2px; padding: 18px 24px; cursor: pointer; list-style: none; min-height: 44px; }
+.vf-hand > summary::-webkit-details-marker { display: none; }
+.vf-hand > summary h2 { margin: 0; font-size: 16px; }
+.vf-hand[open] > summary { border-bottom: 1px solid var(--hair); }
+.vf-hand > .adm-acts, .vf-hand > p, .vf-hand > .vf-pre { margin: 12px 24px 0; }
+.vf-edits { margin: 0; padding: 12px 24px 18px; list-style: none; display: grid; gap: 10px; }
+.vf-pre { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--bg); font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; }
+
+.card.vf-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; margin-bottom: 8px; }
+.vf-filters .ob-field { flex: 1 1 180px; margin: 0; }
+.vf-filters .ob-field:first-child { flex-basis: 260px; }
+.vf-filters .link { min-height: 44px; }
+
+.card.vf-rows { margin: 8px 0 0; padding: 0; list-style: none; }
+.vf-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; min-height: 44px; }
+.vf-head:focus-visible { outline: 2px solid var(--b); outline-offset: 4px; border-radius: 8px; }
+.vf-name { display: grid; gap: 2px; min-width: 0; }
+.vf-name .note { overflow-wrap: anywhere; }
+.vf-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; flex-shrink: 0; max-width: 50%; }
+.vf-val { margin: 4px 0 0; overflow-wrap: anywhere; }
+.vf-more { margin-top: 12px; }
+
+.vf-detail { display: grid; gap: 14px; margin-top: 12px; }
+.vf-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0; font-size: 14px; }
+.vf-facts dt { color: var(--text-2); }
+.vf-facts dd { margin: 0; overflow-wrap: anywhere; }
+.vf-text { white-space: pre-line; }
+.vf-raw summary { cursor: pointer; font-size: 14px; color: var(--text-2); min-height: 32px; }
+.vf-raw .vf-pre { margin-top: 6px; max-height: 320px; overflow: auto; }
+.vf-related h3, .vf-history h3, .vf-form h3 { margin: 0 0 6px; font-size: 15px; }
+.vf-related ul, .vf-history ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 14px; }
+.vf-history li p { margin: 2px 0; }
+.vf-verdicts { display: grid; gap: 0; margin: 0; padding: 0; border: 0; }
+.vf-draft { margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .vf-hand > summary, .vf-edits { padding-left: 16px; padding-right: 16px; }
+  .vf-hand > .adm-acts, .vf-hand > p, .vf-hand > .vf-pre { margin-left: 16px; margin-right: 16px; }
+  .vf-head { flex-direction: column; }
+  .vf-tags { justify-content: flex-start; max-width: none; }
+  .vf-facts { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .vf-facts dd { margin-bottom: 6px; }
+}

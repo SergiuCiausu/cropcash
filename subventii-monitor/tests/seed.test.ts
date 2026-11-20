@@ -46,8 +46,8 @@ describe('parseSpec', () => {
 
   it('finds every URL in the real spec, with none repeated', () => {
     const rows = parseSpec(fs.readFileSync(SPEC_PATH, 'utf8'));
-    expect(rows).toHaveLength(186);
-    expect(new Set(rows.map((r) => r.url)).size).toBe(186);
+    expect(rows).toHaveLength(187);
+    expect(new Set(rows.map((r) => r.url)).size).toBe(187);
   });
 });
 

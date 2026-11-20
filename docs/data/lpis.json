@@ -18,5 +18,30 @@
   "query_rules": "Doar egalitate (where=fbid='…') și interogări spațiale. Un filtru LIKE primește 403 de la firewall-ul lor.",
   "metadata_url": "https://inspire-geoportal.ec.europa.eu/srv/api/records/1679393868825r09124922837951",
   "terms_status": "DE-VERIFICAT",
-  "terms_note": "Metadatele spun că datele sunt proprietatea APIA. Întrebăm APIA înainte de lansare și înainte de copia în bloc a județelor (docs/harta-plan.md, întrebarea 1)."
+  "terms_note": "Metadatele spun că datele sunt proprietatea APIA. Întrebăm APIA înainte de lansare și înainte de copia în bloc a județelor (docs/harta-plan.md, întrebarea 1).",
+  "import": {
+    "run_on": "2026-11-20",
+    "counties": {
+      "TR": {
+        "blocs": 21423,
+        "net_ha": 480487,
+        "siruta_codes": 334,
+        "not_uat_codes": 0,
+        "villages_by_method": {
+          "nearest": 15907,
+          "only_village": 5516
+        }
+      },
+      "CT": {
+        "blocs": 23089,
+        "net_ha": 548642,
+        "siruta_codes": 285,
+        "not_uat_codes": 0,
+        "villages_by_method": {
+          "nearest": 21508,
+          "only_village": 1581
+        }
+      }
+    }
+  }
 }

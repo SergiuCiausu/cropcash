@@ -20,6 +20,7 @@ const apia = (): LpisSource & { calls: string[] } => {
     at: async () => (calls.push('at'), []),
     communes: async (c) => (calls.push(`communes ${c}`), [{ siruta: 1, name: 'Din APIA' }]),
     communeCentre: async () => (calls.push('centre'), [25, 44]),
+    tile: async () => (calls.push('tile'), [row as LpisBloc]),
   };
 };
 
@@ -44,6 +45,19 @@ describe('the local copy of the blocs (migration 034)', () => {
     expect(await src.communes('CT')).toEqual([{ siruta: 1, name: 'Din APIA' }]);
     expect(await src.communeCentre(153277)).toEqual([24.9, 44.1]);
     expect(remote.calls).toEqual(['bloc 151870-314', 'communes CT']);
+  });
+
+  it('a square of the map: from the copy when it holds blocs there, else from APIA', async () => {
+    const rpc = rpcWith({ lpis_blocs_in: [row] });
+    const remote = apia();
+    const t = { x: 9327, y: 5932 };
+    expect(await localFirst(dbLpisSource({ rpc } as never), remote, () => undefined).tile(t)).toEqual([row]);
+    expect(rpc).toHaveBeenCalledWith('lpis_blocs_in', expect.objectContaining({ p_west: expect.any(Number), p_north: expect.any(Number) }));
+    expect(remote.calls).toEqual([]);
+    // Not imported yet (an empty copy, or migration 050 not applied): APIA answers.
+    await localFirst(dbLpisSource({ rpc: rpcWith({ lpis_blocs_in: [] }) } as never), remote, () => undefined).tile(t);
+    await localFirst(dbLpisSource({ rpc: rpcWith({}) } as never), remote, () => undefined).tile(t);
+    expect(remote.calls).toEqual(['tile', 'tile']);
   });
 
   it('before the import (no functions yet), APIA answers and the copy is mentioned once', async () => {

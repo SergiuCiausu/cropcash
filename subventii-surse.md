@@ -298,8 +298,9 @@ Toate sunt de tip `index` (site-urile publică anunțuri și sesiuni de informar
 
 ### 4.13 Legislație
 
-Textul consolidat al actelor pe care stau cifrele din aplicație (docs/data/fuel-excise.json). O modificare apare aici înaintea anunțului APIA.
+Textul consolidat al actelor pe care stau cifrele din aplicație (docs/data/fuel-excise.json, docs/data/excise-schemes.json). O modificare apare aici înaintea anunțului APIA.
 
 | Titlu | URL | Tip | Verificat |
 | --- | --- | --- | --- |
 | HG 1174/2014, ajutorul pentru acciza la motorină (forma consolidată) | https://legislatie.just.ro/Public/DetaliiDocument/164301 | pagina | da |
+| Codul fiscal (Legea 227/2015), forma consolidată: accizele, art. 399 (scutiri) și țuica din gospodărie | https://legislatie.just.ro/Public/DetaliiDocument/171282 | pagina | da |

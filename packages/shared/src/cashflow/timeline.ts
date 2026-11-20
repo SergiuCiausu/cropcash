@@ -23,6 +23,7 @@ import type { StoredContract } from '../arenda/contracts';
 import type { StoredContractPayment, StoredFarmContract, StoredParty } from '../contracts/model';
 import { fromContract } from '../contracts/view';
 import { UNKNOWN_TAX_PROFILE, type TaxProfile } from '../contracts/taxes';
+import type { ExciseRefundClaim } from './excise';
 
 /** Which values to use: good year, normal year, bad (drought) year. See docs/07 §5. */
 export type AmountScenario = 'good' | 'medium' | 'bad';
@@ -52,6 +53,8 @@ export type EntryKind =
   | 'contract_out'
   /** A contract's taxes and VAT: VAT that moves with an invoice, the D300 settling it, an SRL's micro tax. */
   | 'contract_tax'
+  /** Excise the state pays back after a quarter (docs/accize-plan.md §3): today the diesel refund. */
+  | 'excise_refund'
   | 'deadline'
   | 'admin'
   /** A sum the farmer planned in the calendar (calendar/events.ts). */
@@ -181,6 +184,8 @@ export interface TimelineInput {
   rent?: RentInput;
   /** The farm's other contracts (migration 048), their schedules and parties, and what the farm told us for its taxes. */
   contracts?: ContractsInput;
+  /** The excise refunds the farm can count on, one per quarter (cashflow/excise.ts). */
+  exciseRefunds?: readonly ExciseRefundClaim[];
 }
 
 export interface ContractsInput {
@@ -505,6 +510,24 @@ export function buildTimeline(input: TimelineInput, data: AppData, opts: Timelin
       window: null,
       estimated: false,
       unverified: false,
+    });
+  }
+
+  // ── Excise paid back (the diesel refund): the sum is known, the day isn't ────
+  for (const c of input.exciseRefunds ?? []) {
+    const date = windowDate(c.window.start, c.window.end, opts.timing);
+    if (date < from || date > to) continue;
+    entries.push({
+      id: c.id,
+      kind: 'excise_refund',
+      direction: 'in',
+      amount: exact(c.amount),
+      value: c.amount,
+      date,
+      window: c.window,
+      what: c.period,
+      estimated: true,
+      unverified: c.unverified,
     });
   }
 

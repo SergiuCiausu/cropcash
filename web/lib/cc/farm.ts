@@ -5,10 +5,13 @@
    - farm: the signed-in farm, from the saved copy of /api/me plus the outbox. With no copy there is
      no farm (null), and the sign-in guard sends the farmer to /login or /onboarding first. */
 import demoIon from '../../../docs/data/demo-ion.json';
+import type { ApiaAnswers } from '../../../packages/shared/src/reports/apia';
+import type { Livestock } from '../../../packages/shared/src/reports/livestock';
 import type { AppData } from '../../../packages/shared/src/data/index';
 import { farmToday, withOwnCrops, harvestYear, type OwnCrop, type StoredFarm } from '../../../packages/shared/src/farm/index';
 import { todayInRomania } from '../../../packages/shared/src/cashflow/dates';
 import type { StoredEvent } from '../../../packages/shared/src/calendar/events';
+import type { StoredExciseEnrollment } from '../../../packages/shared/src/cashflow/excise';
 import { farmForPages, type MeFarm as LiveMeFarm } from '../live/farm';
 
 /** The saved /api/me copy, with the followed calls the calendar shows offline. */
@@ -86,6 +89,12 @@ export interface FarmState {
   currency: CurrencyChoice;
   /** Every contract, arendă included, and what the farm is for taxes (docs/contracts-plan.md). */
   contracts: FarmContracts;
+  /** „Ai animale?” and the like, on /rapoarte → „Pentru APIA”: from the server copy, or kept on the phone. */
+  apiaAnswers: ApiaAnswers;
+  /** The animals noted on „Pentru APIA”: from the server copy, or kept on the phone. Null: nothing noted. */
+  livestock: Livestock | null;
+  /** The excise schemes the farm follows or joined: from the server copy (with the queue), or kept on the phone. */
+  excise: StoredExciseEnrollment[];
 }
 
 function ownCrops(store: KeyStore, mode: Mode, me: MeFarm | null): OwnCrop[] {
@@ -102,6 +111,13 @@ export function localEvents(store: KeyStore, mode: Mode): StoredEvent[] {
   const saved = readJson<StoredEvent[]>(store, farmKeys(mode).events);
   if (Array.isArray(saved)) return saved;
   return mode === 'demo' ? (demoIon.calendar_events.events as unknown as StoredEvent[]) : [];
+}
+
+/** Off the server the excise choices live on the phone. Ion has the diesel acord for his year (demo-ion.json). */
+export function localExcise(store: KeyStore, mode: Mode): StoredExciseEnrollment[] {
+  const saved = readJson<StoredExciseEnrollment[]>(store, farmKeys(mode).excise);
+  if (Array.isArray(saved)) return saved;
+  return mode === 'demo' ? ((demoIon as { excise_schemes?: StoredExciseEnrollment[] }).excise_schemes ?? []) : [];
 }
 
 function savedPension(store: KeyStore, mode: Mode): number | null {
@@ -139,6 +155,9 @@ export function readFarmState(mode: Mode, store: KeyStore, base: AppData, now: D
     refused: mode === 'farm' ? readOutbox(readJson(store, KEYS.refused)) : [],
     monitor: me ? savedMonitor(store) : null,
     currency: loadCurrency(store),
+    apiaAnswers: (me ? me.apia_facts : readJson<ApiaAnswers>(store, keys.apiaFacts)) ?? {},
+    livestock: (me ? me.livestock : readJson<Livestock>(store, keys.livestock)) ?? null,
+    excise: me ? (me.farm_excise_schemes ?? []) : localExcise(store, mode),
     contracts: me ? meContracts(me) : mode === 'demo' ? ionContracts(readJson<LocalDecisions>(store, keys.contractDecisions) ?? {}) : NO_CONTRACTS,
   };
 }

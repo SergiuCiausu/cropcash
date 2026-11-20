@@ -10,7 +10,11 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useContext, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from 'react';
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl';
 import type { Crop } from '../../../packages/shared/src/data/index';
-import { LPIS_SERVICE_URL, lpisOverlayTiles, type PlotRow, type Position } from '../../../packages/shared/src/plots/index';
+import { LPIS_SERVICE_URL, lpisOverlayTiles, type LpisBloc, type LpisTile, type PlotRow, type Position } from '../../../packages/shared/src/plots/index';
+import { ha } from '../../lib/cc/format';
+import { blocPlaceText } from '../../lib/cc/places';
+import { landUseLabel } from '../plots/filter-text';
+import { BLOC_LAYERS, useBlocLayer } from './useBlocLayer';
 import { storageKey } from '../../lib/paths';
 import { FrameContext } from '../app/context';
 import { NetButton } from '../app/bits';
@@ -25,6 +29,8 @@ export interface FarmMapHandle {
   flyToPlot: (id: string) => void;
   /** Fits these parcels in view; all of them when empty. */
   fitPlots: (ids?: readonly string[]) => void;
+  /** Where the map is looking now, so a drawing can start there. Null before the map is up. */
+  view: () => { centre: Position; zoom: number } | null;
 }
 
 export interface FarmMapProps {
@@ -47,6 +53,10 @@ export interface FarmMapProps {
   soonDays: number;
   /** MapTiler key (publicConfig().maptilerKey); without it there is no „Satelit”. */
   satelliteKey?: string | null;
+  /** „Desenează o parcelă”, from the empty-map note or a tapped bloc (then inside it); no button without it. */
+  onDrawNew?: (bloc?: LpisBloc) => void;
+  /** The blocs of one square of the grid, from the API; without it „Blocuri APIA” is APIA's picture, not tappable. */
+  loadBlocTile?: (t: LpisTile) => Promise<LpisBloc[]>;
   /** Room covered by other things (the side list), so flights centre in what can be seen. */
   padding?: { top: number; right: number; bottom: number; left: number };
   className?: string;
@@ -61,6 +71,10 @@ const PITCH = 55;
 export const MARKER_LIMIT = 50;
 const INTRO_KEY = 'cropcash-map-intro-seen';
 const PLOT_LAYERS = ['cc-plots-3d', 'cc-plots-3d-dim', 'cc-plots-flat', 'cc-points'];
+/** APIA only draws its blocs closer than 1:100 000, so the outlines start at this zoom. */
+export const LPIS_MIN_ZOOM = 13;
+/** Where „Apropie harta” takes the map: a little past the first zoom with blocs. */
+const LPIS_SHOW_ZOOM = 14;
 
 let baseStyle: Promise<StyleJson | null> | null = null;
 /** The base style JSON, fetched once per page; null without internet. */
@@ -212,6 +226,13 @@ export function FarmMap(props: FarmMapProps) {
   const [colorBy, setColorBy] = useState<ColorBy>(props.colorBy ?? 'crop');
   const [satellite, setSatellite] = useState(false);
   const [blocs, setBlocs] = useState(false);
+  /** APIA's map server didn't answer for the blocs. Cleared when the button is pressed again. */
+  const [blocsFailed, setBlocsFailed] = useState(false);
+  const [zoom, setZoom] = useState(0);
+  /** The bloc tapped with „Blocuri APIA” on: its card shows over the map. */
+  const [pickedBloc, setPickedBloc] = useState<LpisBloc | null>(null);
+  /** For the click handler, set up once. */
+  const blocTap = useRef<{ on: boolean; find: (fbid: string) => LpisBloc | undefined }>({ on: false, find: () => undefined });
   const [legendOpen, setLegendOpen] = useState(full);
   const reduced = useMedia('(prefers-reduced-motion: reduce)');
   const hidden = usePageHidden();
@@ -256,6 +277,7 @@ export function FarmMap(props: FarmMapProps) {
     () => ({
       flyToPlot: (id) => map && fit(map, [id]),
       fitPlots: (ids = []) => map && fit(map, ids),
+      view: () => (map ? { centre: map.getCenter().toArray() as Position, zoom: map.getZoom() } : null),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [map],
@@ -285,13 +307,16 @@ export function FarmMap(props: FarmMapProps) {
       const m = created;
       resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => m.resize());
       resize?.observe(box.current);
-      m.on('error', () => {
+      m.on('error', (e) => {
+        if ((e as { sourceId?: string } | undefined)?.sourceId === 'cc-lpis') setBlocsFailed(true);
         if (typeof navigator !== 'undefined' && !navigator.onLine) setOffline(true);
       });
+      m.on('zoomend', () => setZoom(m.getZoom()));
       m.on('load', () => {
         addPlotLayers(m, firstLabelLayer(style), full);
         setLib(() => maplibregl);
         setMap(m);
+        setZoom(m.getZoom());
         if (flight) {
           sessionSet(seenKey);
           m.flyTo({ center: ROMANIA, zoom: 5.6, duration: 1100, essential: true });
@@ -304,8 +329,15 @@ export function FarmMap(props: FarmMapProps) {
       m.on('click', (e) => {
         const hit = m.queryRenderedFeatures(e.point, { layers: PLOT_LAYERS.filter((id) => m.getLayer(id)) })[0];
         const id = (hit?.properties as { id?: string } | undefined)?.id ?? null;
-        latest.current.onSelect?.(id);
+        // A parcel wins over the bloc under it; a bloc is looked at only with „Blocuri APIA” on.
+        const blocHit = !id && blocTap.current.on && m.getLayer(BLOC_LAYERS.fill) ? m.queryRenderedFeatures(e.point, { layers: [BLOC_LAYERS.fill] })[0] : undefined;
+        const fbid = (blocHit?.properties as { fbid?: string } | undefined)?.fbid;
+        const bloc = fbid ? blocTap.current.find(fbid) : undefined;
+        setPickedBloc(bloc ?? null);
+        if (!bloc) latest.current.onSelect?.(id);
       });
+      m.on('mouseenter', BLOC_LAYERS.fill, () => (m.getCanvas().style.cursor = 'pointer'));
+      m.on('mouseleave', BLOC_LAYERS.fill, () => (m.getCanvas().style.cursor = ''));
       for (const id of PLOT_LAYERS) {
         m.on('mouseenter', id, () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', id, () => (m.getCanvas().style.cursor = ''));
@@ -377,6 +409,11 @@ export function FarmMap(props: FarmMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, full, reduced, hidden, selectedKey]);
 
+  // ── APIA blocs as outlines to tap, from the API; APIA's own picture of them without it or when it fails ──
+  const blocLayer = useBlocLayer({ map, on: full && blocs, minZoom: LPIS_MIN_ZOOM, load: props.loadBlocTile, before: 'cc-plots-flat', picked: pickedBloc?.fbid ?? null });
+  blocTap.current = { on: full && blocs && !!props.loadBlocTile, find: blocLayer.find };
+  const rasterBlocs = blocs && (!props.loadBlocTile || blocLayer.failed);
+
   // ── Satellite and APIA blocs, added the first time they're asked for ──
   useEffect(() => {
     if (!map) return;
@@ -385,13 +422,22 @@ export function FarmMap(props: FarmMapProps) {
       map.addSource('cc-sat', { type: 'raster', tiles: [satelliteTiles(satelliteKey)], tileSize: 512, maxzoom: 20, attribution: SATELLITE_ATTRIBUTION });
       map.addLayer({ id: 'cc-sat', type: 'raster', source: 'cc-sat' }, before);
     }
-    if (blocs && !map.getSource('cc-lpis')) {
-      map.addSource('cc-lpis', { type: 'raster', tiles: [lpisOverlayTiles(LPIS_SERVICE_URL, [60, 90, 40])], tileSize: 512, minzoom: 13 });
+    if (rasterBlocs && !map.getSource('cc-lpis')) {
+      map.addSource('cc-lpis', { type: 'raster', tiles: [lpisOverlayTiles(LPIS_SERVICE_URL, [60, 90, 40])], tileSize: 512, minzoom: LPIS_MIN_ZOOM });
       map.addLayer({ id: 'cc-lpis', type: 'raster', source: 'cc-lpis', paint: { 'raster-opacity': 0.8 } }, before);
     }
     if (map.getLayer('cc-sat')) map.setLayoutProperty('cc-sat', 'visibility', satellite ? 'visible' : 'none');
-    if (map.getLayer('cc-lpis')) map.setLayoutProperty('cc-lpis', 'visibility', blocs ? 'visible' : 'none');
-  }, [map, satellite, blocs, satelliteKey]);
+    if (map.getLayer('cc-lpis')) map.setLayoutProperty('cc-lpis', 'visibility', rasterBlocs ? 'visible' : 'none');
+  }, [map, satellite, rasterBlocs, satelliteKey]);
+
+  /** Closer, to where the blocs show: on the farm's parcels when some are placed, else where the map looks now. */
+  function zoomToBlocs() {
+    if (!map) return;
+    const b = boxOf(feats.boxes, []);
+    const center: Position = b ? [(b.west + b.east) / 2, (b.south + b.north) / 2] : (map.getCenter().toArray() as Position);
+    map.easeTo({ center, zoom: Math.max(LPIS_SHOW_ZOOM, map.getZoom()), duration: reduced ? 0 : 900, essential: true });
+  }
+  const blocsTooFar = full && blocs && !!map && zoom < LPIS_MIN_ZOOM;
 
   const animate = full && !reduced && !hidden;
   return (
@@ -414,7 +460,13 @@ export function FarmMap(props: FarmMapProps) {
               Satelit
             </NetButton>
           )}
-          <NetButton className="fm-toggle" reason="Blocurile APIA au nevoie de internet." aria-pressed={blocs} onClick={() => setBlocs((s) => !s)}>
+          <NetButton className="fm-toggle" reason="Blocurile APIA au nevoie de internet." aria-pressed={blocs}
+            onClick={() => {
+              setBlocsFailed(false);
+              setPickedBloc(null);
+              setBlocs((s) => !s);
+            }}
+          >
             Blocuri APIA
           </NetButton>
         </div>
@@ -440,8 +492,59 @@ export function FarmMap(props: FarmMapProps) {
         </div>
       )}
 
-      {offline && <p className="fm-note">Harta are nevoie de internet. Parcelele tale se văd și așa, pe fundal gol.</p>}
-      {full && map && placedCount === 0 && <p className="fm-note">Nicio parcelă nu e încă pe hartă. Adaugă cererea APIA sau desenează una.</p>}
+      <div className="fm-notes">
+        {offline && <p className="fm-note">Harta are nevoie de internet. Parcelele tale se văd și așa, pe fundal gol.</p>}
+        {full && map && placedCount === 0 &&
+          (props.onDrawNew ? (
+            <p className="fm-note fm-note-act">
+              Nicio parcelă nu e încă pe hartă. Adaug-o din cererea APIA sau desenează una.
+              <button type="button" className="fm-note-btn" onClick={() => props.onDrawNew!()}>
+                Desenează o parcelă
+              </button>
+            </p>
+          ) : (
+            <p className="fm-note">Nicio parcelă nu e încă pe hartă.</p>
+          ))}
+        {blocsTooFar && (
+          <p className="fm-note fm-note-act" role="status">
+            Blocurile APIA se văd doar de aproape.
+            <button type="button" className="fm-note-btn" onClick={zoomToBlocs}>
+              Apropie harta
+            </button>
+          </p>
+        )}
+        {full && blocs && blocsFailed && !offline && (
+          <p className="fm-note" role="status">
+            Harta APIA nu răspunde acum. Încearcă din nou mai târziu.
+          </p>
+        )}
+      </div>
+
+      {full && blocs && pickedBloc && <BlocCard bloc={pickedBloc} onClose={() => setPickedBloc(null)} onDraw={props.onDrawNew ? () => props.onDrawNew!(pickedBloc) : undefined} />}
     </div>
+  );
+}
+
+/** A tapped APIA bloc: which it is, where, how big, and a drawing that starts from it. */
+function BlocCard({ bloc, onClose, onDraw }: { bloc: LpisBloc; onClose: () => void; onDraw?: () => void }) {
+  const place = blocPlaceText(bloc) ?? bloc.commune;
+  const facts = [bloc.landUse ? landUseLabel(bloc.landUse) : null, bloc.netAreaAri != null ? `${ha(bloc.netAreaAri)} ha în tot blocul` : null].filter(Boolean).join(' · ');
+  return (
+    <section className="fm-bloc" aria-label={`Blocul fizic ${bloc.bloc}`}>
+      <div className="fm-bloc-head">
+        <h3>Blocul fizic {bloc.bloc}</h3>
+        <button type="button" className="x" aria-label="Închide blocul" onClick={onClose}>
+          ×
+        </button>
+      </div>
+      {place && <p>{place}</p>}
+      {facts && <p className="fm-bloc-facts">{facts}</p>}
+      <p className="fm-bloc-hint">Un bloc poate avea mai mulți fermieri. Parcela ta e doar partea ta din el.</p>
+      {onDraw && (
+        <button type="button" className="btn btn-dark" onClick={onDraw}>
+          Desenează parcela în blocul ăsta
+        </button>
+      )}
+    </section>
   );
 }

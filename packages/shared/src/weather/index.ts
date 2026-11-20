@@ -103,3 +103,6 @@ export function weatherAlerts(days: WeatherDay[], params: WeatherParams): Weathe
   }
   return alerts;
 }
+
+export * from './rain-outlook';
+export * from './rain-climatology';

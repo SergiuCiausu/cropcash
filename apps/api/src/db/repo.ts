@@ -2,7 +2,7 @@ import { EVENT_COLUMNS, OCCURRENCE_COLUMNS } from './events';
 import { EMPLOYEE_COLUMNS, employeeFromRow } from './employees';
 import { CONTRACT_COLUMNS, LANDOWNER_COLUMNS, contractFromRow } from './arenda';
 import { FARM_CONTRACT_COLUMNS, PARTY_COLUMNS, PAYMENT_COLUMNS, farmContractFromRow, paymentsFromRows } from './contracts';
-import type { ApiaDecision, EnvelopeKind, farmSetupRow, Envelopes, FertilizerUse, HarvestsInput, StoredFarm } from '@cropcash/shared';
+import type { ApiaAnswers, ApiaDecision, Livestock, EnvelopeKind, farmSetupRow, Envelopes, FertilizerUse, HarvestsInput, StoredFarm } from '@cropcash/shared';
 import type { SupabaseFactory } from './supabase';
 
 export interface FarmRow extends StoredFarm {
@@ -111,6 +111,10 @@ export interface Repo {
   setHarvests(token: string, farmerId: string, harvests: HarvestsInput, version: number): Promise<number>;
   /** Null removes it, and the plan goes back to the estimate. */
   setApiaDecision(token: string, farmerId: string, decision: ApiaDecision | null): Promise<void>;
+  /** The answers that decide which APIA papers apply (migration 052). */
+  setApiaFacts(token: string, farmerId: string, facts: ApiaAnswers): Promise<void>;
+  /** The animals, the ANSVSA code and the hay (migration 053). */
+  setLivestock(token: string, farmerId: string, livestock: Livestock): Promise<void>;
   setPensionFund(token: string, farmerId: string, fundId: string | null): Promise<void>;
   /** Fixes the monthly salary (bani) the farmer accepted. */
   setSalary(token: string, farmerId: string, salaryBani: number): Promise<void>;
@@ -127,7 +131,7 @@ const parcelRow = (p: NewFarm['parcels'][number]) => ({
 });
 
 export const FARM_SELECT = [
-  'id, name, county, birth_year, start_balance_bani, pension_fund_id, demo_now, stripe_account_id, salary_bani, harvests, harvests_version, apia_decision, own_field_work, farm_mode, leased_in_ari, leased_out_ari, landowner_count, legal_form, vat_status, micro_tax',
+  'id, name, county, birth_year, start_balance_bani, pension_fund_id, demo_now, stripe_account_id, salary_bani, harvests, harvests_version, apia_decision, own_field_work, farm_mode, leased_in_ari, leased_out_ari, landowner_count, legal_form, vat_status, micro_tax, apia_facts, livestock',
   'parcels (crop_id, area_ari, is_arable, planted_month)',
   'envelopes (kind, balance_bani)',
   'expected_payments (id, group_id, kind, direction, amount_probable_bani, window_start, status)',
@@ -147,6 +151,8 @@ export const FARM_SELECT = [
   `parties (${PARTY_COLUMNS})`,
   `contracts (${FARM_CONTRACT_COLUMNS})`,
   `contract_payments (${PAYMENT_COLUMNS})`,
+  // The excise schemes the farm joined (migration 052): an approved diesel acord puts the refund in the plan.
+  'farm_excise_schemes (scheme_id, year, status, acord_on)',
 ].join(', ');
 
 export function supabaseRepo(db: SupabaseFactory): Repo {
@@ -343,6 +349,16 @@ export function supabaseRepo(db: SupabaseFactory): Repo {
 
     async setApiaDecision(token, farmerId, decision) {
       const { error } = await db.forUser(token).from('farmers').update({ apia_decision: decision }).eq('id', farmerId);
+      if (error) throw new RepoError('db_error', error.message);
+    },
+
+    async setApiaFacts(token, farmerId, facts) {
+      const { error } = await db.forUser(token).from('farmers').update({ apia_facts: facts }).eq('id', farmerId);
+      if (error) throw new RepoError('db_error', error.message);
+    },
+
+    async setLivestock(token, farmerId, livestock) {
+      const { error } = await db.forUser(token).from('farmers').update({ livestock }).eq('id', farmerId);
       if (error) throw new RepoError('db_error', error.message);
     },
 

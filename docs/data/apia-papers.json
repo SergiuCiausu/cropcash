@@ -1,0 +1,258 @@
+{
+  "meta": {
+    "description": "Ce depune un fermier la APIA (și la primărie) într-o campanie, ce ține la fermă pentru control și ce raport din /rapoarte îl pregătește. Citit de fila „Pentru APIA și primărie” din /rapoarte (packages/shared/src/reports/apia.ts). Termenele vin din calendar-2026.json (deadline_events) sau, pentru hârtiile care privesc doar unele ferme, din deadline. Planul: docs/rapoarte-apia-plan.md.",
+    "campaign_year": 2026,
+    "checked_on": "2026-11-20",
+    "sources": [
+      "https://apia.org.ro/formulare1386829353/",
+      "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf",
+      "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf",
+      "https://legislatie.just.ro/Public/DetaliiDocument/164301"
+    ]
+  },
+  "facts_note": "applies_if: toate faptele trebuie să fie adevărate. Un fapt pe care aplicația nu-l știe (de exemplu, animalele, pe care nu le ținem încă) pune hârtia la „Poate ți se aplică”, nu o ascunde.",
+  "papers": [
+    {
+      "id": "cerere-suprafata",
+      "group": "apia",
+      "title_ro": "Fișa pentru declarația de suprafață",
+      "about_ro": "Parcelele tale în ordinea din cerere: bloc fizic, parcelă, cod de cultură și hectare. O ai lângă tine când completezi cererea în AGI-Online.",
+      "report": "apia-surface",
+      "deadline_events": ["apia-cerere"],
+      "applies_if": [],
+      "documents_ro": [],
+      "how_ro": "Cererea se face în AGI-Online, la centrul APIA (până la 50 ha la centrul local, peste 50 ha la cel județean). Se semnează până pe 5 iunie. În 2026 nu se mai primesc cereri după termen.",
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf"
+    },
+    {
+      "id": "cerere-hartii",
+      "group": "apia",
+      "title_ro": "Hârtiile de adus la cerere",
+      "about_ro": "Ce îți cere APIA pe lângă cerere, ca să dovedești cine ești și că lucrezi terenul.",
+      "report": null,
+      "deadline_events": ["apia-cerere"],
+      "applies_if": [],
+      "documents_ro": [
+        "Buletinul (sau, la firmă, certificatul de înregistrare și actul constitutiv)",
+        "Dovada contului bancar (IBAN)",
+        "Adeverința de la registrul agricol pe 2026 (primăria o trimite la APIA; dacă depui prima oară, o aduci tu)",
+        "Contractele de concesiune sau de arendă cu primăria sau cu ADS, dacă ai",
+        "Dacă ai primit peste 5.000 de euro plăți directe anul trecut și ai peste 50 ha: dovada de fermier activ (de la ANAF)"
+      ],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf",
+      "note": "Contractele de arendă cu persoane fizice: nu e clar dacă se atașează sau ajung la APIA doar prin registrul agricol. Întreabă la centrul APIA."
+    },
+    {
+      "id": "cerere-zootehnie",
+      "group": "apia",
+      "title_ro": "Declarația pentru animale",
+      "about_ro": "Animalele pe categorii și codul exploatației de la ANSVSA. Se face la centrul APIA, cu programare, înainte de parcele.",
+      "report": "apia-livestock",
+      "deadline_events": ["apia-cerere"],
+      "applies_if": ["animals"],
+      "documents_ro": ["Codul exploatației (ANSVSA)", "Adeverința de la medicul veterinar", "Adeverința de la registrul genealogic, pentru sprijinul cuplat"],
+      "how_ro": null,
+      "status": "confirmat-2026",
+      "source_url": "https://www.ziuaconstanta.ro/images/stories/2026/03/14/DANIELA/14-03-2026-madr-ordinul-67-din-2026-subventii-apia-2026.pdf"
+    },
+    {
+      "id": "cerere-modificari",
+      "group": "apia",
+      "title_ro": "Schimbi sau retragi parcele din cerere",
+      "about_ro": "După 5 iunie poți schimba cultura fără să adaugi suprafață, sau poți retrage parcele, până pe 30 septembrie. Nu și după ce APIA ți-a anunțat un control.",
+      "report": null,
+      "deadline_events": ["apia-retragere"],
+      "applies_if": [],
+      "documents_ro": [],
+      "how_ro": "Cu formularele M1 (schimbare) sau M3 (retragere), la centrul APIA sau în AGI-Online.",
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "motorina-acord",
+      "group": "apia",
+      "title_ro": "Motorina: suprafețele și litrii pe an (Anexa 2)",
+      "about_ro": "Culturile tale, hectarele și cât consum de motorină îți dă legea pe hectar. Merge la cererea de acord pentru anul următor.",
+      "report": "apia-fuel-prior",
+      "deadline_events": ["acciza-acord-prealabil"],
+      "applies_if": ["fuel"],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301",
+      "note": "Ajutorul la motorină merge până la 31.12.2026. Pentru 2027 n-a fost anunțat nimic: depui doar dacă APIA îl prelungește."
+    },
+    {
+      "id": "motorina-trimestru",
+      "group": "apia",
+      "title_ro": "Motorina: situația centralizatoare pe trimestru (Anexa 9)",
+      "about_ro": "Fiecare factură de motorină din trimestru: furnizorul, numărul, data și litrii. O duci la APIA cu cererea de plată.",
+      "report": "apia-fuel-claim",
+      "deadline_events": ["acciza-cerere-t1", "acciza-cerere-t2", "acciza-cerere-t3", "acciza-cerere-t4"],
+      "applies_if": ["fuel"],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "confirmat-2026",
+      "source_url": "https://legislatie.just.ro/Public/DetaliiDocument/164301"
+    },
+    {
+      "id": "cuplat-dovezi",
+      "group": "apia",
+      "title_ro": "Dovezile pentru sprijinul cuplat la culturi",
+      "about_ro": "Dacă ai cerut sprijin cuplat (soia, lucernă, sfeclă de zahăr, legume, porumb siloz): facturile de sămânță certificată și dovada că ai produs sau vândut cât cere APIA pe hectar.",
+      "report": "apia-coupled",
+      "deadline": { "start": null, "end": "2027-03-31", "status": "DE-VERIFICAT", "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf" },
+      "applies_if": ["coupled_crops"],
+      "documents_ro": ["Facturile de sămânță și certificatul lotului (sau buletinul oficial de analiză)", "Facturile, bonurile sau carnetul de comercializare pentru ce ai vândut", "La sfecla de zahăr: contractul cu fabrica, până pe 1 octombrie"],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf",
+      "note": "31 martie 2027 e confirmat pentru sfecla de zahăr și pentru răsaduri; la celelalte culturi e DE-VERIFICAT."
+    },
+    {
+      "id": "fermier-activ",
+      "group": "apia",
+      "title_ro": "Dovada de fermier activ (din 2027)",
+      "about_ro": "Din campania 2027, fermele cu teren arabil arată că lucrează pământul: facturile de inputuri și documentele de semănat.",
+      "report": "apia-active-farmer",
+      "deadline": {
+        "start": null,
+        "end": "2027-08-31",
+        "status": "DE-VERIFICAT",
+        "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+      },
+      "applies_if": [
+        "arable"
+      ],
+      "documents_ro": [
+        "Facturile de sămânță, îngrășăminte și tratamente din campanie",
+        "Documentele lotului de sămânță (eticheta sau buletinul de analiză)"
+      ],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf",
+      "note": "Ord. MADR 44/2026, art. 25¹. Cine trebuie s-o depună și cum se depune sunt încă de verificat."
+    },
+    {
+      "id": "pajisti-fan",
+      "group": "apia",
+      "title_ro": "Dovada pentru fân (Anexa 26)",
+      "about_ro": "Dacă ai pajiște permanentă și n-ai destule animale pe ea (sub 0,3 UVM pe hectar): dovada că ai cosit și ai strâns sau vândut fânul.",
+      "report": "apia-hay",
+      "deadline": { "start": null, "end": "2026-10-15", "status": "confirmat-2026", "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf" },
+      "applies_if": ["grassland"],
+      "documents_ro": ["Documentele de depozitare sau de vânzare a fânului"],
+      "how_ro": "Cositul se face între 15 iunie și 1 octombrie.",
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "bio-certificat",
+      "group": "apia",
+      "title_ro": "Certificatul de agricultură ecologică",
+      "about_ro": "Dacă ai cerut plata pentru agricultură ecologică: certificatul și anexa lui, de la organismul de control.",
+      "report": null,
+      "deadline": { "start": null, "end": "2026-10-15", "status": "DE-VERIFICAT", "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf" },
+      "applies_if": ["organic"],
+      "documents_ro": ["Certificatul de conformitate și anexa lui"],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf"
+    },
+    {
+      "id": "animale-decont",
+      "group": "apia",
+      "title_ro": "Decontul pentru bunăstarea vacilor de lapte (PD-07) sau pășunatul extensiv (PD-27)",
+      "about_ro": "Lista animalelor pe crotalii (Anexa 16¹ sau 19¹), caietul de pășunat și facturile, pentru tot anul 2026.",
+      "report": "apia-animal-decont",
+      "deadline": { "start": "2027-01-01", "end": "2027-01-31", "status": "DE-VERIFICAT", "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf" },
+      "applies_if": ["animals"],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf"
+    },
+    {
+      "id": "geofoto",
+      "group": "apia",
+      "title_ro": "Pozele GeoFoto pe terenul necultivat",
+      "about_ro": "Ca terenul necultivat să conteze la cele 2% neproductive (PD-28): o poză pe fiecare parcelă până pe 5 iunie și încă una între 1 septembrie și 30 noiembrie.",
+      "report": null,
+      "deadline_events": ["geofoto-primavara", "geofoto-toamna"],
+      "applies_if": ["fallow"],
+      "documents_ro": [],
+      "how_ro": "Din aplicația GeoFoto a APIA, pe telefon, stând pe parcelă.",
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf"
+    },
+    {
+      "id": "forta-majora",
+      "group": "apia",
+      "title_ro": "Anunți APIA când se întâmplă ceva",
+      "about_ro": "Seceta, grindina sau altă nenorocire, o cultură de toamnă întoarsă, ferma dată altcuiva: APIA trebuie anunțată în scris, în câteva zile.",
+      "report": "apia-notice",
+      "deadline_events": ["apia-forta-majora", "apia-schimbi-cultura", "apia-transfer", "apia-modificari"],
+      "applies_if": [],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf"
+    },
+    {
+      "id": "registru-tratamente",
+      "group": "control",
+      "title_ro": "Registrul tratamentelor",
+      "about_ro": "Erbicidele, fungicidele și insecticidele date, pe parcele. Îl ții 3 ani și îl arăți la control.",
+      "report": "phyto-register",
+      "deadline_events": [],
+      "applies_if": ["arable"],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": null,
+      "note": "Rubricile oficiale ale registrului (SMR 8) sunt DE-VERIFICAT."
+    },
+    {
+      "id": "registru-fertilizare",
+      "group": "control",
+      "title_ro": "Planul și registrul de fertilizare",
+      "about_ro": "Câte îngrășăminte cu azot dai pe fiecare cultură și când. Îl arăți la control.",
+      "report": "fertilizer-register",
+      "deadline_events": [],
+      "applies_if": ["arable"],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": null
+    },
+    {
+      "id": "caiet-ecoschema",
+      "group": "control",
+      "title_ro": "Caietul eco-schemei pentru teren arabil (PD-04)",
+      "about_ro": "Ce ai pus pe fiecare parcelă, câte culturi ai și ce acoperă terenul între 1 și 15 octombrie. Îl arăți la control.",
+      "report": "apia-eco-pd04",
+      "deadline_events": [],
+      "applies_if": ["arable"],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": null
+    },
+    {
+      "id": "registrul-agricol",
+      "group": "primarie",
+      "title_ro": "Terenul și culturile",
+      "about_ro": "Parcelele, ce e pe ele și suprafețele, ca să le declari la registrul agricol.",
+      "report": "land-summary",
+      "deadline_events": ["registrul-agricol-iarna", "registrul-agricol-mai"],
+      "applies_if": [],
+      "documents_ro": [],
+      "how_ro": null,
+      "status": "DE-VERIFICAT",
+      "source_url": null
+    }
+  ]
+}

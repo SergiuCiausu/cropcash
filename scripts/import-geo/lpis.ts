@@ -13,14 +13,14 @@
 import { join } from 'node:path';
 import { countyCountQuery, countyPageQuery, LPIS_SERVICE_URL, pageOffsets, parseBlocPage, parseCount, type LpisBlocRow, type ParsedPage } from '../../packages/shared/src/plots/index';
 import lpisInfo from '../../docs/data/lpis.json';
-import { CACHE, cachedText, counties, db, flag, politeFetch, wait } from './common';
+import { CACHE, cachedText, counties, db, flag, politeJsonText, wait } from './common';
 
 const YEAR = lpisInfo.layer_year;
 const BATCH = 500;
 
 async function county(code: string): Promise<{ rows: LpisBlocRow[]; skipped: ParsedPage['skipped'] }> {
   const dir = join(CACHE, 'lpis', String(YEAR), code);
-  const count = parseCount(JSON.parse(await cachedText(join(dir, 'count.json'), async () => (await politeFetch(countyCountQuery(LPIS_SERVICE_URL, code))).text())));
+  const count = parseCount(JSON.parse(await cachedText(join(dir, 'count.json'), async () => politeJsonText(countyCountQuery(LPIS_SERVICE_URL, code)))));
   const rows: LpisBlocRow[] = [];
   const skipped: ParsedPage['skipped'] = [];
   for (const offset of pageOffsets(count)) {
@@ -28,7 +28,7 @@ async function county(code: string): Promise<{ rows: LpisBlocRow[]; skipped: Par
     let fetched = false;
     const text = await cachedText(file, async () => {
       fetched = true;
-      return (await politeFetch(countyPageQuery(LPIS_SERVICE_URL, code, offset))).text();
+      return politeJsonText(countyPageQuery(LPIS_SERVICE_URL, code, offset));
     });
     const page = parseBlocPage(JSON.parse(text), code);
     rows.push(...page.rows);

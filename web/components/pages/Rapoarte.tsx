@@ -1,5 +1,6 @@
 'use client';
-/* "Rapoarte": a PDF of the farm's money and land, for the farmer, the accountant or an institution.
+/* "Rapoarte": a PDF of the farm's money and land, for the farmer, the accountant, or the papers APIA
+   and the primărie ask of this farm (components/reports/ApiaPapers.tsx).
    Shared by /rapoarte and /ferma-lui-ion/rapoarte (screens/rapoarte.tsx). Made on the phone from the
    saved farm, so it works without internet and on Ion's farm. On a farm with an account, the farmer
    can also let the accountant in to make the reports themselves (Sharing; that part needs internet). */
@@ -7,6 +8,7 @@ import { useContext, useState } from 'react';
 import { useFarm, useView } from '../../lib/cc/react';
 import { REPORTS } from '../../lib/reports/build';
 import { FrameContext } from '../app/context';
+import { ApiaPapers } from '../reports/ApiaPapers';
 import { ReportCards } from '../reports/ReportCards';
 import { Sharing } from '../reports/Sharing';
 import '../../styles/reports.css';
@@ -14,7 +16,7 @@ import '../../styles/reports.css';
 const AUDIENCES = [
   ['farmer', 'Pentru mine'],
   ['accountant', 'Pentru contabil'],
-  ['institution', 'Pentru instituții'],
+  ['institution', 'Pentru APIA'],
 ] as const;
 type Audience = (typeof AUDIENCES)[number][0];
 
@@ -24,6 +26,7 @@ export default function Rapoarte() {
   const { notify } = useContext(FrameContext);
   const [audience, setAudience] = useState<Audience>('farmer');
   const reports = REPORTS.filter((r) => r.audiences.includes(audience));
+  const onSaved = () => notify({ tone: 'info', title: 'Raportul e gata', body: 'Îl găsești în Descărcări.' });
   return (
     <>
       <header className="page-h">
@@ -42,13 +45,8 @@ export default function Rapoarte() {
           </button>
         ))}
       </div>
-      <ReportCards
-        reports={reports}
-        plots="own"
-        farm={farm}
-        view={view}
-        onSaved={() => notify({ tone: 'info', title: 'Raportul e gata', body: 'Îl găsești în Descărcări.' })}
-      />
+      {/* For APIA and the primărie: the papers this farm files, from docs/data/apia-papers.json, not a fixed list. */}
+      {audience === 'institution' ? <ApiaPapers onSaved={onSaved} /> : <ReportCards reports={reports} plots="own" farm={farm} view={view} onSaved={onSaved} />}
       {farm.me ? (
         <div className="bento">
           <Sharing farmName={view.farm.name} />

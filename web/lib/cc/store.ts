@@ -4,6 +4,8 @@
    page always agree, and nothing reloads.
    Plain TypeScript with no React and no DOM, so it's tested in Node (store.test.ts). */
 import type { AppData, Override } from '../../../packages/shared/src/data/index';
+import type { ApiaAnswers } from '../../../packages/shared/src/reports/apia';
+import type { Livestock } from '../../../packages/shared/src/reports/livestock';
 import type { CurrencyCode, ExchangeRates } from '../../../packages/shared/src/currency/index';
 import { farmChange, farmEdit, harvestsDocument } from '../live/farm';
 import { newIntentKey } from '../live/intent';
@@ -23,6 +25,8 @@ import { parsePredictionData, readPredictions, savePredictions, withPredictions 
 import { DEMO_KEY_PREFIX } from '../paths';
 import { applyEventWrite, type EventWriteName } from '../../../packages/shared/src/calendar/events';
 import { findFunction } from '../../../packages/shared/src/functions/registry';
+import { exciseEnrollmentRefusal, SetExciseEnrollmentInputSchema, type SetExciseEnrollmentInput } from '../../../packages/shared/src/data/excise';
+import { withEnrollment } from '../../../packages/shared/src/cashflow/excise';
 import type { DocumentReading } from '../../../packages/shared/src/documents/index';
 import { farmKeys, forgetSession, KEYS, memoryStore, readJson, remove, writeJson, writeText, type KeyStore, type Mode } from './storage';
 
@@ -505,6 +509,35 @@ export function createStore(deps: StoreDeps) {
     reload();
   }
 
+  /** The answers on „Pentru APIA”. Signed in they're saved on the farm and need internet; on Ion's farm they stay on the phone. */
+  async function setApiaAnswers(answers: ApiaAnswers) {
+    if (farmOrThrow().me) return send(({ write }) => write('set_apia_facts', answers));
+    writeJson(store, farmKeys(mode).apiaFacts, answers);
+    reload();
+  }
+
+  /**
+   * An excise scheme the farm follows or joined (/subventii → „Accize”, docs/accize-plan.md). Signed in it is sent, or
+   * waits in the queue: it only notes the acord. On Ion's farm it stays on the phone. Either way the catalogue
+   * decides first, as the API does, so the phone never shows what the server would refuse.
+   */
+  async function setExcise(raw: { schemeId: string; year: number; status: SetExciseEnrollmentInput['status']; acordOn?: string | null }) {
+    const farm = farmOrThrow();
+    const input = SetExciseEnrollmentInputSchema.parse(raw);
+    const refusal = exciseEnrollmentRefusal(farm.farmData.excise, input);
+    if (refusal) throw new Error(refusal);
+    if (farm.me) return send(({ write }) => write('set_excise_enrollment', input));
+    writeJson(store, farmKeys(mode).excise, withEnrollment(farm.excise, input));
+    reload();
+  }
+
+  /** The animals on „Pentru APIA”. Signed in they're saved on the farm and need internet; on Ion's farm they stay on the phone. */
+  async function setLivestock(livestock: Livestock) {
+    if (farmOrThrow().me) return send(({ write }) => write('set_livestock', livestock));
+    writeJson(store, farmKeys(mode).livestock, livestock);
+    reload();
+  }
+
   /** Follows calls. Signed in it's saved on the farm and needs internet (never queued). */
   async function setFollow(keys: string[], on: boolean) {
     if (farmOrThrow().me) {
@@ -609,6 +642,9 @@ export function createStore(deps: StoreDeps) {
     setTaskDone,
     eventWrite,
     decideContract,
+    setApiaAnswers,
+    setLivestock,
+    setExcise,
     setFollow,
     setCurrency,
     setRates,

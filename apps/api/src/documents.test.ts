@@ -17,14 +17,52 @@ const farm = (): FarmRow => ({ id: 'f1', name: 'Ion', birth_year: 1971, parcels:
 function setup({ read, readContract, hasFarm = true }: { read?: DocumentReader; readContract?: ContractReader; hasFarm?: boolean } = {}) {
   const row = farm();
   const setApiaDecision = vi.fn(async () => {});
-  const repo = { getMyFarm: vi.fn(async () => (hasFarm ? row : null)), setApiaDecision } as unknown as Repo;
+  const setApiaFacts = vi.fn(async () => {});
+  const setLivestock = vi.fn(async () => {});
+  const repo = { getMyFarm: vi.fn(async () => (hasFarm ? row : null)), setApiaDecision, setApiaFacts, setLivestock } as unknown as Repo;
   const verifyToken = async (token: string) => {
     if (!token.startsWith('good')) throw new Error('bad token');
     return { userId: `user-${token}` };
   };
   const app = createApp({ corsOrigins: [], verifyToken, repo, data, readDocument: read, readContract, now: () => new Date('2026-11-07T10:00:00Z') });
-  return { app, repo, setApiaDecision };
+  return { app, repo, setApiaDecision, setApiaFacts, setLivestock };
 }
+
+describe('PUT /api/farmers/me/livestock', () => {
+  it('saves the animals on the farm', async () => {
+    const { app, setLivestock } = setup();
+    const body = { counts: { bovine_over_2y: 12, sheep: 40 }, ansvsaCode: 'RO1234567890', dairyCows: 10 };
+    expect((await request(app).put('/api/farmers/me/livestock').set(auth).send(body)).status).toBe(204);
+    expect(setLivestock).toHaveBeenCalledWith('good', 'f1', body);
+  });
+
+  it('refuses a category it doesn’t know, more dairy cows than cows, and a float', async () => {
+    const { app, setLivestock } = setup();
+    for (const body of [{ counts: { llamas: 2 } }, { counts: { bovine_over_2y: 2 }, dairyCows: 3 }, { counts: { sheep: 1.5 } }]) {
+      expect((await request(app).put('/api/farmers/me/livestock').set(auth).send(body)).status).toBe(400);
+    }
+    expect((await request(app).put('/api/farmers/me/livestock').send({ counts: {} })).status).toBe(401);
+    expect(setLivestock).not.toHaveBeenCalled();
+  });
+});
+
+describe('PUT /api/farmers/me/apia-facts', () => {
+  it('saves the answers on the farm', async () => {
+    const { app, setApiaFacts } = setup();
+    const facts = { animals: false, coupledCrops: ['soia'] };
+    expect((await request(app).put('/api/farmers/me/apia-facts').set(auth).send(facts)).status).toBe(204);
+    expect(setApiaFacts).toHaveBeenCalledWith('good', 'f1', facts);
+  });
+
+  it('refuses keys it doesn’t know, no session and no farm', async () => {
+    const { app, setApiaFacts } = setup();
+    expect((await request(app).put('/api/farmers/me/apia-facts').set(auth).send({ animals: 'da' })).status).toBe(400);
+    expect((await request(app).put('/api/farmers/me/apia-facts').set(auth).send({ pigs: true })).status).toBe(400);
+    expect((await request(app).put('/api/farmers/me/apia-facts').send({ animals: true })).status).toBe(401);
+    expect(setApiaFacts).not.toHaveBeenCalled();
+    expect((await request(setup({ hasFarm: false }).app).put('/api/farmers/me/apia-facts').set(auth).send({})).status).toBe(404);
+  });
+});
 
 describe('POST /api/documents/read', () => {
   it('needs a session, before it reads the body', async () => {

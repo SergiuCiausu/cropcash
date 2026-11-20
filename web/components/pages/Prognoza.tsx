@@ -14,6 +14,7 @@ import { CropBreakdown } from '../app/CropBreakdown';
 import FarmChart from '../app/FarmChart';
 import { PageLink } from '../app/Frame';
 import { Drivers } from '../app/Drivers';
+import { RainOutlookCard } from '../app/RainOutlook';
 import { CompareTable, FutureNote } from '../app/PageNotes';
 import { lossLine } from '../../lib/ui/loss';
 
@@ -250,6 +251,7 @@ export default function Prognoza() {
           </section>
         )}
       </div>
+      <RainOutlookCard view={view} cropId={crop?.id} />
       {!crop && year === 'bad' && (
         <section className="cta field verdict" id="bad">
           <div>

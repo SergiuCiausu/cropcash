@@ -3,7 +3,7 @@
    county, a bloc newer than the import) or when the copy can't be read (not imported yet). The copy is
    public reference data, so it is read with the service client: the route is signed-in only anyway. */
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { PlotGeometrySchema, PositionSchema, type LpisBloc, type LpisCommune, type Position } from '@cropcash/shared';
+import { lpisTileBox, PlotGeometrySchema, PositionSchema, type LpisBloc, type LpisCommune, type Position } from '@cropcash/shared';
 import { z } from 'zod';
 import type { LpisSource } from './client';
 
@@ -51,6 +51,11 @@ export function dbLpisSource(sb: Pick<SupabaseClient, 'rpc'>): LpisSource {
       const c = PositionSchema.safeParse(await call<unknown>('siruta_commune_centre', { p_siruta: siruta }));
       return c.success ? (c.data as Position) : null;
     },
+    async tile(t) {
+      const b = lpisTileBox(t);
+      const list = await call<unknown[]>('lpis_blocs_in', { p_west: b.west, p_south: b.south, p_east: b.east, p_north: b.north });
+      return (list ?? []).map(toBloc).filter((x): x is LpisBloc => !!x);
+    },
   };
 }
 
@@ -75,5 +80,6 @@ export function localFirst(local: LpisSource, remote: LpisSource, warn: (msg: st
     at: (p) => first(() => local.at(p), (v) => v.length > 0, () => remote.at(p)),
     communes: (c) => first(() => local.communes(c), (v) => v.length > 0, () => remote.communes(c)),
     communeCentre: (s) => first(() => local.communeCentre(s), (v) => v !== null, () => remote.communeCentre(s)),
+    tile: (t) => first(() => local.tile(t), (v) => v.length > 0, () => remote.tile(t)),
   };
 }

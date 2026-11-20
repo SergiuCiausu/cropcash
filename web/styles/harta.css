@@ -8,7 +8,7 @@
 .hm-empty { position: absolute; left: 50%; bottom: 16px; translate: -50% 0; margin: 0; padding: 8px 14px; border-radius: 999px; background: var(--surface); box-shadow: 0 4px 18px rgba(20, 32, 26, .12); font-size: 14px; white-space: nowrap; }
 .hm-msg { display: grid; gap: 8px; justify-items: start; padding: 16px; border: 1px dashed var(--hair-2); border-radius: 16px; color: var(--text-2); font-size: 15px; line-height: 1.45; }
 .hm-msg p { margin: 0; }
-.hm-head-act { display: flex; align-items: flex-end; }
+.hm-head-act { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
 
 .hm-grip { display: grid; justify-items: center; gap: 4px; width: 100%; min-height: 44px; padding: 6px 0 2px; border: 0; background: none; color: var(--text-2); font-size: 13px; }
 .hm-grip span { width: 40px; height: 4px; border-radius: 4px; background: var(--hair-2); }
@@ -99,6 +99,10 @@
 .pc-history li { display: flex; justify-content: space-between; gap: 12px; }
 .pc-history li span:first-child { color: var(--text-2); }
 .pc-unplaced p { margin: 0; font-size: 14.5px; line-height: 1.45; }
+.pc-unplaced-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.pc-unplaced-acts .btn { margin: 0; }
+.np-area { margin: 12px 0 0; font-size: 15px; font-variant-numeric: tabular-nums; }
+.np-change { margin: 12px 0 0; }
 .pc-acts { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; margin-top: 8px; border-top: 1px solid var(--hair); }
 .pc-note { margin: 8px 0 0; }
 

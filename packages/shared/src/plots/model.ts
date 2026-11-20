@@ -105,6 +105,9 @@ export interface StoredOperation {
   product: string | null;
   dose: string | null;
   note?: string | null;
+  /** A treatment's target (boala, dăunătorul, buruiana) and who applied it (migration 051): the register's columns. */
+  target?: string | null;
+  operator?: string | null;
   transaction_id: string | null;
   template_id: string | null;
   /** Only on the phone: noted or changed without internet, still in the queue (step 11). */
@@ -168,6 +171,8 @@ export const OperationInputSchema = z
     product: Text(120).nullable().optional(),
     dose: Text(60).nullable().optional(),
     note: Text(200).nullable().optional(),
+    target: Text(120).nullable().optional(),
+    operator: Text(80).nullable().optional(),
     transactionId: z.uuid().nullable().optional(),
     templateId: Text(60).nullable().optional(),
     clientId: z.uuid().optional(),

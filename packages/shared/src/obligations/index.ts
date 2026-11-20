@@ -7,7 +7,8 @@ import { fuelLines, type FuelExcise } from '../reports/fuel';
 import type { ReportRecord } from '../reports/ledger';
 import { currentPeriod, inPeriod, periodOf, type Period } from '../reports/period';
 
-function addYears(iso: string, k: number): string {
+/** The same day `k` years later. Exported for the APIA papers (reports/apia.ts), which project dates the same way. */
+export function shiftYears(iso: string, k: number): string {
   const y = +iso.slice(0, 4) + k;
   const md = iso.slice(5, 10);
   // 29 February in a year without it: the 28th.
@@ -73,9 +74,9 @@ function itemsOf(ev: CalendarEvent, input: ObligationsInput): ObligationItem[] {
   const out: ObligationItem[] = [];
   const until = addDays(input.today, input.horizonDays);
   for (let k = 0; ; k++) {
-    const end = addYears(ev.end, k);
+    const end = shiftYears(ev.end, k);
     if (end > until) break;
-    const start = ev.start ? addYears(ev.start, k) : null;
+    const start = ev.start ? shiftYears(ev.start, k) : null;
     if (ev.repeat_until && (start ?? end) > ev.repeat_until) break;
     if (end < input.today) continue;
     out.push({

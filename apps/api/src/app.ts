@@ -26,14 +26,19 @@ import { arendaRouter } from './routes/arenda';
 import type { ArendaStore } from './db/arenda';
 import { allFarmsContracts, contractsRouter } from './routes/contracts';
 import type { ContractStore } from './db/contracts';
+import { exciseRouter } from './routes/excise';
+import type { ExciseStore } from './db/excise';
 import type { EmployeeStore } from './db/employees';
 import { membersRouter } from './routes/members';
 import type { MemberStore } from './db/members';
 import { recordsRouter } from './routes/records';
 import { sourcesRouter, type SourcesDeps } from './routes/sources';
 import { weatherRouter } from './routes/weather';
+import { rainOutlookRouter } from './routes/rain-outlook';
+import { createRainOutlookService, type RainOutlookService } from './rain-outlook';
 import { moneyRouter, webhookRouter, type MoneyDeps } from './routes/money';
 import { predictionsRouter, type PredictionDeps } from './routes/admin';
+import { verifyRouter, type VerifyDeps } from './routes/verify';
 import { createWeatherService, type WeatherService } from './weather';
 
 export interface AppDeps {
@@ -46,6 +51,8 @@ export interface AppDeps {
   now?: () => Date;
   /** Defaults to the public Open-Meteo API. Replaced in tests. */
   weather?: WeatherService;
+  /** Rain over the next years. Defaults to the built file plus the public Seasonal API. Replaced in tests. */
+  rainOutlook?: RainOutlookService;
   /** Defaults to the public Frankfurter API. Replaced in tests. */
   getRates?: RatesProvider;
   /** What the monitor found. Without it, those reads answer 503. */
@@ -75,6 +82,8 @@ export interface AppDeps {
   arenda?: ArendaStore;
   /** The farm's other contracts (migration 048). Without it, those routes don't exist. */
   contracts?: ContractStore;
+  /** The excise schemes the farm joined (migration 052). Without it, those routes don't exist. */
+  excise?: ExciseStore;
   /** Who else sees the farm's reports (migration 028). Without it, those routes don't exist. */
   members?: MemberStore;
   /**
@@ -82,6 +91,8 @@ export interface AppDeps {
    * every route reads the version in force. Without it, those routes don't exist.
    */
   predictions?: PredictionDeps;
+  /** The answers to „De verificat” (migration 054). Without it, those routes don't exist. */
+  verify?: VerifyDeps;
 }
 
 export function createApp({
@@ -92,6 +103,7 @@ export function createApp({
   subsidyParams = {},
   now = () => new Date(),
   weather = createWeatherService({ data }),
+  rainOutlook = createRainOutlookService({ data }),
   getRates = exchangeRatesProvider(),
   monitor,
   sources,
@@ -107,8 +119,10 @@ export function createApp({
   employees,
   arenda,
   contracts,
+  excise,
   members,
   predictions,
+  verify,
 }: AppDeps) {
   const reads = { repo, data, params: subsidyParams, now, getRates, monitor, allFarms: contracts ? (token: string) => allFarmsContracts(contracts, data, now, token) : undefined };
   const app = express();
@@ -137,6 +151,7 @@ export function createApp({
   app.use('/api', assistantRouter(reads, assistant, assistantDailyLimit));
   app.use('/api', opportunitiesRouter(repo));
   app.use('/api', weatherRouter(repo, weather));
+  app.use('/api', rainOutlookRouter(repo, rainOutlook));
   if (fertilizers) app.use('/api', fertilizersRouter(fertilizers));
   if (plots) app.use('/api', plotsRouter(plots));
   if (lpis) app.use('/api', lpisRouter(lpis));
@@ -144,9 +159,11 @@ export function createApp({
   if (employees) app.use('/api', employeesRouter(repo, employees, now));
   if (arenda) app.use('/api', arendaRouter(repo, arenda, now));
   if (contracts) app.use('/api', contractsRouter(repo, contracts, data, now));
+  if (excise) app.use('/api', exciseRouter(repo, excise, data));
   if (members) app.use('/api', membersRouter({ repo, members, webOrigins: corsOrigins, now }));
   if (money) app.use('/api', moneyRouter(money));
   if (predictions) app.use('/api', predictionsRouter(predictions));
+  if (verify) app.use('/api', verifyRouter(verify));
 
   // Express 5 forwards rejected promises here. Never leak internals to the client.
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

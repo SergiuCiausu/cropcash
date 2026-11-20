@@ -85,6 +85,8 @@ export const OperationPatchSchema = z
     product: z.string().trim().min(1).max(120).nullable().optional(),
     dose: z.string().trim().min(1).max(60).nullable().optional(),
     note: z.string().trim().min(1).max(200).nullable().optional(),
+    target: z.string().trim().min(1).max(120).nullable().optional(),
+    operator: z.string().trim().min(1).max(80).nullable().optional(),
     transactionId: z.uuid().nullable().optional(),
   })
   .refine((o) => o.status !== 'done' || o.onDate !== null, { message: 'done needs a date', path: ['onDate'] });
@@ -99,6 +101,8 @@ const OPERATION_KEYS = {
   product: 'product',
   dose: 'dose',
   note: 'note',
+  target: 'target',
+  operator: 'operator',
   transactionId: 'transaction_id',
 } as const;
 

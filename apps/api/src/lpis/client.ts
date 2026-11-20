@@ -14,6 +14,7 @@ import {
   parseExtentCentre,
   type LpisBloc,
   type LpisCommune,
+  type LpisTile,
   type Position,
 } from '@cropcash/shared';
 
@@ -29,6 +30,8 @@ export interface LpisSource {
   communes(county: string): Promise<LpisCommune[]>;
   /** The middle of a UAT's blocs, or null when it has none. */
   communeCentre(siruta: number): Promise<Position | null>;
+  /** The blocs in one square of the map's grid (lpis-tiles.ts), for „Blocuri APIA”. */
+  tile(t: LpisTile): Promise<LpisBloc[]>;
 }
 
 export interface LpisClientOptions {
@@ -113,6 +116,9 @@ export function lpisClient({ serviceUrl, cacheDir = process.env.LPIS_CACHE_DIR |
     },
     communeCentre(siruta) {
       return ask(q.communeExtent(siruta), parseExtentCentre, (c) => c === null);
+    },
+    tile(t) {
+      return ask(q.tile(t), parseBlocs, (b) => b.length === 0);
     },
   };
 }

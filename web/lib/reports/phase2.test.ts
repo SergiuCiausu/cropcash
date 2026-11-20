@@ -124,7 +124,11 @@ describe('the land reports', () => {
       operations: [op('t1', 'p1', { harvest_year: 2027, kind: 'herbicide', status: 'done', on_date: '2027-04-10', product: 'Produs X', dose: '1 l/ha' })],
     };
     const m = makeReport('phyto-register', periodOf('harvest', '2027'), farm, view, NOW.getTime(), plots);
-    expect(table(m.sections, 'Tratamente făcute')!.rows[0].cells).toEqual(['1', '10.04.2027', 'La drum', view.cropName('grau'), 'Erbicid', 'Produs X', '1 l/ha', '8 ha']);
+    expect(table(m.sections, 'Tratamente făcute')!.rows[0].cells).toEqual(['1', '10.04.2027', 'La drum', view.cropName('grau'), 'Erbicid', 'Produs X', '1 l/ha', '8 ha', '', '']);
+    expect(m.missing!.map((x) => x.text)).toEqual(['Un tratament fără motiv (boala, dăunătorul sau buruiana).', 'Un tratament fără cine l-a aplicat.']);
+    const noted = makeReport('phyto-register', periodOf('harvest', '2027'), farm, view, NOW.getTime(), { ...plots, operations: [{ ...plots.operations[0], target: 'Mohor', operator: 'Ion' }] });
+    expect(table(noted.sections, 'Tratamente făcute')!.rows[0].cells.slice(8)).toEqual(['Mohor', 'Ion']);
+    expect(noted.missing).toEqual([]);
   });
 });
 
@@ -145,8 +149,8 @@ describe('what was left on each crop', () => {
 });
 
 describe('the catalogue', () => {
-  it('gives institutions the land and treatment reports', () => {
-    expect(REPORTS.filter((r) => r.audiences.includes('institution')).map((r) => r.id)).toEqual(['phyto-register', 'land-summary']);
+  it('gives institutions the land and treatment reports, and the APIA papers', () => {
+    expect(REPORTS.filter((r) => r.audiences.includes('institution')).map((r) => r.id)).toEqual(['phyto-register', 'land-summary', 'apia-surface', 'apia-fuel-claim', 'apia-fuel-prior', 'apia-coupled', 'apia-eco-pd04', 'fertilizer-register', 'apia-notice', 'apia-checklist', 'apia-livestock', 'apia-hay', 'apia-animal-decont', 'apia-active-farmer']);
   });
 
   it('prints each new report as a PDF', async () => {

@@ -3,9 +3,10 @@ import { MONEY_FARM_SELECT } from './db/admin';
 import { describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { buildFarmPlan, computeFarmPlan, findFunction, loadData, planUnverified, planView } from '@cropcash/shared';
-import type { ApiaDecision, HarvestsInput } from '@cropcash/shared';
+import type { ApiaAnswers, ApiaDecision, Livestock, HarvestsInput } from '@cropcash/shared';
 import { createApp } from './app';
 import { WeatherUnavailableError, type WeatherService } from './weather';
+import { RainOutlookUnavailableError, type RainOutlookService } from './rain-outlook';
 import { RepoError, type FarmRow, type NewCredit, type NewExpense, type NewFarm, type NewSale, type Repo } from './db/repo';
 
 const data = loadData();
@@ -81,6 +82,12 @@ function memoryRepo(initial: Record<string, FarmRow> = {}) {
     }),
     setApiaDecision: vi.fn(async (token: string, _farmerId: string, decision: ApiaDecision | null) => {
       farms[token]!.apia_decision = decision;
+    }),
+    setApiaFacts: vi.fn(async (token: string, _farmerId: string, facts: ApiaAnswers) => {
+      farms[token]!.apia_facts = facts;
+    }),
+    setLivestock: vi.fn(async (token: string, _farmerId: string, livestock: Livestock) => {
+      farms[token]!.livestock = livestock;
     }),
     setSalary: vi.fn(async (token: string, _farmerId: string, salaryBani: number) => {
       farms[token]!.salary_bani = salaryBani;
@@ -438,6 +445,50 @@ describe('GET /api/weather', () => {
       .set('Authorization', auth);
     expect(res.status).toBe(503);
     expect(res.body.error).toBe('weather_unavailable');
+  });
+});
+
+describe('GET /api/rain-outlook', () => {
+  const outlook = { countyCode: 'TR', years: null, months: [], monthsFetchedAt: '2026-11-20T10:00:00.000Z', monthsStale: false };
+  const farm: FarmRow = { id: 'f', name: 'Ion', county: 'TR', birth_year: 1971, start_balance_bani: 0, parcels: [] };
+  const auth = 'Bearer good-1';
+  const appWith = (repo: Repo, rainOutlook: RainOutlookService) =>
+    createApp({ corsOrigins: ['http://localhost:5173'], verifyToken, repo, data, rainOutlook });
+
+  it('needs a session', async () => {
+    const rain = { get: vi.fn(async () => outlook) };
+    expect((await request(appWith(memoryRepo().repo, rain)).get('/api/rain-outlook')).status).toBe(401);
+    expect(rain.get).not.toHaveBeenCalled();
+  });
+
+  it("uses the farm's county, not the client's", async () => {
+    const rain = { get: vi.fn(async () => outlook) };
+    const res = await request(appWith(memoryRepo({ 'good-1': farm }).repo, rain))
+      .get('/api/rain-outlook?county=SV')
+      .set('Authorization', auth);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(outlook);
+    expect(rain.get).toHaveBeenCalledWith('TR');
+  });
+
+  it('answers 404 without a farm, and for a county we do not know', async () => {
+    const none = { get: vi.fn(async () => null) };
+    const noFarm = await request(appWith(memoryRepo().repo, none)).get('/api/rain-outlook').set('Authorization', auth);
+    expect(noFarm.body.error).toBe('no_farm');
+    const unknown = await request(appWith(memoryRepo({ 'good-1': farm }).repo, none)).get('/api/rain-outlook').set('Authorization', auth);
+    expect(unknown.status).toBe(404);
+    expect(unknown.body.error).toBe('unknown_county');
+  });
+
+  it('answers 503 when there is nothing to show', async () => {
+    const rain = {
+      get: vi.fn(async () => {
+        throw new RainOutlookUnavailableError();
+      }),
+    };
+    const res = await request(appWith(memoryRepo({ 'good-1': farm }).repo, rain)).get('/api/rain-outlook').set('Authorization', auth);
+    expect(res.status).toBe(503);
+    expect(res.body.error).toBe('rain_outlook_unavailable');
   });
 });
 

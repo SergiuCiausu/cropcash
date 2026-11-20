@@ -59,8 +59,8 @@ describe('the member’s copy of the farm', () => {
 
 describe('what each role may open', () => {
   it('gives the accountant the accountant’s and institutions’ reports, and someone of the farm the farmer’s', () => {
-    expect(reportsFor('accountant').map((r) => r.id)).toEqual(['ledger', 'subsidies', 'crop-margins', 'fuel-excise', 'phyto-register', 'land-summary']);
-    expect(reportsFor('viewer').map((r) => r.id)).toEqual(['farm-summary', 'subsidies', 'crop-margins', 'fuel-excise', 'phyto-register', 'land-summary']);
+    expect(reportsFor('accountant').map((r) => r.id)).toEqual(['ledger', 'subsidies', 'crop-margins', 'fuel-excise', 'phyto-register', 'land-summary', 'apia-surface', 'apia-fuel-claim', 'apia-fuel-prior', 'apia-coupled', 'apia-eco-pd04', 'fertilizer-register', 'apia-notice', 'apia-checklist', 'apia-livestock', 'apia-hay', 'apia-animal-decont', 'apia-active-farmer']);
+    expect(reportsFor('viewer').map((r) => r.id)).toEqual(['farm-summary', 'subsidies', 'crop-margins', 'fuel-excise', 'phyto-register', 'land-summary', 'fertilizer-register']);
   });
 });
 

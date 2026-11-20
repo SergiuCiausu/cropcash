@@ -14,6 +14,10 @@ export interface MeFarm {
   /** Goes up on every harvests save. Sent back as If-Match, so a stale phone can't overwrite (IDEM-12). */
   harvests_version?: number;
   apia_decision?: { campaignYear: number; totalBani: number } | null;
+  /** The answers on /rapoarte → „Pentru APIA” (migration 051). */
+  apia_facts?: import('../../../packages/shared/src/reports/apia').ApiaAnswers | null;
+  /** The animals, the ANSVSA code and the hay (migration 053). */
+  livestock?: import('../../../packages/shared/src/reports/livestock').Livestock | null;
   transactions?: (MovedMoney & { id?: string })[];
   task_completions?: { task_id: string }[];
   pension_plans?: unknown;
@@ -44,6 +48,8 @@ export interface MeFarm {
   legal_form?: import('../../../packages/shared/src/contracts/taxes').LegalForm | null;
   vat_status?: import('../../../packages/shared/src/contracts/taxes').VatStatus | null;
   micro_tax?: boolean | null;
+  /** The excise schemes the farm follows or joined (migration 052). An approved diesel acord puts the refund in the plan. */
+  farm_excise_schemes?: import('../../../packages/shared/src/cashflow/excise').StoredExciseEnrollment[];
 }
 
 const list = (names: string[]) =>

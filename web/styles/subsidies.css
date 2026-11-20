@@ -55,7 +55,10 @@ main a { color: var(--ink-b); }
 .reason:first-child { border-top: 0; }
 .reason b { display: block; font-size: 15px; font-weight: 500; }
 .reason small { font-size: 13.5px; color: var(--text-2); }
-#reasons .r-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+/* The excise card stacks several lines per scheme (what, who, how, the switch). */
+.excise .reason small { display: block; margin-top: 4px; }
+.excise .reason .chips { margin: 8px 0 2px; }
+#reasons .r-top, .excise .r-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 #reasons .r-top b { min-width: 0; }
 #reasons .r-top > .tag { flex: none; margin-top: 1px; }
 #reasons small { display: block; }
@@ -669,6 +672,38 @@ dialog.h-sheet .diff { max-height: 200px; overflow-y: auto; overflow-wrap: anywh
 .wx-table tbody th { font-weight: 600; text-transform: capitalize; }
 .wx-frost { color: var(--ink-b); font-weight: 600; }
 .wx-alert { margin-top: 8px; font-size: 14px; font-weight: 600; }
+
+/* Rain over the next years (components/app/RainOutlook.tsx) */
+.rain-card .lead { margin-top: 4px; font-size: 15px; }
+.rain-rows { display: grid; margin-top: 12px; }
+.rain-row { display: grid; gap: 6px; padding: 14px 0; }
+.rain-row + .rain-row { border-top: 1px solid var(--hair); }
+.rain-row p { margin: 0; font-size: 14px; line-height: 1.45; }
+.rain-h { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; }
+.rain-h p { white-space: nowrap; }
+.rain-row p.rain-link { padding: 8px 10px; border-radius: 10px; background: var(--tint-c); color: var(--ink-c); font-weight: 500; }
+.rain-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-2); }
+.rain-key i { display: inline-block; width: 12px; height: 8px; margin-right: 5px; border-radius: 2px; vertical-align: 1px; }
+.rain-key .k-dry { background: var(--tint-c); }
+.rain-key .k-band { background: color-mix(in srgb, var(--a) 45%, transparent); }
+.rain-key .k-usual { width: 3px; background: var(--ink-a); }
+.rain-h h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.rain-h b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rain-h small { font-size: 13px; color: var(--text-2); }
+.rain-bar { position: relative; height: 10px; margin: 2px 0 4px; border-radius: 5px; background: var(--hair); overflow: hidden; }
+.rain-bar span { position: absolute; top: 0; bottom: 0; }
+.rain-dry { left: 0; background: var(--tint-c); }
+.rain-band { background: color-mix(in srgb, var(--a) 45%, transparent); border-radius: 5px; }
+.rain-usual { width: 3px; margin-left: -1.5px; background: var(--ink-a); }
+.rain-months { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--hair); }
+.rain-months h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.rain-months ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 10px; }
+.rain-months li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--hair); border-radius: 12px; font-size: 13px; }
+.rain-months li span { color: var(--text-2); text-transform: capitalize; }
+.rain-months li b { font-weight: 600; }
+.rain-months li.lean-drier { background: var(--tint-c); border-color: transparent; color: var(--ink-c); }
+.rain-months li.lean-wetter { background: var(--tint-a); border-color: transparent; color: var(--ink-a); }
+.rain-months li.lean-drier span, .rain-months li.lean-wetter span { color: inherit; }
 
 /* Without internet: the shared banner and the reason under a button that needs it */
 #net-banner:empty { display: none; }

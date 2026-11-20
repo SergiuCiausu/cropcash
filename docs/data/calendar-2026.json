@@ -143,6 +143,33 @@
       "report": "fuel-excise"
     },
     {
+      "id": "geofoto-primavara",
+      "type": "deadline",
+      "title_ro": "Faci prima poză GeoFoto pe terenul necultivat",
+      "start": "2026-03-16",
+      "end": "2026-06-05",
+      "note": "Prima din cele două poze cerute pentru PD-28: până pe 5 iunie, pe fiecare parcelă necultivată. A doua e între 1 septembrie și 30 noiembrie.",
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf",
+      "obligation": true,
+      "applies_to": "fallow",
+      "authority": "APIA",
+      "how_ro": "Din aplicația GeoFoto a APIA, pe telefon, stând pe parcelă.",
+      "watch_urls": ["https://apia.org.ro/wp-content/uploads/2026/03/Anexa-2.pdf"]
+    },
+    {
+      "id": "apia-retragere",
+      "type": "deadline",
+      "title_ro": "Ultima zi în care schimbi cultura sau retragi parcele din cererea APIA",
+      "start": "2026-06-06",
+      "end": "2026-09-30",
+      "note": "După 5 iunie poți schimba cultura fără să adaugi suprafață sau poți retrage parcele, până pe 30 septembrie (Ord. MADR 44/2026, art. 16). Nu și după ce APIA ți-a anunțat un control.",
+      "status": "confirmat-2026",
+      "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf",
+      "authority": "APIA",
+      "how_ro": "Cu formularul M1 (schimbare) sau M3 (retragere), la centrul APIA sau în AGI-Online."
+    },
+    {
       "id": "geofoto-toamna",
       "type": "deadline",
       "title_ro": "Faci poza GeoFoto pe terenul necultivat",
@@ -263,8 +290,8 @@
     "items": [
       { "id": "registrul-tratamente", "title_ro": "Registrul tratamentelor cu pesticide", "detail_ro": "Ce ai stropit, unde, cu ce doză. Îl păstrezi cel puțin 3 ani, împreună cu evidența produselor din magazie.", "report": "phyto-register" },
       { "id": "registrul-exploatatiei", "title_ro": "Registrul exploatației", "detail_ro": "Lucrările făcute pe fiecare parcelă. Îl dai la APIA în fiecare an de cerere.", "report": "land-summary" },
-      { "id": "caiet-ecoschema", "title_ro": "Caietul de ecoschemă", "detail_ro": "Dacă ai cerut PD-04, PD-05, PD-06 sau PD-28: lucrările care dovedesc că ai respectat cerințele.", "report": null },
-      { "id": "evidenta-azot", "title_ro": "Evidența îngrășămintelor cu azot", "detail_ro": "Cât azot ai dat pe fiecare parcelă (regulile pentru nitrați).", "report": null }
+      { "id": "caiet-ecoschema", "title_ro": "Caietul de ecoschemă", "detail_ro": "Dacă ai cerut PD-04, PD-05, PD-06 sau PD-28: lucrările care dovedesc că ai respectat cerințele.", "report": "apia-eco-pd04" },
+      { "id": "evidenta-azot", "title_ro": "Evidența îngrășămintelor cu azot", "detail_ro": "Cât azot ai dat pe fiecare parcelă (regulile pentru nitrați).", "report": "fertilizer-register" }
     ]
   }
 }

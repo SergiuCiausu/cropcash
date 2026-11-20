@@ -6,7 +6,7 @@
     "source_version": "SIRUTA s1 2026",
     "points_source": "OpenStreetMap (© OpenStreetMap contributors, ODbL), prin Overpass, potrivit după eticheta siruta:code",
     "names_note": "INS scrie numele cu majuscule. Când OSM are același nume scris corect („Măldăeni”), îl luăm de acolo; altfel îl scriem noi din cel de la INS (displayName). Ș și Ț cu virgulă, nu cu sedilă.",
-    "generated_on": "2026-11-15",
+    "generated_on": "2026-11-20",
     "counts": {
       "TR": 334,
       "CT": 285

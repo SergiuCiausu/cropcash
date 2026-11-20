@@ -104,6 +104,7 @@ function Panel({ store }: { store: NonNullable<ReturnType<typeof useStore>> }) {
   const predictions = usePredictions();
   const online = useOnline();
   const { notify } = useContext(FrameContext);
+  const href = useHref();
   const published = predictions.overrides;
   const rows = useMemo(() => factorRows(published), [published]);
 
@@ -216,6 +217,12 @@ function Panel({ store }: { store: NonNullable<ReturnType<typeof useStore>> }) {
         </div>
       </header>
       <OfflineNote>Nu ai internet. Poți lucra la ciornă; o publici când revii online.</OfflineNote>
+      <p className="adm-status">
+        <PageLink path="/verificari" href={href('/verificari')}>
+          De verificat
+        </PageLink>
+        : cifrele încă nesigure, presupunerile și întrebările deschise, cu răspunsurile date.
+      </p>
       <p className="adm-status">
         {predictions.version === 0 || published.length === 0 ? (
           <>Acum se folosesc cifrele din surse{predictions.version ? ` (versiunea ${predictions.version})` : ''}.</>

@@ -372,6 +372,79 @@
       "note": "Viteza maximă a vântului pentru stropit. Lipsește o sursă, deci avertizarea de vânt e oprită (docs/11-open-questions.md)."
     }
   },
+  "rain_outlook": {
+    "history_from_year": {
+      "value": 1991,
+      "status": "presupunere",
+      "note": "Primul an din istoricul de ploaie (ERA5) din care se calculează cât plouă de obicei (docs/rain-outlook-plan.md)."
+    },
+    "model_reference_years": {
+      "from": 1991,
+      "to": 2020,
+      "status": "presupunere",
+      "note": "Anii cu care comparăm modelele climatice ca să vedem încotro merge ploaia."
+    },
+    "model_window_years": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Câți ani din viitor medie modelele climatice. Pe 5 ani, modelele schimbă semnul de la o fereastră la alta (pasul 1 din plan), deci luăm 10."
+    },
+    "models_agree_min": {
+      "value": 6,
+      "status": "presupunere",
+      "note": "Câte modele climatice (din 7) trebuie să meargă în aceeași direcție ca să mutăm intervalul. Altfel spunem că modelele nu se înțeleg și arătăm doar istoricul."
+    },
+    "outlook_years": {
+      "value": 5,
+      "status": "presupunere",
+      "note": "Câți ani înainte arată secțiunea de ploaie."
+    },
+    "low_percentile": {
+      "value": 10,
+      "status": "presupunere",
+      "note": "Capătul de jos al intervalului: un an mai secetos decât 9 din 10."
+    },
+    "high_percentile": {
+      "value": 90,
+      "status": "presupunere",
+      "note": "Capătul de sus al intervalului: un an mai ploios decât 9 din 10."
+    },
+    "dry_percentile": {
+      "value": 20,
+      "status": "presupunere",
+      "note": "Un sezon e „secetos” dacă a plouat mai puțin decât în 80% din ani."
+    },
+    "seasonal_usual_band_pct": {
+      "value": 15,
+      "status": "presupunere",
+      "note": "Prognoza pe luni e „ca de obicei” dacă diferă cu mai puțin de atât față de ce dă de obicei modelul pentru luna aceea."
+    },
+    "yield_link_min_r": {
+      "value": 0.5,
+      "status": "presupunere",
+      "note": "Cât de strâns trebuie să meargă recolta din județ (INS) după ploaia din sezon ca să spunem ce a dat cultura în anii secetoși. Corelație după ce scoatem creșterea de la an la an. Pe 15 ani, 0,5 e cam pragul de la care legătura nu mai pare întâmplătoare (docs/rain-outlook-plan.md, pasul 6)."
+    },
+    "yield_link_min_dry_years": {
+      "value": 2,
+      "status": "presupunere",
+      "note": "Câți ani secetoși trebuie să fie în istoricul INS ca să arătăm recolta lor."
+    },
+    "seasonal_cache_hours": {
+      "value": 24,
+      "status": "presupunere",
+      "note": "Cât păstrează API-ul prognoza pe luni a unui județ. Partea lunară (SEAS5) se schimbă o dată pe lună, pe 5."
+    },
+    "seasons": {
+      "items": [
+        { "id": "an", "from_month": 1, "to_month": 12, "label_ro": "Tot anul" },
+        { "id": "grau", "from_month": 3, "to_month": 6, "label_ro": "Grâu, martie–iunie" },
+        { "id": "porumb", "from_month": 4, "to_month": 8, "label_ro": "Porumb, aprilie–august" },
+        { "id": "floarea-soarelui", "from_month": 4, "to_month": 8, "label_ro": "Floarea-soarelui, aprilie–august" }
+      ],
+      "status": "presupunere",
+      "note": "Lunile în care ploaia contează pentru fiecare cultură. De verificat cu un agronom."
+    }
+  },
   "network": {
     "read_timeout_s": {
       "value": 10,

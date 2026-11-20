@@ -9,7 +9,7 @@ import type { FarmPlan } from './farm-plan';
 import { maxSafeSalary } from './smoothing';
 import { finishTimeline, type EntryKind, type Timeline, type TimelineEntry } from './timeline';
 
-export type DriverKind = 'apia_advance' | 'apia_balance' | 'crop_sale' | 'stored_grain' | 'crop_cost' | 'credit' | 'loan_repayment' | 'payroll' | 'rent' | 'rent_in' | 'farmer';
+export type DriverKind = 'apia_advance' | 'apia_balance' | 'crop_sale' | 'stored_grain' | 'crop_cost' | 'credit' | 'loan_repayment' | 'payroll' | 'rent' | 'rent_in' | 'farmer' | 'excise_refund';
 
 export interface Driver {
   /** Stable key: `apia_advance`, `sale:grau`, `cost:porumb`, `farmer:<event id>`, … */
@@ -61,6 +61,8 @@ const KIND: Partial<Record<EntryKind, DriverKind>> = {
   rent: 'rent',
   rent_tax: 'rent',
   rent_in: 'rent_in',
+  /** Every quarter's diesel refund together: one row, „Banii înapoi de la motorină”. */
+  excise_refund: 'excise_refund',
   farmer_in: 'farmer',
   farmer_out: 'farmer',
 };

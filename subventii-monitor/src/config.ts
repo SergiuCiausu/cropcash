@@ -6,6 +6,7 @@ export const PARAMS_PATH = path.resolve(ROOT, '..', 'docs', 'data', 'plan-params
 /** The app's „De raportat” facts, whose official pages the report watches (src/obligations.ts). */
 export const FUEL_PATH = path.resolve(ROOT, '..', 'docs', 'data', 'fuel-excise.json');
 export const CALENDAR_PATH = path.resolve(ROOT, '..', 'docs', 'data', 'calendar-2026.json');
+export const EXCISE_PATH = path.resolve(ROOT, '..', 'docs', 'data', 'excise-schemes.json');
 export const REPORTS_DIR = path.join(ROOT, 'reports');
 
 function loadEnv(): void {

@@ -1,5 +1,7 @@
 # 11. Întrebări deschise
 
+Toate întrebările de aici, plus cifrele `DE-VERIFICAT` și presupunerile din `docs/data`, apar pentru administratori pe `/verificari` (docs/admin-verificari-plan.md). După ce schimbi fișierul ăsta, rulează `npm run verify:questions`.
+
 ## A. Cifre DE-VERIFICAT
 
 | # | Ce | Valoarea folosită acum | Unde se verifică | Impact |
@@ -31,6 +33,16 @@
 | 25 | Îngrășăminte `DE-VERIFICAT` în `fertilizers.json`: YaraRega NK 9-36 („36 % K” e ambiguu: K sau K₂O?) și Timac SynerTech Tomis 1 (fișa dă 17 % N total, dar 17 % N ureic + 0,2 % N nitric; am lăsat doar totalul) | doar N total e folosit la kg N/ha | fișele tehnice de la producător | catalogul și kg N/ha |
 | 26 | Limitele de azot sunt doar pentru fermele **fără** studiu agrochimic și pantă ≤ 12 % (Ordinul 333/165/2021, art. 9). Nu știm panta parcelei și dacă fermierul are studiu; culturile din afara tabelului n-au limită | verdict „nu știm” în loc de „ok” când lipsește limita | fermierul (studiu, pantă), APIA/LPIS (panta blocului fizic) | verdictul de pe kg N/ha |
 | 27 | Analizele Yara vin de pe paginile din UK/DE/ES (yara.ro nu le publică), iar 13 produse au `sold_in_ro: null` | pot diferi de sacii vânduți în România | Yara România, distribuitori | catalogul |
+| 28 | Când vin banii de la motorină: 2–6 luni după trimestru (T1 2026 plătit de pe 31 iulie). Legea nu dă o dată | `payment_lag_months` 2–6, `DE-VERIFICAT` în `excise-schemes.json` | ordinele de plată APIA pe fiecare trimestru | data banilor de la motorină în salariu (pasul 3 din `accize-plan.md`) |
+| 29 | Curentul din surse regenerabile / sub 250 kW fără acciză (Codul fiscal art. 399 lit. m, n): cum se cere (notificare la vamă, certificat) e în normele HG 1/2016, necitite | doar textul, fără pași | normele metodologice, Titlul VIII | cardul „Plătești mai puțin” |
+| 30 | Motorina fără acciză și TVA la pompă (tichete, ~78 l/ha) din 2027: doar presă, nicio hotărâre | `status: propunere`, nu intră în nicio sumă | proiectele MADR și MF | dacă înlocuiește banii înapoi la motorină din 2027 |
+| 31 | Termenele din `apia-papers.json` cu `DE-VERIFICAT`: dovezile pentru sprijinul cuplat până pe 31 mar. 2027 (confirmat doar la sfecla de zahăr și la răsaduri), certificatul ecologic până pe 15 oct., decontul PD-07/PD-27 în ianuarie 2027, lista de acte pentru cerere | arătate cu „de verificat” în /rapoarte → Pentru APIA | Ord. MADR 106/2024 (forma consolidată), Anexa 2 la Ord. 67/2026, centrul APIA | cardurile din fila Pentru APIA |
+| 32 | Rubricile oficiale ale Anexei 9 (situația centralizatoare, motorină) și ale registrului de tratamente (SMR 8) | Anexa 9: furnizor, nr. și data facturii, litri facturați și folosiți (după OMADR 1727/2015, consolidat doar până în 2019). Registrul: plus „Motivul” și „Cine a aplicat”, notate la tratament din migrația 051 | formularele actuale de la APIA și ANF | dacă PDF-ul se poate depune ca atare (docs/rapoarte-apia-plan.md, Q4) |
+| 33 | Sprijinul cuplat (`apia-coupled.json`): minimul la porumb siloz (PD-26, 18 t/ha) și la legume în câmp (PD-17, necunoscut), termenul de 31 mar. 2027 la soia, lucernă și porumb siloz, și dacă lucerna peste 13 ha se dovedește doar cu animale | `minimum_kg_ha: null` la PD-17, `DE-VERIFICAT` la celelalte; raportul spune „de verificat” | Ord. MADR 106/2024 consolidat, ghidul APIA pentru sprijinul cuplat 2026 | raportul „Dovezile pentru sprijinul cuplat” |
+| 34 | Eco-schema PD-04 peste 30 ha teren arabil: câte culturi și în ce proporții | regula fără cerințe, `DE-VERIFICAT` în `subsidies-2026.json`; caietul nu judecă diversificarea peste 30 ha | ghidul APIA pentru eco-scheme 2026 | „Caietul eco-schemei pentru teren arabil” |
+| 35 | Coeficienții UVM din `livestock.json` (bovine peste 2 ani 1; 6 luni–2 ani 0,6; sub 6 luni 0,4; ovine și caprine 0,15; ecvidee 1; scroafe 0,5; alte porcine 0,3; găini ouătoare 0,014; alte păsări 0,03), luați din Reg. (UE) 808/2014 Anexa II | `uvm_status: DE-VERIFICAT`; folosiți pentru pragul de 0,3 UVM/ha la fân și pentru Anexa 3 la motorină | ghidul APIA 2026 pentru pajiști și ghidul motorinei | „Dovada pentru fân”, Anexa 3 din „Motorina: suprafețele și consumul normat” |
+| 36 | Dovada de fermier activ din campania 2027 (Ord. MADR 44/2026, art. 25¹): cine o depune (toate fermele cu teren arabil sau doar unele), cum (centru sau online) și termenul de 31 august 2027 | hârtia `fermier-activ` cu termenul `DE-VERIFICAT` | textul consolidat al Ord. 106/2024 după Ord. 44/2026, ghidul APIA 2027 | „Dovada de fermier activ” |
+| 37 | Rubricile actuale ale Anexei 16¹ (PD-07) și 19¹ (PD-27) și termenul decontului din ianuarie 2027 | coloane alese de noi: crotalie, rasă, data nașterii; parcelă, intrat, ieșit, câte animale | formularele de la APIA | „Decontul PD-07 și PD-27” |
 
 ## B. Presupuneri de produs (decizii luate de noi, editabile)
 
@@ -92,6 +104,7 @@
 | C2 | Promptul spune `data/subsidies-2026.json` în §4 și `docs/data/` în §7 | Folosim `docs/data/`. |
 | C3 | Lista de status-uri (`confirmat-2026`, `din-2025`, `din-2024`, `DE-VERIFICAT`) nu acoperă datele din 2020 și din brief | Am adăugat `din-2020` și `din-brief`. |
 | C4 | Promptul spune „Test Clocks: arătăm live cum se execută salariile”, dar Test Clocks nu declanșează payouts | Folosim un scheduler propriu, declanșat de `test_clock.ready` (vezi `08-stripe.md` §4). **Cer confirmare.** |
+| C6 | Contractele de arendă cu persoane fizice: cercetarea din 20 nov 2026 spune că se atașează la cerere și trebuie să fie valabile până la 1 decembrie; cea din 18 nov 2026 (Anexa 2 la Ord. 67/2026) spune că ajung la APIA doar prin adeverința registrului agricol și că regula cu 1 decembrie nu e în textele din 2026 | Deschisă. În `apia-papers.json` scrie „nu e clar, întreabă la centrul APIA”. De citit din nou Anexa 2 (docs/rapoarte-apia-plan.md, Q1). |
 | C5 | `docs/source/` nu există, deci n-am putut compara cu PDF-ul challenge-ului și cu brief-urile | De verificat când sunt adăugate. |
 
 ## D. Decizii
@@ -173,3 +186,4 @@
 52. **Deconturile pentru animale:** DR-06 (porci, păsări) pe trimestrul IV 2026 și PD-07/PD-08: APIA a spus doar „în ianuarie 2027”. Calendarul pune vineri, 29 ianuarie 2027, ca să fie sigur. De pus data exactă când apare.
 53. **Registrul agricol, termenele:** OG 28/2008 art. 11 (5 ian – ultima zi lucrătoare din februarie; 1–31 mai; 30 de zile de la o schimbare) e citit dintr-o copie de pe site-ul unei primării, nu de pe legislatie.just.ro.
 54. **Plafoanele de motorină pe sectoare:** ghidul APIA din 2023 dă 367 mil. l vegetal, 40 mil. l zootehnie, 3 mil. l îmbunătățiri funciare; textul consolidat al HG citit dă doar totalul de 410 mil. l. Aplicația folosește doar normele pe ha, nu și tăierea proporțională.
+55. **Accizele pentru fermieri (20 nov 2026, `excise-schemes.json`):** în Codul fiscal consolidat la 25.10.2026, art. 399 **nu** are o scutire pentru curentul sau gazul folosite în agricultură (presupusă inițial în `accize-plan.md`); are doar curentul din surse regenerabile și din surse sub 250 kW. Țuica din gospodărie rămâne scutită până la **50 l/an** (art. 342 alin. 1^6); legea de 150/200 l din presă nu apare în Cod. Când apare o schimbare, se actualizează `excise-schemes.json`.

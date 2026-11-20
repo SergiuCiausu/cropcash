@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 /* The farm map (docs/harta-plan.md, step 7), with MapLibre replaced by a fake that keeps what the map is
    given: style, sources, layers, camera moves and markers. */
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { op, plot, season } from '../../../packages/shared/src/plots/fixtures';
 import { buildPlotRows, parseBlocs, type PlotRow } from '../../../packages/shared/src/plots/index';
 import bloc286 from '../../../packages/shared/src/plots/__fixtures__/lpis-bloc-153277-286.json';
-import { FarmMap, forgetBaseStyle, MARKER_LIMIT, type FarmMapHandle, type FarmMapProps } from './FarmMap';
+import { FarmMap, forgetBaseStyle, LPIS_MIN_ZOOM, MARKER_LIMIT, type FarmMapHandle, type FarmMapProps } from './FarmMap';
 
 type Call = [string, ...unknown[]];
 interface FakeMap {
@@ -17,6 +17,7 @@ interface FakeMap {
   layers: Record<string, { layout: Record<string, unknown>; paint: Record<string, unknown> }>;
   fire(ev: string, e?: unknown): void;
   hit: unknown[];
+  hitBy: Record<string, unknown[]>;
 }
 const fake = vi.hoisted(() => ({ maps: [] as FakeMap[], markers: [] as { el: HTMLElement }[] }));
 
@@ -78,8 +79,34 @@ vi.mock('maplibre-gl', () => {
     fitBounds(b: unknown, o: unknown) {
       this.calls.push(['fitBounds', b, o]);
     }
-    queryRenderedFeatures() {
-      return this.hit;
+    easeTo(o: unknown) {
+      this.calls.push(['easeTo', o]);
+    }
+    getZoom() {
+      return (this.opts as unknown as { zoom: number }).zoom;
+    }
+    getCenter() {
+      return { toArray: () => [25, 45.9] };
+    }
+    /** Around Ion's bloc 286 at Măldăeni, a few hundred metres each way. */
+    getBounds() {
+      return { getWest: () => 24.958, getSouth: () => 44.108, getEast: () => 24.966, getNorth: () => 44.114 };
+    }
+    getStyle() {
+      return { glyphs: 'https://fonts.example/{fontstack}/{range}.pbf' };
+    }
+    off() {
+      return this;
+    }
+    setFilter(id: string, f: unknown) {
+      this.calls.push(['setFilter', id, f]);
+    }
+    /** What a tap finds: `hitBy` per layer when set, else `hit` for the parcel layers. */
+    hitBy: Record<string, unknown[]> = {};
+    queryRenderedFeatures(_p: unknown, o?: { layers?: string[] }) {
+      const by = (o?.layers ?? []).flatMap((l) => this.hitBy[l] ?? []);
+      if (by.length) return by;
+      return o?.layers?.includes('cc-blocs-fill') ? [] : this.hit;
     }
     getCanvas() {
       return { style: {} };
@@ -264,6 +291,107 @@ describe('the farm map', () => {
     expect(map.layers['cc-sat']!.layout.visibility).toBe('visible');
     fireEvent.click(screen.getByRole('button', { name: 'Satelit' }));
     expect(map.layers['cc-sat']!.layout.visibility).toBe('none');
+  });
+
+  it('„Blocuri APIA” zoomed out: says to come closer and takes the map there', async () => {
+    const { map } = await show();
+    expect(map.opts.zoom).toBeLessThan(LPIS_MIN_ZOOM);
+    expect(screen.queryByText(/se văd doar de aproape/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    expect(screen.getByText(/se văd doar de aproape/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Apropie harta' }));
+    const ease = map.calls.find((c) => c[0] === 'easeTo')![1] as { zoom: number; center: number[] };
+    expect(ease.zoom).toBeGreaterThanOrEqual(LPIS_MIN_ZOOM);
+    expect(ease.center).toHaveLength(2);
+    // Close enough: the note goes.
+    map.opts.zoom = LPIS_MIN_ZOOM + 1;
+    act(() => map.fire('zoomend'));
+    expect(screen.queryByText(/se văd doar de aproape/)).toBeNull();
+    // Turned off: no note even zoomed out.
+    map.opts.zoom = 9;
+    act(() => map.fire('zoomend'));
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    expect(screen.queryByText(/se văd doar de aproape/)).toBeNull();
+  });
+
+  it('no parcel on the map: offers a drawing only when the page can save one', async () => {
+    const onDrawNew = vi.fn();
+    const { rerender } = await show({ rows: [] });
+    expect(screen.getByText('Nicio parcelă nu e încă pe hartă.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Desenează o parcelă' })).toBeNull();
+    rerender({ rows: [], onDrawNew });
+    fireEvent.click(screen.getByRole('button', { name: 'Desenează o parcelă' }));
+    expect(onDrawNew).toHaveBeenCalled();
+  });
+
+  it('„Blocuri APIA” with the API: loads the squares on screen as outlines, not APIA’s picture', async () => {
+    const loadBlocTile = vi.fn(async () => [bloc!]);
+    const { map } = await show({ loadBlocTile });
+    map.opts.zoom = 15;
+    act(() => map.fire('zoomend'));
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    await settle();
+    expect(loadBlocTile).toHaveBeenCalled();
+    expect(loadBlocTile.mock.calls.length).toBeLessThanOrEqual(4);
+    // Every square holds the same bloc: drawn once.
+    expect(map.sources['cc-blocs']!.data!.features.map((f) => f.properties.fbid)).toEqual(['153277-286']);
+    expect(map.layers['cc-blocs-label']).toBeTruthy();
+    expect(map.sources['cc-lpis']).toBeUndefined();
+    // Moving asks only for squares not loaded yet.
+    const asked = loadBlocTile.mock.calls.length;
+    act(() => map.fire('moveend'));
+    await settle();
+    expect(loadBlocTile.mock.calls.length).toBe(asked);
+    // Off: hidden, not asked for.
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    expect(map.layers['cc-blocs-line']!.layout.visibility).toBe('none');
+  });
+
+  it('a tapped bloc shows its card and starts a drawing inside it; a parcel on top wins', async () => {
+    const onDrawNew = vi.fn();
+    const { map, onSelect } = await show({ loadBlocTile: async () => [bloc!], onDrawNew });
+    map.opts.zoom = 15;
+    act(() => map.fire('zoomend'));
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    await settle();
+    map.hitBy = { 'cc-blocs-fill': [{ properties: { fbid: '153277-286' } }] };
+    act(() => map.fire('click', { point: { x: 1, y: 1 } }));
+    const card = within(screen.getByRole('region', { name: 'Blocul fizic 286' }));
+    expect(card.getByText('satul Măldăeni, comuna Măldăeni')).toBeTruthy();
+    expect(card.getByText(/Teren arabil · 8,54 ha în tot blocul/)).toBeTruthy();
+    expect(map.calls.filter((c) => c[0] === 'setFilter').at(-1)).toEqual(['setFilter', 'cc-blocs-picked', ['==', ['get', 'fbid'], '153277-286']]);
+    fireEvent.click(card.getByRole('button', { name: 'Desenează parcela în blocul ăsta' }));
+    expect(onDrawNew).toHaveBeenCalledWith(expect.objectContaining({ fbid: '153277-286' }));
+    // A parcel over the bloc: the parcel is picked, the bloc card goes.
+    map.hit = [{ properties: { id: 'p0' } }];
+    act(() => map.fire('click', { point: { x: 1, y: 1 } }));
+    expect(onSelect).toHaveBeenLastCalledWith('p0');
+    expect(screen.queryByRole('region', { name: 'Blocul fizic 286' })).toBeNull();
+  });
+
+  it('„Blocuri APIA” when the API can’t give the blocs: APIA’s picture instead', async () => {
+    const { map } = await show({
+      loadBlocTile: async () => {
+        throw new Error('503');
+      },
+    });
+    map.opts.zoom = 15;
+    act(() => map.fire('zoomend'));
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    await settle();
+    expect(map.layers['cc-lpis']!.layout.visibility).toBe('visible');
+  });
+
+  it('„Blocuri APIA” when APIA does not answer: says so, and tries again on the next press', async () => {
+    const { map } = await show();
+    map.opts.zoom = 15;
+    act(() => map.fire('zoomend'));
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    act(() => map.fire('error', { sourceId: 'cc-lpis' }));
+    expect(screen.getByText(/Harta APIA nu răspunde acum/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Blocuri APIA' }));
+    expect(screen.queryByText(/Harta APIA nu răspunde acum/)).toBeNull();
   });
 
   it(`above ${MARKER_LIMIT} parcels the icons are one map layer, not ${MARKER_LIMIT + 1} buttons`, async () => {

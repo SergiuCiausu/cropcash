@@ -67,6 +67,7 @@ cropcash/
 | `Payout` | id, farmer_id, amount_bani, scheduled_for (date), stripe_payout_id?, status (scheduled/pending/paid/failed) | N–1 Farmer |
 | `PensionPlan` | id, farmer_id, monthly_bani, vehicle (pilon3/cei_s/cei_d), stripe_subscription_id, started_at, status | 1–1 Farmer |
 | `FuelLog` | id, farmer_id, date, liters, invoice_no, supplier, parcel_id?, quarter | N–1 Farmer |
+| `FarmExciseScheme` (`farm_excise_schemes`, 052) | farmer_id, scheme_id, year, status (interested, acord_filed, approved, left), acord_on?, updated_at | N–1 Farmer. La ce scheme de acciză s-a înscris ferma, pe an. Schemele stau în `excise-schemes.json` (nu în DB). Fără ștergere: „left” ține locul. `acord_on` doar cu acord depus sau primit. Contabilul doar citește (`docs/accize-plan.md`) |
 | `source_changes`, `documents` (monitorul) | ce s-a schimbat pe o pagină oficială; pasaje pentru căutare | scrise doar de `subventii-monitor`; aplicația le citește |
 | `opportunity_follows` | farmer_id, stable_key | finanțările puse de fermier în calendar |
 | `opportunities` (monitorul) | stable_key, kind (afir/mipe/ec), programme, title, status, open_date, deadline, budget_eur, applicants, relevance, confidence, url | scrise doar de `subventii-monitor` cu cheia secretă. Tabelul vechi `funding_opportunities` a fost scos (migrarea 008). |
@@ -80,6 +81,8 @@ Banii se țin în **bani, ca numere întregi** (`bigint`), niciodată ca float.
 **Plățile planificate se calculează, nu se salvează** (decizie la pasul 4). Calendarul (`buildTimeline` din `packages/shared/src/cashflow`) se generează din fermă, subvenții și `docs/data`, direct pe telefon. Așa merge și offline și nu rămâne nimic învechit în baza de date când se schimbă JSON-urile. În `expected_payments` intră doar ce nu se poate calcula: creditul declarat de fermier (pasul 5) și plățile primite efectiv (pasul 6, din webhooks).
 
 **Calendarul pe scurt:** cheltuielile și vânzările se repetă în fiecare an, pe lunile din `crops-reference.json`, pe 15 ale lunii. Plățile APIA folosesc ferestrele din `calendar-2026.json`; pentru anii următori, datele sunt proiectate cu +1 an și marcate „estimat”. „Lunile grele” sunt șirul de luni pe minus care se termină în punctul cel mai de jos al soldului, deci se calculează, nu se scriu de mână. Pentru Ion ies martie – mai.
+
+**Banii înapoi pe motorină (`docs/accize-plan.md`).** Doar acciza pe care statul o dă înapoi e venit; scutirile doar scad o cheltuială. Când ferma are acordul primit (`farm_excise_schemes`, status `approved`), `exciseRefundClaims` (`packages/shared/src/cashflow/excise.ts`) pune în calendar o intrare `excise_refund` pe trimestru, **doar din litrii deja notați** la cheltuieli, cu cota din `fuel-excise.json` din ziua cumpărării și plafonul pe hectar. Plata cade la sfârșitul trimestrului plus `payment_lag_months` (DE-VERIFICAT, deci intrarea e `unverified`). Pentru trimestrele viitoare nu se estimează nimic.
 
 ### Schema SQL (Supabase)
 
@@ -342,6 +345,8 @@ Fondul pentru ani proști a fost scos pe 7 nov 2026, la cererea echipei. Anul sl
 | DELETE | `/api/pension` | oprește pensia; ce s-a plătit rămâne |
 | POST | `/api/demo/simulate-apia-advance` | plată de test și transfer către contul conectat |
 | POST | `/api/demo/advance` | avansează Test Clock-ul (vezi `08-stripe.md`) |
+| GET | `/api/excise` | schemele de acciză ale fermei, pe ani |
+| PUT | `/api/excise/:schemeId/:year` | status și `acord_on` pentru o schemă și un an (`set_excise_enrollment`). Refuză o schemă necunoscută (404), o propunere sau un an în afara schemei (409) |
 | GET | `/api/weather` | prognoza pe 7 zile pentru județul fermei, din Open-Meteo, păstrată 3 ore pe județ |
 | POST | `/api/assistant` | conversația (doar text) către asistent; întoarce răspunsul, sursele, cifrele neconfirmate și acțiunile de confirmat. Confirmarea e apăsarea fermierului, care trimite ruta obișnuită a funcției (§11) |
 | POST | `/api/functions/:name` | rulează o funcție `read` din registru pe ferma fermierului |

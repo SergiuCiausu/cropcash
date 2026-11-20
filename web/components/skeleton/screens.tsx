@@ -6,6 +6,7 @@ import type { ScreenName } from '../../screens/types';
 import { Bone, BoneCard } from './Bone';
 import '../../styles/harta.css';
 import '../../styles/admin.css';
+import '../../styles/verify.css';
 
 const repeat = (n: number, draw: (i: number) => ReactNode) => Array.from({ length: n }, (_, i) => draw(i));
 
@@ -182,6 +183,10 @@ const Prognoza = () => (
       <ChartCard className="fc-main" basis />
       <ChartCard tabs basis />
     </div>
+    {/* Rain over the next years (components/app/RainOutlook.tsx). */}
+    <div className="bento">
+      <ListCard span="s12" n={3} />
+    </div>
     <div className="bento">
       <ListCard span="s6" n={4} />
       <ListCard span="s6" n={4} />
@@ -348,6 +353,20 @@ const Admin = () => (
   </>
 );
 
+/** „De verificat”: the counts, the filters and the list. */
+const Verificari = () => (
+  <>
+    <Bone w={300} h={14} />
+    <div className="vf-counts">
+      {repeat(5, (i) => (
+        <BoneCard key={i} lines={1} />
+      ))}
+    </div>
+    <Field />
+    <ListCard span="" n={6} />
+  </>
+);
+
 export const SCREEN_SKELETONS = {
   acasa: Acasa,
   subventii: Subventii,
@@ -367,6 +386,7 @@ export const SCREEN_SKELETONS = {
   arenda: Arenda,
   contracte: Contracte,
   admin: Admin,
+  verificari: Verificari,
 } satisfies Record<ScreenName, ComponentType>;
 
 /** Screens whose title has a button next to it. */

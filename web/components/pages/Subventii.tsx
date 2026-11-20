@@ -15,6 +15,7 @@ import { FutureNote } from '../app/PageNotes';
 import { ResultsBasisSwitch, useResultsBasis } from '../app/Basis';
 import { PaperButton, usePapers } from '../app/Papers';
 import { ShareSheet } from '../app/ShareSheet';
+import { ExciseCard } from '../subsidies/ExciseCard';
 
 const AREA = new Set(['total_ha', 'arable_ha', 'unproductive_ha', 'unproductive_pct']);
 const AXIS_START = '2026-10-01';
@@ -397,6 +398,8 @@ export default function Subventii() {
             </div>
           </section>
         )}
+        {/* The excise refunds are the whole farm's diesel, so not in one crop's project. */}
+        {!crop && <ExciseCard />}
         <Simulator key={`${view.selected.id}:${view.selectedCrop}`} />
       </div>
       <p className="note gap">

@@ -14,7 +14,10 @@ import {
   sortPlots,
   type PaperPlot,
   type PlotInput,
+  type LpisBloc,
+  type LpisTile,
   type PlotRow,
+  type Position,
   type TodoItem,
 } from '../../../packages/shared/src/plots/index';
 import { farmTransactions } from '../../lib/cc/farm-plots';
@@ -34,12 +37,14 @@ import { PlotCard, type CardWrites } from '../plots/PlotCard';
 import { PlotExpenseSheet } from '../plots/PlotExpenseSheet';
 import { PlotFilters } from '../plots/PlotFilters';
 import { PlotList } from '../plots/PlotList';
+import { NewPlotSheet, type NewPlotCrop } from '../plots/NewPlotSheet';
 import { PlotsReview } from '../plots/PlotsReview';
 import { plotName } from '../plots/plot-text';
 import { useLocatedRows } from '../plots/useLocatedRows';
 import { usePlotQuery } from '../plots/usePlotQuery';
 import { usePlots } from '../plots/usePlots';
 import { placeName, plotPlace } from '../../lib/cc/places';
+import { blocsInTile } from '../../lib/cc/lpis';
 import '../../styles/harta.css';
 
 const PARAMS = loadPlotsParams();
@@ -214,6 +219,45 @@ export default function Harta() {
     loaded.reload();
   }
 
+  /* ---- A new parcel drawn by hand. ---- */
+  const [drawNew, setDrawNew] = useState<{ cropId: string | null; start: { centre: Position; zoom: number } | null; bloc: LpisBloc | null } | null>(null);
+  /* „Blocuri APIA” as outlines to tap: only on a farm of one's own, since the API needs an account. */
+  const live = store.live;
+  const loadBlocTile = useCallback((t: LpisTile) => blocsInTile(live, t), [live]);
+  const newPlotCrops = useMemo<NewPlotCrop[]>(() => {
+    const unplaced = new Map<string, number>();
+    const ids = new Set((farm.baseFarm?.parcels ?? []).map((p) => p.cropId));
+    for (const r of rows) {
+      const c = r.season?.crop_id;
+      if (!c) continue;
+      ids.add(c);
+      if (r.plot.auto_crop_id) unplaced.set(c, (unplaced.get(c) ?? 0) + r.season!.area_ari);
+    }
+    return [...ids].map((id) => ({ id, name: cropName(id), unplacedAri: unplaced.get(id) ?? 0 })).sort((a, b) => a.name.localeCompare(b.name, 'ro'));
+  }, [rows, farm.baseFarm, cropName]);
+  const openDrawNew = (cropId: string | null, bloc: LpisBloc | null = null) => setDrawNew({ cropId, start: map.current?.view() ?? null, bloc });
+  async function saveNewPlot(input: PlotInput): Promise<string | null> {
+    let ids: string[] = [];
+    const key = newIntentKey();
+    await store.send(async ({ write }) => {
+      ids = ((await write('save_plots', { harvestYear: year, plots: [input] }, { key })) as { ids?: string[] } | undefined)?.ids ?? [];
+    });
+    return ids[0] ?? null;
+  }
+  /* The sheet goes Back out of its own history step as it closes. Open the new parcel's card after that,
+     or the step back would land on the card the sheet was opened from. */
+  function openAfterSheet(id: string) {
+    let done = false;
+    const open = () => {
+      if (done) return;
+      done = true;
+      removeEventListener('popstate', open);
+      select(id);
+    };
+    addEventListener('popstate', open);
+    setTimeout(open, 400);
+  }
+
   const placed = rows.filter((r) => r.plot.geometry || r.plot.centroid_lat !== null).length;
   const cardOver = wide && !!selected;
   const [tall, setTall] = useState(false);
@@ -230,6 +274,9 @@ export default function Harta() {
             <NetButton className="btn btn-line" reason="Ca să citim cererea ai nevoie de internet." onClick={() => void readCerere()}>
               Adaugă parcele din cererea APIA
             </NetButton>
+            <button type="button" className="btn btn-line" onClick={() => openDrawNew(null)}>
+              Desenează o parcelă
+            </button>
           </div>
         )}
       </header>
@@ -267,6 +314,8 @@ export default function Harta() {
             soonDays={SOON_DAYS}
             satelliteKey={publicConfig().maptilerKey ?? null}
             padding={cardOver ? { top: 40, right: 40, bottom: 40, left: 420 } : undefined}
+            onDrawNew={writes === 'yes' ? (bloc) => openDrawNew(null, bloc ?? null) : undefined}
+            loadBlocTile={writes === 'yes' ? loadBlocTile : undefined}
           />
           {!loaded.loading && rows.length > 0 && placed === 0 && <p className="hm-empty">Nicio parcelă nu are încă loc pe hartă.</p>}
         </div>
@@ -289,6 +338,7 @@ export default function Harta() {
               onAddWork={() => setSheet('work')}
               onExpense={() => setSheet('expense')}
               onDraw={() => setSheet('draw')}
+              onDrawNew={() => openDrawNew(selected.plot.auto_crop_id ?? selected.season?.crop_id ?? null)}
               onMarkDone={markDone}
               onCerere={() => void readCerere()}
             />
@@ -362,6 +412,24 @@ export default function Harta() {
             )}
           </Sheet>
         </>
+      )}
+      {writes === 'yes' && (
+        <NewPlotSheet
+          open={!!drawNew}
+          onClose={() => setDrawNew(null)}
+          crops={newPlotCrops}
+          cropId={drawNew?.cropId ?? null}
+          county={farm.me?.county ?? ''}
+          harvestYear={year}
+          planYear={year === baseYear}
+          start={drawNew?.start ?? null}
+          bloc={drawNew?.bloc ?? null}
+          onSave={saveNewPlot}
+          onSaved={(id) => {
+            loaded.reload();
+            if (id) openAfterSheet(id);
+          }}
+        />
       )}
       {review && (
         <PlotsReview

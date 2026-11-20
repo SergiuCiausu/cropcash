@@ -29,7 +29,10 @@ export const KEYS = {
   rates: 'cropcash-rates',
   /** The admin panel's published changes to docs/data (cc/predictions.ts). Never read on Ion's farm. */
   predictions: 'cropcash-prediction-data',
-/** The admin panel's unpublished draft (cc/admin.ts). Kept until it's published or thrown away. */  adminDraft: 'cropcash-admin-draft',
+  /** The admin panel's unpublished draft (cc/admin.ts). Kept until it's published or thrown away. */
+  adminDraft: 'cropcash-admin-draft',
+  /** The last answers seen on „De verificat” (cc/verify.ts), so the page reads offline. */
+  verifyAnswers: 'cropcash-verify-answers',
 } as const;
 
 /** Keys that hold the farm's own choices, one set per mode (storageKey, the rule app.js uses too). */
@@ -42,6 +45,12 @@ export function farmKeys(mode: Mode) {
     events: storageKey('cropcash-events', mode),
     /** Ion's farm only: „Am hotărât” about his example contracts (lib/cc/contracts.ts). */
     contractDecisions: storageKey('cropcash-contract-decisions', mode),
+    /** Off the server: the answers on „Pentru APIA” (Ai animale? and the like). */
+    apiaFacts: storageKey('cropcash-apia-facts', mode),
+    /** Off the server: the animals noted on „Pentru APIA”. */
+    livestock: storageKey('cropcash-livestock', mode),
+    /** Off the server: the excise schemes the farm follows or joined (docs/accize-plan.md). */
+    excise: storageKey('cropcash-excise', mode),
   };
 }
 

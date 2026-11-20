@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "verify:questions": "node ./node_modules/tsx/dist/cli.mjs scripts/verify-questions.ts",
     "db:migrate": "node --env-file=.env scripts/migrate.mjs",
     "test:integration": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts",
     "test:stripe": "node --env-file=.env ./node_modules/vitest/vitest.mjs run --config vitest.stripe.config.ts",
@@ -32,6 +33,7 @@
     "geo:siruta": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts",
     "geo:lpis": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts",
     "geo:import": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/siruta.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/lpis.ts --db && node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/import-geo/reconcile.ts",
+    "weather:climatology": "node --env-file-if-exists=.env ./node_modules/tsx/dist/cli.mjs scripts/build-rain-climatology.ts",
     "pensions:stop": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/stop-pensions.ts"
   },
   "engines": {

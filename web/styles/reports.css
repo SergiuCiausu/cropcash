@@ -34,3 +34,32 @@
 .member-page .offline { margin: 0; }
 .invite-actions { display: flex; flex-direction: column; gap: 10px; }
 .invite-actions .btn { width: 100%; justify-content: center; }
+
+/* One report in a sheet, opened from "De raportat" (components/reports/ReportSheet.tsx). */
+.report-sheet .top .note { margin-top: 4px; }
+.report-sheet .ob-actions .btn { flex: 1 1 auto; }
+.report-sheet-all { margin: 16px 0 0; font-size: 14px; text-align: center; }
+.report-sheet-all a { color: var(--text-2); }
+
+/* /rapoarte → "Pentru APIA și primărie" (components/reports/ApiaPapers.tsx). */
+.apia-papers { display: flex; flex-direction: column; gap: 16px; }
+.apia-group h2 { margin: 8px 0 0; font-size: 18px; font-weight: 600; }
+.apia-group .note { margin: 4px 0 0; }
+.apia-paper .card-h { gap: 8px; align-items: flex-start; }
+.apia-when { margin: 4px 0 8px; font-size: 14px; color: var(--text-2); }
+.apia-when b { color: var(--text-1); font-weight: 600; }
+.report-gaps { margin-top: 4px; }
+.report-gaps ul { margin: 4px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+.report-gaps li { margin: 2px 0; }
+.report-ready { margin-top: 12px; }
+.apia-more summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.apia-more > .bento, .apia-more > ul { margin-top: 8px; }
+.apia-ask { margin: 8px 0; padding: 12px; border-radius: 12px; border: 1px solid var(--hair); }
+.apia-ask p { margin: 0 0 6px; }
+.apia-ask .ob-actions { margin-top: 6px; flex-wrap: wrap; }
+.apia-notice { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair); }
+.apia-notice textarea { width: 100%; font: inherit; }
+.apia-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; align-items: end; }
+.apia-grid .ob-field { margin-top: 12px; }
+.apia-grid .ob-field input { min-height: 48px; }
+@media (min-width: 720px) { .apia-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

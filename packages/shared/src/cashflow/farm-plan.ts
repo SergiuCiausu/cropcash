@@ -24,6 +24,7 @@ import { plannedFigures, withFarmerHarvest } from './seasons';
 import { maxSafeSalary, salaryToPay, suggestCredit, type SmoothingOptions } from './smoothing';
 import { buildTimeline, nextHarvestYear, type AmountScenario, type ContractsInput, type RentInput, type Timeline } from './timeline';
 import { taxProfileOf, type TaxProfile } from '../contracts/taxes';
+import { dieselFromTransactions, exciseRefundClaims, type StoredExciseEnrollment } from './excise';
 
 /**
  * The day of a payment window the plan counts on. The last day by default, so the plan holds when the
@@ -49,6 +50,8 @@ export interface PlanFarm extends Omit<StoredFarm, 'transactions'> {
    * and stay out of the plan.
    */
   tax_profile?: TaxProfile;
+  /** The excise schemes the farm joined (migration 052). An approved diesel acord puts the refund in the plan. */
+  farm_excise_schemes?: StoredExciseEnrollment[];
 }
 
 /**
@@ -169,7 +172,17 @@ export function timelineInput(farm: PlanFarm, data: AppData, params?: SubsidyPar
     parties: Object.fromEntries((farm.parties ?? []).map((p) => [p.id, p])),
     profile: farm.tax_profile ?? taxProfileOf(farm),
   };
-  return { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent, contracts };
+  const exciseRefunds = farm.farm_excise_schemes?.length
+    ? exciseRefundClaims(
+        {
+          enrollments: farm.farm_excise_schemes,
+          diesel: dieselFromTransactions(farm.transactions ?? []),
+          crops: (input.parcels ?? []).filter((p) => !isFallow(p.cropId)).map((p) => ({ cropId: p.cropId, areaHa: p.areaHa })),
+        },
+        data,
+      )
+    : [];
+  return { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent, contracts, exciseRefunds };
 }
 
 /**
@@ -218,7 +231,7 @@ export function afterBadHarvest(farm: PlanFarm, baseData: AppData, { month, para
  */
 export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params }: FarmPlanOptions) {
   const data = farmData(farm, baseData);
-  const { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent, contracts } = timelineInput(farm, data, params);
+  const { subsidies, parcels, startBalance, extras, recorded, followed, stored, farmerEvents, lossShare, employees, rent, contracts, exciseRefunds } = timelineInput(farm, data, params);
   const opts = { start: month, months: data.params.forecast.plan_months.value, timing: planTiming(data) };
   const build = (amounts: AmountScenario, withExtras = true) =>
     buildTimeline(
@@ -235,6 +248,7 @@ export function buildFarmPlan(farm: PlanFarm, baseData: AppData, { month, params
         employees,
         rent,
         contracts,
+        exciseRefunds,
       },
       data,
       { ...opts, amounts },

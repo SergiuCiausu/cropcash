@@ -13,7 +13,7 @@ const map = vi.hoisted(() => ({ props: null as FarmMapProps | null, flights: [] 
 vi.mock('../map/FarmMapLazy', () => ({
   FarmMapLazy: (p: FarmMapProps & { ref?: Ref<FarmMapHandle> }) => {
     map.props = p;
-    useImperativeHandle(p.ref, () => ({ flyToPlot: (id) => void map.flights.push(id), fitPlots: (ids) => void map.fits.push(ids) }));
+    useImperativeHandle(p.ref, () => ({ flyToPlot: (id) => void map.flights.push(id), fitPlots: (ids) => void map.fits.push(ids), view: () => ({ centre: [28.4, 44.2], zoom: 12 }) }));
     return (
       <div data-testid="map">
         {p.rows.map((r) => (
@@ -25,7 +25,41 @@ vi.mock('../map/FarmMapLazy', () => ({
     );
   },
 }));
-vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
+/* The drawing editor needs a real map: this one hands back a fixed 4,12 ha drawing and says where it opened. */
+const editor = vi.hoisted(() => ({ start: null as unknown }));
+vi.mock('../map/ShapeEditor', () => {
+  const ring = [
+    [28.4, 44.2],
+    [28.41, 44.2],
+    [28.41, 44.21],
+    [28.4, 44.2],
+  ];
+  return {
+    ShapeEditor: (p: { title: string; start?: unknown; onDone: (r: unknown) => void; onCancel: () => void }) => {
+      editor.start = p.start;
+      return (
+        <section aria-label={`Desenează ${p.title}`}>
+          <button
+            type="button"
+            onClick={() =>
+              p.onDone({
+                shape: { vertices: ring.slice(0, 3).map((at) => ({ at })), edges: [{ type: 'line' }, { type: 'line' }, { type: 'line' }] },
+                geometry: { type: 'Polygon', coordinates: [ring] },
+                areaAri: 412,
+              })
+            }
+          >
+            Gata
+          </button>
+          <button type="button" onClick={p.onCancel}>
+            Renunță
+          </button>
+        </section>
+      );
+    },
+  };
+});
+vi.mock('next/link',() => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
 
 beforeEach(() => {
   map.props = null;
@@ -168,12 +202,65 @@ describe('/harta on a farm of its own', () => {
     expect((card.getByRole('button', { name: 'Adaugă lucrare' }) as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it('a card for hectares not on the map offers the cerere', async () => {
+  it('a card for hectares not on the map offers the cerere or a drawing, never moving its own outline', async () => {
     await showPage('harta', 'farm', SIGNED_IN, true, ME, { '/api/plots': PLOTS });
     await settle();
     fireEvent.click(list().getByRole('button', { name: /fără loc pe hartă/ }));
     expect(screen.getByText(/Hectarele astea nu au încă loc pe hartă/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Pune parcelele din cererea APIA' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /Desenează/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Desenează parcela pe hartă' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Mută sau desenează|^Desenează pe hartă$/ })).toBeNull();
+  });
+
+  it('draws a new parcel for unplaced hectares: where the map was, its crop picked, saved with save_plots', async () => {
+    const page = await showPage('harta', 'farm', SIGNED_IN, true, ME, { '/api/plots': PLOTS });
+    await settle();
+    fireEvent.click(list().getByRole('button', { name: /fără loc pe hartă/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Desenează parcela pe hartă' }));
+    expect(editor.start).toEqual({ centre: [28.4, 44.2], zoom: 12 });
+    fireEvent.click(screen.getByRole('button', { name: 'Gata' }));
+
+    expect(document.querySelector(".np-area")!.textContent).toBe("Ai desenat 4,12 ha.");
+    expect((screen.getByRole('combobox', { name: /Ce crește pe ea în 2027/ }) as HTMLSelectElement).value).toBe('porumb');
+    // 3 ha of maize had no place; 4,12 ha were drawn.
+    expect(screen.getByText(/cu 1,12 ha mai mult decât aveai de porumb fără loc pe hartă/)).toBeTruthy();
+    fireEvent.change(screen.getByRole('textbox', { name: /Cum îi spui/ }), { target: { value: 'La vie' } });
+
+    vi.mocked(page.live.write).mockResolvedValueOnce({ ids: ['44444444-4444-4444-8444-444444444444'] } as never);
+    fireEvent.click(screen.getByRole('button', { name: 'Salvează parcela' }));
+    await settle();
+    expect(page.live.write).toHaveBeenCalledWith(
+      'save_plots',
+      {
+        harvestYear: 2027,
+        plots: [expect.objectContaining({ name: 'La vie', county: 'TR', geometrySource: 'drawn', season: { cropId: 'porumb', areaAri: 412 } })],
+      },
+      expect.objectContaining({ key: expect.any(String) }),
+    );
+    // The sheet steps Back out of its history step; the new parcel's card opens after that, not the old one.
+    await act(async () => new Promise((r) => setTimeout(r, 60)));
+    expect(location.search).toBe('?parcela=44444444-4444-4444-8444-444444444444');
+  });
+
+  it('„Desenează o parcelă” from the top of the page; less than the unplaced hectares says what is left', async () => {
+    await showPage('harta', 'farm', SIGNED_IN, true, ME, { '/api/plots': PLOTS });
+    await settle();
+    fireEvent.click(screen.getByRole('button', { name: 'Desenează o parcelă' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gata' }));
+    fireEvent.change(screen.getByRole('combobox', { name: /Ce crește pe ea/ }), { target: { value: 'grau' } });
+    // Wheat has no hectares off the map: its plan area grows.
+    expect(screen.getByText(/Suprafața de grâu comun de toamnă din plan crește cu 4,12 ha/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Schimbă desenul' }));
+    expect(screen.getByRole('button', { name: 'Gata' })).toBeTruthy();
+  });
+
+  it('saving a new parcel needs internet', async () => {
+    localStorage.setItem('cropcash-plots', JSON.stringify({ plots: PLOTS, at: '2026-11-14T10:00:00Z' }));
+    await showPage('harta', 'farm', SIGNED_IN, false, ME, { '/api/plots': PLOTS });
+    await settle();
+    fireEvent.click(screen.getByRole('button', { name: 'Desenează o parcelă' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gata' }));
+    expect((screen.getByRole('button', { name: 'Salvează parcela' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('Ca să salvăm parcela nouă ai nevoie de internet.')).toBeTruthy();
   });
 });

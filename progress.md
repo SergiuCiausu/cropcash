@@ -1,6 +1,6 @@
 # Progress
 
-What has been built in CropCash, what has been proven, and what is left. Last updated 2026-11-16.
+What has been built in CropCash, what has been proven, and what is left. Last updated 2026-11-20.
 
 Two parts: **the subsidy monitor** (`subventii-monitor/`, plans in `subventii-plan.md`, terms in `glossary.md`) and **the app** (`web/`, Next.js, with `apps/api` and `packages/shared`, see [The app](#the-app)).
 
@@ -23,7 +23,7 @@ Two parts: **the subsidy monitor** (`subventii-monitor/`, plans in `subventii-pl
 | B4 Digest in the daily report | Built | Fixtures only |
 | B5 Extra sources | Partly replaced | See below |
 
-Tests: 199 passing, typecheck clean.
+Tests: 210 passing, typecheck clean.
 
 ## To run it for real
 
@@ -101,6 +101,8 @@ Needs a hosted Supabase project.
 
 The app's „De raportat” page shows the diesel excise refund and the other deadlines from `docs/data/fuel-excise.json` and `docs/data/calendar-2026.json`. Each lists the official pages it rests on in `watch_urls`, and those pages are sources here (7 added: APIA press releases, the 2025 diesel page and guide, the 2026 claim page, two press releases, and HG 1174/2014 on legislatie.just.ro in a new §4.13). When a watched page changes, goes, comes back, or gets a new link about diesel, cost reports or registers, the daily report has a section „Obligații de re-verificat”, right after the farmer digest. Nothing is stored: a person updates the JSON. A test fails if a `watch_url` isn't in the spec (`src/obligations.ts`, `tests/obligations.test.ts`). **To do:** run `npm run seed -w subventii-monitor` on the machine that has the monitor's `.env`, so the 7 new sources are in the database.
 
+**Excise schemes (2026-11-20, `docs/accize-plan.md` §5).** The same section now covers `docs/data/excise-schemes.json`: each scheme's `watch_urls` name the scheme to re-check, a proposal's line asks whether it became law, the schemes' `watch_keywords` count for new links, and a scheme 30 days before `valid_to` with nothing in force replacing it is listed even on a quiet day. One source added: the Codul fiscal (legislatie.just.ro 171282) in §4.13, so the spec has 187 rows. **To do:** `npm run seed -w subventii-monitor` again for it.
+
 ## Daily schedule
 
 Windows task "Subventii Monitor" runs `scripts/daily.cmd` every day at 07:00, with one retry after a crash. Logs are in `subventii-monitor/data/logs/monitor.log`. If the PC is off at 07:00, it runs when the PC is next on and the user is logged in.
@@ -159,7 +161,7 @@ Run it with `npm run dev` (web on :5173, API on :3001). Build it with `npm run b
 | 15 Errors and weak network (`docs/failure-handling-plan.md`) | Done |
 | 16 Bad and good years from INS, per county | Done |
 
-Built since 2026-11-09, each with its own plan and status: calendar events (`docs/calendar-events-plan.md`), fertilizers (`docs/fertilizers-plan.md`), crop losses (`docs/crop-loss-plan.md`), per-hectare and total figures (`docs/per-ha-total-plan.md`), the APIA crop catalogue (`docs/crops-catalog-plan.md`), the map and parcels (`docs/harta-plan.md`), PDF reports and farm members (`docs/rapoarte-pdf-plan.md`), the admin panel (`docs/admin-panel-plan.md`), employees and arendă (`docs/employees-arenda-plan.md`, `docs/15-arenda.md`). Migrations go up to 034.
+Built since 2026-11-09, each with its own plan and status: calendar events (`docs/calendar-events-plan.md`), fertilizers (`docs/fertilizers-plan.md`), crop losses (`docs/crop-loss-plan.md`), per-hectare and total figures (`docs/per-ha-total-plan.md`), the APIA crop catalogue (`docs/crops-catalog-plan.md`), the map and parcels (`docs/harta-plan.md`), PDF reports and farm members (`docs/rapoarte-pdf-plan.md`), the admin panel (`docs/admin-panel-plan.md`), employees and arendă (`docs/employees-arenda-plan.md`, `docs/15-arenda.md`). Migrations go up to 052. The excise schemes (`docs/accize-plan.md`, 2026-11-20): a catalogue in `docs/data/excise-schemes.json`, the farm's answer in `farm_excise_schemes` (052, **not applied yet**: apply it before deploying the API, which reads it with the farm), the diesel refund on noted litres in the plan, the „Accize” card on /subventii, and the daily check. Not built: marking a refund quarter as received.
 
 ## Functions (`docs/functions.md`)
 

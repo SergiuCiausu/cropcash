@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "description": "Categoriile de animale din cererea unică (III. Declarația privind sectorul zootehnic, câmpul 47), cu coeficientul de transformare în UVM (unități vită mare) și grupa din normele de motorină (fuel-excise.json → caps_l_per_uvm). Citit de rapoartele de animale din /rapoarte → Pentru APIA (web/lib/reports/animals.ts). Plan: docs/rapoarte-apia-plan.md, faza 3.",
+    "read_on": "2026-11-20",
+    "uvm_status": "DE-VERIFICAT",
+    "uvm_note": "Coeficienții sunt cei din Regulamentul (UE) nr. 808/2014, Anexa II. De verificat că ghidul APIA 2026 (pajiști sub 0,3 UVM/ha, motorina Anexa 3) îi folosește la fel.",
+    "uvm_source_url": "https://eur-lex.europa.eu/legal-content/RO/TXT/?uri=CELEX:32014R0808",
+    "hay_below_uvm_per_ha": { "value": 0.3, "status": "confirmat-2026", "note": "Sub atâtea UVM pe hectarul de pajiște permanentă, APIA cere dovada fânului (Anexa 26).", "source_url": "https://apia.org.ro/wp-content/uploads/2026/03/Monitorul-Oficial-Partea-I-nr.-152-1.pdf" },
+    "field47_source_url": "https://www.ziuaconstanta.ro/images/stories/2026/03/14/DANIELA/14-03-2026-madr-ordinul-67-din-2026-subventii-apia-2026.pdf"
+  },
+  "categories": [
+    { "id": "bovine_over_2y", "label_ro": "Bovine peste 2 ani", "unit_ro": "capete", "uvm_per_head": 1.0, "fuel_group": "bovine", "field47": true },
+    { "id": "bovine_6m_2y", "label_ro": "Bovine între 6 luni și 2 ani", "unit_ro": "capete", "uvm_per_head": 0.6, "fuel_group": "bovine", "field47": true },
+    { "id": "bovine_under_6m", "label_ro": "Bovine sub 6 luni", "unit_ro": "capete", "uvm_per_head": 0.4, "fuel_group": "bovine", "field47": true },
+    { "id": "equine", "label_ro": "Ecvidee peste 6 luni", "unit_ro": "capete", "uvm_per_head": 1.0, "fuel_group": null, "field47": true },
+    { "id": "sheep", "label_ro": "Ovine", "unit_ro": "capete", "uvm_per_head": 0.15, "fuel_group": "ovine-caprine", "field47": true },
+    { "id": "goats", "label_ro": "Caprine", "unit_ro": "capete", "uvm_per_head": 0.15, "fuel_group": "ovine-caprine", "field47": true },
+    { "id": "sows", "label_ro": "Scroafe de reproducție", "unit_ro": "capete", "uvm_per_head": 0.5, "fuel_group": "porcine", "field47": true },
+    { "id": "other_pigs", "label_ro": "Alte porcine", "unit_ro": "capete", "uvm_per_head": 0.3, "fuel_group": "porcine", "field47": true },
+    { "id": "laying_hens", "label_ro": "Găini ouătoare", "unit_ro": "capete", "uvm_per_head": 0.014, "fuel_group": "pasari", "field47": true },
+    { "id": "other_poultry", "label_ro": "Alte păsări", "unit_ro": "capete", "uvm_per_head": 0.03, "fuel_group": "pasari", "field47": true },
+    { "id": "bee_families", "label_ro": "Familii de albine", "unit_ro": "familii", "uvm_per_head": null, "fuel_group": "albine", "field47": false }
+  ]
+}

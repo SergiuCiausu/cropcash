@@ -65,6 +65,8 @@ export function Drivers({ id = 'ce-conteaza' }: { id?: string }) {
         return 'Arenda pe care o dai';
       case 'rent_in':
         return 'Arenda pe care o primești';
+      case 'excise_refund':
+        return 'Banii înapoi de la motorină';
       default:
         return `${d.title ?? 'Suma ta'}${d.cropId ? `, ${crop(d.cropId)}` : ''}`;
     }

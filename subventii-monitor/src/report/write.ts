@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { CALENDAR_PATH, FUEL_PATH, REPORTS_DIR } from '../config.ts';
-import { loadWatchMap, obligationsSection } from '../obligations.ts';
+import { CALENDAR_PATH, EXCISE_PATH, FUEL_PATH, REPORTS_DIR } from '../config.ts';
+import { endingSoon, exciseKeywords, loadExcise, loadWatchMap, obligationsSection } from '../obligations.ts';
 import type { RunStats, Store } from '../store.ts';
 import { renderReport } from './daily.ts';
 import { renderDigest } from './digest.ts';
@@ -10,6 +10,7 @@ import { renderDigest } from './digest.ts';
 export async function writeReport(store: Store, run: RunStats, dir: string = REPORTS_DIR): Promise<string> {
   const date = run.started.slice(0, 10);
   const events = await store.runEvents(run.id);
+  const excise = loadExcise(EXCISE_PATH);
   const content = renderReport({
     date,
     checked: run.checked,
@@ -17,7 +18,10 @@ export async function writeReport(store: Store, run: RunStats, dir: string = REP
     bytes: run.bytes,
     pendingLinks: await store.pendingLinkCount(),
     events,
-    obligations: obligationsSection(events, loadWatchMap(FUEL_PATH, CALENDAR_PATH)),
+    obligations: obligationsSection(events, loadWatchMap(FUEL_PATH, CALENDAR_PATH, EXCISE_PATH), {
+      keywords: exciseKeywords(excise),
+      ending: endingSoon(excise, date),
+    }),
     errors: run.errors,
     problems: await store.problemSources(),
     digest: renderDigest({

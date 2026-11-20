@@ -147,6 +147,8 @@ export const toTransaction = (r: PageRecord) => ({
   note: null,
   source: 'manual',
   ...(r.employeeId ? { employee_id: r.employeeId } : {}),
+  /* The litres of a diesel expense, for the refund the plan counts (cashflow/excise.ts). */
+  ...(r.fuelLitersCl ? { fuel_liters_cl: r.fuelLitersCl } : {}),
 });
 
 export const toParcel = (p: HarvestParcel) => ({

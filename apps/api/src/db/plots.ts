@@ -29,7 +29,7 @@ const PLOT_COLUMNS =
   'id, name, county, siruta, village_siruta, bloc_fizic, parcel_no, lpis_fbid, land_use, geometry, shape, ' +
   'centroid_lat, centroid_lng, geometry_source, auto_crop_id, archived_at, tenure';
 const SEASON_COLUMNS = 'plot_id, harvest_year, crop_id, apia_crop_code, area_ari, sown_on, harvested_on, second_crop_id';
-const OPERATION_COLUMNS = 'id, plot_id, harvest_year, kind, status, on_date, product, dose, note, transaction_id, template_id';
+const OPERATION_COLUMNS = 'id, plot_id, harvest_year, kind, status, on_date, product, dose, note, target, operator, transaction_id, template_id';
 
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 

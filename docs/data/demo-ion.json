@@ -265,5 +265,9 @@
         "crop_id": null
       }
     ]
-  }
+  },
+  "excise_schemes_note": "Ion a cerut acordul pentru banii înapoi la motorină pe 2026 (docs/accize-plan.md). Banii apar în plan când notezi motorina cu litri pe Recolte.",
+  "excise_schemes": [
+    { "scheme_id": "motorina-hg1174", "year": 2026, "status": "approved", "acord_on": "2025-12-19" }
+  ]
 }

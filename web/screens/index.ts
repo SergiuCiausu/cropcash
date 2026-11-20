@@ -17,6 +17,7 @@ import { recolte } from './recolte';
 import { salariu } from './salariu';
 import { subventii } from './subventii';
 import { surse } from './surse';
+import { verificari } from './verificari';
 import type { ScreenDef, ScreenName } from './types';
 
 export type { ScreenDef, ScreenName } from './types';
@@ -37,6 +38,7 @@ export const SCREENS = {
   'de-raportat': deRaportat,
   harta,
   admin,
+  verificari,
   oameni,
   arenda,
   contracte,

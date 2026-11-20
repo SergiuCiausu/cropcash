@@ -131,6 +131,8 @@ export function farmView(state: FarmState, scope: Scope) {
       apia_decision: me?.apia_decision ?? null,
       /* The farmer's own planned sums: in a crop's project, only that crop's. */
       farm_events: selectedCrop ? state.events.filter((e) => e.crop_id === selectedCrop) : state.events,
+      /* The diesel refund: the whole farm's diesel, so not in one crop's project (docs/accize-plan.md §3). */
+      ...(!selectedCrop ? { farm_excise_schemes: state.excise } : {}),
       /* Ion's example contracts (a signed-in farm plans from its copy above). Not in one crop's project. */
       ...(state.isIon && !selectedCrop
         ? { parties: state.contracts.parties, contracts: state.contracts.contracts, contract_payments: state.contracts.payments, tax_profile: state.contracts.profile }
@@ -207,6 +209,11 @@ export function farmView(state: FarmState, scope: Scope) {
       return e.direction === 'in'
         ? { ...tax, tone: '', title: 'TVA înapoi de la stat', sub: `Pentru contractul cu ${who}, din decontul 300` }
         : { ...tax, title: 'TVA de plătit statului', sub: `Pentru contractul cu ${who}, decontul 300, până pe ${date(e.date)}` };
+    }
+    if (e.kind === 'excise_refund') {
+      // e.what is the quarter, YYYY-Qn (cashflow/excise.ts).
+      const q = e.what ? `trimestrul ${['I', 'II', 'III', 'IV'][Number(e.what.slice(-1)) - 1]} din ${e.what.slice(0, 4)}` : 'un trimestru';
+      return { ...item, title: 'Banii înapoi de la motorină', sub: `${between(e.window!, today)}, pentru ${q}`, icon: 'down', tone: '', task: false, exactDay: false };
     }
     if (e.kind === 'input_cost') return { ...item, title: `${cropName(e.cropId!)}: ${e.what}`, sub: 'Sumă estimată, în cursul lunii', icon: 'tool', tone: 'c', task: false, exactDay: false };
     const admin = e.kind === 'admin';

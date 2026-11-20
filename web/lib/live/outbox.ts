@@ -3,6 +3,7 @@ import { saleAmountBani } from '../../../packages/shared/src/farm/plan-inputs';
 import { litresToCl } from '../../../packages/shared/src/reports/fuel';
 import { applyEventWrite, isEventWrite, type StoredEvent } from '../../../packages/shared/src/calendar/events';
 import planParams from '../../../docs/data/plan-params.json';
+import { withEnrollment } from '../../../packages/shared/src/cashflow/excise';
 import type { MeFarm } from './farm';
 
 /**
@@ -33,6 +34,8 @@ export const QUEUEABLE = [
   /* „Am hotărât” about a contract's end (docs/contracts-plan.md §3.2): it notes a decision, no money moves. Adding
      or changing a contract needs internet: a queued one couldn't name a party added offline. */
   'decide_contract',
+  /* An excise scheme the farm follows or joined (docs/accize-plan.md): it notes the farmer's acord, no money moves. */
+  'set_excise_enrollment',
 ] as const;
 export type QueueableName = (typeof QUEUEABLE)[number];
 export const isQueueable = (name: string): name is QueueableName => (QUEUEABLE as readonly string[]).includes(name);
@@ -242,7 +245,9 @@ export function withOutbox<T extends MeFarm | null>(me: T, items: OutboxItem[]):
   let plan: Partial<MeFarm> = {};
   let events: StoredEvent[] = me.farm_events ?? [];
   let decided: Partial<MeFarm> = {};
+  let excise = me.farm_excise_schemes;
   for (const item of items) {
+    if (item.name === 'set_excise_enrollment') excise = withEnrollment(excise ?? [], item.input as Parameters<typeof withEnrollment>[1]);
     if (item.name === 'decide_contract') decided = { ...decided, ...withDecision({ ...me, ...decided }, item.input) };
     if (item.name === 'confirm_occurrence') {
       /* The plan stops counting the planned sum, so the real one counts from now, as a record does. */
@@ -265,7 +270,7 @@ export function withOutbox<T extends MeFarm | null>(me: T, items: OutboxItem[]):
     if (item.name === 'complete_task' && !done.some((t) => t.task_id === id)) done = [...done, { task_id: id }];
     if (item.name === 'reopen_task') done = done.filter((t) => t.task_id !== id);
   }
-  return { ...me, ...plan, ...decided, transactions, task_completions: done, farm_events: events };
+  return { ...me, ...plan, ...decided, transactions, task_completions: done, farm_events: events, ...(excise ? { farm_excise_schemes: excise } : {}) };
 }
 
 /** A waiting „Am hotărât”, on the contract it names, so the card shows it already. */

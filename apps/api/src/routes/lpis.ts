@@ -1,12 +1,15 @@
 import { Router, type Response } from 'express';
 import { z } from 'zod';
-import { blocPlace, isLpisCounty, placesTrCt, searchCommunes, type LpisBloc } from '@cropcash/shared';
+import { blocPlace, isLpisCounty, isLpisTile, lpisTileBox, placesTrCt, searchCommunes, type LpisBloc } from '@cropcash/shared';
 import { LpisUnavailable, type LpisSource } from '../lpis/client';
 
 /** Romania with a margin: a point outside it can't be on a bloc, so APIA isn't asked. */
 const Lng = z.coerce.number().min(20).max(30);
 const Lat = z.coerce.number().min(43.5).max(48.5);
 const Siruta = z.coerce.number().int().positive().max(999_999);
+const TileXY = z.string().regex(/^\d{1,6}$/).transform(Number);
+/** The same margin as Lng and Lat, as a box. */
+const ROMANIA = { west: 20, south: 43.5, east: 30, north: 48.5 };
 /** As readPaperPlots tidies it: no spaces, no leading zeros. */
 const Bloc = z.string().transform((s) => s.replace(/\s/g, '').replace(/^0+(?=\w)/, '')).pipe(z.string().regex(/^[0-9A-Za-z/]{1,20}$/));
 
@@ -45,6 +48,21 @@ export function lpisRouter(source: LpisSource): Router {
     if (!lng.success || !lat.success) return void bad(res);
     try {
       res.json({ blocs: (await source.at([lng.data, lat.data])).map(withPlace) });
+    } catch (err) {
+      unavailable(res, err);
+    }
+  });
+
+  /** The blocs in one square of the map's grid, for the „Blocuri APIA” outlines. Squares outside Romania get none. */
+  r.get('/lpis/tile/:x/:y', async (req, res) => {
+    const x = TileXY.safeParse(req.params.x);
+    const y = TileXY.safeParse(req.params.y);
+    if (!x.success || !y.success || !isLpisTile({ x: x.data, y: y.data })) return void bad(res);
+    const box = lpisTileBox({ x: x.data, y: y.data });
+    if (box.east < ROMANIA.west || box.west > ROMANIA.east || box.north < ROMANIA.south || box.south > ROMANIA.north) return void res.json({ blocs: [] });
+    try {
+      res.set('Cache-Control', 'private, max-age=86400');
+      res.json({ blocs: await source.tile({ x: x.data, y: y.data }) });
     } catch (err) {
       unavailable(res, err);
     }

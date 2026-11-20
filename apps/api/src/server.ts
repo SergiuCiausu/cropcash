@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { supabasePredictions } from './db/predictions';
+import { supabaseVerify } from './db/verify';
 import { createDataSource, liveData } from './predictions/source';
 import { cleanSourceUrl, pageFields, pageReader } from 'subventii-monitor/pages';
 import { createContractReader } from './ai/contract';
@@ -19,6 +20,7 @@ import { supabaseEvents } from './db/events';
 import { supabaseEmployees } from './db/employees';
 import { supabaseArenda } from './db/arenda';
 import { supabaseContracts } from './db/contracts';
+import { supabaseExcise } from './db/excise';
 import { supabaseMembers } from './db/members';
 import { loadEnv } from './env';
 import { supabaseTokenVerifier } from './middleware/auth';
@@ -27,6 +29,7 @@ import type { SourcesDeps } from './routes/sources';
 import { supabaseSources } from './db/sources';
 import { createStripe, MoneyService } from './stripe/money';
 import { createWeatherService } from './weather';
+import { createRainOutlookService } from './rain-outlook';
 
 const env = loadEnv();
 const db = supabaseFactory(env.supabaseUrl, env.supabaseAnonKey, env.supabaseServiceKey);
@@ -92,6 +95,7 @@ const app = createApp({
   repo: supabaseRepo(db),
   data,
   weather: createWeatherService({ data, baseUrl: env.openMeteoBaseUrl, apiKey: env.openMeteoApiKey }),
+  rainOutlook: createRainOutlookService({ data, apiKey: env.openMeteoApiKey }),
   monitor: supabaseMonitor(db),
   sources,
   readDocument: env.anthropicApiKey ? createDocumentReader(env.anthropicApiKey, data) : undefined,
@@ -107,8 +111,10 @@ const app = createApp({
   employees: supabaseEmployees(db),
   arenda: supabaseArenda(db),
   contracts: supabaseContracts(db),
+  excise: supabaseExcise(db),
   members: supabaseMembers(db),
   predictions: { store: predictionStore, source: predictionSource, admins: env.adminEmails },
+  verify: { store: supabaseVerify(db.admin()), admins: env.adminEmails },
 });
 
 app.listen(env.port, () => {

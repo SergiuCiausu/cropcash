@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build": "next build && node scripts/write-sw.mjs",
+    "build": "node ../node_modules/tsx/dist/cli.mjs ../scripts/verify-questions.ts && next build && node scripts/write-sw.mjs",
     "start": "npx serve out -l 5173",
     "typecheck": "tsc --noEmit -p ."
   },

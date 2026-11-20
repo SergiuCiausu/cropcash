@@ -1,0 +1,1409 @@
+[
+ {
+  "key": "q:A1",
+  "section": "A",
+  "number": "1",
+  "title": "Cursul 2026: FEGA e 5,2788 (BCE, 30 sept 2026); lipsesc FEADR și confirmarea din anunțul APIA",
+  "text": "Folosit acum: FEADR: parametru 5,2788\nUnde se verifică: anunțul APIA\nCe schimbă: sumele FEADR",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A2",
+  "section": "A",
+  "number": "2",
+  "title": "Pragul CRISS (1–50 ha, la 51 ha se pierde tot)",
+  "text": "Folosit acum: aplicat\nUnde se verifică: textul PS PAC 2023–2027\nCe schimbă: eligibilitatea PD-02",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A3",
+  "section": "A",
+  "number": "3",
+  "title": "PD-05: cuantumul de 100 €, avansul de 75 €, plafonul de 10 ha (al fermei sau al suprafeței plătite?)",
+  "text": "Folosit acum: ferma ≤ 10 ha\nUnde se verifică: PS PAC / APIA 2026\nCe schimbă: fermele mici",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A4",
+  "section": "A",
+  "number": "4",
+  "title": "PD-28: cuantumul 2026",
+  "text": "Folosit acum: exclus din calcul\nUnde se verifică: APIA 2026\nCe schimbă: —",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A5",
+  "section": "A",
+  "number": "5",
+  "title": "Cuplat: vaci de lapte 347,81 €/cap, vită de carne 244,72 €/cap, condiții",
+  "text": "Folosit acum: aplicat dacă are animale\nUnde se verifică: APIA 2026\nCe schimbă: fermele cu animale",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A6",
+  "section": "A",
+  "number": "6",
+  "title": "PD-03: condițiile complete (prima instalare, plafon de ha)",
+  "text": "Folosit acum: doar vârsta < 40\nUnde se verifică: PS PAC\nCe schimbă: tinerii fermieri",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A7",
+  "section": "A",
+  "number": "7",
+  "title": "BISS: ferma minimă de 1 ha și parcela de 0,3 ha",
+  "text": "Folosit acum: aplicat\nUnde se verifică: PS PAC\nCe schimbă: —",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A8",
+  "section": "A",
+  "number": "8",
+  "title": "PD-04 peste 30 ha: condițiile de diversificare",
+  "text": "Folosit acum: fără condiție suplimentară\nUnde se verifică: PS PAC / agrointel\nCe schimbă: fermele de 30–50 ha",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A9",
+  "section": "A",
+  "number": "9",
+  "title": "Fondul FEGA pentru toate schemele din Pilonul I",
+  "text": "Folosit acum: FEGA\nUnde se verifică: PS PAC\nCe schimbă: cursul aplicat",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A10",
+  "section": "A",
+  "number": "10",
+  "title": "Cursurile 2025 (5,0806 / 4,9743): sursa URL",
+  "text": "Folosit acum: fără URL\nUnde se verifică: APIA\nCe schimbă: —",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A11",
+  "section": "A",
+  "number": "11",
+  "title": "Istoricul cuantumurilor PD-02–PD-05",
+  "text": "Folosit acum: se folosesc factorii BISS\nUnde se verifică: APIA, anii 2023–2025\nCe schimbă: lățimea intervalului",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A12",
+  "section": "A",
+  "number": "12",
+  "title": "BISS 2023 (97,57): sursa URL",
+  "text": "Folosit acum: din brief\nUnde se verifică: APIA\nCe schimbă: intervalul",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A13",
+  "section": "A",
+  "number": "13",
+  "title": "Norma de venit pentru Teleorman, cereale (Vrancea 237 lei/ha e doar exemplu)",
+  "text": "Folosit acum: —\nUnde se verifică: DGRFP / hotărârea Consiliului Județean\nCe schimbă: impozitul lui Ion",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A14",
+  "section": "A",
+  "number": "14",
+  "title": "Pragurile de scutire de la norma de venit și CASS pe venitul agricol",
+  "text": "Folosit acum: ignorate\nUnde se verifică: Codul fiscal 2026\nCe schimbă: impozitul",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A15",
+  "section": "A",
+  "number": "15",
+  "title": "Acciza la motorină. Verificat (19 nov 2026, HG 1174/2014 consolidată la 18.09.2026): suma depinde de data facturii, iar fuel-excise.json are acum un tabel rates pe perioade (2025 și 2026), cu termenele cererilor pe trimestru, acordul, actele de depus și plafoanele pe ha. Rămâne de aflat: reducerea accizei pe fiecare jumătate de lună din oct–dec 2026 (presa spune 25% din 1 sep până pe 30 nov; decembrie e null), ordinele MF după Legea 162/2026",
+  "text": "Folosit acum: rates cu DE-VERIFICAT din 1 iul 2026; decembrie 2026 = null (bonurile nu intră în sumă)\nUnde se verifică: ordinele MF; pretcarburant.ro doar ca indiciu\nCe schimbă: raportul de motorină și „De raportat”",
+  "closed": false,
+  "refs": [
+   "fuel-excise.json"
+  ]
+ },
+ {
+  "key": "q:A16",
+  "section": "A",
+  "number": "16",
+  "title": "Registrul fitosanitar 3 ani: temeiul legal",
+  "text": "Folosit acum: din brief\nUnde se verifică: ANF\nCe schimbă: doar pitch",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A17",
+  "section": "A",
+  "number": "17",
+  "title": "Mecanismul creditului pe adeverință pentru campania curentă (luat în aprilie pe cererea din 2027)",
+  "text": "Folosit acum: Verificat (comunicatele APIA din 7, 22 și 27 mai 2026): adeverința se eliberează din 7 mai (BISS, CRISS, DR-urile de mediu), din 27 mai (PD-21–24), din 5 martie (DR-06); creditul e de până la 90% din suma calculată după adeverință; dobânda ROBOR 6M + max. 2% la bănci. Ce scrie pe adeverință (doar ha/capete sau și o sumă): vezi #35\nUnde se verifică: comunicatul APIA din 27 mai 2026, ofertele băncilor\nCe schimbă: exemplul de credit de punte",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A18",
+  "section": "A",
+  "number": "18",
+  "title": "Valoarea ROBOR 6M (pentru costul creditului)",
+  "text": "Folosit acum: parametru, fără valoare\nUnde se verifică: BNR\nCe schimbă: costul creditului de punte",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A19",
+  "section": "A",
+  "number": "19",
+  "title": "Istoricul pe județ (INS) și „3 din 10 ani proști la porumb” în Teleorman",
+  "text": "Folosit acum: Nu mai e nevoie (7 nov 2026): fondul pentru ani proști a fost scos\nUnde se verifică: —\nCe schimbă: —",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:A20",
+  "section": "A",
+  "number": "20",
+  "title": "Pilonul III: plafonul de deductibilitate; CEI: plafoanele",
+  "text": "Folosit acum: neafișate\nUnde se verifică: ASF, Legea 202/2026\nCe schimbă: ecranul de pensie",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A21",
+  "section": "A",
+  "number": "21",
+  "title": "Lunile de cheltuieli și ponderile pe cultură",
+  "text": "Folosit acum: presupuse (crops-reference.json)\nUnde se verifică: un agronom / fermieri reali\nCe schimbă: forma calendarului",
+  "closed": false,
+  "refs": [
+   "crops-reference.json"
+  ]
+ },
+ {
+  "key": "q:A22",
+  "section": "A",
+  "number": "22",
+  "title": "Stripe: conturi conectate RO, payouts în RON, IBAN de test RO",
+  "text": "Folosit acum: Rezolvat (7 nov 2026): merge cu Accounts v2 (recipient, dashboard=none, riscul la platformă, confirmat în Platform profile). Detalii în 08-stripe.md §1b\nUnde se verifică: —\nCe schimbă: —",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:A23",
+  "section": "A",
+  "number": "23",
+  "title": "Minimul lunar la Pilonul III: AZT Moderato (50 lei, sursă neoficială), Raiffeisen Acumulare (100 lei, pagina n-a putut fi deschisă), Pensia Mea (50 sau 60 lei)",
+  "text": "Folosit acum: DE-VERIFICAT în pension-funds.json; 50 lei implicit dacă lipsește\nUnde se verifică: prospectul fiecărui fond, ASF\nCe schimbă: suma minimă pe ecranul de pensie",
+  "closed": false,
+  "refs": [
+   "pension-funds.json"
+  ]
+ },
+ {
+  "key": "q:A24",
+  "section": "A",
+  "number": "24",
+  "title": "CAS opțional prin Declarația Unică după 1 iulie 2026: rămâne 12.150 lei/an?",
+  "text": "Folosit acum: pitch-ul spune „peste 12.000 lei”; pe pensie.html apare cu „de verificat”\nUnde se verifică: ANAF, Casa de Pensii\nCe schimbă: pitch și „De ce nu Casa de Pensii?”",
+  "closed": false,
+  "refs": [
+   "pensie.html"
+  ]
+ },
+ {
+  "key": "q:A25",
+  "section": "A",
+  "number": "25",
+  "title": "Îngrășăminte DE-VERIFICAT în fertilizers.json: YaraRega NK 9-36 („36 % K” e ambiguu: K sau K₂O?) și Timac SynerTech Tomis 1 (fișa dă 17 % N total, dar 17 % N ureic + 0,2 % N nitric; am lăsat doar totalul)",
+  "text": "Folosit acum: doar N total e folosit la kg N/ha\nUnde se verifică: fișele tehnice de la producător\nCe schimbă: catalogul și kg N/ha",
+  "closed": false,
+  "refs": [
+   "fertilizers.json"
+  ]
+ },
+ {
+  "key": "q:A26",
+  "section": "A",
+  "number": "26",
+  "title": "Limitele de azot sunt doar pentru fermele fără studiu agrochimic și pantă ≤ 12 % (Ordinul 333/165/2021, art. 9). Nu știm panta parcelei și dacă fermierul are studiu; culturile din afara tabelului n-au limită",
+  "text": "Folosit acum: verdict „nu știm” în loc de „ok” când lipsește limita\nUnde se verifică: fermierul (studiu, pantă), APIA/LPIS (panta blocului fizic)\nCe schimbă: verdictul de pe kg N/ha",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A27",
+  "section": "A",
+  "number": "27",
+  "title": "Analizele Yara vin de pe paginile din UK/DE/ES (yara.ro nu le publică), iar 13 produse au sold_in_ro: null",
+  "text": "Folosit acum: pot diferi de sacii vânduți în România\nUnde se verifică: Yara România, distribuitori\nCe schimbă: catalogul",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A28",
+  "section": "A",
+  "number": "28",
+  "title": "Când vin banii de la motorină: 2–6 luni după trimestru (T1 2026 plătit de pe 31 iulie). Legea nu dă o dată",
+  "text": "Folosit acum: payment_lag_months 2–6, DE-VERIFICAT în excise-schemes.json\nUnde se verifică: ordinele de plată APIA pe fiecare trimestru\nCe schimbă: data banilor de la motorină în salariu (pasul 3 din accize-plan.md)",
+  "closed": false,
+  "refs": [
+   "excise-schemes.json"
+  ]
+ },
+ {
+  "key": "q:A29",
+  "section": "A",
+  "number": "29",
+  "title": "Curentul din surse regenerabile / sub 250 kW fără acciză (Codul fiscal art. 399 lit. m, n): cum se cere (notificare la vamă, certificat) e în normele HG 1/2016, necitite",
+  "text": "Folosit acum: doar textul, fără pași\nUnde se verifică: normele metodologice, Titlul VIII\nCe schimbă: cardul „Plătești mai puțin”",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A30",
+  "section": "A",
+  "number": "30",
+  "title": "Motorina fără acciză și TVA la pompă (tichete, ~78 l/ha) din 2027: doar presă, nicio hotărâre",
+  "text": "Folosit acum: status: propunere, nu intră în nicio sumă\nUnde se verifică: proiectele MADR și MF\nCe schimbă: dacă înlocuiește banii înapoi la motorină din 2027",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A31",
+  "section": "A",
+  "number": "31",
+  "title": "Termenele din apia-papers.json cu DE-VERIFICAT: dovezile pentru sprijinul cuplat până pe 31 mar. 2027 (confirmat doar la sfecla de zahăr și la răsaduri), certificatul ecologic până pe 15 oct., decontul PD-07/PD-27 în ianuarie 2027, lista de acte pentru cerere",
+  "text": "Folosit acum: arătate cu „de verificat” în /rapoarte → Pentru APIA\nUnde se verifică: Ord. MADR 106/2024 (forma consolidată), Anexa 2 la Ord. 67/2026, centrul APIA\nCe schimbă: cardurile din fila Pentru APIA",
+  "closed": false,
+  "refs": [
+   "apia-papers.json"
+  ]
+ },
+ {
+  "key": "q:A32",
+  "section": "A",
+  "number": "32",
+  "title": "Rubricile oficiale ale Anexei 9 (situația centralizatoare, motorină) și ale registrului de tratamente (SMR 8)",
+  "text": "Folosit acum: Anexa 9: furnizor, nr. și data facturii, litri facturați și folosiți (după OMADR 1727/2015, consolidat doar până în 2019). Registrul: plus „Motivul” și „Cine a aplicat”, notate la tratament din migrația 051\nUnde se verifică: formularele actuale de la APIA și ANF\nCe schimbă: dacă PDF-ul se poate depune ca atare (docs/rapoarte-apia-plan.md, Q4)",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A33",
+  "section": "A",
+  "number": "33",
+  "title": "Sprijinul cuplat (apia-coupled.json): minimul la porumb siloz (PD-26, 18 t/ha) și la legume în câmp (PD-17, necunoscut), termenul de 31 mar. 2027 la soia, lucernă și porumb siloz, și dacă lucerna peste 13 ha se dovedește doar cu animale",
+  "text": "Folosit acum: minimum_kg_ha: null la PD-17, DE-VERIFICAT la celelalte; raportul spune „de verificat”\nUnde se verifică: Ord. MADR 106/2024 consolidat, ghidul APIA pentru sprijinul cuplat 2026\nCe schimbă: raportul „Dovezile pentru sprijinul cuplat”",
+  "closed": false,
+  "refs": [
+   "apia-coupled.json"
+  ]
+ },
+ {
+  "key": "q:A34",
+  "section": "A",
+  "number": "34",
+  "title": "Eco-schema PD-04 peste 30 ha teren arabil: câte culturi și în ce proporții",
+  "text": "Folosit acum: regula fără cerințe, DE-VERIFICAT în subsidies-2026.json; caietul nu judecă diversificarea peste 30 ha\nUnde se verifică: ghidul APIA pentru eco-scheme 2026\nCe schimbă: „Caietul eco-schemei pentru teren arabil”",
+  "closed": false,
+  "refs": [
+   "subsidies-2026.json"
+  ]
+ },
+ {
+  "key": "q:A35",
+  "section": "A",
+  "number": "35",
+  "title": "Coeficienții UVM din livestock.json (bovine peste 2 ani 1; 6 luni–2 ani 0,6; sub 6 luni 0,4; ovine și caprine 0,15; ecvidee 1; scroafe 0,5; alte porcine 0,3; găini ouătoare 0,014; alte păsări 0,03), luați din Reg. (UE) 808/2014 Anexa II",
+  "text": "Folosit acum: uvm_status: DE-VERIFICAT; folosiți pentru pragul de 0,3 UVM/ha la fân și pentru Anexa 3 la motorină\nUnde se verifică: ghidul APIA 2026 pentru pajiști și ghidul motorinei\nCe schimbă: „Dovada pentru fân”, Anexa 3 din „Motorina: suprafețele și consumul normat”",
+  "closed": false,
+  "refs": [
+   "livestock.json"
+  ]
+ },
+ {
+  "key": "q:A36",
+  "section": "A",
+  "number": "36",
+  "title": "Dovada de fermier activ din campania 2027 (Ord. MADR 44/2026, art. 25¹): cine o depune (toate fermele cu teren arabil sau doar unele), cum (centru sau online) și termenul de 31 august 2027",
+  "text": "Folosit acum: hârtia fermier-activ cu termenul DE-VERIFICAT\nUnde se verifică: textul consolidat al Ord. 106/2024 după Ord. 44/2026, ghidul APIA 2027\nCe schimbă: „Dovada de fermier activ”",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:A37",
+  "section": "A",
+  "number": "37",
+  "title": "Rubricile actuale ale Anexei 16¹ (PD-07) și 19¹ (PD-27) și termenul decontului din ianuarie 2027",
+  "text": "Folosit acum: coloane alese de noi: crotalie, rasă, data nașterii; parcelă, intrat, ieșit, câte animale\nUnde se verifică: formularele de la APIA\nCe schimbă: „Decontul PD-07 și PD-27”",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B1",
+  "section": "B",
+  "number": "1",
+  "title": "Schemele fără istoric folosesc factorii de interval de la BISS (0,900 / 1,011)",
+  "text": "De ce: E singurul istoric complet. Fără el n-am avea interval.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B2",
+  "section": "B",
+  "number": "2",
+  "title": "Avansul e sigur, iar incertitudinea stă doar în sold",
+  "text": "De ce: Avansul se plătește pe cuantumul de referință deja anunțat.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B3",
+  "section": "B",
+  "number": "3",
+  "title": "Data plății pe scenarii: pesimist = ultima zi a ferestrei, mediu = mijlocul, optimist = prima zi",
+  "text": "De ce: Planul trebuie să țină și în cel mai rău caz.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B4",
+  "section": "B",
+  "number": "4",
+  "title": "Un fel de an e definit de recoltă: producția din istoricul INS al județului (ultimele 15 recolte: mediana, media celor mai slabi 3, media celor mai buni 3). Prețul și costurile rămân medii în toți cei trei ani",
+  "text": "De ce: Între 2011 și 2025, prețurile INS la poarta fermei aproape nu urmează producția pe țară (corelație −0,11 la grâu, −0,31 la porumb, −0,27 la floarea-soarelui, 14 schimbări pe an). Costurile se plătesc înainte să se știe recolta. Mediile sunt de la nivel de județ, deci o fermă poate avea un an mult mai slab.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B5",
+  "section": "B",
+  "number": "5",
+  "title": "Fondul de risc: 10% din fiecare încasare până la țintă",
+  "text": "De ce: Scos pe 7 nov 2026. Salariul nu mai pune nimic deoparte pentru un an slab.",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:B6",
+  "section": "B",
+  "number": "6",
+  "title": "Randamentele pentru pensie: 2% / 4% / 6%",
+  "text": "De ce: Doar ilustrativ; spunem explicit că nu e consultanță.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B7",
+  "section": "B",
+  "number": "7",
+  "title": "Contribuția de pensie sugerată: 5% din salariu, rotunjită în jos la 50 lei, dar cel puțin minimul fondului ales (50 lei fără fond)",
+  "text": "De ce: Ca să nu sperie, dar nici să nu sugereze 0 sau o sumă pe care fondul o refuză.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B8",
+  "section": "B",
+  "number": "8",
+  "title": "Salariul se rotunjește în jos la 50 lei, creditul în sus la 100 lei",
+  "text": "De ce: Sume ușor de reținut.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B9",
+  "section": "B",
+  "number": "9",
+  "title": "Persona Ion: 8 ha grâu + 7 ha porumb, sold de 35.000 lei la 1 noiembrie 2026",
+  "text": "De ce: 2 culturi îl fac eligibil PD-04 și dau un exemplu realist.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B10",
+  "section": "B",
+  "number": "10",
+  "title": "„Medie” în crops-reference.json = mijlocul intervalului din sursă",
+  "text": "De ce: Sursa dă doar intervale.",
+  "closed": false,
+  "refs": [
+   "crops-reference.json"
+  ]
+ },
+ {
+  "key": "q:B11",
+  "section": "B",
+  "number": "11",
+  "title": "Cheltuielile și vânzările se pun pe 15 ale lunii",
+  "text": "De ce: Nu avem date pe zile.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B12",
+  "section": "B",
+  "number": "12",
+  "title": "Termenele APIA pentru 2027 = cele din 2026 + 1 an, marcate „estimat”",
+  "text": "De ce: Nu sunt anunțate.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B13",
+  "section": "B",
+  "number": "13",
+  "title": "Calendarul folosește implicit sume „an normal” și plăți APIA în ultima zi a ferestrei",
+  "text": "De ce: Planul trebuie să țină și dacă banii vin târziu.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B14",
+  "section": "B",
+  "number": "14",
+  "title": "Creditul pe adeverință e disponibil din luna în care se deschide următoarea cerere APIA (martie)",
+  "text": "De ce: Adeverința se eliberează după depunerea cererii. DE-VERIFICAT cu băncile.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B15",
+  "section": "B",
+  "number": "15",
+  "title": "Dobânda creditului nu intră încă în calcul; rambursarea = suma luată",
+  "text": "De ce: ROBOR 6M lipsește (#18).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B17",
+  "section": "B",
+  "number": "17",
+  "title": "La „dăm timpul înainte”, realitatea e simulată cu anul normal și plăți la mijlocul ferestrei (mai devreme decât planul prudent)",
+  "text": "De ce: Arată că planul ține și când banii vin altfel decât socotit.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B18",
+  "section": "B",
+  "number": "18",
+  "title": "Pensia din demo se plătește cu card de test, nu din soldul fermierului; salariul doar din banii ajunși prin Stripe (APIA și, din pasul 9, creditul declarat, simulat ca plată în contul CropCash)",
+  "text": "De ce: Simplificări de demo, vezi 08-stripe.md §1c. În realitate creditul intră în banca fermierului.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B22",
+  "section": "B",
+  "number": "22",
+  "title": "Salariul se fixează când fermierul acceptă planul („Bine așa” sau un credit) și se plătește min(fix, salariul sigur)",
+  "text": "De ce: Un salariu care urcă singur lună de lună (fereastra de 12 luni prinde avansul de anul viitor) ar fi derutant; scăderea rămâne, ca să nu rămână fără bani.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B16",
+  "section": "B",
+  "number": "16",
+  "title": "Cota pentru fondul de risc se ia doar din venituri",
+  "text": "De ce: Scos pe 7 nov 2026, odată cu fondul.",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:B19",
+  "section": "B",
+  "number": "19",
+  "title": "Pensia: vârsta țintă 65 de ani; suma de la 65 de ani se arată împărțită pe 10 ani („vreo 245 lei pe lună”); slider 50–500 lei, pas 10 lei",
+  "text": "De ce: Ilustrare simplă, nu o anuitate reală (05 §4). Toate în plan-params.json → pension.",
+  "closed": false,
+  "refs": [
+   "plan-params.json"
+  ]
+ },
+ {
+  "key": "q:B20",
+  "section": "B",
+  "number": "20",
+  "title": "„X din 10 ani proști” din istoricul INS",
+  "text": "De ce: Scos pe 7 nov 2026, odată cu fondul.",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:B21",
+  "section": "B",
+  "number": "21",
+  "title": "Proiecția pe 3 ani (trimestre) și cursorul de 1–10 ani din Prognoză repetă prețurile, costurile și subvențiile de acum în fiecare an, iar scenariul ales (bun / normal / secetă) se aplică tuturor anilor",
+  "text": "De ce: Nu avem prognoze de preț sau cuantumuri pentru 2027–2028. Istoricul INS și Open-Meteo nu sunt încă integrate (#19).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B22-2",
+  "section": "B",
+  "number": "22",
+  "title": "Ion e persoană fizică, nu PFA",
+  "text": "De ce: Persona nu spune. Contează la finanțări: DR-12 și DR-14 nu acceptă persoane fizice.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B23",
+  "section": "B",
+  "number": "23",
+  "title": "Lunile grele se calculează din plan: pentru Ion, martie–mai 2027, cu cel mai jos sold cam 7.800 lei în mai",
+  "text": "De ce: Costurile din crops-reference.json încep în martie, iar soldul pornește de la 35.000 lei (P9), deci Ion nu ajunge pe minus. Fără salariul din plan.",
+  "closed": false,
+  "refs": [
+   "crops-reference.json"
+  ]
+ },
+ {
+  "key": "q:B24",
+  "section": "B",
+  "number": "24",
+  "title": "Paginile fără cont (web/legacy, fostele pagini din farm-app/subsidies) socotesc cu pensia de 200 lei/lună din exemplul din 07-architecture.md",
+  "text": "De ce: Așa ies 650 lei salariu sigur și 2.400 lei cu 14.000 lei credit. O fermă autentificată nu folosește exemplul: buildFarmPlan ține pensia la 0 până pornește planul de pensie, ca ecranul să arate exact ce plătește Stripe.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B25",
+  "section": "B",
+  "number": "25",
+  "title": "Recoltele de după 2027 refolosesc sumele și datele din 2026, iar Recolta 2026 din paginile statice are cifre ilustrative",
+  "text": "De ce: Avem doar subsidies-2026.json și calendar-2026.json. Paginile arată „de verificat”, respectiv „date ilustrative”.",
+  "closed": false,
+  "refs": [
+   "subsidies-2026.json",
+   "calendar-2026.json"
+  ]
+ },
+ {
+  "key": "q:B26",
+  "section": "B",
+  "number": "26",
+  "title": "Producția și prețul notate de fermier devin anul normal pentru toți anii următori, iar anul bun și cel slab se scalează cu același raport. Costurile rămân mediile",
+  "text": "De ce: Un singur an notat poate fi neobișnuit. Fermierul îl poate schimba în Recolte.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B27",
+  "section": "B",
+  "number": "27",
+  "title": "sowing_month din crops-reference.json vine din lunile de semănat din expense_months (grâu oct., porumb și floarea-soarelui apr.). Timpul până la recoltă se schimbă doar după cultură, nu după soi sau vreme. Un semănat întârziat mută recolta cu aceleași luni",
+  "text": "De ce: Calendar agricol general, months_status: DE-VERIFICAT.",
+  "closed": false,
+  "refs": [
+   "crops-reference.json"
+  ]
+ },
+ {
+  "key": "q:B29",
+  "section": "B",
+  "number": "29",
+  "title": "Producția și prețul așteptate, scrise de fermier în „Datele planului”, au prioritate față de cele notate în Recolte și față de medii. Anul bun și cel slab se scalează cu același raport (ca la P26). Costurile pe hectar se pot scrie tot acolo (P31) și sunt aceleași în toți anii. Data plăților APIA rămâne ultima zi a ferestrei și nu se poate schimba (P13)",
+  "text": "De ce: Fermierul își cunoaște pământul mai bine decât media. Planul trebuie să țină și dacă banii vin târziu.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B30",
+  "section": "B",
+  "number": "30",
+  "title": "O cultură adăugată de fermier („Altă cultură” în Recolte) folosește doar cifrele lui: producția, prețul și cheltuielile pe hectar pentru un an normal. Prețul și cheltuielile nu se schimbă de la un an la altul, anul bun e cel normal, iar anul slab e cel scris de fermier sau, dacă lipsește, tot cel normal. Cheltuielile „până la recoltă” se împart egal pe lunile dintre semănat și recoltă, iar vânzarea e în luna recoltei. La APIA o socotim teren arabil",
+  "text": "De ce: Nu avem date din surse pentru alte culturi, iar fermierul își cunoaște ferma. Formularul rămâne scurt.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B31",
+  "section": "B",
+  "number": "31",
+  "title": "Costul pe hectar scris de fermier ține locul mediei, pe tot sezonul, iar împărțirea pe luni rămâne cea din crops-reference.json. Costul „din cheltuielile tale” vine din ultima recoltă încheiată și ia doar sămânță, îngrășăminte, tratamente, motorină și lucrări. Cheltuielile pentru toată ferma se împart după hectare. O cheltuială pe o cultură, fără recoltă aleasă, intră la următoarea recoltă a culturii. Un cost mai mic nu mărește un salariu deja stabilit, iar unul mai mare îl scade doar dacă banii n-ar ajunge",
+  "text": "De ce: Aceste categorii sunt cele care înlocuiesc costul planificat, deci arenda sau reparațiile s-ar număra de două ori. Un sezon neterminat ar arăta un cost prea mic. O cifră estimată nu trebuie să mărească plățile reale.",
+  "closed": false,
+  "refs": [
+   "crops-reference.json"
+  ]
+ },
+ {
+  "key": "q:B28",
+  "section": "B",
+  "number": "28",
+  "title": "Grâul din hambar se socotește vândut în prima lună a planului, la prețul notat sau la medie",
+  "text": "De ce: Nu întrebăm luna vânzării, ca formularul să rămână scurt. Vânzările notate în altă lună decât cea obișnuită scad din hambar.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B29-2",
+  "section": "B",
+  "number": "29",
+  "title": "Limitele pentru sursele fermierilor din plan-params.json → sources: 25 de surse de fermier, 10 adăugări pe zi, 30 pe adresă IP, 2.000 de pagini în total, 10 MB",
+  "text": "De ce: Sunt alegeri ale noastre, ca să nu poată fi abuzat serverul. Fără cont, limita pe IP e principala protecție, iar contorul se golește la repornirea API-ului.",
+  "closed": false,
+  "refs": [
+   "plan-params.json"
+  ]
+ },
+ {
+  "key": "q:B30-2",
+  "section": "B",
+  "number": "30",
+  "title": "Fără cont, lista de surse aparține unei chei din browser. Pe alt aparat nu se vede, iar dacă se șterg datele browserului, lista se pierde",
+  "text": "De ce: Sign-in-ul a fost lăsat pe mai târziu. Când revine, cheia se poate lega de cont.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B31-2",
+  "section": "B",
+  "number": "31",
+  "title": "Alarma unui termen pus în calendarul telefonului sună cu 7 zile înainte, la 9:00 (plan-params.json → calendar_reminder_days, calendar_reminder_hour). Dacă termenul e mai aproape, sună în ziua de dinainte",
+  "text": "De ce: Alegere de produs, ca să ajungă fermierul la APIA la timp. N-am întrebat fermieri câte zile le trebuie.",
+  "closed": false,
+  "refs": [
+   "plan-params.json"
+  ]
+ },
+ {
+  "key": "q:B32",
+  "section": "B",
+  "number": "32",
+  "title": "Vârsta citită din CNP-ul de pe cererea de plată se socotește la ziua citirii, nu la o dată de referință a campaniei",
+  "text": "De ce: Nu am găsit în 03-subsidies.md sau în ghidul APIA la ce dată se verifică „sub 40 de ani” pentru PD-03. DE-VERIFICAT.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:B33",
+  "section": "B",
+  "number": "33",
+  "title": "Pierderile notate de fermier (hectare nestrânse) se scad din plan doar când producția e a lui (notată în Recolte sau scrisă în Datele planului). Pe producția medie a județului din INS (AGR110A) nu scădem nici procentul lui obișnuit, nici istoricul. O pierdere deja spusă pentru o recoltă se scade mereu, pentru că acele hectare nu mai există",
+  "text": "De ce: Nu știm dacă „producția medie la hectar” din AGR110A e împărțită la suprafața cultivată (deci include câmpurile pierdute) sau la cea recoltată. DE-VERIFICAT în metodologia INS. Dacă e pe suprafața recoltată, cota se poate scădea peste tot.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:BP-EV1",
+  "section": "B",
+  "number": "P-EV1",
+  "title": "Evenimentele lui Ion din demo-ion.json → calendar_events (rata de 1.500 lei pe lună, revizia combinei de 2.500 lei) sunt exemple de demo",
+  "text": "De ce: Sunt sume pe care le scrie fermierul, nu cifre oficiale. Le-am ales ca să se vadă cum o sumă din calendar scade salariul.",
+  "closed": false,
+  "refs": [
+   "demo-ion.json"
+  ]
+ },
+ {
+  "key": "q:BP-EV2",
+  "section": "B",
+  "number": "P-EV2",
+  "title": "O sumă din calendar a cărei zi a trecut fără răspuns rămâne în plan, în luna curentă, cel mult 45 de zile (plan-params.json → farmer_events.carry_days)",
+  "text": "De ce: Ca să nu dispară o plată doar pentru că fermierul n-a apucat să bifeze. După 45 de zile o socotim uitată.",
+  "closed": false,
+  "refs": [
+   "plan-params.json",
+   "farmer_events.carry_days"
+  ]
+ },
+ {
+  "key": "q:BP-EV3",
+  "section": "B",
+  "number": "P-EV3",
+  "title": "„E toată recolta” ia locul vânzării estimate a culturii aflate la cel mult 6 luni de ea și e bifat singur când suma e la ±30% de estimare (farmer_events.whole_harvest_window_months, whole_harvest_match_pct)",
+  "text": "De ce: Alegere de produs, ca vânzarea fermierului să nu se adune peste cea estimată.",
+  "closed": false,
+  "refs": [
+   "farmer_events.whole_harvest_window_months"
+  ]
+ },
+ {
+  "key": "q:BP-H1",
+  "section": "B",
+  "number": "P-H1",
+  "title": "Lucrările lui Ion pe parcele (demo-ion.json → plot_work): arat, semănat pe 10 oct. 2026, erbicid pe 5 nov., insecticid planificat pe 20 nov., azot planificat pe 5 mar. 2027 la grâu; arat pe 10 nov. 2026 și semănat planificat pe 15 apr. 2027 la porumb",
+  "text": "De ce: Exemple de demo, fără produse și fără sume, ca să se vadă cardul, harta și mementourile. Ziua semănatului e aleasă în luna din planted_month. Nu sunt recomandări agronomice.",
+  "closed": false,
+  "refs": [
+   "demo-ion.json"
+  ]
+ },
+ {
+  "key": "q:BP-H2",
+  "section": "B",
+  "number": "P-H2",
+  "title": "Telefonul ține ultimele 300 de bucăți din harta de bază (plots-params.json → map_tile_cache_max)",
+  "text": "De ce: Alegere de spațiu, nu cifră de bani. Ajunge pentru zona unei ferme la câteva niveluri de zoom. De verificat pe un telefon real cât ocupă.",
+  "closed": false,
+  "refs": [
+   "plots-params.json"
+  ]
+ },
+ {
+  "key": "q:BP-H3",
+  "section": "B",
+  "number": "P-H3",
+  "title": "O lucrare notată offline odată cu o cheltuială (tratamentul) nu e legată de cheltuială",
+  "text": "De ce: Cheltuiala are id abia după ce se trimite. Banii pe parcelă se socotesc oricum din plot_id, deci cifrele nu se schimbă; lipsește doar legătura de pe card.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:BP-EV4",
+  "section": "B",
+  "number": "P-EV4",
+  "title": "„Ce schimbă cel mai mult prognoza” măsoară fiecare sumă scoțând-o din plan și refăcând salariul sigur și punctul cel mai de jos",
+  "text": "De ce: Arată corect că o sumă venită după luna cea mai grea schimbă puțin salariul. Nu e o sumă a efectelor: rândurile nu se adună.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:BP-C1",
+  "section": "B",
+  "number": "P-C1",
+  "title": "Zilele în care aducem aminte de un contract (contract-types.json → remind_days_before): vânzare și cumpărare 14 zile înainte de fiecare dată, servicii și „alt contract” 30, asigurare 45, leasing și comodat 60; arenda o lună înainte de ziua refuzului (ca acum)",
+  "text": "De ce: Alegeri de produs, nu din lege: cât îi trebuie unui fermier să caute o ofertă de asigurare sau banii pentru valoarea reziduală. N-am întrebat fermieri.",
+  "closed": false,
+  "refs": [
+   "contract-types.json"
+  ]
+ },
+ {
+  "key": "q:BP-C2",
+  "section": "B",
+  "number": "P-C2",
+  "title": "O poliță de asigurare nu se reînnoiește singură: după data de sfârșit bunul e „neasigurat” până la o poliță nouă",
+  "text": "De ce: Reînnoirea nu e citită (#45). E mai sigur să-l anunțăm degeaba decât să-l lăsăm să creadă că e acoperit.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:BP-C3",
+  "section": "B",
+  "number": "P-C3",
+  "title": "La o vânzare fără dată de plată, banii vin în ziua livrării",
+  "text": "De ce: Codul civil art. 1720 (1): plata, de îndată ce proprietatea e transmisă. Cifra de pe card spune „la livrare, dacă în contract nu scrie altă dată”.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:C1",
+  "section": "C",
+  "number": "1",
+  "title": "Brief-ul vechi: „~800.000 de cereri” vs. 671.334 (economedia, 2026)",
+  "text": "Rezolvare: Folosim 671.334.",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:C2",
+  "section": "C",
+  "number": "2",
+  "title": "Promptul spune data/subsidies-2026.json în §4 și docs/data/ în §7",
+  "text": "Rezolvare: Folosim docs/data/.",
+  "closed": true,
+  "refs": [
+   "subsidies-2026.json"
+  ]
+ },
+ {
+  "key": "q:C3",
+  "section": "C",
+  "number": "3",
+  "title": "Lista de status-uri (confirmat-2026, din-2025, din-2024, DE-VERIFICAT) nu acoperă datele din 2020 și din brief",
+  "text": "Rezolvare: Am adăugat din-2020 și din-brief.",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:C4",
+  "section": "C",
+  "number": "4",
+  "title": "Promptul spune „Test Clocks: arătăm live cum se execută salariile”, dar Test Clocks nu declanșează payouts",
+  "text": "Rezolvare: Folosim un scheduler propriu, declanșat de test_clock.ready (vezi 08-stripe.md §4). Cer confirmare.",
+  "closed": false,
+  "refs": [
+   "test_clock.ready"
+  ]
+ },
+ {
+  "key": "q:C6",
+  "section": "C",
+  "number": "6",
+  "title": "Contractele de arendă cu persoane fizice: cercetarea din 20 nov 2026 spune că se atașează la cerere și trebuie să fie valabile până la 1 decembrie; cea din 18 nov 2026 (Anexa 2 la Ord. 67/2026) spune că ajung la APIA doar prin adeverința registrului agricol și că regula cu 1 decembrie nu e în textele din 2026",
+  "text": "Rezolvare: Deschisă. În apia-papers.json scrie „nu e clar, întreabă la centrul APIA”. De citit din nou Anexa 2 (docs/rapoarte-apia-plan.md, Q1).",
+  "closed": false,
+  "refs": [
+   "apia-papers.json"
+  ]
+ },
+ {
+  "key": "q:C5",
+  "section": "C",
+  "number": "5",
+  "title": "docs/source/ nu există, deci n-am putut compara cu PDF-ul challenge-ului și cu brief-urile",
+  "text": "Rezolvare: De verificat când sunt adăugate.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D1",
+  "section": "D",
+  "number": "1",
+  "title": "Domeniul pentru API Rezolvat (8 nov 2026): cropcash-api.andreitutea.com, record A în Namecheap spre VPS.",
+  "text": "",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:D2",
+  "section": "D",
+  "number": "2",
+  "title": "Magazinele de aplicații",
+  "text": "e suficient PWA-ul sau vrem și Play Store / App Store (prin Capacitor, ~0,5–1 zi în plus)?",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D3",
+  "section": "D",
+  "number": "3",
+  "title": "Vremea, vântul pentru stropit",
+  "text": "weather.spray_wind_max_kmh e null (DE-VERIFICAT) în plan-params.json, până avem o sursă. Până atunci, avertizarea de vânt e oprită.",
+  "closed": false,
+  "refs": [
+   "weather.spray_wind_max_kmh",
+   "plan-params.json"
+  ]
+ },
+ {
+  "key": "q:D4",
+  "section": "D",
+  "number": "4",
+  "title": "Vremea, pragul de îngheț",
+  "text": "weather.frost_min_c e 0 °C la 2 m, presupunere de produs. Pragul real diferă pe cultură și pe stadiu.",
+  "closed": false,
+  "refs": [
+   "weather.frost_min_c"
+  ]
+ },
+ {
+  "key": "q:D5",
+  "section": "D",
+  "number": "5",
+  "title": "Vremea, licența la lansare",
+  "text": "termenii Open-Meteo trec aplicațiile cu abonamente la uz comercial. Alegem plan plătit sau instanță proprie? Prețurile planurilor nu apar pe pagina de prețuri. Tot de confirmat: dacă putem stoca datele și dacă modelul regional acoperă România.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D6",
+  "section": "D",
+  "number": "6",
+  "title": "Lista completă de use case-uri",
+  "text": "docs/use-cases.md e un rezumat. Fără cele 50 de cazuri, acoperirea s-a verificat pe grupe, iar etichetele MVP / Should / Later nu se pot compara cu planul.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D7",
+  "section": "D",
+  "number": "7",
+  "title": "Vocea, recunoașterea Nu mai e nevoie: vocea a fost scoasă (8 nov 2026).",
+  "text": "",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:D8",
+  "section": "D",
+  "number": "8",
+  "title": "Vocea, citirea cu voce tare Nu mai e nevoie: la fel.",
+  "text": "",
+  "closed": true,
+  "refs": []
+ },
+ {
+  "key": "q:D9",
+  "section": "D",
+  "number": "9",
+  "title": "Notificările",
+  "text": "câte pe săptămână și în ce ore? Merg pe telefoanele fermierilor și pe iPhone, fără instalare? Valorile merg în plan-params.json, ca presupuneri.",
+  "closed": false,
+  "refs": [
+   "plan-params.json"
+  ]
+ },
+ {
+  "key": "q:D10",
+  "section": "D",
+  "number": "10",
+  "title": "Asistentul, costul",
+  "text": "limita e acum 5 mesaje pe zi pentru un fermier (de la 9 nov 2026; înainte 40) (ASSISTANT_DAILY_LIMIT), o presupunere. Costul real pe mesaj n-a fost măsurat.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D11",
+  "section": "D",
+  "number": "11",
+  "title": "Actele necesare",
+  "text": "lista pentru fiecare termen cere o sursă oficială. Până atunci, documents_ro e null (DE-VERIFICAT).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D12",
+  "section": "D",
+  "number": "12",
+  "title": "Vânzarea mai târziu",
+  "text": "lipsesc prețurile pe luni și costul depozitării. Până atunci, răspunsul arată doar când vin banii.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D13",
+  "section": "D",
+  "number": "13",
+  "title": "Pensia sărită o lună",
+  "text": "merge așa la Pilonul III sau la CEI? În demo e o simulare.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D14",
+  "section": "D",
+  "number": "14",
+  "title": "Hârtiile APIA",
+  "text": "n-am avut o cerere unică sau o decizie de plată reală. Câmpurile citite (hectarele pe cultură, suma totală, anul campaniei) sunt presupuneri. Trebuie testat pe hârtii reale, mai ales o decizie care arată doar avansul. Din 14 nov 2026, cererea dă și numele, vârsta (din CNP) și județul, iar culturile se potrivesc după codul APIA (vezi docs/cerere-onboarding-plan.md). Nici acestea n-au fost testate pe o cerere reală.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D15",
+  "section": "D",
+  "number": "15",
+  "title": "PD-28, pragul pentru 2026",
+  "text": "unproductive_pct >= 2 vine din regulile campaniei 2025 (agrointel). De verificat în ghidul și ordinul MADR pentru 2026. Tot de verificat: condițiile pentru pârloagă din Ordinul MADR nr. 106/2024 (inclusiv fotografiile prin GeoFoto).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D16",
+  "section": "D",
+  "number": "16",
+  "title": "PD-28, cuantumul 2026",
+  "text": "necunoscut. Aplicația arată ca estimare suma stabilită în 2025 (32,9366 €/ha), separat, fără s-o pună în total. Proiectul de majorare la 40,2089 €/ha nu e folosit.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D17",
+  "section": "D",
+  "number": "17",
+  "title": "Teren necultivat, codul APIA Rezolvat (14 nov 2026): e 970, TEREN NECULTIVAT (MO 193 bis/2026, Anexa 1, Tabel nr. 1, p. 204). E în apia_codes din crops-reference.json.",
+  "text": "",
+  "closed": true,
+  "refs": [
+   "crops-reference.json"
+  ]
+ },
+ {
+  "key": "q:D18",
+  "section": "D",
+  "number": "18",
+  "title": "Teren necultivat la diversificare (PD-04)",
+  "text": "îl numărăm ca o cultură separată (decizia echipei, 14 nov 2026). De confirmat în regulile PD-04 pentru 2026.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D19",
+  "section": "D",
+  "number": "19",
+  "title": "Diversificarea se socotește pe gen botanic",
+  "text": "formularul APIA (MO 193 bis/2026, II.B.b, „Genul botanic al culturii preponderente”) numără culturile după gen, iar aplicația face la fel (diversificationKeyOf, packages/shared/src/data/catalogue.ts). Grâu comun și grâu dur, de toamnă și de primăvară, sunt toate Triticum, deci o singură cultură. Ce n-are gen în Tabel nr. 1 (amestecuri, „Alte …”, teren necultivat) se numără singur. De confirmat dacă APIA desparte culturile de toamnă de cele de primăvară din același gen.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D20",
+  "section": "D",
+  "number": "20",
+  "title": "Cifre pentru culturile noi din catalog",
+  "text": "doar grâul, porumbul și floarea soarelui au cost, producție și preț (capital.ro). Celelalte coduri APIA sunt în catalog fără cifre, iar fermierul și le scrie în Recolte. Ce am găsit pe 14 nov 2026, nefolosit încă, pentru că nu e un set întreg dintr-o sursă și lipsesc lunile:\nProducții medii naționale 2025 (provizorii), INS, Producția vegetală la principalele culturi în anul 2025, Tabel 3: rapiță 2.863, orz și orzoaică 4.864, soia 2.190, ovăz 2.408, secară 3.024, mazăre boabe 1.590, sfeclă de zahăr 42.739, cartofi 15.128 kg/ha. O singură valoare pe cultură, nu un interval.\nPrețuri pentru arendă 2025, DAJ Alba (alba24): rapiță 1,80, orz 0,70, orzoaică 0,78, soia 1,85, ovăz 0,80, triticale 0,77, cartofi 2,40 lei/kg. Prețuri pentru arendă, într-un județ, nu prețuri de piață.\nO singură fermă, doar costuri directe, Revista Ferma, 12.07.2026: rapiță 2.600–2.700 lei/ha, 2,5–4,8 t/ha, 2,40–2,55 lei/kg; orz ~1.800 lei/ha.\nDe hotărât: ce sursă e destul de bună ca rapița, orzul sau soia să intre în plan cu cifre din docs/data. Lunile de semănat și recoltă lipsesc pentru toate.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D21",
+  "section": "D",
+  "number": "21",
+  "title": "Arenda, formularul și rotunjirea",
+  "text": "în ce formular declară arendașul impozitul reținut pe arendă (presa spune D100) și dacă suma se rotunjește la leu. Aplicația rotunjește la ban (rentTax, docs/15-arenda.md §3). Tot de citit: că pentru arendă nu se depune formularul 205.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D22",
+  "section": "D",
+  "number": "22",
+  "title": "Arenda doar în produse, impozitul",
+  "text": "cum reține arendașul 10% când nu plătește bani. Aplicația arată doar suma; contabilul hotărăște (docs/15-arenda.md §3). În plan (pasul 8), presupunerea e că proprietarul primește cu atât mai puține kg cât face impozitul (la prețul județului), iar ferma plătește impozitul în lei și vinde kg-urile oprite (arenda/schedule.ts).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D23",
+  "section": "D",
+  "number": "23",
+  "title": "Arenda și registrul agricol",
+  "text": "APIA cere adeverința din registrul agricol (MO 193 bis/2026, p. 132–133). Că un contract înregistrat la consiliul local (Codul civil art. 1838) apare în registrul agricol n-a fost citit în legea registrului agricol (docs/15-arenda.md §2).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D24",
+  "section": "D",
+  "number": "24",
+  "title": "Arenda, CASS-ul proprietarului",
+  "text": "arendașul reține CASS-ul când venitul net de la el e de cel puțin 6 salarii minime (Codul fiscal art. 174^1). Aplicația nu îl calculează. De confirmat salariul minim folosit pe 2026 și dacă trebuie spus și pe contractele mici (docs/15-arenda.md §4).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D25",
+  "section": "D",
+  "number": "25",
+  "title": "Arenda, prețurile pe județ",
+  "text": "în arenda-prices-2026.json sunt citite doar Teleorman, Olt, Covasna, Caraș-Severin și Ialomița (din 1 aug 2026, din presă). Celelalte 37 sunt null, iar fermierul scrie prețul. Giurgiu (HCJ 280/2025) refuză descărcarea; Călărași s-a schimbat pe 30 iunie 2026.",
+  "closed": false,
+  "refs": [
+   "arenda-prices-2026.json"
+  ]
+ },
+ {
+  "key": "q:D26",
+  "section": "D",
+  "number": "26",
+  "title": "TVA la semințe și inputuri",
+  "text": "vat-2026.json pune îngrășămintele, pesticidele și semințele de însămânțat la cota redusă de 11% (Codul fiscal art. 291, forma consolidată). Presa (Capital, Forbes, citând Camera Consultanților Fiscali) spune că Legea 141/2025 a scos cota redusă pentru unele semințe și plante. De citit textul legii: care semințe rămân la 11% (uses.agri_inputs, DE-VERIFICAT). Citit pe 18 nov 2026 în forma consolidată ANAF (ultima actualizare Legea 204/2026): art. 291 (2) lit. e) încă spune „semințe și alte produse agricole destinate însămânțării sau plantării” la 11%, iar lit. f) (îngrășăminte și pesticide chimice) ține până la 31.12.2031 (alin. (3^3)). Rămâne de văzut dacă normele sau ordinul comun MF–MADR restrâng lista (vezi #46).",
+  "closed": false,
+  "refs": [
+   "vat-2026.json",
+   "uses.agri_inputs"
+  ]
+ },
+ {
+  "key": "q:D27",
+  "section": "D",
+  "number": "27",
+  "title": "Taxarea inversă la cereale după 2026",
+  "text": "art. 331 alin. (2) lit. c) se aplică până la 31 decembrie 2026 (alin. 6). Comisia Europeană a propus prelungirea până la 30 iunie 2030. Până la adoptare, aplicația nu mai pune taxare inversă pe facturile de după 31 decembrie 2026 și cere cota (uses.grain_to_vat_payer.valid_until).",
+  "closed": false,
+  "refs": [
+   "uses.grain_to_vat_payer.valid_until"
+  ]
+ },
+ {
+  "key": "q:D28",
+  "section": "D",
+  "number": "28",
+  "title": "TVA la cereale vândute cuiva care nu e plătitor de TVA",
+  "text": "11% sau 21% după Legea 141/2025? uses.grain_to_others.rate e null; până atunci fermierul alege cota pe factură.",
+  "closed": false,
+  "refs": [
+   "uses.grain_to_others.rate"
+  ]
+ },
+ {
+  "key": "q:D29",
+  "section": "D",
+  "number": "29",
+  "title": "Regimul special pentru agricultori (Codul fiscal art. 315¹)",
+  "text": "cine intră, ce scrie pe factură, dacă CIF-ul se scrie cu „RO” și cu ce cotă de compensare. uses.special_agri_scheme e null, iar verificarea „RO” pe CIF e oprită pentru acest regim (packages/shared/src/invoices/validate.ts). Parțial rezolvat (18 nov 2026, Codul fiscal art. 315^1, forma ANAF): intră persoana fizică, PFA, II sau IF cu producție agricolă (alte activități doar sub plafonul de 395.000 lei, art. 310); se notifică ANAF și apare în Registrul public; nu colectează și nu deduce TVA, nu depune decont; compensația e 8% din 2019, pe prețul fără TVA, plătită de cumpărător (alte persoane impozabile, nu agricultori din regim); factura scrie mențiunea regimului, procentul și suma compensației (alin. (8)). Cifra stă în contract-taxes-2026.json → vat.farmer_flat_rate. Rămâne: CIF-ul cu „RO” (necitit) și dacă vat-2026.json → uses.special_agri_scheme primește 800 (de hotărât cu facturile).",
+  "closed": false,
+  "refs": [
+   "uses.special_agri_scheme",
+   "contract-taxes-2026.json",
+   "vat.farmer_flat_rate",
+   "vat-2026.json"
+  ]
+ },
+ {
+  "key": "q:D30",
+  "section": "D",
+  "number": "30",
+  "title": "e-Factura, de verificat pe validatorul ANAF (pasul 8 din docs/facturi-plan.md)",
+  "text": "versiunea CIUS-RO din CustomizationID (1.0.1), codul de plată 42, cum se scrie un cumpărător fără CIF (persoană fizică), textul cerut pe un rând scutit (E) și dacă stornarea e tip 380 cu cantități negative (cum scriem acum) sau o notă de credit (381). Tot de verificat: obligațiile e-Factura în 2026 pentru fermierul persoană fizică (D1).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D31",
+  "section": "D",
+  "number": "31",
+  "title": "Oblio, de verificat cu npm run test:oblio pe un cont de probă (pasul 7 din docs/facturi-plan.md)",
+  "text": "dacă disableAutoSeries + number păstrează numărul nostru (și la stornare, cu referenceDocument); numele cotelor fără procent (taxare inversă, scutit, neplătitor: oblio.json vat_names, DE-VERIFICAT) și unitățile de măsură (units); dacă expires_in e în secunde; cum arată corpul unei erori și ce se întâmplă la depășirea limitei de cereri; dacă einvoiceStatus.code 1 („trimisă cu succes”) înseamnă și validată de ANAF. Documentația nu spune nimic despre facturile primite: „Primite” rămâne la ANAF (pasul 8).",
+  "closed": false,
+  "refs": [
+   "oblio.json"
+  ]
+ },
+ {
+  "key": "q:D32",
+  "section": "D",
+  "number": "32",
+  "title": "Costul hărții Google (docs/cerere-documents-google-map-plan.md §8, G12)",
+  "text": "cât costă o încărcare de hartă Dynamic Maps și una 3D Maps și câte sunt gratuite pe lună. plots-params.json → google_maps_cost e null până se verifică pe https://mapsplatform.google.com/pricing/. Înainte de orice demo public: alertă de buget și limită zilnică în Google Cloud Console, pe contul proprietarului. Harta Google pornește doar cu VITE_GOOGLE_MAPS_KEY + VITE_GOOGLE_MAP_ID; fără ele rămâne MapLibre.",
+  "closed": false,
+  "refs": [
+   "plots-params.json"
+  ]
+ },
+ {
+  "key": "q:D32-2",
+  "section": "D",
+  "number": "32",
+  "title": "ANAF e-Factura direct, de verificat cu npm run test:efactura (pasul 8 din docs/facturi-plan.md)",
+  "text": "paginile API ale ANAF de pe mfinante.gov.ro (prezentarea și swagger-ul) nu au răspuns pe 17 nov 2026. Adresele de logare și API, limitele de cereri, forma listei de mesaje, numele fișierelor din zip-ul descărcat și duratele tokenurilor (90 / 365 de zile) sunt din lista oficială de adrese ANAF și din referința anafpy (anaf-efactura.json, DE-VERIFICAT). Verificat deja pe validatorul public ANAF (17 nov 2026): vânzarea, stornarea ca 380 cu cantități negative și rândul scutit (E) trec; fără dată de scadență pică (BR-CO-25, acum scadența implicită e data facturii); un cumpărător fără CIF pe o factură cu TVA pică (BR-RO-120, acum aplicația cere CIF-ul). Rămâne deschis: cum facturează un fermier plătitor de TVA unei persoane fizice fără CIF (CNP sau altceva).",
+  "closed": false,
+  "refs": [
+   "anaf-efactura.json"
+  ]
+ },
+ {
+  "key": "q:D33",
+  "section": "D",
+  "number": "33",
+  "title": "Decizia de plată APIA, cum arată (docs/apia-documents-autofill-plan.md §1.2, D1/D2)",
+  "text": "n-am găsit niciun model public al deciziei (nici avans, nici sold): ce coloane are (intervenție, ha/capete determinate, cuantum, sumă, reduceri), dacă avansul și soldul au decizii separate și cum ajunge la fermier (poștă, AGI-Online, „Portalul unic al fermierilor” anunțat pe 15 oct 2026, la centru). Cititorul se face după primele decizii reale încărcate (cu acordul fermierului), nu înainte. Tot aici: sfârșitul ferestrei de plată (30 iunie 2027, din Reg. UE 2021/2116 art. 44, necitit) și textul oficial al Ord. MADR 288/2026 (avans 75% FEGA, cuantumurile), citit doar în presă.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D34",
+  "section": "D",
+  "number": "34",
+  "title": "Contestarea unei decizii APIA",
+  "text": "30 de zile de la comunicare, la centrul unde s-a depus cererea (agrointel, 29 sep 2026), plângere prealabilă după Legea 554/2004 art. 7. Lipsește un text APIA sau MADR care să spună termenul. Tot aici: dacă regula „neconformitățile de la control se comunică în maximum 90 de zile” mai e valabilă după Ord. 44/2026, care abrogă art. 16(2)(a).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D35",
+  "section": "D",
+  "number": "35",
+  "title": "Adeverința APIA pentru credit, ce scrie pe ea",
+  "text": "comunicatele spun „suprafața determinată la plată” pe intervenție (capete pentru zootehnie), fără să spună dacă apare și o sumă. Dacă e doar suprafața, aplicația calculează suma cu motorul de subvenții (subsidy_expected). De văzut o adeverință reală.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D36",
+  "section": "D",
+  "number": "36",
+  "title": "Harta parcelelor din AGI-Online",
+  "text": "în 2026 PDF-urile cu parcele „nu se tipăresc și nu se atașează la dosarul cererii” (Ord. 67/2026, Anexa 2, p. 104). Nu știm dacă fermierul primește o copie și cum arată. Până atunci, o asemenea hârtie se citește ca other, iar forma parcelelor vine din LPIS.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D37",
+  "section": "D",
+  "number": "37",
+  "title": "Ord. MADR 106/2024, forma consolidată",
+  "text": "am citit textul din martie 2024 plus Ord. 44/2026, fără modificările din 2024–2025. De confirmat: termenul de 31 martie 2027 pentru dovezile de la sprijinul cuplat (PD-09–PD-26) și modelul actual al adeverinței din registrul agricol (Anexa 5, care trimite încă la HG 985/2019).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D38",
+  "section": "D",
+  "number": "38",
+  "title": "Motorina după 2026",
+  "text": "schema din HG 1174/2014 e valabilă până la 31.12.2026 și n-am găsit o prelungire pentru 2027. Dacă nu apare, în decembrie 2026 nu se mai depun cereri de acord, iar memento-ul din calendar nu se face.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D39",
+  "section": "D",
+  "number": "39",
+  "title": "Motorina, termenele pe trimestre în 2026",
+  "text": "din art. 8 ies 30 apr, 31 iul, 31 oct (sâmbătă) și 31 ian 2027 (duminică). Nu știm dacă termenele care cad în weekend se mută pe prima zi lucrătoare. Tot aici: dacă OMADR 1727/2015 a fost modificat după 2019 (de exemplu o coloană cu valoarea sau cu SPV în Anexa 9); formularele .docx de pe apia.org.ro n-au putut fi descărcate.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D40",
+  "section": "D",
+  "number": "40",
+  "title": "Contractele de arendă la APIA",
+  "text": "textele oficiale din 2026 cer ca actele să fie „valabile la data depunerii cererii”. „Valabile cel puțin până la 1 decembrie” apare doar într-o prezentare a unui centru județean (comunacojocna.ro), probabil rămasă din anii trecuți. Contractele private nu se mai atașează: intră prin adeverința de la primărie.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D41",
+  "section": "D",
+  "number": "41",
+  "title": "Plata APIA în extrasul de cont",
+  "text": "ce nume de plătitor apare (de ex. „APIA” sau „Agenția de Plăți și Intervenție pentru Agricultură”), ca să recunoaștem încasarea în extras (T3). Și la D212: în ce secțiune stă venitul agricol pe normă și dacă subvențiile APIA se declară.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D42",
+  "section": "D",
+  "number": "42",
+  "title": "Codul civil din sursa oficială",
+  "text": "regulile din docs/16-contracts-law.md §1, §2, §4, §5 (art. 1276, 1277, 1685, 1720, 1810, 1824, 1825, 2146, 2155, 2156, 2199, 2206, 2209, 2213) sunt citite pe codulcivil.ro, nu pe legislatie.just.ro. Status din-sursă-neoficială în contract-types.json. legeaz.net (folosit la arendă) dă acum 404 pe aceste articole.",
+  "closed": false,
+  "refs": [
+   "contract-types.json"
+  ]
+ },
+ {
+  "key": "q:D43",
+  "section": "D",
+  "number": "43",
+  "title": "Vânzarea, termenul de predare",
+  "text": "când contractul nu spune data livrării (Codul civil art. 1686–1693, necitite). Aplicația cere oricum datele livrărilor.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D44",
+  "section": "D",
+  "number": "44",
+  "title": "Leasingul, OG 51/1997",
+  "text": "citit pe legeaz.net (art. 1, 2, 7, 8, 9, 10), nu în MO. Art. 11–13 necitite. În articolele citite nu e un termen legal pentru anunțarea opțiunii la sfârșit; îl scrie fermierul din contract. Linkul legislatie.just.ro/…/12025 e al altui act.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D45",
+  "section": "D",
+  "number": "45",
+  "title": "Asigurarea",
+  "text": "când începe și când se termină acoperirea și dacă o poliță se reînnoiește singură (Codul civil art. 2207–2211, necitite); RCA-ul utilajelor (lege specială, art. 2213). Până atunci, după data de sfârșit aplicația socotește bunul neasigurat (P-C2).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D46",
+  "section": "D",
+  "number": "46",
+  "title": "TVA 11% la serviciile agricole",
+  "text": "art. 291 (2) lit. e) pune la 11% doar serviciile „prevăzute prin ordin comun al ministrului finanțelor și al ministrului agriculturii”. Ordinul nu e citit: care lucrări (arat, semănat, recoltat, stropit, irigat) intră. Până atunci, contractele de servicii au 21% și fermierul poate schimba cota.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D47",
+  "section": "D",
+  "number": "47",
+  "title": "Taxarea inversă pe culturi",
+  "text": "codurile NC pentru „cereale și plante tehnice” sunt în normele la art. 331, necitite. De legat fiecare cultură din crops-reference.json / catalog de da/nu. Până atunci, aplicația folosește lista provizorie din contract-taxes-2026.json → vat.reverse_charge_grain.goods_in_app (cerealele pentru boabe, oleaginoasele și sfecla de zahăr, după codul APIA); tutunul și inul sau cânepa pentru fibră rămân în afara ei.",
+  "closed": false,
+  "refs": [
+   "crops-reference.json",
+   "contract-taxes-2026.json",
+   "vat.reverse_charge_grain.goods_in_app"
+  ]
+ },
+ {
+  "key": "q:D48",
+  "section": "D",
+  "number": "48",
+  "title": "TVA: perioada fiscală și leasingul",
+  "text": "perioada (lună sau trimestru, art. 322, necitit) schimbă data liniei „TVA de plată”; aplicația pune luna. Rata de leasing și valoarea reziduală la 21%: fără o regulă specială găsită, după presă.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D49",
+  "section": "D",
+  "number": "49",
+  "title": "Impozitul microîntreprinderii, formularul",
+  "text": "art. 56 (1) dă plata trimestrială până pe 25; formularul (presa spune D100) nu e citit în ordin.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D50",
+  "section": "D",
+  "number": "50",
+  "title": "Motorina în 2027",
+  "text": "HG 1174/2014 merge până la 31.12.2026. Pe 19 nov 2026 nu s-a găsit nicio prelungire și nici anunțul APIA pentru acordul din 2027. Calendarul are acordul pe 21 decembrie 2026 (regula din lege, mutată după weekend), cu DE-VERIFICAT. De urmărit: comunicatele APIA și proiectele MADR (sunt în monitor).",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D51",
+  "section": "D",
+  "number": "51",
+  "title": "Termenele cererilor de plată pe trimestru",
+  "text": "sunt socotite din regula „până la sfârșitul lunii de după trimestru, sau prima zi lucrătoare” (ghidul APIA). T3 2026 iese 2 noiembrie (31 octombrie a fost sâmbătă); un site neoficial spune 31 octombrie. De confirmat într-un anunț APIA.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D52",
+  "section": "D",
+  "number": "52",
+  "title": "Deconturile pentru animale",
+  "text": "DR-06 (porci, păsări) pe trimestrul IV 2026 și PD-07/PD-08: APIA a spus doar „în ianuarie 2027”. Calendarul pune vineri, 29 ianuarie 2027, ca să fie sigur. De pus data exactă când apare.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D53",
+  "section": "D",
+  "number": "53",
+  "title": "Registrul agricol, termenele",
+  "text": "OG 28/2008 art. 11 (5 ian – ultima zi lucrătoare din februarie; 1–31 mai; 30 de zile de la o schimbare) e citit dintr-o copie de pe site-ul unei primării, nu de pe legislatie.just.ro.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D54",
+  "section": "D",
+  "number": "54",
+  "title": "Plafoanele de motorină pe sectoare",
+  "text": "ghidul APIA din 2023 dă 367 mil. l vegetal, 40 mil. l zootehnie, 3 mil. l îmbunătățiri funciare; textul consolidat al HG citit dă doar totalul de 410 mil. l. Aplicația folosește doar normele pe ha, nu și tăierea proporțională.",
+  "closed": false,
+  "refs": []
+ },
+ {
+  "key": "q:D55",
+  "section": "D",
+  "number": "55",
+  "title": "Accizele pentru fermieri (20 nov 2026, excise-schemes.json)",
+  "text": "în Codul fiscal consolidat la 25.10.2026, art. 399 nu are o scutire pentru curentul sau gazul folosite în agricultură (presupusă inițial în accize-plan.md); are doar curentul din surse regenerabile și din surse sub 250 kW. Țuica din gospodărie rămâne scutită până la 50 l/an (art. 342 alin. 1^6); legea de 150/200 l din presă nu apare în Cod. Când apare o schimbare, se actualizează excise-schemes.json.",
+  "closed": false,
+  "refs": [
+   "excise-schemes.json"
+  ]
+ }
+]

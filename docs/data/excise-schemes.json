@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "description": "Accizele de care se poate folosi un fermier: ce îi aduce bani înapoi (refund) și ce îl face să plătească mai puțin (exemption, at_pump). Doar `refund` intră în venit. Detaliile motorinei (cote, plafoane, termene) stau în fuel-excise.json. Plan: docs/accize-plan.md.",
+    "read_on": "2026-11-20",
+    "kind_values": {
+      "refund": "Statul îți dă înapoi bani, la o dată. Intră în venit și în salariu.",
+      "exemption": "Nu plătești acciza deloc. Plătești mai puțin, dar nu primești bani.",
+      "at_pump": "Cumperi direct fără acciză. Plătești mai puțin, dar nu primești bani."
+    },
+    "status_values": ["confirmat-2026", "propunere", "DE-VERIFICAT"]
+  },
+  "schemes": [
+    {
+      "id": "motorina-hg1174",
+      "name_ro": "Banii înapoi din acciza la motorină",
+      "kind": "refund",
+      "counts_as_revenue": true,
+      "details_file": "fuel-excise.json",
+      "what_ro": "Statul îți dă înapoi o parte din acciza de pe motorina folosită la câmp, la animale sau la irigații. Suma e pe litru și depinde de ziua în care ai cumpărat motorina.",
+      "who_ro": "PFA, II, IF sau firmă cu ID de fermier, cu cel puțin 1 ha. Dacă ești persoană fizică, îți faci PFA sau II în 60 de zile lucrătoare de la acord.",
+      "how_to_join_ro": "Ceri acordul la centrul APIA din județ până pe 20 decembrie al anului dinainte. Apoi, după fiecare trimestru, ceri banii cu facturile de motorină.",
+      "join_deadline": {
+        "date": null,
+        "status": "DE-VERIFICAT",
+        "note": "Termenul pentru 2027 ar fi 21 decembrie 2026, dar schema se termină pe 31.12.2026 și APIA n-a anunțat nimic pentru 2027. Termenele sunt în fuel-excise.json → acord.deadlines."
+      },
+      "valid_from": "2015-01-01",
+      "valid_to": "2026-12-31",
+      "payment_lag_months": {
+        "min": 2,
+        "max": 6,
+        "status": "DE-VERIFICAT",
+        "note": "Nu e o dată fixă în lege. Trimestrul I din 2026 s-a plătit de pe 31 iulie (fuel-excise.json → payment_ro)."
+      },
+      "replaced_by": null,
+      "status": "confirmat-2026",
+      "legal_basis": [
+        { "act": "HG nr. 1174/2014", "url": "https://legislatie.just.ro/Public/DetaliiDocument/164301", "status": "confirmat-2026" },
+        { "act": "OMADR nr. 1727/2015 (procedura și formularele)", "url": "https://apia.org.ro/wp-content/uploads/2025/01/Ghid-motorina-2023.pdf", "status": "confirmat-2026" }
+      ],
+      "watch_urls": [
+        "https://legislatie.just.ro/Public/DetaliiDocument/164301",
+        "https://apia.org.ro/ajutoare-specifice/masuri-de-sprijin-finantate-de-la-bugetul-national/",
+        "https://www.madr.ro/proiecte-de-acte-normative.html"
+      ],
+      "watch_keywords": ["motorin", "acciz"]
+    },
+    {
+      "id": "motorina-pompa-2027",
+      "name_ro": "Motorină fără acciză și fără TVA, direct la pompă",
+      "kind": "at_pump",
+      "counts_as_revenue": false,
+      "details_file": null,
+      "what_ro": "Ministerul Agriculturii propune ca fermierii să cumpere motorina fără acciză și fără TVA, cu tichete, la benzinăriile acreditate, cam 78 de litri pe hectar. Ar înlocui banii înapoi de la APIA. Nu e lege.",
+      "who_ro": null,
+      "how_to_join_ro": null,
+      "join_deadline": { "date": null, "status": "DE-VERIFICAT", "note": "Nu există încă un act normativ." },
+      "valid_from": null,
+      "valid_to": null,
+      "payment_lag_months": null,
+      "replaces": "motorina-hg1174",
+      "status": "propunere",
+      "status_note": "Doar din presă: blocat la Ministerul Finanțelor în aprilie 2026; „din 2027” în articolele din octombrie 2026. Nicio hotărâre sau ordonanță adoptată pe 20 nov 2026.",
+      "legal_basis": [],
+      "press_urls": [
+        "https://informat.ro/economie/florin-barbu-motorina-fara-acciza-2027-ministerul-agriculturii-146970",
+        "https://www.capital.ro/tensiuni-intre-ministere-din-cauza-motorinei-fara-taxe-pentru-fermieri-florin-barbu-de-o-luna-si-jumatate-nu-am-primit-niciun-raspuns.html",
+        "https://tvrinfo.ro/motorina-fara-accize-si-tva-pentru-fermieri-proiectul-pus-in-dezbatere-de-ministerul-agriculturii/"
+      ],
+      "watch_urls": [
+        "https://www.madr.ro/proiecte-de-acte-normative.html",
+        "https://apia.org.ro/ajutoare-specifice/masuri-de-sprijin-finantate-de-la-bugetul-national/"
+      ],
+      "watch_keywords": ["motorin", "acciz", "tichet"]
+    },
+    {
+      "id": "energie-regenerabila-art399",
+      "name_ro": "Curent de la panourile tale, fără acciză",
+      "kind": "exemption",
+      "counts_as_revenue": false,
+      "details_file": null,
+      "what_ro": "Curentul din surse regenerabile (de exemplu panouri solare pe fermă) și cel din surse mai mici de 250 kW (generatoare mobile, acumulatori) nu plătește acciză.",
+      "who_ro": "Oricine produce curentul. Cum se cere scutirea (notificarea la vamă) e în normele de aplicare ale Codului fiscal.",
+      "how_to_join_ro": null,
+      "join_deadline": null,
+      "valid_from": null,
+      "valid_to": null,
+      "payment_lag_months": null,
+      "status": "confirmat-2026",
+      "status_note": "Codul fiscal art. 399 alin. (1) lit. m) și n), forma consolidată la 25.10.2026. Art. 399 NU are o scutire pentru curentul sau gazul folosite în agricultură. Pașii (notificare, certificat) sunt în norme, necitite.",
+      "legal_basis": [
+        { "act": "Codul fiscal (Legea nr. 227/2015), art. 399 alin. (1) lit. m) și n)", "url": "https://legislatie.just.ro/Public/DetaliiDocument/171282", "status": "confirmat-2026" }
+      ],
+      "watch_urls": ["https://legislatie.just.ro/Public/DetaliiDocument/171282"],
+      "watch_keywords": ["acciz", "scutir", "regenerabil"]
+    },
+    {
+      "id": "tuica-gospodarie",
+      "name_ro": "Țuică din fructele tale, fără acciză",
+      "kind": "exemption",
+      "counts_as_revenue": false,
+      "details_file": null,
+      "what_ro": "Nu plătești acciză pe cel mult 50 de litri de țuică sau rachiu pe an, dacă îi bei tu, familia sau musafirii și nu vinzi nimic.",
+      "who_ro": "Persoana fizică care face țuica din fructele ei, de pe pământ pe care îl are în proprietate sau în alt drept real, într-un cazan mic înregistrat la vamă sau la o distilerie autorizată.",
+      "how_to_join_ro": "Înregistrezi cazanul la autoritatea vamală.",
+      "join_deadline": null,
+      "valid_from": null,
+      "valid_to": null,
+      "payment_lag_months": null,
+      "limit": { "value": 50, "unit": "l/an", "status": "confirmat-2026" },
+      "status": "confirmat-2026",
+      "status_note": "Codul fiscal art. 342 alin. (1^6), forma consolidată la 25.10.2026. Presa a scris despre o lege votată pentru 150 sau 200 de litri; nu apare în Codul fiscal consolidat.",
+      "legal_basis": [
+        { "act": "Codul fiscal (Legea nr. 227/2015), art. 342 alin. (1^6)", "url": "https://legislatie.just.ro/Public/DetaliiDocument/171282", "status": "confirmat-2026" }
+      ],
+      "watch_urls": ["https://legislatie.just.ro/Public/DetaliiDocument/171282"],
+      "watch_keywords": ["acciz", "țuic", "ţuic", "rachiu", "alcool din fructe"]
+    }
+  ]
+}

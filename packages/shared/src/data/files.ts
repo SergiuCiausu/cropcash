@@ -11,6 +11,8 @@ import fundingGuidesJson from '../../../../docs/data/funding-guides.json';
 import arendaJson from '../../../../docs/data/arenda-prices-2026.json';
 import contractTypesJson from '../../../../docs/data/contract-types.json';
 import contractTaxesJson from '../../../../docs/data/contract-taxes-2026.json';
+import exciseJson from '../../../../docs/data/excise-schemes.json';
+import fuelJson from '../../../../docs/data/fuel-excise.json';
 import { ArendaPricesSchema, type ArendaPrices } from '../arenda/prices';
 import { ContractTypesSchema, type ContractTypes } from '../contracts/types';
 import { ContractTaxesSchema, type ContractTaxes } from '../contracts/taxes';
@@ -36,6 +38,8 @@ import {
   type HistoryFile,
   type SubsidiesFile,
 } from './schemas';
+import { ExciseSchemesFileSchema, type ExciseSchemesFile } from './excise';
+import { FuelExciseSchema, type FuelExcise } from '../reports/fuel';
 import { buildCatalogue, expandCropFamilies, type CatalogueCrop } from './catalogue';
 
 /** All reference data from docs/data, validated. The single source of figures. */
@@ -60,6 +64,10 @@ export interface AppData {
   contractTypes: ContractTypes;
   /** The taxes to the state contracts bring: VAT, micro tax, land tax (docs/16-contracts-law.md §6). */
   contractTaxes: ContractTaxes;
+  /** The excise schemes a farmer can use; only a refund counts as revenue (docs/accize-plan.md). */
+  excise: ExciseSchemesFile;
+  /** The diesel refund: rates by day, caps per ha, deadlines (docs/04-farmer-reports.md §1). */
+  fuel: FuelExcise;
 }
 
 /**
@@ -80,6 +88,8 @@ export const RAW_FILES = {
   arenda: arendaJson,
   contractTypes: contractTypesJson,
   contractTaxes: contractTaxesJson,
+  excise: exciseJson,
+  fuel: fuelJson,
 } as const;
 
 export type FileName = keyof typeof RAW_FILES;
@@ -106,6 +116,8 @@ export function buildData(raw: RawFiles): AppData {
     arenda: ArendaPricesSchema.parse(raw.arenda),
     contractTypes: ContractTypesSchema.parse(raw.contractTypes),
     contractTaxes: ContractTaxesSchema.parse(raw.contractTaxes),
+    excise: ExciseSchemesFileSchema.parse(raw.excise),
+    fuel: FuelExciseSchema.parse(raw.fuel),
   };
 }
 

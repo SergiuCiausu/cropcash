@@ -56,6 +56,8 @@ export interface ShapeEditorProps {
   initial?: Shape | null;
   /** The area on the cerere, to compare the drawing with. */
   declaredAri: number | null;
+  /** Where the map opens with no bloc or drawing to start from: where the farmer was looking. */
+  start?: { centre: Position; zoom: number } | null;
   onDone: (result: ShapeEditorResult) => void;
   onCancel: () => void;
 }
@@ -86,13 +88,13 @@ function guideLines(shape: Shape | null): object[] {
   });
 }
 
-function startCentre(bloc: PlotGeometry | null | undefined, initial: Shape | null | undefined): { centre: Position; zoom: number } {
+function startCentre(bloc: PlotGeometry | null | undefined, initial: Shape | null | undefined, start: ShapeEditorProps['start']): { centre: Position; zoom: number } {
   if (initial) return { centre: initial.vertices[0]!.at, zoom: 16 };
   if (bloc) return { centre: centroid(bloc), zoom: 16 };
-  return { centre: ROMANIA, zoom: 6 };
+  return start ?? { centre: ROMANIA, zoom: 6 };
 }
 
-export function ShapeEditor({ title, bloc = null, initial = null, declaredAri, onDone, onCancel }: ShapeEditorProps) {
+export function ShapeEditor({ title, bloc = null, initial = null, declaredAri, start = null, onDone, onCancel }: ShapeEditorProps) {
   const [state, dispatch] = useReducer(editorReducer, initial, initialEditor);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [tilesFailed, setTilesFailed] = useState(false);
@@ -117,7 +119,7 @@ export function ShapeEditor({ title, bloc = null, initial = null, declaredAri, o
     let cancelled = false;
     let created: MapLibreMap | null = null;
     let resize: ResizeObserver | null = null;
-    const { centre, zoom } = startCentre(bloc, initial);
+    const { centre, zoom } = startCentre(bloc, initial, start);
     void import('maplibre-gl').then(({ default: maplibregl }) => {
       if (cancelled || !container.current) return;
       created = new maplibregl.Map({

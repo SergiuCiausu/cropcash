@@ -31,6 +31,28 @@ export async function politeFetch(url: string, init: RequestInit = {}, tries = 6
   throw last;
 }
 
+/**
+ * The text of a JSON answer, with the same retries. ArcGIS answers some failures with HTTP 200: an HTML page
+ * („Could not access any server machines”) or `{"error": …}`. Those are retried, never returned, so they are
+ * never cached as if they were data.
+ */
+export async function politeJsonText(url: string, init: RequestInit = {}, tries = 6): Promise<string> {
+  let last: unknown = null;
+  for (let i = 0; i < tries; i++) {
+    const text = await (await politeFetch(url, init)).text();
+    try {
+      const body: unknown = JSON.parse(text);
+      if (body && typeof body === 'object' && 'error' in body) throw new Error(`ArcGIS error: ${JSON.stringify((body as { error: unknown }).error).slice(0, 200)}`);
+      return text;
+    } catch (e) {
+      last = e instanceof SyntaxError ? new Error(`not JSON (${text.replace(/<[^>]*>|\s+/g, ' ').trim().slice(-120)})`) : e;
+      console.warn(`\n${(last as Error).message}; trying again`);
+    }
+    await wait(5000 * 2 ** i);
+  }
+  throw last;
+}
+
 /** Reads a cached file, or fetches it once and keeps it. */
 export async function cachedText(file: string, fetchIt: () => Promise<string>): Promise<string> {
   try {

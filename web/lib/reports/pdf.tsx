@@ -56,6 +56,10 @@ const s = StyleSheet.create({
   notes: { marginTop: 6, borderTopWidth: 0.5, borderTopColor: HAIR, paddingTop: 6 },
   note: { fontSize: 7.5, color: MUTED, marginBottom: 2 },
   footer: { position: 'absolute', bottom: 20, left: 40, right: 40, flexDirection: 'row', justifyContent: 'space-between', fontSize: 7.5, color: MUTED },
+  missing: { borderWidth: 1, borderColor: INK, borderRadius: 4, paddingVertical: 6, paddingHorizontal: 8, marginBottom: 14 },
+  missingItem: { paddingVertical: 1 },
+  signature: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 24, marginBottom: 8 },
+  signLine: { width: '30%', borderTopWidth: 0.75, borderTopColor: INK, paddingTop: 3, color: MUTED, fontSize: 8 },
   watermark: { position: 'absolute', top: 360, left: 0, right: 0, textAlign: 'center', fontSize: 90, lineHeight: 1.1, fontWeight: 600, color: '#000000', opacity: 0.06, transform: 'rotate(-30deg)' },
 });
 
@@ -129,7 +133,26 @@ export function ReportDocument({ model }: { model: ReportModel }) {
             </View>
           ))}
         </View>
+        {!!model.missing?.length && (
+          <View style={s.missing} wrap={false}>
+            <Text style={s.h2}>De completat de mână</Text>
+            {model.missing.map((m, i) => (
+              <Text key={i} style={s.missingItem}>
+                • {m.text}
+              </Text>
+            ))}
+          </View>
+        )}
         {model.sections.map((section, i) => (section.kind === 'facts' ? <Facts key={i} section={section} /> : <Table key={i} section={section} />))}
+        {model.signature && (
+          <View style={s.signature} wrap={false}>
+            {['Numele și prenumele', 'Data', 'Semnătura'].map((label) => (
+              <Text key={label} style={s.signLine}>
+                {label}
+              </Text>
+            ))}
+          </View>
+        )}
         <View style={s.notes}>
           {model.notes.map((n, i) => (
             <Text key={i} style={s.note}>

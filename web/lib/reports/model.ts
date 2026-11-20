@@ -26,6 +26,12 @@ export type Section =
   | { kind: 'facts'; title: string; rows: FactRow[] }
   | { kind: 'table'; title: string; columns: Column[]; rows: TableRow[]; empty: string };
 
+/** Something a filing lacks, in the farmer's words, and the page where it's added. */
+export interface Missing {
+  text: string;
+  screen?: 'harta' | 'recolte';
+}
+
 export interface ReportModel {
   id: string;
   audience: Audience;
@@ -37,6 +43,10 @@ export interface ReportModel {
   sections: Section[];
   /** Small print at the end. */
   notes: string[];
+  /** What the farm's data lacks for this paper: listed on the card and first in the PDF, to fill in by hand. */
+  missing?: Missing[];
+  /** Ends with lines for the name, the date and the signature: a paper that gets signed and filed. */
+  signature?: boolean;
   /** Printed across every page, for Ion's example farm. */
   watermark: string | null;
   /** The file name, without ".pdf". */

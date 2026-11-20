@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
-import { LPIS_SERVICE_URL, loadData, parseBlocs } from '@cropcash/shared';
+import { LPIS_SERVICE_URL, loadData, lpisTilesFor, parseBlocs } from '@cropcash/shared';
 import bloc286 from '../../../packages/shared/src/plots/__fixtures__/lpis-bloc-153277-286.json';
 import blocMissing from '../../../packages/shared/src/plots/__fixtures__/lpis-bloc-missing.json';
 import communesTR from '../../../packages/shared/src/plots/__fixtures__/lpis-communes-TR.json';
@@ -33,6 +33,7 @@ function fakeApia() {
     if (u.includes('returnExtentOnly')) return answer(extent);
     if (u.includes("judet='TR'")) return answer(communesTR);
     if (u.includes('esriGeometryPoint')) return answer(bloc286);
+    if (u.includes('esriGeometryEnvelope')) return answer(bloc286);
     return answer({ error: { code: 400, message: 'bad' } });
   });
   return fetchFn;
@@ -89,6 +90,15 @@ describe('LPIS client', () => {
     expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 
+  it('asks APIA for a square of the grid once, then answers it from disk', async () => {
+    const fetchFn = fakeApia();
+    const client = lpisClient({ serviceUrl: LPIS_SERVICE_URL, cacheDir: dir, fetchFn, now: () => 0 });
+    const [t] = lpisTilesFor({ west: 24.96, south: 44.11, east: 24.96, north: 44.11 });
+    expect((await client.tile(t!)).map((b) => b.fbid)).toEqual(['153277-286']);
+    await client.tile(t!);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
   it('shares one request between callers asking the same thing at once', async () => {
     const fetchFn = fakeApia();
     const client = lpisClient({ serviceUrl: LPIS_SERVICE_URL, cacheDir: dir, fetchFn });
@@ -114,6 +124,7 @@ describe('LPIS routes', () => {
         { siruta: 153277, name: 'Maldaeni' },
       ]),
       communeCentre: vi.fn(async (s: number) => (s === 153277 ? ([24.906375, 44.111895] as [number, number]) : null)),
+      tile: vi.fn(async () => [bloc!]),
       ...over,
     };
     return { app: createApp({ corsOrigins: [], verifyToken, repo: {} as Repo, data, getRates: async () => null, lpis }), lpis };
@@ -146,6 +157,21 @@ describe('LPIS routes', () => {
     expect(at[0].place.text).toBe('satul Măldăeni, comuna Măldăeni');
     expect(lpis.at).toHaveBeenCalledWith([24.9622, 44.1162]);
     expect((await request(app).get('/api/lpis/at?lng=2.35&lat=48.85').set(auth)).status).toBe(400);
+  });
+
+  it('gives the blocs of one square of the grid, none outside Romania, and refuses squares off the grid', async () => {
+    const { app, lpis } = setup();
+    const [t] = lpisTilesFor({ west: 24.96, south: 44.11, east: 24.96, north: 44.11 });
+    expect((await request(app).get(`/api/lpis/tile/${t!.x}/${t!.y}`)).status).toBe(401);
+    const res = await request(app).get(`/api/lpis/tile/${t!.x}/${t!.y}`).set(auth);
+    expect(res.status).toBe(200);
+    expect(res.body.blocs.map((b: { fbid: string }) => b.fbid)).toEqual(['153277-286']);
+    expect(lpis.tile).toHaveBeenCalledWith(t);
+    // Paris: an empty answer, and APIA isn't asked.
+    const [paris] = lpisTilesFor({ west: 2.35, south: 48.85, east: 2.35, north: 48.85 });
+    expect((await request(app).get(`/api/lpis/tile/${paris!.x}/${paris!.y}`).set(auth)).body).toEqual({ blocs: [] });
+    expect(lpis.tile).toHaveBeenCalledTimes(1);
+    for (const bad of ['1.5/2', '-1/2', `${2 ** 14}/0`, 'a/b']) expect((await request(app).get(`/api/lpis/tile/${bad}`).set(auth)).status).toBe(400);
   });
 
   it("searches a county's UATs, and gives a UAT's middle", async () => {

@@ -14,9 +14,28 @@ import {
   type TreatmentRow,
 } from '../../../packages/shared/src/reports/index';
 import { cell, dayNumeric, dayWords, hectares, leiCents, leiWhole, litres } from './format';
-import type { Audience, ReportContext, ReportModel, Section, TableRow } from './model';
+import type { Audience, Missing, ReportContext, ReportModel, Section, TableRow } from './model';
 
-export type ReportId = 'farm-summary' | 'ledger' | 'subsidies' | 'crop-margins' | 'fuel-excise' | 'phyto-register' | 'land-summary';
+export type ReportId =
+  | 'farm-summary'
+  | 'ledger'
+  | 'subsidies'
+  | 'crop-margins'
+  | 'fuel-excise'
+  | 'phyto-register'
+  | 'land-summary'
+  | 'apia-surface'
+  | 'apia-fuel-claim'
+  | 'apia-fuel-prior'
+  | 'apia-coupled'
+  | 'apia-eco-pd04'
+  | 'fertilizer-register'
+  | 'apia-notice'
+  | 'apia-checklist'
+  | 'apia-livestock'
+  | 'apia-hay'
+  | 'apia-animal-decont'
+  | 'apia-active-farmer';
 
 export interface ReportDef {
   id: ReportId;
@@ -26,6 +45,8 @@ export interface ReportDef {
   about: string;
   /** The first is the one picked when the report is opened. */
   periods: PeriodKind[];
+  /** A box on the card for words the report prints (the notice's „Ce s-a întâmplat”): its label. */
+  asks?: string;
 }
 
 export const REPORTS: ReportDef[] = [
@@ -36,6 +57,21 @@ export const REPORTS: ReportDef[] = [
   { id: 'fuel-excise', audiences: ['accountant', 'farmer'], title: 'Motorina și acciza de recuperat', about: 'Litrii de motorină cumpărați și cât poți primi înapoi din acciză.', periods: ['quarter', 'year'] },
   { id: 'phyto-register', audiences: ['institution', 'farmer'], title: 'Registrul tratamentelor', about: 'Erbicidele, fungicidele și insecticidele date, pe parcele.', periods: ['harvest', 'year'] },
   { id: 'land-summary', audiences: ['institution', 'farmer'], title: 'Terenul și culturile', about: 'Parcelele, ce e pe ele și suprafețele, pentru primărie sau APIA.', periods: ['harvest'] },
+  /* The APIA papers (lib/reports/apia.ts), listed by docs/data/apia-papers.json on the "Pentru APIA" tab. */
+  { id: 'apia-surface', audiences: ['institution'], title: 'Fișa pentru declarația de suprafață', about: 'Parcelele în ordinea din cerere: bloc fizic, parcelă, cod de cultură și hectare.', periods: ['harvest'] },
+  { id: 'apia-fuel-claim', audiences: ['institution'], title: 'Situația centralizatoare a motorinei', about: 'Facturile de motorină din trimestru, cu furnizorul, numărul, data și litrii (Anexa 9).', periods: ['quarter'] },
+  { id: 'apia-fuel-prior', audiences: ['institution'], title: 'Motorina: suprafețele și consumul normat', about: 'Culturile, hectarele și litrii pe care ți-i dă legea pe an (Anexa 2 la cererea de acord).', periods: ['harvest'] },
+  /* Phase 2 (lib/reports/apia-more.ts). */
+  { id: 'apia-coupled', audiences: ['institution'], title: 'Dovezile pentru sprijinul cuplat', about: 'Pe fiecare cultură cu sprijin cuplat: cât ai recoltat și vândut pe hectar, cu facturile de vânzare și de sămânță.', periods: ['harvest'] },
+  { id: 'apia-eco-pd04', audiences: ['institution'], title: 'Caietul eco-schemei pentru teren arabil', about: 'Culturile diferite, suprafețele și lucrările pe parcele, pentru controlul eco-schemei PD-04.', periods: ['harvest'] },
+  { id: 'fertilizer-register', audiences: ['institution', 'farmer'], title: 'Planul și registrul de fertilizare', about: 'Cât azot poți da pe fiecare cultură și fertilizările făcute, pe parcele.', periods: ['harvest', 'year'] },
+  { id: 'apia-notice', audiences: ['institution'], title: 'Notificarea către APIA', about: 'Forță majoră sau o schimbare în cerere: ce s-a întâmplat și parcelele din cerere, de semnat și depus.', periods: ['harvest'], asks: 'Ce s-a întâmplat (de exemplu: grindina din 12 iunie a distrus grâul de pe parcela de la drum)' },
+  { id: 'apia-checklist', audiences: ['institution'], title: 'Ce duci la APIA', about: 'Lista hârtiilor care urmează, cu actele pentru fiecare, de bifat.', periods: ['harvest'] },
+  /* Phase 3 (lib/reports/animals.ts). */
+  { id: 'apia-livestock', audiences: ['institution'], title: 'Declarația pentru animale (câmpul 47)', about: 'Animalele pe categorii, în capete și UVM, cu codul exploatației, de dus la centrul APIA.', periods: ['harvest'] },
+  { id: 'apia-hay', audiences: ['institution'], title: 'Dovada pentru fân (Anexa 26)', about: 'Pajiștea, animalele pe hectar și dacă trebuie să dovedești fânul strâns.', periods: ['harvest'] },
+  { id: 'apia-animal-decont', audiences: ['institution'], title: 'Decontul PD-07 și PD-27', about: 'Vacile de lapte pe crotalii și caietul de pășunat, cu rândurile de completat.', periods: ['harvest'] },
+  { id: 'apia-active-farmer', audiences: ['institution'], title: 'Dovada de fermier activ', about: 'Din 2027: parcelele cu semănatul și facturile de sămânță, îngrășăminte și tratamente.', periods: ['harvest'] },
 ];
 
 export const PERIOD_KIND_NAMES: Record<PeriodKind, string> = { month: 'Lună', quarter: 'Trimestru', year: 'An', harvest: 'Recoltă' };
@@ -64,7 +100,7 @@ const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ---- Common parts ---- */
 
-function header(ctx: ReportContext, id: ReportId, period: Period, slug: string): Pick<ReportModel, 'id' | 'audience' | 'title' | 'subtitle' | 'meta' | 'watermark' | 'fileName'> {
+export function header(ctx: ReportContext, id: ReportId, period: Period, slug: string): Pick<ReportModel, 'id' | 'audience' | 'title' | 'subtitle' | 'meta' | 'watermark' | 'fileName'> {
   const def = REPORTS.find((r) => r.id === id)!;
   return {
     id,
@@ -82,7 +118,7 @@ function header(ctx: ReportContext, id: ReportId, period: Period, slug: string):
   };
 }
 
-function commonNotes(ctx: ReportContext): string[] {
+export function commonNotes(ctx: ReportContext): string[] {
   return [
     ...(ctx.example ? ['Ferma lui Ion e un exemplu. Cifrele nu sunt ale unei ferme reale.'] : []),
     ...(ctx.staleSince ? [`Datele sunt din ${dayWords(ctx.staleSince)}. Ce s-a întâmplat după nu apare aici.`] : []),
@@ -459,13 +495,16 @@ export function fuelExciseReport(ctx: ReportContext, records: ReportRecord[], ra
 const TREATMENT_NAMES: Record<string, string> = { herbicide: 'Erbicid', fungicide: 'Fungicid', insecticide: 'Insecticid' };
 
 /** As /harta names a parcel (components/plots/plot-text.ts), without pulling the map's code into the PDF. */
-function parcelName(p: LandRow['plot'] | null): string {
+export function parcelName(p: LandRow['plot'] | null): string {
   if (!p) return 'Parcelă ștearsă';
   if (p.name) return p.name;
   if (p.bloc_fizic) return p.parcel_no ? `Bloc ${p.bloc_fizic} · parcela ${p.parcel_no}` : `Bloc ${p.bloc_fizic}`;
   if (p.parcel_no) return `Parcela ${p.parcel_no}`;
   return 'Parcelă fără nume';
 }
+
+/** "2 tratamente fără …" as a gap to fill, or nothing. */
+const gap = (n: number, what: string): Missing[] => (n ? [{ text: `${n === 1 ? 'Un tratament' : `${n} tratamente`} ${what}.`, screen: 'harta' }] : []);
 
 export function phytoRegisterReport(ctx: ReportContext, rows: TreatmentRow[], period: Period): ReportModel {
   return {
@@ -475,14 +514,17 @@ export function phytoRegisterReport(ctx: ReportContext, rows: TreatmentRow[], pe
         kind: 'table',
         title: 'Tratamente făcute',
         columns: [
-          { label: 'Nr.', align: 'right', width: 0.05 },
-          { label: 'Data', align: 'left', width: 0.12 },
-          { label: 'Parcela', align: 'left', width: 0.17 },
-          { label: 'Cultura', align: 'left', width: 0.12 },
-          { label: 'Tipul', align: 'left', width: 0.11 },
-          { label: 'Produsul', align: 'left', width: 0.17 },
-          { label: 'Doza', align: 'left', width: 0.11 },
-          { label: 'Suprafața', align: 'right', width: 0.15 },
+          { label: 'Nr.', align: 'right', width: 0.04 },
+          { label: 'Data', align: 'left', width: 0.1 },
+          { label: 'Parcela', align: 'left', width: 0.14 },
+          { label: 'Cultura', align: 'left', width: 0.1 },
+          { label: 'Tipul', align: 'left', width: 0.09 },
+          { label: 'Produsul', align: 'left', width: 0.13 },
+          { label: 'Doza', align: 'left', width: 0.09 },
+          { label: 'Suprafața', align: 'right', width: 0.1 },
+          /* Noted with the treatment (migration 051); blank on older ones, to fill in by hand. */
+          { label: 'Motivul', align: 'left', width: 0.11 },
+          { label: 'Cine a aplicat', align: 'left', width: 0.1 },
         ],
         rows: rows.map((r, i) => ({
           cells: [
@@ -494,10 +536,16 @@ export function phytoRegisterReport(ctx: ReportContext, rows: TreatmentRow[], pe
             r.operation.product ?? '',
             r.operation.dose ?? '',
             r.season?.area_ari ? hectares(r.season.area_ari) : '',
+            r.operation.target ?? '',
+            r.operation.operator ?? '',
           ],
         })),
         empty: 'Niciun tratament notat ca făcut în perioada asta.',
       },
+    ],
+    missing: [
+      ...gap(rows.filter((r) => !r.operation.target).length, 'fără motiv (boala, dăunătorul sau buruiana)'),
+      ...gap(rows.filter((r) => !r.operation.operator).length, 'fără cine l-a aplicat'),
     ],
     notes: [
       'Sunt lucrările de pe hartă notate ca făcute. Suprafața e a parcelei întregi în anul ei.',
@@ -509,7 +557,7 @@ export function phytoRegisterReport(ctx: ReportContext, rows: TreatmentRow[], pe
 
 /* ---- Terenul și culturile ---- */
 
-const LAND_USES: Record<string, string> = { TA: 'teren arabil', PP: 'pajiște permanentă', CP: 'culturi permanente', VI: 'vie', LI: 'livadă' };
+export const LAND_USES: Record<string, string> = { TA: 'teren arabil', PP: 'pajiște permanentă', CP: 'culturi permanente', VI: 'vie', LI: 'livadă' };
 
 export interface LandInput {
   /** The parcels on the map in that year. Empty when the farm has none placed. */

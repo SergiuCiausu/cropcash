@@ -70,7 +70,7 @@ const refusalOf = (e: PostgrestError): Error => {
 
 const PLOT_COLUMNS = 'id, name, county, siruta, bloc_fizic, parcel_no, land_use, auto_crop_id, archived_at';
 const SEASON_COLUMNS = 'plot_id, harvest_year, crop_id, apia_crop_code, area_ari, sown_on, harvested_on';
-const OPERATION_COLUMNS = 'id, plot_id, harvest_year, kind, status, on_date, product, dose, note';
+const OPERATION_COLUMNS = 'id, plot_id, harvest_year, kind, status, on_date, product, dose, note, target, operator';
 
 export function supabaseMembers(db: SupabaseFactory): MemberStore {
   return {

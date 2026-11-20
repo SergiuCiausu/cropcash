@@ -315,6 +315,40 @@ export const PlanParamsFileSchema = z.object({
     frost_min_c: z.object({ value: z.number() }).passthrough(),
     spray_wind_max_kmh: Param,
   }),
+  /** Rain over the next years: history ranges, climate-model trend, monthly outlook (docs/rain-outlook-plan.md). */
+  rain_outlook: z.object({
+    history_from_year: z.object({ value: z.number().int().min(1940) }).passthrough(),
+    model_reference_years: z
+      .object({ from: z.number().int().min(1950), to: z.number().int().max(2049) })
+      .passthrough()
+      .refine((r) => r.from < r.to, 'from must be before to'),
+    model_window_years: z.object({ value: z.number().int().min(1).max(20) }).passthrough(),
+    models_agree_min: z.object({ value: z.number().int().min(1) }).passthrough(),
+    outlook_years: z.object({ value: z.number().int().min(1).max(10) }).passthrough(),
+    low_percentile: z.object({ value: z.number().min(0).max(50) }).passthrough(),
+    high_percentile: z.object({ value: z.number().min(50).max(100) }).passthrough(),
+    dry_percentile: z.object({ value: z.number().min(1).max(50) }).passthrough(),
+    seasonal_usual_band_pct: z.object({ value: z.number().min(0).max(100) }).passthrough(),
+    yield_link_min_r: z.object({ value: z.number().min(0).max(1) }).passthrough(),
+    yield_link_min_dry_years: z.object({ value: z.number().int().min(1) }).passthrough(),
+    seasonal_cache_hours: PositiveParam,
+    seasons: z
+      .object({
+        items: z
+          .array(
+            z
+              .object({
+                id: z.string().min(1),
+                from_month: z.number().int().min(1).max(12),
+                to_month: z.number().int().min(1).max(12),
+                label_ro: z.string().min(1),
+              })
+              .refine((s) => s.from_month <= s.to_month, 'seasons cannot wrap the new year'),
+          )
+          .min(1),
+      })
+      .passthrough(),
+  }),
   /** How long the phone waits on the API, and how the outbox retries (docs/failure-handling-plan.md). */
   network: z.object({
     read_timeout_s: PositiveParam,

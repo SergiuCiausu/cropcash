@@ -30,6 +30,8 @@ export interface PlotCardProps {
   onAddWork: () => void;
   onExpense: () => void;
   onDraw: () => void;
+  /** A new parcel for hectares not on the map yet, drawn by hand. */
+  onDrawNew?: () => void;
   /** Throws to show why it failed. */
   onMarkDone: (item: TodoItem) => Promise<void>;
   /** For the hectares that aren't on the map yet: read the cerere. */
@@ -77,11 +79,18 @@ export function PlotCard(props: PlotCardProps) {
 
       {unplacedHectares && (
         <section className="pc-sec pc-unplaced">
-          <p>Hectarele astea nu au încă loc pe hartă. Le pui din cererea de plată APIA: citim tabelul cu parcele și găsim blocurile.</p>
+          <p>Hectarele astea nu au încă loc pe hartă. Le pui din cererea de plată APIA, unde citim tabelul cu parcele și găsim blocurile, sau desenezi tu parcela pe hartă.</p>
           {writes === 'yes' && (
-            <NetButton className="btn btn-dark" reason="Ca să citim cererea ai nevoie de internet." onClick={props.onCerere}>
-              Pune parcelele din cererea APIA
-            </NetButton>
+            <div className="pc-unplaced-acts">
+              <NetButton className="btn btn-dark" reason="Ca să citim cererea ai nevoie de internet." onClick={props.onCerere}>
+                Pune parcelele din cererea APIA
+              </NetButton>
+              {props.onDrawNew && (
+                <button type="button" className="btn btn-line" onClick={props.onDrawNew}>
+                  Desenează parcela pe hartă
+                </button>
+              )}
+            </div>
           )}
         </section>
       )}

@@ -10,3 +10,4 @@ export * from './seasons';
 export * from './county-yields';
 export * from './drivers';
 export * from './plan-diff';
+export * from './excise';

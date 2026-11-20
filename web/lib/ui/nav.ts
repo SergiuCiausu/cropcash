@@ -51,6 +51,7 @@ export const SALARY_PAGES: { path: string; label: string }[] = [
 export function sectionOf(page: string): string {
   if (SUBSIDY_PAGES.some((p) => p.path === page)) return '/subventii';
   if (page === '/date-plan' || page === '/bani') return '/salariu';
+  if (page === '/verificari') return '/admin';
   return page;
 }
 
@@ -62,6 +63,6 @@ export const CROP_TAB_PAGES: readonly string[] = ['/acasa', '/subventii', '/cale
  * page load; a link to a legacy page loads it, because its scripts run once per load (lib/boot.ts).
  * screens.test.ts checks this list against web/screens.
  */
-export const REACT_PAGES: readonly string[] = ['/salariu', '/date-plan', '/subventii', '/calendar', '/recolte', '/prognoza', '/pensie', '/bani', '/oportunitati', '/surse', '/acasa', '/rapoarte', '/de-raportat', '/harta', '/oameni', '/arenda', '/contracte', '/admin'];
+export const REACT_PAGES: readonly string[] = ['/salariu', '/date-plan', '/subventii', '/calendar', '/recolte', '/prognoza', '/pensie', '/bani', '/oportunitati', '/surse', '/acasa', '/rapoarte', '/de-raportat', '/harta', '/oameni', '/arenda', '/contracte', '/admin', '/verificari'];
 
 export const isReactPage = (page: string) => REACT_PAGES.includes(page);

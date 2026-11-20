@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import {
   ApiaDecisionSchema,
+  SetApiaFactsInputSchema,
+  SetLivestockInputSchema,
+  livestockProblems,
+  LivestockFileSchema,
   HarvestsInputSchema,
   OnboardingInputSchema,
   SetCropCostInputSchema,
@@ -27,6 +31,10 @@ import {
   type SubsidyParams,
 } from '@cropcash/shared';
 import { RepoError, type Repo } from '../db/repo';
+import livestockJson from '../../../../docs/data/livestock.json';
+
+/** docs/data/livestock.json: the categories a farm may note. */
+const LIVESTOCK = LivestockFileSchema.parse(livestockJson);
 
 export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams, now: () => Date): Router {
   const r = Router();
@@ -241,6 +249,40 @@ export function farmersRouter(repo: Repo, data: AppData, params: SubsidyParams, 
       return;
     }
     await repo.setApiaDecision(token, farm.id, parsed.data);
+    res.status(204).end();
+  });
+
+  /** „Ai animale?” and the like, on /rapoarte → „Pentru APIA”: which APIA papers apply. The whole set, replaced. */
+  r.put('/farmers/me/apia-facts', async (req, res) => {
+    const parsed = SetApiaFactsInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid_input' });
+      return;
+    }
+    const { token } = res.locals.auth;
+    const farm = await repo.getMyFarm(token);
+    if (!farm) {
+      res.status(404).json({ error: 'no_farm' });
+      return;
+    }
+    await repo.setApiaFacts(token, farm.id, parsed.data);
+    res.status(204).end();
+  });
+
+  /** „Animalele fermei” on /rapoarte → „Pentru APIA”: heads per field-47 category, the ANSVSA code, the hay. Replaced whole. */
+  r.put('/farmers/me/livestock', async (req, res) => {
+    const parsed = SetLivestockInputSchema.safeParse(req.body);
+    if (!parsed.success || livestockProblems(LIVESTOCK, parsed.data).length) {
+      res.status(400).json({ error: 'invalid_input' });
+      return;
+    }
+    const { token } = res.locals.auth;
+    const farm = await repo.getMyFarm(token);
+    if (!farm) {
+      res.status(404).json({ error: 'no_farm' });
+      return;
+    }
+    await repo.setLivestock(token, farm.id, parsed.data);
     res.status(204).end();
   });
 
